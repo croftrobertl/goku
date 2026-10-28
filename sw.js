@@ -1,6 +1,6 @@
 // Offline cache. Bump CACHE_VERSION (and VERSION in js/version.js) for every release;
 // the app then shows "New version available" and never reloads on its own.
-const CACHE_VERSION = '1.0.1';
+const CACHE_VERSION = '1.0.2';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
