@@ -15,6 +15,8 @@ const MIGRATIONS = [
   },
 ];
 
+// The connection is reopened if the browser closes it (WebKit can drop it while
+// the app is in the background), and a failed open is never cached.
 let dbp = null;
 export function open() {
   if (dbp) return dbp;
@@ -23,55 +25,75 @@ export function open() {
     req.onupgradeneeded = ev => {
       for (let v = ev.oldVersion; v < DB_VERSION; v++) MIGRATIONS[v](req.result, req.transaction);
     };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-    req.onblocked = () => reject(new Error('Close other Goku windows and try again.'));
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onclose = () => { dbp = null; };
+      db.onversionchange = () => { db.close(); dbp = null; };
+      resolve(db);
+    };
+    req.onerror = () => { dbp = null; reject(req.error); };
+    req.onblocked = () => { dbp = null; reject(new Error('Close other Goku windows and try again.')); };
   });
   return dbp;
 }
 
-function wrap(req) {
-  return new Promise((resolve, reject) => {
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
+// Runs fn(db) and, if the connection turned out to be dead, reopens once and retries.
+async function withDb(fn) {
+  try { return await fn(await open()); }
+  catch (e) {
+    if (e?.name !== 'InvalidStateError' && !/connection|closing|closed/i.test(e?.message || '')) throw e;
+    dbp = null;
+    return fn(await open());
+  }
 }
 
-async function store(name, mode = 'readonly') {
-  return (await open()).transaction(name, mode).objectStore(name);
-}
-
-export const get = async (s, key) => wrap((await store(s)).get(key));
-export const all = async s => wrap((await store(s)).getAll());
-export const put = async (s, val) => wrap((await store(s, 'readwrite')).put(val));
-export const del = async (s, key) => wrap((await store(s, 'readwrite')).delete(key));
-export const byIndex = async (s, index, key) => wrap((await store(s)).index(index).getAll(key));
-
-export async function putMany(s, vals) {
-  const db = await open();
+function run(db, stores, mode, body) {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(s, 'readwrite');
-    const os = tx.objectStore(s);
-    for (const v of vals) os.put(v);
-    tx.oncomplete = () => resolve();
+    const tx = db.transaction(stores, mode);
+    let result;
+    tx.oncomplete = () => resolve(result);
     tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error('Save cancelled'));
+    try { body(tx, v => { result = v; }); } catch (e) { try { tx.abort(); } catch { /* already finished */ } reject(e); }
   });
 }
 
-export async function deleteProfileEntries(profileId) {
-  const db = await open();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('entries', 'readwrite');
-    const idx = tx.objectStore('entries').index('profile');
-    const req = idx.openKeyCursor(IDBKeyRange.only(profileId));
-    req.onsuccess = () => {
-      const c = req.result;
-      if (c) { tx.objectStore('entries').delete(c.primaryKey); c.continue(); }
-    };
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
+const req1 = (s, mode, op) => withDb(db => run(db, s, mode, (tx, set) => {
+  const r = op(tx.objectStore(s)); r.onsuccess = () => set(r.result);
+}));
+
+export const get = (s, key) => req1(s, 'readonly', os => os.get(key));
+export const all = s => req1(s, 'readonly', os => os.getAll());
+export const put = (s, val) => req1(s, 'readwrite', os => os.put(val));
+export const del = (s, key) => req1(s, 'readwrite', os => os.delete(key));
+export const byIndex = (s, index, key) => req1(s, 'readonly', os => os.index(index).getAll(key));
+export const byIndexRange = (s, index, lo, hi) => req1(s, 'readonly', os => os.index(index).getAll(IDBKeyRange.bound(lo, hi)));
+
+export const putMany = (s, vals) => withDb(db => run(db, s, 'readwrite', tx => {
+  const os = tx.objectStore(s);
+  for (const v of vals) os.put(v);
+}));
+
+// Deletes a profile's entries and writes the new ones in ONE transaction:
+// if any write fails, nothing is deleted.
+export const replaceProfileEntries = (profileId, vals) => withDb(db => run(db, 'entries', 'readwrite', tx => {
+  const os = tx.objectStore('entries');
+  const cur = os.index('profile').openKeyCursor(IDBKeyRange.only(profileId));
+  cur.onsuccess = () => {
+    const c = cur.result;
+    if (c) { os.delete(c.primaryKey); c.continue(); }
+    else for (const v of vals) os.put(v);
+  };
+}));
+
+// Removes a profile, all its entries and its meta keys, in one transaction.
+export const deleteProfile = profileId => withDb(db => run(db, ['profiles', 'entries', 'meta'], 'readwrite', tx => {
+  tx.objectStore('profiles').delete(profileId);
+  const os = tx.objectStore('entries');
+  const cur = os.index('profile').openKeyCursor(IDBKeyRange.only(profileId));
+  cur.onsuccess = () => { const c = cur.result; if (c) { os.delete(c.primaryKey); c.continue(); } };
+  for (const k of ['run:', 'seeded:']) tx.objectStore('meta').delete(k + profileId);
+}));
 
 export const getMeta = async key => (await get('meta', key))?.value;
 export const setMeta = (key, value) => put('meta', { key, value });

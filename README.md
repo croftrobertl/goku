@@ -41,22 +41,34 @@ The app asks the browser to protect its storage from automatic clearing. Setting
 whether that was granted. iOS can still remove data if the app is deleted from the Home Screen,
 so **back up regularly**. A badge appears in the header when the last backup is 7 or more days old.
 
-**Back up:** Settings → **Export backup** opens the share sheet → **Save to Files** → iCloud Drive.
-Each export covers only the profile that's open.
+**Back up:** Settings → **Export backup** prepares the file, then **Save or share** opens the share
+sheet → **Save to Files** → iCloud Drive. Each export covers only the profile that's open. The
+"last backup" date only changes when the share sheet reports a save, or when you choose Download.
 
 **Encrypted backup (optional):** Settings → **Export encrypted backup**. You choose a passphrase
 (8+ characters) and the file is encrypted with AES-256-GCM, using a key derived with PBKDF2-SHA256
 at 310,000 rounds. **If the passphrase is forgotten, that backup can never be opened.**
 
 **Restore:** Settings → **Import a backup** → choose the file. A preview shows what's inside.
-- **Merge** keeps everything on the phone and adds or updates entries from the file. When both
-  have the same entry, the newer copy wins.
-- **Replace** deletes that profile's entries on the phone, then loads the file's.
-- A backup of a profile that isn't on the phone is added as a new profile, and you set its passcode.
+Every field is checked and cleaned first; damaged entries are skipped and counted in the preview.
+- A backup of **the open profile** can be merged or replaced:
+  - **Merge** keeps everything on the phone and adds or updates entries from the file. When both
+    have the same entry, the newer copy wins.
+  - **Replace** swaps the profile's entries for the file's in a single all-or-nothing step: if
+    anything fails, nothing on the phone changes.
+- A backup of **another profile on this phone** is refused. Open that profile (with its passcode) and
+  import it there, so no profile can overwrite another.
+- A backup of a profile that **isn't on the phone** is added as a new profile, and you set its passcode.
 
 **Forgotten passcode:** another profile on the same phone opens Settings → *Reset passcode*.
-The data is kept, and the owner sets a new passcode the next time the profile opens.
-With only one profile on the phone, restore from a backup instead.
+The data is kept. The owner sets a new passcode the next time the profile opens and is told when,
+and from which profile, it was reset. With only one profile on the phone, restore from a backup instead.
+
+**Delete a profile:** Settings → *Delete this profile*. It offers an export first, asks for that
+profile's passcode, then erases the profile and all its entries.
+
+**Privacy curtain:** while Goku is in the background, the screen shows only the orb, so the iPhone
+app switcher doesn't show anyone's data *(verify)*.
 
 ---
 
@@ -77,11 +89,14 @@ than the Home Screen app *(verify)*.
 
 ## Updating the app
 
-1. Make the change.
-2. Bump **both** `CACHE_VERSION` in `sw.js` and `VERSION` in `js/version.js` to the same new value.
-3. Commit and push to `main`. GitHub Pages publishes within a minute or two.
-4. The next time the app is opened, it shows **"New version available · tap to update."** It never
-   reloads on its own, and it waits until a workout is finished.
+1. Make the change. Any new file the app loads must be added to `FILES` in `sw.js`.
+2. Run `tools/release.sh 1.2.0` (the new version). It sets the version in `sw.js` and
+   `js/version.js` together, then checks that every offline file exists, every app file is in the
+   offline list, and every script parses. Don't publish if it reports a problem.
+3. Commit and push to `main`. GitHub Pages publishes within a minute or two. The offline worker
+   downloads each file with `?v=<version>`, so GitHub's 10-minute cache can't mix old and new files.
+4. The next time the app is opened, a bar says **"A new version of Goku is ready"** with *Later* and
+   *Update*. It never reloads on its own and stays hidden during a workout.
 
 ---
 
@@ -117,7 +132,7 @@ A stable JSON format, so a future native app could import the full history.
 
 | `type` | `data` fields |
 |---|---|
-| `exercise` | `name`, `slot` (push/pull/legs/core/power/joints), `module`, `stages[]` of `{label, load}` (hardest first) |
+| `exercise` | `name`, `slot` (push/pull/legs/core/power/joints), `module`, `order`, `stages[]` of `{label, load}` (hardest first) |
 | `session` (strength) | `gravity`, `startedAt`, `endedAt`, `sets[]` of `{exId, name, slot, round, stages[] of {label, load, reps}}`, `repTimes[]` (seconds from start for each rep; drives the ghost) |
 | `gut` | `amWaist`, `pmWaist`, `bloat` (0–10), `foods[]`, `fluidsOz`, `supplements[]`, `protein[]` (grams per addition) |
 | `checkin` | `sleepH`, `sleepQ`, `fatigue`, `stress`, `mood`, `fun` (each 1–5), `sore[]` (areas), `archPain`, `techPain`, `dizzy` |
@@ -137,13 +152,16 @@ verdict. Low scores suggest talking to a coach and never say "skip training".
 
 ---
 
-## Health red flags — TO BE REVIEWED BY HER DOCTOR
+## Health red flags — TO BE REVIEWED BY THE ATHLETE'S DOCTOR
 
 These flags route to a parent, coach or doctor and never to self-treatment.
-**This list is a draft for her pediatrician to review and change.**
+**This list is a draft for a doctor to review and change.**
 
-Built into M1:
-- Wrists sore three check-ins in a row.
+Each person chooses their own guardrails. "Red flags and care checks" is on by default for the
+gymnastics profile; turning it off hides both the health questions and the reminders.
+
+Built in:
+- Wrists sore in each of the last 3 check-ins, all within 7 days (a skipped day doesn't reset it).
 - Back pain when arching.
 - Pain that changes how a skill is done.
 - Dizziness or feeling faint.
@@ -155,19 +173,22 @@ Proposed for M2 (each needs doctor sign-off first):
 - Missed or irregular periods, only if she chooses to track them.
 - Any headache, confusion or vision change after a fall or a hit to the head: same-day medical care.
 
-The app never shows weight-loss goals, calorie deficits, body-weight trends, or "good vs. bad" food
-labels in the gymnastics profile. Fueling is framed only as enough energy to train, grow and recover.
+The gymnastics profile has no weight-loss goals, calorie deficits, body-weight trends, or "good vs. bad"
+food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---
 
-## Testing status (M1)
+## Testing status (1.1.0)
 
-Tested in the Mac browser (Chromium engine) at phone and desktop widths, in light and dark mode:
-onboarding, passcodes (create, confirm, wrong tries, 30-second wait, remember-for, relock on reload,
-reset by another profile), circuits and gravity levels, rep counter with drop stages, rest timer,
-undo, ghost, a workout surviving a reload, gut log, check-in with body map and list, care flags,
-session load, week planner, export, encrypted round trip, import (merge, replace, bad file), the
-update banner, and full offline use with the server stopped.
+Tested in the Mac browser (Chromium engine) at 320 px, phone and desktop widths, in light and dark mode:
+upgrading from 1.0.2 with existing data; onboarding with Cancel; passcodes (create, change with Cancel,
+wrong tries, wait, remember-for, relock without losing unsaved input, a single lock screen, reset by
+another profile with notice, verify before delete); one workout per tap, double-tap protection, rest
+that stray taps can't skip, undo across reps, drops, sets and rests, an abandoned workout saved at its
+last rep; backdated gut log and edited sessions; export sheet; import refusing another profile's
+backup, cleaning damaged entries, and an all-or-nothing Replace rolled back after a forced failure;
+red-flag rule across a skipped day and the care toggle; privacy curtain; text contrast ≥ 4.5:1 in both
+modes (including a yellow accent); text scaling; desktop sidebar; and full offline use.
 
 **Not yet tested on iOS** (needs the iOS 26 simulator runtime): Home Screen install and separate
 storage, Safari share sheet export, Screen Wake Lock, audio cues after screen lock, safe areas,
@@ -190,6 +211,8 @@ js/onboarding.js       first-launch setup
 js/engine.js           strength and conditioning profile
 js/perf.js             gymnastics and vaulting profile
 js/settings.js         settings, export and import
+js/validate.js         checks and cleans imported backups
+tools/release.sh       bumps the version and checks a release before publishing
 js/crypto.js           passcode hashing and encrypted exports
 js/time.js             US/Eastern day logic
 ```

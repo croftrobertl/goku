@@ -1,10 +1,11 @@
 // Settings, profile management, and backup (export / import).
-import { S, profile, saveProfile, MODULES, KINDS, newProfile } from './state.js';
+import { S, profile, saveProfile, KINDS, newProfile, liveModules, soonModules } from './state.js';
 import * as db from './db.js';
 import { encryptJSON, decryptJSON } from './crypto.js';
 import { showLock, lockNow } from './lock.js';
 import { onboard, ACCENTS } from './onboarding.js';
-import { esc, ask, overlay, toast } from './ui.js';
+import { cleanBackup } from './validate.js';
+import { esc, ask, overlay, toast, guard } from './ui.js';
 import { VERSION } from './version.js';
 
 export const SCHEMA_VERSION = 1;
@@ -12,7 +13,7 @@ const DAY = 86400000;
 
 // ---------- Export format (documented in README) ----------
 const toISO = o => { const r = { ...o }; for (const k in r) if (k.endsWith('At') && typeof r[k] === 'number') r[k] = r[k] ? new Date(r[k]).toISOString() : null; return r; };
-const fromISO = o => { const r = { ...o }; for (const k in r) if (k.endsWith('At') && typeof r[k] === 'string') r[k] = Date.parse(r[k]); return r; };
+const fromISO = o => { const r = { ...o }; for (const k in r) if (k.endsWith('At') && typeof r[k] === 'string') r[k] = Date.parse(r[k]) || 0; return r; };
 
 export async function buildExport(p) {
   const list = await db.byIndex('entries', 'profile', p.id);
@@ -28,37 +29,57 @@ export async function buildExport(p) {
 function parseExport(obj) {
   if (obj?.app !== 'goku' || typeof obj.schemaVersion !== 'number') throw new Error("This file isn't a Goku backup.");
   if (obj.schemaVersion > SCHEMA_VERSION) throw new Error('This backup is from a newer version of Goku. Update the app first.');
-  const prof = fromISO(obj.profile);
-  const entries = obj.entries.map(e => ({ id: e.id, profileId: prof.id, type: e.type, day: e.day,
-    ts: Date.parse(e.time), updatedAt: Date.parse(e.updatedAt) || Date.parse(e.time), data: fromISO(e.data) }));
-  return { prof, entries };
+  const raw = (Array.isArray(obj.entries) ? obj.entries : []).map(e => e && typeof e === 'object'
+    ? { id: e.id, type: e.type, day: e.day, ts: Date.parse(e.time), updatedAt: Date.parse(e.updatedAt), data: e.data && typeof e.data === 'object' ? fromISO(e.data) : null }
+    : null);
+  return cleanBackup(obj.profile && typeof obj.profile === 'object' ? fromISO(obj.profile) : null, raw);
 }
 
-async function shareFile(name, text) {
-  const file = new File([text], name, { type: 'application/json' });
-  if (navigator.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: name }); return true; }
-    catch (e) { if (e.name === 'AbortError') return false; }
-  }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(file); a.download = name;
-  document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  return true;
-}
-
+// ---------- Export: build first, then share from a fresh tap ----------
+// Building (and encrypting) can take a moment, and iOS only opens the share sheet
+// straight after a tap, so the file is prepared before the "Save" button appears.
 export async function exportNow(encrypted = false) {
   const p = profile();
   let payload = await buildExport(p);
   if (encrypted) {
     const pass = await passphrase(true);
     if (!pass) return;
+    toast('Encrypting…');
     payload = await encryptJSON(payload, pass);
   }
   const stamp = new Date().toISOString().slice(0, 10);
   const safe = p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'profile';
-  const ok = await shareFile(`goku-${safe}-${stamp}${encrypted ? '-encrypted' : ''}.json`, JSON.stringify(payload, null, 1));
-  if (ok) { p.lastBackupAt = Date.now(); await saveProfile(p); toast('Backup created'); window.goku.render(); }
+  const name = `goku-${safe}-${stamp}${encrypted ? '-encrypted' : ''}.json`;
+  const file = new File([JSON.stringify(payload, null, 1)], name, { type: 'application/json' });
+  const canShare = !!navigator.canShare?.({ files: [file] });
+  const { el, close } = overlay(`<div class="scroll" style="display:flex;flex-direction:column;justify-content:center">
+    <p class="lbl">Backup ready</p><h1>${esc(name)}</h1>
+    <p class="sub" style="margin:8px 0 16px">${Math.max(1, Math.round(file.size / 1024))} KB · ${payload.entries ? payload.entries.length + ' entries' : 'encrypted'}.
+    ${canShare ? 'Choose <b>Save to Files</b>, then iCloud Drive, so it survives a lost phone.' : 'Your browser will download it. Move it somewhere safe, like iCloud Drive.'}</p>
+    <p class="msg" id="m" role="status"></p>
+    ${canShare ? '<button class="cta" id="share">Save or share</button>' : ''}
+    <button class="${canShare ? 'cta2' : 'cta'}" id="dl" style="width:100%;margin-top:10px">Download instead</button>
+    <button class="cta2" id="x" data-close style="width:100%;margin-top:10px">Not now</button></div>`, { label: 'Backup ready' });
+  const done = async how => {
+    p.lastBackupAt = Date.now(); await saveProfile(p); close();
+    toast(how === 'download' ? 'Downloaded. Check that it reached the Files app.' : 'Backup saved');
+    window.goku.render();
+  };
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'x') close();
+    if (b.id === 'share') {
+      try { await navigator.share({ files: [file], title: name }); await done('share'); }
+      catch (err) { if (err.name !== 'AbortError') el.querySelector('#m').textContent = "The share sheet didn't open. Try Download instead."; }
+    }
+    if (b.id === 'dl') {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(file); a.download = name;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      await done('download');
+    }
+  });
 }
 
 function passphrase(creating) {
@@ -70,8 +91,8 @@ function passphrase(creating) {
       <label class="f"><span>Passphrase</span><input id="p1" type="password" autocomplete="off"></label>
       ${creating ? '<label class="f"><span>Repeat passphrase</span><input id="p2" type="password" autocomplete="off"></label>' : ''}
       <p class="msg" id="m" role="status"></p>
-      <button class="cta" id="ok" style="margin-top:12px">${creating ? 'Encrypt and share' : 'Open backup'}</button>
-      <button class="cta2" id="no" style="width:100%;margin-top:8px">Cancel</button>`, { label: 'Passphrase' });
+      <button class="cta" id="ok" style="margin-top:12px">${creating ? 'Encrypt' : 'Open backup'}</button>
+      <button class="cta2" id="no" data-close style="width:100%;margin-top:8px">Cancel</button>`, { label: 'Passphrase' });
     el.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.id === 'no') { close(); resolve(null); }
@@ -85,13 +106,16 @@ function passphrase(creating) {
   });
 }
 
+// ---------- Import: only ever touches the open profile, or adds a new one ----------
 export function importFlow() {
   const input = document.createElement('input');
   input.type = 'file'; input.accept = 'application/json,.json';
   input.onchange = async () => {
     const f = input.files[0]; if (!f) return;
     try {
-      let obj = JSON.parse(await f.text());
+      if (f.size > 50 * 1024 * 1024) throw new Error('That file is too large to be a Goku backup.');
+      let obj;
+      try { obj = JSON.parse(await f.text()); } catch { throw new Error("This file isn't a Goku backup."); }
       if (obj?.encrypted) {
         const pass = await passphrase(false); if (!pass) return;
         try { obj = await decryptJSON(obj, pass); } catch { throw new Error("That passphrase didn't open this backup."); }
@@ -102,49 +126,75 @@ export function importFlow() {
   input.click();
 }
 
-async function previewImport({ prof, entries }) {
+async function previewImport({ prof, entries, skipped }) {
+  const cur = profile();
+  const other = S.profiles.find(p => p.id === prof.id && p.id !== cur.id);
+  if (other) {
+    await ask('This backup belongs to another profile', `It's a backup of <b>${esc(other.name)}</b>. To protect their data, open their profile (with their passcode) and import it there.`, []);
+    return;
+  }
+  const mine = prof.id === cur.id;
   const counts = {};
   for (const e of entries) counts[e.type] = (counts[e.type] || 0) + 1;
   const days = entries.map(e => e.day).filter(d => d > '1970-01-01').sort();
-  const existing = S.profiles.find(p => p.id === prof.id);
-  const body = `<b>${esc(prof.name)}</b> · ${esc(KINDS[prof.kind]?.label || prof.kind)}<br>
+  const body = `<b>${esc(prof.name)}</b> · ${esc(KINDS[prof.kind].label)}<br>
     ${Object.entries(counts).map(([k, n]) => `${n} ${esc(k)}${n === 1 ? '' : 's'}`).join(' · ') || 'No entries'}<br>
-    ${days.length ? `From ${days[0]} to ${days[days.length - 1]}` : ''}<br><br>
-    ${existing ? `This matches <b>${esc(existing.name)}</b> on this phone.<br><br>
-      <b>Merge</b> keeps everything on this phone and adds or updates entries from the backup (the newer copy of each wins).<br>
-      <b>Replace</b> deletes this profile's entries here and uses the backup's instead.`
-      : 'This profile is not on this phone yet. It will be added and you will set a passcode for it.'}`;
-  const choice = await ask('Import this backup?', body, existing
+    ${days.length ? `From ${esc(days[0])} to ${esc(days[days.length - 1])}` : ''}
+    ${skipped ? `<br>${skipped} damaged entr${skipped === 1 ? 'y' : 'ies'} will be skipped.` : ''}<br><br>
+    ${mine ? `<b>Merge</b> keeps everything here and adds or updates entries from the backup (the newer copy of each wins).<br>
+      <b>Replace</b> swaps this profile's entries for the backup's, all at once.`
+      : 'This profile is not on this phone yet. It will be added as a new profile, and you will set its passcode.'}`;
+  const choice = await ask('Import this backup?', body, mine
     ? [{ label: 'Merge', value: 'merge' }, { label: 'Replace', value: 'replace' }]
     : [{ label: 'Add profile', value: 'add' }]);
   if (!choice) return;
-  if (choice === 'replace') {
-    const sure = await ask('Replace everything?', `All entries for ${esc(existing.name)} on this phone will be deleted first. Export a backup now if you're unsure.`,
-      [{ label: 'Replace', value: true }]);
-    if (!sure) return;
-  }
+  if (choice === 'replace' && !(await ask('Replace everything?',
+    `All entries for ${esc(cur.name)} on this phone will be swapped for the backup's. If anything goes wrong, nothing is changed. Export a backup first if you're unsure.`,
+    [{ label: 'Replace', value: true, danger: true }]))) return;
   const { lockRemember, ...rest } = prof;
-  if (choice === 'add') {
-    const p = { ...newProfile(prof.kind, prof.name), ...rest, lock: { ...newProfile(prof.kind, '').lock, remember: lockRemember ?? 7 } };
-    await saveProfile(p);
-    await db.putMany('entries', entries);
-    await db.setMeta('seeded:' + p.id, true);
-    S.current = p.id;
-    await showLock(p, { mode: 'create' });
-  } else if (choice === 'replace') {
-    await db.deleteProfileEntries(existing.id);
-    await db.putMany('entries', entries);
-    Object.assign(existing, rest, { lock: existing.lock });
-    await saveProfile(existing);
-  } else {
-    const here = new Map((await db.byIndex('entries', 'profile', existing.id)).map(e => [e.id, e]));
-    await db.putMany('entries', entries.filter(e => !here.has(e.id) || (e.updatedAt || 0) > (here.get(e.id).updatedAt || 0)));
+  try {
+    if (choice === 'add') {
+      const fresh = newProfile(prof.kind, prof.name);
+      const p = { ...fresh, ...rest, accent: rest.accent || fresh.accent, modules: { ...fresh.modules, ...rest.modules },
+        settings: { ...fresh.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([, v]) => v !== null)) },
+        lock: { ...fresh.lock, remember: lockRemember } };
+      await db.putMany('entries', entries);
+      await saveProfile(p);
+      await db.setMeta('seeded:' + p.id, true);
+      if (await showLock(p, { mode: 'create' })) window.goku.open(p.id);
+      else window.goku.render();
+    } else if (choice === 'replace') {
+      await db.replaceProfileEntries(cur.id, entries);
+      Object.assign(cur, { name: rest.name, accent: rest.accent || cur.accent, dayEndsAt: rest.dayEndsAt, modules: { ...cur.modules, ...rest.modules },
+        settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([, v]) => v !== null)) } });
+      await saveProfile(cur);
+    } else {
+      const here = new Map((await db.byIndex('entries', 'profile', cur.id)).map(e => [e.id, e]));
+      await db.putMany('entries', entries.filter(e => !here.has(e.id) || (e.updatedAt || 0) > (here.get(e.id).updatedAt || 0)));
+    }
+    toast('Import complete');
+  } catch (e) {
+    await ask('Import stopped', `Nothing was changed. (${esc(e.message || 'Unknown error')})`, []);
   }
-  toast('Import complete');
   window.goku.render();
 }
 
 export const backupAgeDays = p => p.lastBackupAt ? Math.floor((Date.now() - p.lastBackupAt) / DAY) : null;
+
+async function deleteThisProfile() {
+  const p = profile();
+  const sure = await ask(`Delete ${p.name}?`,
+    `Every session, check-in and log for <b>${esc(p.name)}</b> on this phone will be erased. This can't be undone. Export a backup first if you might want it back.`,
+    [{ label: 'Export a backup first', value: 'export' }, { label: 'Delete profile', value: 'delete', danger: true }]);
+  if (sure === 'export') return exportNow(false);
+  if (sure !== 'delete') return;
+  if (!(await showLock(p, { mode: 'verify', cancellable: true }))) return;
+  await db.deleteProfile(p.id);
+  S.profiles = S.profiles.filter(x => x.id !== p.id);
+  toast('Profile deleted');
+  if (S.profiles.length) window.goku.open(S.profiles[0].id);
+  else { const np = await onboard(); window.goku.open(np.id); }
+}
 
 // ---------- Settings screen ----------
 export async function settingsView() {
@@ -152,6 +202,7 @@ export async function settingsView() {
   const others = S.profiles.filter(x => x.id !== p.id);
   const age = backupAgeDays(p);
   const persisted = await navigator.storage?.persisted?.().catch(() => false);
+  const soon = soonModules(p.kind);
   return {
     html: `<h1>Settings</h1>
     <div class="cols"><div>
@@ -161,8 +212,9 @@ export async function settingsView() {
       <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="Color ${c}"></button>`).join('')}</div>
     </section>
     <section class="card"><p class="lbl">What the app shows</p>
-      ${MODULES[p.kind].map(([k, n, d]) => `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span>
+      ${liveModules(p.kind).map(([k, n, d]) => `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span>
         <input type="checkbox" data-mod="${k}" ${p.modules[k] !== false ? 'checked' : ''}></label>`).join('')}
+      ${soon.length ? `<p class="lbl" style="margin-top:14px">Coming soon</p><p class="sub">${soon.map(m => esc(m[1])).join(' · ')}</p>` : ''}
     </section>
     ${p.kind === 'engine' ? `<section class="card"><p class="lbl">Protein target</p>
       <div class="row"><input id="pt" inputmode="numeric" value="${p.settings.proteinTarget ?? ''}" placeholder="grams" aria-label="Protein target in grams" style="width:120px">
@@ -187,24 +239,25 @@ export async function settingsView() {
     </section>
     <section class="card"><p class="lbl">Profiles on this phone</p>
       ${others.map(o => `<div class="toggle"><span>${esc(o.name)}<br><span class="sub">${esc(KINDS[o.kind].label)}</span></span>
-        <span class="row" style="gap:8px"><button class="cta2" data-open="${o.id}">Open</button><button class="cta2" data-reset="${o.id}">Reset passcode</button></span></div>`).join('')}
+        <span class="row" style="gap:8px"><button class="cta2" data-open="${esc(o.id)}">Open</button><button class="cta2" data-reset="${esc(o.id)}">Reset passcode</button></span></div>`).join('')}
       <button class="cta2" id="add" style="width:100%;margin-top:8px">Add a profile</button>
     </section>
     <section class="card"><p class="lbl">About</p>
       <p class="sub">Goku ${esc(VERSION)} · data format ${SCHEMA_VERSION}</p>
       <p class="sub">Storage: ${persisted ? 'protected from automatic clearing' : 'not yet protected; keep regular backups'}</p>
       <p class="note">No accounts, no servers, no tracking. Nothing you enter leaves this phone unless you export it.</p>
+      <button class="cta2 danger" id="delp" style="width:100%;margin-top:12px">Delete this profile</button>
     </section>
     </div></div>`,
     bind(root) {
       root.addEventListener('change', async e => {
         const t = e.target;
-        if (t.id === 'nm' && t.value.trim()) { p.name = t.value.trim(); await saveProfile(p); window.goku.render(); }
-        if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); }
+        if (t.id === 'nm' && t.value.trim()) { p.name = t.value.trim().slice(0, 24); await saveProfile(p); window.goku.render(); }
+        if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.id === 'pt') { p.settings.proteinTarget = t.value ? +t.value.replace(/\D/g, '') || null : null; await saveProfile(p); }
         if (t.id === 'de') { p.dayEndsAt = +t.value; await saveProfile(p); }
       });
-      root.addEventListener('click', async e => {
+      root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.acc) { p.accent = b.dataset.acc; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.per) { p.settings.proteinPer = b.dataset.per; await saveProfile(p); window.goku.render(); }
@@ -213,21 +266,22 @@ export async function settingsView() {
           p.lock.until = p.lock.remember ? Date.now() + p.lock.remember * DAY : 0;
           await saveProfile(p); window.goku.render();
         }
-        else if (b.id === 'exp') exportNow(false);
-        else if (b.id === 'expEnc') exportNow(true);
+        else if (b.id === 'exp') await exportNow(false);
+        else if (b.id === 'expEnc') await exportNow(true);
         else if (b.id === 'imp') importFlow();
-        else if (b.id === 'chg') { await showLock(p, { mode: 'create' }); toast('Passcode changed'); window.goku.render(); }
+        else if (b.id === 'chg') { if (await showLock(p, { mode: 'create', cancellable: true })) toast('Passcode changed'); window.goku.render(); }
         else if (b.id === 'lockNow') { lockNow(p); await saveProfile(p); window.goku.open(p.id); }
+        else if (b.id === 'delp') await deleteThisProfile();
         else if (b.dataset.open) window.goku.open(b.dataset.open);
         else if (b.dataset.reset) {
           const o = S.profiles.find(x => x.id === b.dataset.reset);
-          if (await ask(`Reset ${o.name}'s passcode?`, `${esc(o.name)} will choose a new passcode the next time the profile opens. Their data is kept.`, [{ label: 'Reset passcode', value: true }])) {
-            o.lock = { ...o.lock, pin: null, needsNewPin: true, until: 0, fails: 0, waitUntil: 0 };
+          if (await ask(`Reset ${o.name}'s passcode?`, `${esc(o.name)} will choose a new passcode the next time the profile opens, and will be told it was reset from ${esc(p.name)}'s profile. Their data is kept.`, [{ label: 'Reset passcode', value: true }])) {
+            o.lock = { ...o.lock, pin: null, needsNewPin: true, until: 0, fails: 0, waitUntil: 0, resetBy: p.name, resetAt: Date.now() };
             lockNow(o); await saveProfile(o); toast('Passcode reset');
           }
         }
-        else if (b.id === 'add') { const np = await onboard(); window.goku.open(np.id); }
-      });
+        else if (b.id === 'add') { const np = await onboard({ cancellable: true }); if (np) window.goku.open(np.id); }
+      }));
     },
   };
 }

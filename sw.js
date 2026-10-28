@@ -1,16 +1,26 @@
-// Offline cache. Bump CACHE_VERSION (and VERSION in js/version.js) for every release;
-// the app then shows "New version available" and never reloads on its own.
-const CACHE_VERSION = '1.0.2';
+// Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
+// VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
+const CACHE_VERSION = '1.1.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
-  './js/app.js', './js/db.js', './js/time.js', './js/crypto.js', './js/ui.js', './js/state.js',
+  './js/app.js', './js/db.js', './js/time.js', './js/crypto.js', './js/ui.js', './js/state.js', './js/validate.js',
   './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/version.js',
-  './icons/apple-touch-icon.png', './icons/favicon-32.png', './icons/favicon-48.png', './icons/favicon-192.png', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png', './icons/favicon-32.png', './icons/favicon-48.png', './icons/favicon-192.png',
+  './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
 ];
 
+// Each file is fetched with ?v=<version> so GitHub's CDN can't hand back a stale copy
+// from before the release, then stored under its plain address.
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))));
+  e.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await Promise.all(FILES.map(async f => {
+      const res = await fetch(new Request(f + (f.includes('?') ? '&' : '?') + 'v=' + CACHE_VERSION, { cache: 'reload' }));
+      if (!res.ok) throw new Error('Missing ' + f);
+      await cache.put(f, res);
+    }));
+  })());
 });
 
 self.addEventListener('activate', e => {
