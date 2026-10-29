@@ -24,7 +24,8 @@ export function readiness(c) {
 const word = r => r >= 75 ? 'Good to go' : r >= 55 ? 'Take it steady' : 'Talk to your coach today';
 
 // Red flags (only when the person has "Red flags and care checks" on).
-// Wrists: sore in each of the last 3 check-ins, all within the last 7 days.
+// Any area sore in each of the last 3 check-ins, all within the last 7 days. Wrists were the
+// original rule; the other areas are a draft awaiting the doctor's review (see README).
 export async function careFlags() {
   const p = profile();
   if (!on(p, 'care')) return [];
@@ -32,7 +33,8 @@ export async function careFlags() {
   const cs = (await entries('checkin')).filter(c => c.day >= addDays(t, -6) && c.day <= t);
   const last3 = cs.slice(-3);
   const flags = [];
-  if (last3.length === 3 && last3.every(c => c.data.sore.includes('Wrists'))) flags.push('Your wrists were sore in each of your last 3 check-ins.');
+  const repeated = last3.length === 3 ? AREAS.filter(a => last3.every(c => c.data.sore.includes(a))) : [];
+  if (repeated.length) flags.push(`Sore in each of your last 3 check-ins: ${repeated.map(a => a.toLowerCase()).join(', ')}.`);
   const todayC = cs.find(c => c.day === t)?.data;
   if (todayC?.archPain) flags.push('Your back hurts when you arch.');
   if (todayC?.techPain) flags.push('Pain is changing how you do a skill.');
@@ -78,8 +80,11 @@ export async function home() {
         ${weekMins ? `<div class="week">${DOW.map((d, i) => {
           const key = addDays(ws, i), mins = plan[i].gym + plan[i].vault;
           const logged = sessions.filter(s => s.day === key).reduce((a, s) => a + s.data.minutes, 0);
-          return `<button class="day ${key === t ? 'today' : ''} ${mins === 0 ? 'rest' : ''}" data-day="${i}" aria-label="${d}: ${mins ? round(mins / 60, 1) + ' hours planned' : 'rest day'}${logged ? ', ' + logged + ' minutes logged' : ''}">
-            ${d}<span class="h num">${mins === 0 ? 'Rest' : round(mins / 60, 1) + 'h'}</span>${logged ? '<span class="note" style="margin:0" aria-hidden="true">✓</span>' : ''}</button>`;
+          // Dragon Radar: training days are glowing orbs sized by hours, rest days faint blips, a star once logged.
+          const size = mins ? Math.round(16 + Math.min(mins, 300) / 300 * 14) : 8;
+          return `<button class="day radar ${key === t ? 'today' : ''} ${mins === 0 ? 'rest' : ''}" data-day="${i}" aria-label="${d}: ${mins ? round(mins / 60, 1) + ' hours planned' : 'rest day'}${logged ? ', ' + logged + ' minutes logged' : ''}">
+            ${d}<span class="orb ${logged ? 'done' : ''}" style="width:${size}px;height:${size}px" aria-hidden="true">${logged ? '★' : ''}</span>
+            <span class="h num" aria-hidden="true">${mins ? round(mins / 60, 1) + 'h' : ''}</span></button>`;
         }).join('')}</div>`
         : '<div class="empty"><p>Add your usual training hours and Goku shows your week here, with rest days.</p><button class="cta2" data-day="0">Plan my week</button></div>'}
       </section>

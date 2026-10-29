@@ -83,6 +83,12 @@ nav.tabs button[aria-current="page"] { color: var(--accent-text); font-weight: 6
 .day.today { outline: 2px solid var(--accent); }
 .day .h { font-size: .9375rem; display: block; margin-top: 4px; }
 .day.rest .h { color: var(--ok); }
+.day.radar { justify-content: space-between; gap: 4px; }
+.day.radar .h { font-size: .75rem; color: var(--tx2); min-height: 1em; }
+.orb { display: grid; place-items: center; border-radius: 50%; margin: 4px auto 0; background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); color: var(--on-accent); font-size: .6rem; line-height: 1; }
+.day.rest .orb { background: none; box-shadow: none; border: 1.5px dashed var(--tx3); opacity: .6; }
+.orb.done { font-size: .75rem; }
 .note { font-size: .75rem; color: var(--tx3); margin-top: 8px; }
 .flag { border-color: color-mix(in srgb, var(--care) 55%, var(--line)); }
 .flag .lbl { color: var(--care); }
@@ -104,6 +110,13 @@ nav.tabs button[aria-current="page"] { color: var(--accent-text); font-weight: 6
 .tap .reps { font-size: 7rem; font-weight: 600; line-height: 1; }
 .tap.bump .reps { color: var(--accent-text); }
 .tap.resting { background: var(--s2); cursor: default; }
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+.themes button { display: flex; gap: 10px; align-items: center; text-align: left; padding: 8px; border-radius: 12px; background: var(--s2); border: 2px solid transparent; font-size: .875rem; }
+.themes button[aria-pressed="true"] { border-color: var(--accent); }
+.tsw { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); }
+.tsw i { width: 14px; height: 14px; border-radius: 50%; }
+.devstat { text-align: center; font-size: .8125rem; color: var(--tx3); margin: 4px 0 0; min-height: 1.2em; }
+.devstat.warn { color: var(--warn); }
 .tap.resting .reps { font-size: 5rem; color: var(--tx2); }
 .step { display: flex; align-items: center; gap: 12px; }
 .step button { width: 48px; height: 48px; border-radius: 12px; background: var(--s2); font-size: 1.4rem; }

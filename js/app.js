@@ -6,7 +6,7 @@ import { onboard } from './onboarding.js';
 import { settingsView, backupAgeDays } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
-import { $, esc, toast, ask, setAccent } from './ui.js';
+import { $, esc, toast, ask, setAccent, setTheme, setFeedback } from './ui.js';
 import { prettyDay } from './time.js';
 
 const SCREENS = {
@@ -37,7 +37,9 @@ function focusKey() {
 async function draw() {
   const p = profile();
   if (!p) return;
+  setTheme(p.settings.theme, p.settings.mode);
   setAccent(p.accent);
+  setFeedback(p);
   const scr = SCREENS[p.kind];
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';

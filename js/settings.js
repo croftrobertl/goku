@@ -8,6 +8,8 @@ import { cleanBackup } from './validate.js';
 import { esc, ask, overlay, toast, guard } from './ui.js';
 import { VERSION } from './version.js';
 import { dayKey } from './time.js';
+import { phoneCheck } from './devcheck.js';
+import { THEMES, MODES } from './themes.js';
 
 export const SCHEMA_VERSION = 1;
 const DAY = 86400000;
@@ -215,6 +217,13 @@ export async function settingsView() {
       <p class="lbl" style="margin-top:14px">Color</p>
       <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="Color ${c}"></button>`).join('')}</div>
     </section>
+    <section class="card"><p class="lbl">Theme</p>
+      <div class="themes">${Object.entries(THEMES).map(([id, t]) => `<button data-theme="${id}" aria-pressed="${(p.settings.theme || 'capsule') === id}">
+        <span class="tsw" aria-hidden="true" style="background:${t.dark.s1};box-shadow:inset -18px 0 0 ${t.light.s1}"><i style="background:${t.accent}"></i></span>
+        <span><b>${esc(t.name)}</b><br><span class="sub">${esc(t.desc)}</span></span></button>`).join('')}</div>
+      <div class="seg" role="group" aria-label="Light or dark">${MODES.map(([v, l]) => `<button data-mode="${v}" aria-pressed="${(p.settings.mode || 'auto') === v}">${l}</button>`).join('')}</div>
+      <p class="note">Picking a theme also sets its matching color. You can still change the color above.</p>
+    </section>
     <section class="card"><p class="lbl">What the app shows</p>
       ${liveModules(p.kind).map(([k, n, d]) => `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span>
         <input type="checkbox" data-mod="${k}" ${p.modules[k] !== false ? 'checked' : ''}></label>`).join('')}
@@ -224,6 +233,12 @@ export async function settingsView() {
       <div class="row"><input id="pt" inputmode="numeric" value="${p.settings.proteinTarget ?? ''}" placeholder="grams" aria-label="Protein target in grams" style="width:120px">
       <div class="seg" style="margin:0;flex:1"><button data-per="day" aria-pressed="${p.settings.proteinPer === 'day'}">Per day</button><button data-per="meal" aria-pressed="${p.settings.proteinPer === 'meal'}">Per meal</button></div></div>
     </section>` : ''}
+    <section class="card"><p class="lbl">Sound and haptics</p>
+      ${[['sound', 'Sound cues', 'Beeps when rest ends and at the time cap.'], ['haptics', 'Buzz on each rep', 'A light tap you can feel when a rep counts.']].map(([k, n, d]) =>
+        `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span><input type="checkbox" data-fb="${k}" ${p.settings[k] !== false ? 'checked' : ''}></label>`).join('')}
+      <button class="cta2" id="devcheck" style="width:100%;margin-top:8px">Test my phone</button>
+      <p class="note">Checks that the screen stays on, sound plays and saving works on this phone.</p>
+    </section>
     <section class="card"><p class="lbl">Day ends at</p>
       <select id="de" aria-label="Day ends at">${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}" ${h === p.dayEndsAt ? 'selected' : ''}>${h === 0 ? 'Midnight' : h + ':00 AM'}</option>`).join('')}</select>
       <p class="note">Entries before this hour count toward the day before. Times are US Eastern.</p>
@@ -257,6 +272,7 @@ export async function settingsView() {
       root.addEventListener('change', async e => {
         const t = e.target;
         if (t.id === 'nm' && t.value.trim()) { p.name = t.value.trim().slice(0, 24); await saveProfile(p); window.goku.render(); }
+        if (t.dataset.fb) { p.settings[t.dataset.fb] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.id === 'pt') { p.settings.proteinTarget = t.value ? +t.value.replace(/\D/g, '') || null : null; await saveProfile(p); }
         if (t.id === 'de') { p.dayEndsAt = +t.value; await saveProfile(p); }
@@ -264,6 +280,8 @@ export async function settingsView() {
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.acc) { p.accent = b.dataset.acc; await saveProfile(p); window.goku.render(); }
+        else if (b.dataset.theme) { p.settings.theme = b.dataset.theme; p.accent = THEMES[b.dataset.theme].accent; await saveProfile(p); window.goku.render(); }
+        else if (b.dataset.mode) { p.settings.mode = b.dataset.mode; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.per) { p.settings.proteinPer = b.dataset.per; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.rem) {
           p.lock.remember = +b.dataset.rem;
@@ -276,6 +294,7 @@ export async function settingsView() {
         else if (b.id === 'chg') { if (await showLock(p, { mode: 'create', cancellable: true })) toast('Passcode changed'); window.goku.render(); }
         else if (b.id === 'lockNow') { lockNow(p); await saveProfile(p); window.goku.open(p.id); }
         else if (b.id === 'delp') await deleteThisProfile();
+        else if (b.id === 'devcheck') await phoneCheck();
         else if (b.dataset.open) window.goku.open(b.dataset.open);
         else if (b.dataset.reset) {
           const o = S.profiles.find(x => x.id === b.dataset.reset);

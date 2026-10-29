@@ -2,7 +2,7 @@
 // and stored only on this device.
 import { KINDS, newProfile, saveProfile, S, liveModules, soonModules } from './state.js';
 import { showLock } from './lock.js';
-import { overlay, esc, setAccent, stepper, round } from './ui.js';
+import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
 import { DOW } from './time.js';
 
 export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081'];
@@ -62,6 +62,7 @@ export function onboard({ cancellable = false } = {}) {
         <button class="cta" id="next">${step === steps.length - 1 ? 'Set passcode' : 'Continue'}</button>
         ${step > 0 ? '<button class="cta2" id="back" style="width:100%;margin-top:8px">Back</button>' : ''}`;
       $('#next').dataset.ready = ready;
+      setTheme('capsule', 'auto');
       setAccent(d.accent || (d.kind ? KINDS[d.kind].accent : '#5ea4ff'));
     }
 

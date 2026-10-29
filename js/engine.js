@@ -1,7 +1,7 @@
 // "Density Engine" profile: gravity-chamber circuits, rep counter, gut log.
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
 import * as db from './db.js';
-import { esc, toast, ask, overlay, stepper, unlockAudio, beep, keepAwake, round, guard, announce, dayPicker } from './ui.js';
+import { esc, toast, ask, overlay, stepper, unlockAudio, beep, buzz, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
 
 export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'gut') ? [['gut', 'Gut']] : []), ['history', 'History'], ['settings', 'Settings']];
@@ -56,6 +56,12 @@ export async function todaysCircuit() {
   return picks;
 }
 
+// Sessions in training-day order, so moving a session's date in History moves it here too.
+const byDay = (a, b) => a.day.localeCompare(b.day) || a.ts - b.ts;
+async function sessionsInOrder() { return (await entries('session')).sort(byDay); }
+// The ghost is your latest session at the same gravity, so a ×10 day never races a ×100 day.
+const ghostFor = (sessions, g) => sessions.filter(s => s.data.gravity === g).pop() || null;
+
 const sessionTotal = s => s.data.sets.reduce((a, set) => a + set.stages.reduce((b, st) => b + st.reps, 0), 0);
 const minutes = s => Math.max(1, (s.data.endedAt - s.data.startedAt) / 60000);
 
@@ -65,8 +71,9 @@ export async function home() {
   const g = p.settings.gravity || 50;
   const [rounds, rest, cap, depth] = GRAVITY[g];
   const circuit = await todaysCircuit();
-  const sessions = await entries('session');
+  const sessions = await sessionsInOrder();
   const last = sessions[sessions.length - 1];
+  const ghost = ghostFor(sessions, g);
   const gut = on(p, 'gut') ? await db.get('entries', p.id + ':gut:' + today()) : null;
   const len = 2 * Math.PI * 80;
   const pct = { 10: .25, 20: .45, 50: .75, 100: 1 }[g];
@@ -90,8 +97,8 @@ export async function home() {
       <div class="seg grav" role="group" aria-label="Gravity level">
         ${Object.keys(GRAVITY).map(x => `<button data-g="${x}" aria-pressed="${+x === g}">×${x}</button>`).join('')}
       </div>
-      ${last ? `<div class="ghost">Ghost: your last session (${prettyDay(last.day)}) · <b class="num">${sessionTotal(last)}</b> reps in ${round(minutes(last))} min. Beat it.</div>`
-        : '<div class="ghost">Your first session becomes your ghost. Next time, you race it live.</div>'}
+      ${ghost ? `<div class="ghost">Ghost: your last ×${g} session (${prettyDay(ghost.day)}) · <b class="num">${sessionTotal(ghost)}</b> reps in ${round(minutes(ghost))} min. Beat it.</div>`
+        : `<div class="ghost">Your first ×${g} session becomes your ghost. Next time at ×${g}, you race it live.</div>`}
     </section>
     <section class="card">
       <div class="row"><h2>Circuit</h2>${on(p, 'shuffle') ? '<button class="cta2" id="shuffle">Shuffle</button>' : ''}</div>
@@ -134,12 +141,11 @@ async function startRun(circuit) {
     const p = profile();
     const g = p.settings.gravity || 50;
     const [rounds, rest, cap, depth] = GRAVITY[g];
-    const sessions = await entries('session');
-    const last = sessions[sessions.length - 1];
+    const ghost = ghostFor(await sessionsInOrder(), g);
     const run = {
       startedAt: Date.now(), gravity: g, rounds, rest, cap, round: 1, ex: 0, stage: 0, phase: 'set', restUntil: 0,
       plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, stages: e.data.stages.slice(0, depth) })),
-      sets: [], cur: null, repTimes: [], ghost: last?.data.repTimes || null,
+      sets: [], cur: null, repTimes: [], ghost: ghost?.data.repTimes || null,
     };
     await db.setMeta(runKey(), run);
     openRunner(run);
@@ -186,6 +192,7 @@ function openRunner(run) {
       <button class="cta2" id="end">Finish</button>
     </div>
     <p class="sub" id="where" style="text-align:center;margin-top:8px"></p>
+    <p class="devstat" id="dev" aria-live="polite"></p>
     <button class="tap" id="tap"><span>
       <span class="lbl" id="stage"></span>
       <span class="reps num" id="reps" aria-live="polite">0</span>
@@ -210,7 +217,7 @@ function openRunner(run) {
     const h = history.pop(); if (!h) return;
     Object.assign(run, { sets: h.sets, cur: h.cur, round: h.round, ex: h.ex, stage: h.stage, phase: h.phase, restUntil: h.restUntil });
     run.repTimes.length = h.reps;
-    save(); draw();
+    bookRestCue(); save(); draw();
   };
 
   const curEx = () => run.plan[run.ex];
@@ -222,7 +229,27 @@ function openRunner(run) {
     (run.cur ? run.cur.stages.reduce((b, x) => b + x.reps, 0) : 0);
 
   let restBeeped = false, said10 = false, capBeeped = false;
+  // The rest-over cue is booked on the audio clock when rest starts; cancel it if rest ends early.
+  let cancelCue = null;
+  const bookRestCue = () => {
+    cancelCue?.(); cancelCue = null;
+    const left = run.restUntil - Date.now();
+    if (run.phase === 'rest' && left > 0) { unlockAudio(); if (soundReady()) cancelCue = beep(988, 180, 2, left / 1000); }
+  };
+  const p = profile();
+  let lastDev = '';
+  function devStatus() {
+    const screen = !('wakeLock' in navigator) ? 'Screen may sleep (not supported here)' : awake() ? 'Screen stays on' : 'Screen may sleep';
+    const sound = p.settings.sound === false ? 'Sound off in Settings' : soundReady() ? 'Sound on' : 'Tap once to turn sound on';
+    const txt = screen + ' · ' + sound;
+    if (txt !== lastDev) {
+      lastDev = txt;
+      $('#dev').textContent = txt;
+      $('#dev').classList.toggle('warn', !awake() || (p.settings.sound !== false && !soundReady()));
+    }
+  }
   function draw() {
+    devStatus();
     const t = Date.now() - run.startedAt;
     const capLeft = run.cap * 60000 - t;
     if (capLeft <= 0 && !capBeeped) { capBeeped = true; beep(660, 260, 2); announce('Time cap reached. Finish when you are ready.'); }
@@ -232,7 +259,7 @@ function openRunner(run) {
       const g = run.ghost.filter(x => x <= t / 1000).length;
       const diff = total() - g;
       $('#ghost').innerHTML = diff >= 0 ? `Ghost: you're <b class="num">${diff}</b> reps ahead` : `Ghost: <b class="num">${-diff}</b> reps behind`;
-    } else $('#ghost').textContent = 'No ghost yet. This session sets the pace for next time.';
+    } else $('#ghost').textContent = `No ×${run.gravity} ghost yet. This session sets the pace for next time.`;
     $('#undo').disabled = !history.length;
 
     if (run.phase === 'rest') {
@@ -246,7 +273,12 @@ function openRunner(run) {
       $('#next').textContent = 'Skip rest';
       if (left <= 10000 && left > 0 && !said10) { said10 = true; announce('10 seconds of rest left'); }
       if (left <= 0) {
-        if (!restBeeped) { beep(988, 180, 2); restBeeped = true; announce('Rest over. ' + curEx().name); }
+        if (!restBeeped) {
+          const late = Date.now() - run.restUntil > 1000; // the booked cue may be stuck in suspended audio
+          if (late) { cancelCue?.(); cancelCue = null; }
+          if (!cancelCue) beep(988, 180, 2);
+          cancelCue = null; restBeeped = true; announce('Rest over. ' + curEx().name);
+        }
         run.phase = 'set'; save();
       }
       return;
@@ -269,7 +301,7 @@ function openRunner(run) {
     if (run.ex >= run.plan.length) { run.ex = 0; run.round++; }
     if (run.round > run.rounds) return finish();
     run.phase = 'rest'; run.restUntil = Date.now() + run.rest * 1000;
-    save(); draw();
+    bookRestCue(); save(); draw();
   }
 
   let closed = false;
@@ -277,11 +309,13 @@ function openRunner(run) {
     if (closed) return;
     closed = true;
     clearInterval(tick);
+    document.removeEventListener('visibilitychange', onVisible);
+    cancelCue?.();
     await saving;
     keepAwake(false); window.goku.busy = false;
     close();
     if (discard) { await db.setMeta(runKey(), null); window.goku.render(); }
-    else await saveRun(run, Date.now());
+    else await saveRun(run, run.repTimes.length ? lastActivity(run) : Date.now());
     window.goku.idle?.();
   }
 
@@ -294,6 +328,7 @@ function openRunner(run) {
       remember(); ensureSet();
       run.cur.stages[run.stage].reps++;
       run.repTimes.push(Math.round((Date.now() - run.startedAt) / 100) / 10);
+      buzz();
       b.classList.add('bump'); setTimeout(() => b.classList.remove('bump'), 120);
       draw(); save();
     } else if (b.id === 'undo') undo();
@@ -301,7 +336,7 @@ function openRunner(run) {
       if (Date.now() - lastNext < 600) return; // double-tap protection
       lastNext = Date.now();
       remember();
-      if (run.phase === 'rest') { run.phase = 'set'; save(); draw(); return; }
+      if (run.phase === 'rest') { run.phase = 'set'; cancelCue?.(); cancelCue = null; save(); draw(); return; }
       if (run.stage < run.cur.stages.length - 1) { run.stage++; save(); draw(); } else endSet();
     } else if (b.id === 'end') {
       const r = await ask('Finish session?', 'Everything logged so far is saved.', [{ label: 'Finish and save', value: 'save' }, { label: 'Discard session', value: 'discard' }]);
@@ -310,6 +345,9 @@ function openRunner(run) {
     }
   });
   const tick = setInterval(draw, 250);
+  const onVisible = () => { if (document.visibilityState === 'visible') bookRestCue(); };
+  document.addEventListener('visibilitychange', onVisible);
+  bookRestCue();
   draw();
 }
 
@@ -391,8 +429,9 @@ export async function gutView() {
   const cur = saved || { amWaist: null, pmWaist: null, bloat: null, foods: [], fluidsOz: 0, supplements: [], protein: [] };
   const all = await entries('gut');
   const lastWaist = [...all].reverse().map(e => e.data.amWaist ?? e.data.pmWaist).find(v => v != null) ?? 34;
-  const recentFoods = [...new Set(all.flatMap(e => e.data.foods))].slice(-12);
-  const recentSupps = [...new Set(all.flatMap(e => e.data.supplements))].slice(-8);
+  const newestFirst = [...all].sort((a, b) => b.day.localeCompare(a.day));
+  const recentFoods = [...new Set(newestFirst.flatMap(e => e.data.foods))].slice(0, 12);
+  const recentSupps = [...new Set(newestFirst.flatMap(e => e.data.supplements))].slice(0, 8);
   const proteinTotal = cur.protein.reduce((a, b) => a + b, 0);
   const target = p.settings.proteinTarget;
   const save = () => saveEntry('gut', cur, { id, day });
@@ -458,7 +497,7 @@ export async function gutView() {
 
 // ---------- History ----------
 export async function historyView() {
-  const sessions = (await entries('session')).reverse();
+  const sessions = (await sessionsInOrder()).reverse();
   const guts = (await entries('gut')).reverse();
   return {
     html: `<h1>History</h1>
@@ -509,7 +548,13 @@ function editSession(s) {
       b.closest('[data-step]').querySelector('.num').textContent = d.sets[i].stages[j].reps;
       return;
     }
-    if (b.id === 'save') { await saveEntry('session', d, { id: s.id, day, ts: s.ts }); close(); toast('Session updated'); window.goku.render(); }
+    if (b.id === 'save') {
+      const reps = d.sets.reduce((a, set) => a + set.stages.reduce((x, st) => x + st.reps, 0), 0);
+      if (reps !== d.repTimes.length) {
+        const secs = Math.max(60, (d.endedAt - d.startedAt) / 1000);
+        d.repTimes = Array.from({ length: reps }, (_, i) => round((i + 1) * secs / reps, 1));
+      }
+      await saveEntry('session', d, { id: s.id, day, ts: s.ts }); close(); toast('Session updated'); window.goku.render(); }
     if (b.id === 'del' && await ask('Delete this session?', 'It will be removed from history and from your ghost.', [{ label: 'Delete', value: true, danger: true }])) {
       await deleteEntry(s.id); close(); window.goku.render();
     }

@@ -1,4 +1,5 @@
 // Small DOM helpers shared by every screen.
+import { THEMES } from './themes.js';
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
@@ -89,10 +90,19 @@ const lum = c => { const [r, g, b] = c.map(v => { v /= 255; return v <= .03928 ?
 export const contrast = (a, b) => { const [x, y] = [lum(hex(a)), lum(hex(b))]; return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
 const mix = (c, to, t) => c.map((v, i) => v + (to[i] - v) * t);
 
+// The theme and mode set the surfaces and text; the accent is then nudged until it reads
+// at 4.5:1 on the theme's cards.
+let look = { theme: 'capsule', mode: 'auto' };
+export function setTheme(theme = 'capsule', mode = 'auto') { look = { theme: THEMES[theme] ? theme : 'capsule', mode }; }
+export const isDark = () => look.mode === 'dark' || (look.mode === 'auto' && !matchMedia('(prefers-color-scheme: light)').matches);
 export function setAccent(accent) {
   const root = document.documentElement.style;
-  const dark = !matchMedia('(prefers-color-scheme: light)').matches;
-  const bg = dark ? '#121a2e' : '#ffffff';
+  const dark = isDark();
+  const pal = THEMES[look.theme][dark ? 'dark' : 'light'];
+  for (const [k, v] of Object.entries(pal)) root.setProperty('--' + k, v);
+  root.setProperty('color-scheme', dark ? 'dark' : 'light');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', pal.bg);
+  const bg = pal.s1;
   let text = hex(accent);
   for (let t = 0; t <= 1 && contrast(toHex(text), bg) < 4.5; t += 0.05) text = mix(hex(accent), dark ? [255, 255, 255] : [0, 0, 0], t);
   root.setProperty('--accent', accent);
@@ -105,31 +115,62 @@ let actx = null;
 export function unlockAudio() {
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    if (actx.state === 'suspended') actx.resume();
+    if (actx.state === 'suspended') return actx.resume().catch(() => {});
   } catch { actx = null; }
+  return Promise.resolve();
 }
-export function beep(freq = 880, ms = 160, times = 1) {
-  if (!actx) return;
+// Settings can mute sound and haptics; both default to on.
+let prefs = { sound: true, haptics: true };
+export const setFeedback = p => { prefs = { sound: p?.settings?.sound !== false, haptics: p?.settings?.haptics !== false }; };
+
+// delay (seconds) books the sound ahead on the audio clock, so a rest-over cue lands on
+// time even if the page is busy. Returns a function that cancels it.
+export function beep(freq = 880, ms = 160, times = 1, delay = 0) {
+  if (!actx || !prefs.sound) return () => {};
+  const oscs = [];
   for (let i = 0; i < times; i++) {
     const o = actx.createOscillator(), g = actx.createGain();
-    const t0 = actx.currentTime + i * (ms / 1000 + 0.08);
+    const t0 = actx.currentTime + delay + i * (ms / 1000 + 0.08);
     o.frequency.value = freq; o.connect(g); g.connect(actx.destination);
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(0.4, t0 + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + ms / 1000);
     o.start(t0); o.stop(t0 + ms / 1000 + 0.02);
+    oscs.push(o);
   }
+  return () => oscs.forEach(o => { try { o.stop(); } catch { /* already ended */ } });
+}
+export const soundReady = () => !!actx && actx.state === 'running';
+
+// Haptic tick. iOS has no vibration API, but toggling a switch control gives a system
+// haptic on iOS 18 and later (verify on device); elsewhere navigator.vibrate is used.
+let hap = null;
+export function buzz() {
+  if (!prefs.haptics) return;
+  if (navigator.vibrate) { navigator.vibrate(12); return; }
+  if (!hap) {
+    hap = document.createElement('label');
+    hap.setAttribute('aria-hidden', 'true');
+    hap.style.cssText = 'position:fixed;left:-100px;top:0;width:1px;height:1px;overflow:hidden;opacity:0';
+    hap.innerHTML = '<input type="checkbox" switch tabindex="-1">';
+    document.body.append(hap);
+  }
+  hap.click();
 }
 
-// Screen Wake Lock (verify on iOS). Silently does nothing where unsupported.
+// Screen Wake Lock: supported in iOS 27 Home Screen apps; whether the screen really stays
+// on is checked with "Test my phone" in Settings. Silently does nothing where unsupported.
 let wake = null, wantWake = false;
 export async function keepAwake(on) {
   wantWake = on;
   try {
-    if (on && 'wakeLock' in navigator) wake = await navigator.wakeLock.request('screen');
-    else if (!on && wake) { await wake.release(); wake = null; }
+    if (on && 'wakeLock' in navigator) {
+      if (!wake || wake.released) wake = await navigator.wakeLock.request('screen');
+    } else if (!on && wake) { await wake.release(); wake = null; }
   } catch { wake = null; }
+  return awake();
 }
+export const awake = () => !!wake && !wake.released;
 document.addEventListener('visibilitychange', () => {
   if (wantWake && document.visibilityState === 'visible') keepAwake(true);
 });

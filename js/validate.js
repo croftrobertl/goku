@@ -1,5 +1,6 @@
 // Checks and cleans everything that comes from an imported backup, so a bad or
 // hostile file can never break the app or inject markup.
+import { THEMES } from './themes.js';
 const ID = /^[A-Za-z0-9:._-]{1,100}$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const KINDS = ['engine', 'perf'];
@@ -46,10 +47,11 @@ export function cleanBackup(prof, entries) {
     units: 'imperial', dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
-    settings: prof.kind === 'engine'
+    settings: { sound: prof.settings?.sound !== false, haptics: prof.settings?.haptics !== false,
+      theme: THEMES[prof.settings?.theme] ? prof.settings.theme : 'capsule', mode: ['auto', 'dark', 'light'].includes(prof.settings?.mode) ? prof.settings.mode : 'auto', ...(prof.kind === 'engine'
       ? { gravity: [10, 20, 50, 100].includes(prof.settings?.gravity) ? prof.settings.gravity : 50, shuffleSeed: int(prof.settings?.shuffleSeed, 0, 1e6, 0),
         proteinTarget: int(prof.settings?.proteinTarget, 1, 1000), proteinPer: prof.settings?.proteinPer === 'meal' ? 'meal' : 'day' }
-      : { weekPlan: plan, sharing: false },
+      : { weekPlan: plan, sharing: false }) },
     lockRemember: [0, 1, 7, 30].includes(prof.lockRemember) ? prof.lockRemember : 7,
   };
   let skipped = 0;

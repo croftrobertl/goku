@@ -9,8 +9,13 @@ Everything you enter stays on the device it was entered on.
 - **Gymnastics and vaulting profile:** daily readiness check-in, week planner, session load
   (minutes × effort), and care checks that point to a parent, coach or doctor.
 
-Each profile has its own 6-digit passcode. Profile names and every other personal value are
-typed in on first launch; none of them are in this code.
+Each profile has its own 6-digit passcode, theme (six themes, each with light and dark), and
+sound and haptics settings. Profile names and every other personal value are typed in on first
+launch; none of them are in this code.
+
+Before relying on it for workouts, run **Settings → Test my phone**. It checks saving, offline use,
+the share sheet and keep-awake automatically, then walks through a test beep, a buzz, and a
+60-second hands-off test of the screen staying on and the rest beep playing.
 
 Live at: https://croftrobertl.github.io/goku/
 
@@ -163,6 +168,8 @@ gymnastics profile; turning it off hides both the health questions and the remin
 
 Built in:
 - Wrists sore in each of the last 3 check-ins, all within 7 days (a skipped day doesn't reset it).
+- **Draft, needs sign-off:** the same rule for every other area on the body map (neck, shoulders,
+  elbows, upper and lower back, hips, knees, ankles, feet).
 - Back pain when arching.
 - Pain that changes how a skill is done.
 - Dizziness or feeling faint.
@@ -179,7 +186,7 @@ food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---
 
-## Testing status (1.1.1)
+## Testing status (1.2.0)
 
 **Mac browser** (Chromium engine) at 320 px, phone and desktop widths, in light and dark mode:
 upgrading from 1.0.2 with existing data; onboarding with Cancel; passcodes (create, change with Cancel,
@@ -199,8 +206,12 @@ red-flag rule across a skipped day and the care toggle; text contrast ≥ 4.5:1 
   passcode relock after 2 minutes away with "Always ask"; export through the share sheet to Files
   (one file); import with Merge, including a 1.1.0 backup; the update bar and Update.
 - Doesn't work: the app-switcher picture still shows the last screen (see *App switcher* above).
-- Not testable in the simulator: Screen Wake Lock (the simulator never sleeps) and audio cues after
-  the screen locks. Check these on a real iPhone during a workout.
+- 1.2.0 on the simulator: themes in light and dark, the Dragon Radar week, and the automatic part
+  of Test my phone (all six checks pass, including keep-awake support).
+- Not testable in the simulator: whether the screen really stays on, audio after the screen
+  locks, and the haptic tick (the simulator has no haptics). **Settings → Test my phone** checks
+  all three on a real iPhone.
+- Each release also gets an independent code review; 1.2.0's found five issues, all fixed.
 
 ---
 
@@ -221,6 +232,9 @@ js/perf.js             gymnastics and vaulting profile
 js/settings.js         settings, export and import
 js/validate.js         checks and cleans imported backups
 tools/release.sh       bumps the version and checks a release before publishing
+tools/check-themes.mjs fails the release if any theme color is below 4.5:1 contrast
+js/themes.js           the six themes (light and dark palettes)
+js/devcheck.js         Settings → Test my phone
 js/crypto.js           passcode hashing and encrypted exports
 js/time.js             US/Eastern day logic
 ```
