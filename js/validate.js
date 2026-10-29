@@ -50,6 +50,8 @@ export const AREAS = ['Neck', 'Shoulders', 'Elbows', 'Wrists', 'Upper back', 'Lo
 
 const stages = v => (Array.isArray(v) ? v.slice(0, 8).map(s => ({ label: str(s?.label, 40), load: num(s?.load, 0, 2000), reps: int(s?.reps, 0, 10000, 0) })) : []);
 
+const ids = v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && /^\w{1,20}$/.test(x)))].slice(0, 40) : [];
+
 const DATA = {
   exercise: d => ({ name: str(d.name, 40), slot: str(d.slot, 12, 'push'), module: d.module === 'soccer' ? 'soccer' : null,
     order: int(d.order, 0, 10000, 999), mode: d.mode === 'hold' ? 'hold' : 'reps',
@@ -65,7 +67,7 @@ const DATA = {
   activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'hike', 'sport', 'lift', 'other'].includes(d.kind) ? d.kind : 'other',
     minutes: int(d.minutes, 1, 1440, 30), effort: int(d.effort, 0, 10, 5), ...(d.source === 'health' ? { source: 'health' } : {}) }),
   rest: () => ({}),
-  skill: d => ({ name: str(d.name, 40).trim() || 'Skill', event: ['vault', 'floor', 'beam', 'bars', 'other'].includes(d.event) ? d.event : 'other',
+  skill: d => ({ name: str(d.name, 40).trim() || 'Skill', event: ['vault', 'floor', 'beam', 'bars', 'flex', 'other'].includes(d.event) ? d.event : 'other',
     stage: int(d.stage, 0, 3, 0), log: Array.isArray(d.log) ? d.log.slice(-40).filter(l => DAY.test(l?.day || '')).map(l => ({ stage: int(l.stage, 0, 3, 0), day: l.day })) : [] }),
   sleep: d => ({ hours: num(d.hours, 0, 24, 0), source: 'health' }),
   checkin: d => ({ sleepH: num(d.sleepH, 0, 24, 8), sleepQ: int(d.sleepQ, 1, 5, 3), fatigue: int(d.fatigue, 1, 5, 3), stress: int(d.stress, 1, 5, 3),
@@ -90,7 +92,8 @@ export function cleanBackup(prof, entries) {
     dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
-    settings: { sound: prof.settings?.sound !== false, haptics: prof.settings?.haptics !== false,
+    settings: { sound: prof.settings?.sound !== false, haptics: prof.settings?.haptics !== false, duel: false, // sharing is chosen again on each phone
+      homeOrder: ids(prof.settings?.homeOrder), homeHidden: ids(prof.settings?.homeHidden),
       theme: THEMES[prof.settings?.theme] ? prof.settings.theme : 'capsule', mode: ['auto', 'dark', 'light'].includes(prof.settings?.mode) ? prof.settings.mode : 'auto', ...(prof.kind === 'engine'
       ? { gravity: [10, 20, 50, 100].includes(prof.settings?.gravity) ? prof.settings.gravity : 50, shuffleSeed: int(prof.settings?.shuffleSeed, 0, 1e6, 0),
         proteinTarget: int(prof.settings?.proteinTarget, 1, 1000), proteinPer: prof.settings?.proteinPer === 'meal' ? 'meal' : 'day',

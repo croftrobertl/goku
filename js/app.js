@@ -65,7 +65,7 @@ async function draw() {
   $('#dock').innerHTML = `<div class="dock-in">
     <div class="brand" aria-hidden="true"><img src="icons/favicon-48.png" alt="" width="28" height="28"><span>Goku</span></div>
     ${view.cta ? `<button class="cta" id="cta">${esc(view.cta[0])}</button>` : ''}
-    <nav class="tabs" aria-label="Sections">${[...list, ...(list.some(([id]) => id === 'settings') ? [] : [['settings', 'Settings']])].map(([id, label]) =>
+    <nav class="tabs" aria-label="Sections">${[...list, ...(list.some(([id]) => id === 'settings') ? [] : [['settings', 'Settings']])].filter(x => !x[2]).map(([id, label]) =>
       `<button data-tab="${id}" ${id === tab ? 'aria-current="page"' : ''}>${label}</button>`).join('')}</nav></div>`;
   if (view.cta) {
     let running = false;

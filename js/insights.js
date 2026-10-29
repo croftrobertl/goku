@@ -82,3 +82,23 @@ export function recapNumbers(all, from, to) {
     days: new Set(inWeek.map(e => e.day)).size,
   };
 }
+
+// ---------- Gut pattern finder ----------
+// Which foods and supplements show up more often on high-bloating days (scored 6 or more out
+// of 10) than on other days. Needs 14 scored days and 3 high ones. A pattern, never a cause.
+export const HIGH_BLOAT = 6;
+export function gutPatterns(guts) {
+  const days = guts.filter(g => Number.isFinite(g.data.bloat));
+  const high = days.filter(g => g.data.bloat >= HIGH_BLOAT), other = days.filter(g => g.data.bloat < HIGH_BLOAT);
+  if (days.length < 14 || high.length < 3 || !other.length) return { ready: false, days: days.length, high: high.length };
+  const names = {}, itemsOf = g => new Set([...(g.data.foods || []), ...(g.data.supplements || [])].map(x => {
+    const k = String(x).trim().toLowerCase(); names[k] ||= String(x).trim(); return k;
+  }));
+  const highSets = high.map(itemsOf), otherSets = other.map(itemsOf);
+  // Kept: on 3+ high days and at least 20 points more often than other days, strongest first.
+  const rows = [...new Set(highSets.flatMap(s => [...s]))].map(k => {
+    const h = highSets.filter(s => s.has(k)).length, o = otherSets.filter(s => s.has(k)).length;
+    return { name: names[k], h, o, hr: h / high.length, or: o / other.length };
+  }).filter(r => r.h >= 3 && r.hr - r.or >= 0.2).sort((a, b) => (b.hr - b.or) - (a.hr - a.or) || b.h - a.h).slice(0, 5);
+  return { ready: true, days: days.length, high: high.length, other: other.length, rows };
+}

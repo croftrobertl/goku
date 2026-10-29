@@ -10,11 +10,14 @@ import { fuelCard, timingCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
 import { trendCard } from './trend.js';
+import { homeLayout } from './homelayout.js';
+import { duelCard } from './duel.js';
 import { skillSummary, skillList } from './skills.js';
 import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
 import { whyBtn } from './why.js';
 
-export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in'], ['history', 'History'], ['settings', 'Settings']];
+// Check-in has no tab of its own (the big button and Home's readiness card open it), so five tabs fit.
+export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ['history', 'History'], ['settings', 'Settings']];
 
 export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
 import { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
@@ -49,39 +52,42 @@ export async function home() {
   const plan = p.settings.weekPlan;
   const ws = weekStart(t);
   const sessions = await db.byIndexRange('entries', 'profileDay', [p.id, ws], [p.id, addDays(ws, 6)]).then(l => l.filter(e => e.type === 'session'));
-  const todays = sessions.filter(s => s.day === t);
   const planned = plan[weekday(t)];
+  const todays = sessions.filter(s => s.day === t);
+  // Fuel follows the bigger of what's planned and what's been logged, so an extra practice counts.
+  const fuelMin = Math.max(planned.gym + planned.vault, todays.reduce((a, s) => a + s.data.minutes, 0));
   const weekMins = plan.reduce((a, d) => a + d.gym + d.vault, 0);
   const flags = await careFlags();
   const all = await loggedEntries(p);
   const skills = on(p, 'skills') ? await skillList() : [];
+  const duel = await duelCard(p, t);
   const comp = p.about?.comp && p.about.comp >= t ? daysBetween(t, p.about.comp) : null;
 
   return {
     cta: c ? ['Log a session', () => logSession()] : ['Check in · 30 s', () => openCheckin(t)],
-    html: `<div class="cols"><div>
-      <section class="card" aria-labelledby="h-ready">
+    html: homeLayout(p, [
+      ['ready', `<section class="card" aria-labelledby="h-ready">
         <p class="lbl">Today's readiness</p>
         ${c ? `<div class="ring" role="img" aria-label="Readiness ${r} out of 100, ${word(r)}">
           <svg viewBox="0 0 170 170"><circle cx="85" cy="85" r="72" fill="none" stroke="var(--s2)" stroke-width="14"/>
-          <circle cx="85" cy="85" r="72" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${len * r / 100} ${len}"/></svg>
+          <circle cx="85" cy="85" r="72" fill="none" stroke="var(--accent-line)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${len * r / 100} ${len}"/></svg>
           <div style="text-align:center"><div class="big num" style="font-size:2.6rem">${r}</div><div class="sub">of 100</div></div></div>
           <h1 id="h-ready" style="text-align:center">${word(r)}</h1>
-          <p style="text-align:center">${whyBtn('readiness', JSON.stringify(c))}</p>
+          <p style="text-align:center">${whyBtn('readiness', JSON.stringify(c))} <button class="link" data-ci="${t}">Edit check-in</button></p>
           <p class="sub" style="text-align:center">From sleep, energy, stress, mood, fun and soreness.</p>`
         : `<div class="empty"><h1 id="h-ready">Check in to see readiness</h1>
           <p>Six quick questions about sleep, energy and how your body feels. It takes about 30 seconds.</p></div>`}
-      </section>
-      ${newBallsCard(p, milestones(p, all, t, skills))}
-      ${recapCard(p, all, t)}
-      ${coachCard(p, {})}
-      ${comp !== null ? `<section class="card"><p class="lbl">Competition</p><p class="big num">${comp === 0 ? 'Today' : comp + (comp === 1 ? ' day' : ' days')}</p>
-        <p class="sub">${comp === 0 ? 'Good luck. Trust your training.' : 'until your next competition.'}</p></section>` : ''}
-      ${flags.length ? `<section class="card flag"><p class="lbl">Care check</p>
+      </section>`],
+      ['balls', `${newBallsCard(p, milestones(p, all, t, skills))}`],
+      ['recap', `${recapCard(p, all, t)}`],
+      ['coach', `${coachCard(p, {})}`],
+      ['comp', `${comp !== null ? `<section class="card"><p class="lbl">Competition</p><p class="big num">${comp === 0 ? 'Today' : comp + (comp === 1 ? ' day' : ' days')}</p>
+        <p class="sub">${comp === 0 ? 'Good luck. Trust your training.' : 'until your next competition.'}</p></section>` : ''}`],
+      ['care', `${flags.length ? `<section class="card flag"><p class="lbl">Care check</p>
         <p>${flags.map(esc).join(' ')}</p>
         <p style="margin-top:6px">That's worth telling ${(ageOf(p) ?? 0) >= 18 ? 'your coach and your doctor' : 'a parent, your coach and your doctor'}.</p>
-        <p class="note">Don't try to treat it yourself or push through it.</p></section>` : ''}
-      <section class="card">
+        <p class="note">Don't try to treat it yourself or push through it.</p></section>` : ''}`],
+      ['week', `<section class="card">
         <div class="row"><h2>This week</h2><span class="num sub">${round(weekMins / 60, 1)} h planned</span></div>
         ${weekMins ? `<div class="week">${DOW.map((d, i) => {
           const key = addDays(ws, i), mins = plan[i].gym + plan[i].vault;
@@ -93,26 +99,30 @@ export async function home() {
             <span class="h num" aria-hidden="true">${mins ? round(mins / 60, 1) + 'h' : ''}</span></button>`;
         }).join('')}</div>`
         : '<div class="empty"><p>Add your usual training hours and Goku shows your week here, with rest days.</p><button class="cta2" data-day="0">Plan my week</button></div>'}
-      </section>
-    </div><div>
-      ${streakCard(p, all, t)}
-      <section class="card"><p class="lbl">Today</p>
+      </section>`],
+      ['duel', duel],
+      ['streak', `${streakCard(p, all, t)}`],
+      ['today', `<section class="card"><p class="lbl">Today</p>
         ${planned.gym + planned.vault === 0 ? `<p>${weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
           `<p>${planned.gym ? `Gymnastics ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `Vaulting ${round(planned.vault / 60, 1)} h` : ''}</p>`}
         ${todays.length ? `<ul class="list" style="margin-top:8px">${todays.map(s => `<li><span>${s.data.kind === 'vault' ? 'Vaulting' : 'Gymnastics'} · ${esc(s.data.minutes)} min</span>
           <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}
         <p class="note">Load = minutes × effort (0–10).</p>
-      </section>
-      ${on(p, 'skills') ? skillSummary(skills) : ''}
-      ${trendCard(p, all, t)}
-      ${on(p, 'fuel') ? fuelCard(p, planned.gym + planned.vault, { title: planned.gym + planned.vault ? 'Fuel today' : 'Fuel · rest day' }) + timingCard(p, planned.gym + planned.vault) : ''}
-      ${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
-        <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}
-    </div></div>`,
+      </section>`],
+      ['skills', `${on(p, 'skills') ? skillSummary(skills) : ''}`],
+      ['trend', `${trendCard(p, all, t)}`],
+      ['fuel', `${on(p, 'fuel') ? fuelCard(p, fuelMin, { title: fuelMin ? 'Fuel today' : 'Fuel · rest day' }) : ''}`],
+      ['timing', `${on(p, 'fuel') ? timingCard(p, fuelMin) : ''}`],
+      ['longday', `${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
+        <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}`]
+    ]),
     bind(root) {
       bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
       bindShared(root, p, t); bindBalls(root, p);
-      root.addEventListener('click', e => { if (e.target.closest('[data-day]') && !e.target.closest('.coach')) window.goku.go('week'); });
+      root.addEventListener('click', e => {
+        if (e.target.closest('[data-ci]')) return openCheckin(e.target.closest('[data-ci]').dataset.ci);
+        if (e.target.closest('[data-day]') && !e.target.closest('.coach')) window.goku.go('week');
+      });
     },
   };
 }
@@ -234,7 +244,7 @@ export async function weekView() {
       <section class="card"><p class="lbl">Planned</p><p class="big num" id="wtot">${total()} h</p></section>
       <section class="card"><p class="lbl">Load this week</p><p class="big num">${weekLoad}</p><p class="sub">minutes × effort</p></section>
     </div>
-    ${DOW.map((d, i) => `<section class="card" style="${addDays(ws, i) === t ? 'border-color:var(--accent)' : ''}">
+    ${DOW.map((d, i) => `<section class="card" style="${addDays(ws, i) === t ? 'border-color:var(--accent-line)' : ''}">
       <div class="row"><h2>${d}${addDays(ws, i) === t ? ' · today' : ''}</h2><span class="sub" id="rest${i}">${plan[i].gym + plan[i].vault ? '' : 'Rest day'}</span></div>
       <div class="row" style="margin-top:6px"><span>Gymnastics</span>${stepper('gym:' + i, h(plan[i].gym), 'gymnastics on ' + d, ' h')}</div>
       <div class="row" style="margin-top:6px"><span>Vaulting</span>${stepper('vault:' + i, h(plan[i].vault), 'vaulting on ' + d, ' h')}</div>

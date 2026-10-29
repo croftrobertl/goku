@@ -56,7 +56,7 @@ export function milestones(p, all, today, skills = []) {
       nth(sessions, 25)?.day, s.reached[30], nth(days, 100)];
   } else {
     const checkins = of('checkin');
-    const ready = skills.flatMap(k => (k.data.log || []).filter(l => l.stage === 3).map(l => l.day)).sort()[0] || null;
+    const ready = skills.filter(k => k.data.event !== 'flex').flatMap(k => (k.data.log || []).filter(l => l.stage === 3).map(l => l.day)).sort()[0] || null;
     got = [checkins[0]?.day, s.reached[7], firstMove(skills), firstWeekWith(new Set(checkins.map(x => x.day)), 5), ready, s.reached[30], nth(days, 100)];
   }
   // A ball once celebrated stays gathered, even if what earned it (a skill, say) is later deleted.
@@ -83,8 +83,8 @@ export function ballsCard(list) {
   const n = list.filter(m => m.earned).length;
   return `<section class="card balls"><div class="row"><p class="lbl" style="margin:0">Dragon Balls</p><span class="num sub">${n} of 7</span></div>
     <div class="ballrow" role="img" aria-label="${n} of 7 Dragon Balls gathered">${list.map(m => ballSVG(m.stars, m.earned, 36)).join('')}</div>
-    <ul class="list">${list.map(m => `<li><span>${m.stars}★ ${esc(m.title)}<br><span class="chain">${m.day ? 'Gathered ' + prettyDay(m.day) : m.earned ? 'Gathered' : esc(m.how)}</span></span>
-      ${m.earned ? '<b aria-label="gathered">✓</b>' : ''}</li>`).join('')}</ul>
+    <details class="fold"><summary class="sub">See all seven</summary><ul class="list">${list.map(m => `<li><span>${m.stars}★ ${esc(m.title)}<br><span class="chain">${m.day ? 'Gathered ' + prettyDay(m.day) : m.earned ? 'Gathered' : esc(m.how)}</span></span>
+      ${m.earned ? '<b aria-label="gathered">✓</b>' : ''}</li>`).join('')}</ul></details>
     ${n === 7 ? '<p class="note">All seven gathered. Make a wish, then go set a new record.</p>' : ''}</section>`;
 }
 

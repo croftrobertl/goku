@@ -35,11 +35,16 @@ export function trendCard(p, all, today) {
     return `<rect x="${x}" y="${H - h}" width="${bw}" height="${h}" rx="4" class="${i === WEEKS - 1 ? 'tb now' : 'tb'}"/>`;
   }).join('');
   const avgY = H - avg / max * (H - 18);
+  // Pace: where an average week would be by today, so a Monday bar isn't judged against full weeks.
+  const elapsed = Math.round((new Date(today + 'T00:00:00Z') - new Date(now.from + 'T00:00:00Z')) / 864e5) + 1;
+  const pace = Math.round(avg * elapsed / 7), paceY = H - pace / max * (H - 18), px = (WEEKS - 1) * (bw + gap);
   const label = `${p.kind === 'perf' ? 'Training load' : 'Training minutes'} for the last ${WEEKS} weeks: ` + weeks.map(w => `week of ${prettyDay(w.from)} ${w.value}`).join(', ');
   return `<section class="card trend"><div class="row"><p class="lbl" style="margin:0">${p.kind === 'perf' ? 'Training load' : 'Training minutes'} · ${WEEKS} weeks</p>${whyBtn('load')}</div>
     <svg viewBox="0 0 ${W} ${H + 2}" role="img" aria-label="${esc(label)}" style="width:100%;height:auto;margin-top:10px">${bars}
-      ${avg ? `<line x1="0" x2="${W}" y1="${avgY}" y2="${avgY}" class="avgline"/>` : ''}</svg>
+      ${avg ? `<line x1="0" x2="${W}" y1="${avgY}" y2="${avgY}" class="avgline"/>` : ''}
+      ${avg && elapsed < 7 ? `<line x1="${px}" x2="${px + bw}" y1="${paceY}" y2="${paceY}" class="paceline"/>` : ''}</svg>
     <div class="row" style="margin-top:6px"><span class="sub">${prettyDay(weeks[0].from)}</span><span class="sub">this week</span></div>
     <ul class="list" style="margin-top:6px"><li><span>This week so far</span><b class="num">${now.value} ${unit}</b></li>
+      ${avg && elapsed < 7 ? `<li><span>Usual by today <span class="sub">(short line)</span></span><b class="num">${pace} ${unit}</b></li>` : ''}
       <li><span>4-week average <span class="sub">(dashed)</span></span><b class="num">${avg} ${unit}</b></li></ul></section>`;
 }

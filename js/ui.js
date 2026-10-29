@@ -105,8 +105,13 @@ export function setAccent(accent) {
   const bg = pal.s1;
   let text = hex(accent);
   for (let t = 0; t <= 1 && contrast(toHex(text), bg) < 4.5; t += 0.05) text = mix(hex(accent), dark ? [255, 255, 255] : [0, 0, 0], t);
+  // Lines, rings, bars and selection outlines carry meaning without text, so they get their own
+  // shade at 3:1 or more on the cards (the accessibility minimum for graphics).
+  let line = hex(accent);
+  for (let t = 0; t <= 1 && contrast(toHex(line), bg) < 3; t += 0.05) line = mix(hex(accent), dark ? [255, 255, 255] : [0, 0, 0], t);
   root.setProperty('--accent', accent);
   root.setProperty('--accent-text', toHex(text));
+  root.setProperty('--accent-line', toHex(line));
   root.setProperty('--on-accent', contrast(accent, '#06142e') >= contrast(accent, '#ffffff') ? '#06142e' : '#ffffff');
 }
 

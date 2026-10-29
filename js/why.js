@@ -55,10 +55,10 @@ export const WHY = {
   },
   load: p => ['How the trend is counted', p.kind === 'perf'
   ? `<p>Each session's load is its minutes × your effort (0 easy, 10 all-out). A 120-minute practice at effort 6 is 720.</p>
-    <p style="margin-top:8px">Bars add up each Sunday-to-Saturday week. The dashed line is the average of the 4 weeks before this one, so you can see whether this week is lighter or heavier than usual.</p>
+    <p style="margin-top:8px">Bars add up each Sunday-to-Saturday week. The dashed line is the average of the 4 weeks before this one. Until the week ends, a short line on this week's bar marks where an average week would be by today, so a Monday isn't compared with whole weeks.</p>
     <p class="note">Session-RPE method: Foster C, et al. A new approach to monitoring exercise training. J Strength Cond Res. 2001;15(1):109–115. Goku shows the trend only. It doesn't judge it; that's a conversation for you and your coach.</p>`
   : `<p>Each bar adds up a week's training minutes: circuits from start to finish, plus other training you log.</p>
-    <p style="margin-top:8px">Circuits don't ask for an effort score, so Goku counts minutes rather than minutes × effort. The dashed line is the average of the 4 weeks before this one.</p>
+    <p style="margin-top:8px">Circuits don't ask for an effort score, so Goku counts minutes rather than minutes × effort. The dashed line is the average of the 4 weeks before this one, and the short line on this week's bar is where an average week would be by today.</p>
     <p class="note">Goku shows the trend only. It doesn't judge it.</p>`],
   weekgoal: p => ['Your weekly goal', `<p>You told the coach you can train <b>${esc(p.about?.days)}</b> days a week. Sessions from Sunday to Saturday count toward it.</p>
     <p class="note">Change it in Settings → About you.</p>`],

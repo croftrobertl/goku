@@ -12,6 +12,7 @@ import { phoneCheck } from './devcheck.js';
 import { THEMES, MODES } from './themes.js';
 import { avatarHTML, avatarName, avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
 import { QUESTIONS, essentials, setupFlow, GOALS, EQUIPMENT, ALLERGIES } from './coach.js';
+import { editHome } from './homelayout.js';
 import { weight, weightUnit, length, lengthUnit } from './units.js';
 import { deviceTZ, TZ } from './time.js';
 import { parseHealth, saveHealth, RECIPE } from './health.js';
@@ -179,7 +180,8 @@ async function previewImport({ prof, entries, skipped }) {
       Object.assign(cur, { name: rest.name, accent: rest.accent || cur.accent, dayEndsAt: rest.dayEndsAt, modules: { ...cur.modules, ...rest.modules },
         units: rest.units || cur.units, tz: rest.tz || cur.tz, about: rest.about || cur.about, coach: rest.about ? rest.coach || cur.coach : cur.coach,
         avatar: rest.avatar === undefined ? cur.avatar : rest.avatar,
-        settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([, v]) => v !== null)) } });
+        // Duels stay as chosen on this phone, and an older backup without a Home layout keeps this one.
+        settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([k, v]) => v !== null && k !== 'duel' && !(['homeOrder', 'homeHidden'].includes(k) && !v.length))) } });
       await saveProfile(cur);
     } else {
       const here = new Map((await db.byIndex('entries', 'profile', cur.id)).map(e => [e.id, e]));
@@ -296,11 +298,16 @@ export async function settingsView() {
       ${liveModules(p.kind).map(([k, n, d]) => `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span>
         <input type="checkbox" data-mod="${k}" ${p.modules[k] !== false ? 'checked' : ''}></label>`).join('')}
       ${soon.length ? `<p class="lbl" style="margin-top:14px">Coming soon</p><p class="sub">${soon.map(m => esc(m[1])).join(' · ')}</p>` : ''}
+      <button class="cta2" id="editHome" style="width:100%;margin-top:12px">Arrange Home cards</button>
     </section>
     ${p.kind === 'engine' ? `<section class="card"><p class="lbl">Protein target</p>
       <div class="row"><input id="pt" inputmode="numeric" value="${p.settings.proteinTarget ?? ''}" placeholder="grams" aria-label="Protein target in grams" style="width:120px">
       <div class="seg" style="margin:0;flex:1"><button data-per="day" aria-pressed="${p.settings.proteinPer === 'day'}">Per day</button><button data-per="meal" aria-pressed="${p.settings.proteinPer === 'meal'}">Per meal</button></div></div>
     </section>` : ''}
+    <section class="card"><p class="lbl">Duels</p>
+      <label class="toggle"><span><b>Duel other profiles on this phone</b><br><span class="sub">Shares only how many days you trained this week, with profiles that also turn this on. Off until you choose.</span></span>
+        <input type="checkbox" data-duel ${p.settings.duel === true ? 'checked' : ''}></label>
+    </section>
     <section class="card"><p class="lbl">Sound and haptics</p>
       ${[['sound', 'Sound cues', 'Beeps when rest ends and at the time cap.'], ['haptics', 'Buzz on each rep', 'A light tap you can feel when a rep counts.']].map(([k, n, d]) =>
         `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span><input type="checkbox" data-fb="${k}" ${p.settings[k] !== false ? 'checked' : ''}></label>`).join('')}
@@ -356,6 +363,7 @@ export async function settingsView() {
       root.addEventListener('change', async e => {
         const t = e.target;
         if (t.id === 'nm' && t.value.trim()) { p.name = t.value.trim().slice(0, 24); await saveProfile(p); window.goku.render(); }
+        if ('duel' in t.dataset) { p.settings.duel = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.fb) { p.settings[t.dataset.fb] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.id === 'pt') { p.settings.proteinTarget = t.value ? +t.value.replace(/\D/g, '') || null : null; await saveProfile(p); }
@@ -374,6 +382,7 @@ export async function settingsView() {
         else if (b.id === 'avatar') avatarSheet(p);
         else if (b.dataset.about) setupFlow(p, saveAndDraw, { only: b.dataset.about });
         else if (b.id === 'aboutAll') setupFlow(p, saveAndDraw);
+        else if (b.id === 'editHome') editHome(p);
         else if (b.dataset.mode) { p.settings.mode = b.dataset.mode; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.per) { p.settings.proteinPer = b.dataset.per; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.rem) {

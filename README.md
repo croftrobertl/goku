@@ -53,6 +53,20 @@ used to dictate.
 - *Dragon Ball milestones* (1.5.0): seven orbs for real achievements (first session or check-in, 7 and
   30 days in a row, a first record or skill moved up, a goal week, 25 sessions or a competition-ready
   skill, 100 days logged). Worked out from the log; History shows all seven, Home celebrates new ones.
+- *Edit Home* (1.6.0): Settings → Arrange Home cards reorders or hides each profile's Home cards.
+  The main card (Gravity chamber or Readiness) and the Care check always show.
+- *Gut pattern finder* (1.6.0): after 14 days with a bloating score, including 3 days of 6 or more,
+  the Gut tab lists foods and supplements that show up more often on those high-bloating days, with
+  the counts (only items on 3 or more high days, and at least 20 points more often than on other days).
+  Worded as a pattern, never a cause. The 6-out-of-10 line and the 20-point gap are Goku's choices.
+- *Flexibility in the skill tree* (1.6.0): splits, bridge and similar goals climb Working on it →
+  Close → Full → Held with control, with no coach check and no competition-ready orb.
+- *Duels* (1.6.0): profiles on the same phone that each turn Duels on in Settings see training days
+  this week (days with a session or other training) side by side, and last week's winner. Off until
+  chosen; importing a backup turns it off again.
+- *Trend pace mark and contrast* (1.6.0): this week's bar shows where an average week would be by
+  today. In light mode, rings, bars and selection outlines use a darker accent shade that reaches
+  3:1 contrast on the cards.
 - *Arc recap:* the first visit each week shows last week's numbers and one focus for the week ahead.
 - *Why?* buttons next to fuel ranges, readiness, the weekly goal, the streak and level-up explain
   the math with your own numbers.
@@ -258,7 +272,15 @@ food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---
 
-## Testing status (1.5.0)
+## Testing status (1.6.0)
+
+**1.6.0 in the Mac browser at phone width** (light and dark): Edit Home (move, hide, locked cards,
+order kept), five tabs with Check-in opened from Home, Duels alone and with two profiles, gut
+pattern finder with 20 scored days, a flexibility goal moving up with no coach check, the darker
+light-mode ring, the folded fuel-timing card. **Not yet on the iOS simulator or a real iPhone,
+including the tab labels at the largest text sizes.**
+
+### 1.5.0
 
 **1.5.0 in the Mac browser at phone width** (light and dark): 8-week trend for both profiles with
 8 weeks of data, Why on the trend, skill tree (add with quick picks, move up, the competition-ready
@@ -332,6 +354,8 @@ js/why.js              "Why?" explanations
 js/trend.js            8-week training trend
 js/skills.js           gymnastics skill tree
 js/milestones.js       Dragon Ball milestones
+js/homelayout.js       Edit Home: card order and hiding
+js/duel.js             Duels between profiles
 js/health.js           Scouter link: Health file import
 js/perf-score.js       readiness score and sleep target
 js/crypto.js           passcode hashing and encrypted exports

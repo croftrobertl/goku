@@ -7,9 +7,11 @@ import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volum
 import { coachCard, bindCoach, isMinor } from './coach.js';
 import { fuelCard, fuelRanges, timingCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
-import { loggedEntries, recovery, records, recordFor, progression, GROUPS } from './insights.js';
+import { loggedEntries, recovery, records, recordFor, progression, GROUPS, gutPatterns, HIGH_BLOAT } from './insights.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
 import { trendCard } from './trend.js';
+import { homeLayout } from './homelayout.js';
+import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
 import { whyBtn } from './why.js';
 
@@ -119,6 +121,9 @@ export async function home() {
   const t = today();
   const allActs = all.filter(e => e.type === 'activity');
   const todayActs = allActs.filter(e => e.day === t);
+  // Minutes actually trained today: finished circuits plus other training.
+  const duel = await duelCard(p, t);
+  const trainedToday = Math.round(sessions.filter(s => s.day === t).reduce((a, s) => a + minutes(s), 0) + minutesOf(todayActs));
   const map = recovery(sessions.filter(s => s.day >= addDays(t, -6)), allActs.filter(a => a.day >= addDays(t, -6)), t);
   const prog = progression(sessions, g);
   const showProg = prog && p.coach?.progSeen !== prog.latest.id && !(fresh && feel.v === 'hard');
@@ -126,25 +131,25 @@ export async function home() {
 
   return {
     cta: circuit.length ? ['Enter chamber', () => startRun(circuit)] : null,
-    html: `<div class="cols"><div>
-    ${newBallsCard(p, milestones(p, all, t))}
-    ${recapCard(p, all, t)}
-    ${coachCard(p, ctx)}
-    ${showProg ? `<section class="card coachnote"><div class="row"><p class="lbl" style="margin:0">Level up</p>${whyBtn('progress', JSON.stringify(prog.reps))}</div>
+    html: homeLayout(p, [
+      ['balls', `${newBallsCard(p, milestones(p, all, t))}`],
+      ['recap', `${recapCard(p, all, t)}`],
+      ['coach', `${coachCard(p, ctx)}`],
+      ['levelup', `${showProg ? `<section class="card coachnote"><div class="row"><p class="lbl" style="margin:0">Level up</p>${whyBtn('progress', JSON.stringify(prog.reps))}</div>
       <p>You beat your ghost twice in a row at ×${g}: ${prog.reps.join(' → ')} reps.</p>
       <div class="row" style="margin-top:8px;justify-content:flex-start;gap:8px">${nextG ? `<button class="cta2" data-g="${nextG}" data-prog="${esc(prog.latest.id)}">Move to ×${nextG}</button>` : ''}
       <button class="cta2" id="addLoad" data-prog="${esc(prog.latest.id)}">Add load to an exercise</button>
-      <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}
-    ${nudge && !showProg ? `<section class="card"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
-      <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}
-    <section class="card" aria-labelledby="h-today">
+      <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}`],
+      ['nudge', `${nudge && !showProg ? `<section class="card"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
+      <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}`],
+      ['chamber', `<section class="card" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
       <p class="sub">${rounds} rounds · ${rest}s rest · ${cap}-min cap · ${depth === 1 ? 'one stage per set' : depth === 2 ? 'to failure, one drop' : 'to failure, then drop'}</p>
       ${p.about?.days ? `<p class="sub">This week: <b class="num">${weekCount}</b> of ${esc(p.about.days)} sessions${weekCount >= +p.about.days ? ' · goal met' : ''} ${whyBtn('weekgoal')}</p>` : ''}
       <div class="dial" aria-hidden="true">
         <svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="80" fill="none" stroke="var(--s2)" stroke-width="14"/>
-        <circle cx="95" cy="95" r="80" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round"
+        <circle cx="95" cy="95" r="80" fill="none" stroke="var(--accent-line)" stroke-width="14" stroke-linecap="round"
           stroke-dasharray="${len * pct} ${len}" transform="rotate(-90 95 95)"/></svg>
         <div style="text-align:center"><div class="v num">×${g}</div><div class="lbl">gravity</div></div>
       </div>
@@ -153,39 +158,40 @@ export async function home() {
       </div>
       ${ghost ? `<div class="ghost">Ghost: your last ×${g} session (${prettyDay(ghost.day)}) · <b class="num">${sessionTotal(ghost)}</b> reps in ${round(minutes(ghost))} min. Beat it.</div>`
         : `<div class="ghost">Your first ×${g} session becomes your ghost. Next time at ×${g}, you race it live.</div>`}
-    </section>
-    <section class="card">
+    </section>`],
+      ['circuit', `<section class="card">
       <div class="row"><h2>Circuit</h2>${on(p, 'shuffle') ? '<button class="cta2" id="shuffle">Shuffle</button>' : ''}</div>
       ${circuit.length ? `<ul class="list">${circuit.map(e => `<li><span>${esc(e.data.name)}<br>
         <span class="chain">${e.data.stages.slice(0, depth).map(s => esc(s.label)).join(' → ')}</span></span></li>`).join('')}</ul>`
         : '<div class="empty"><h2>Your library is empty</h2><p>Add exercises in the Library tab to build circuits.</p></div>'}
       ${p.about?.limits ? `<p class="note">Your notes: ${esc(p.about.limits)}. Swap or skip anything that hurts.</p>` : ''}
-    </section>
-  </div><div>
-    ${streakCard(p, all, t)}
-    <section class="card"><div class="row"><p class="lbl" style="margin:0">Other training today</p><button class="cta2" id="logAct">Log activity</button></div>
-      ${todayActs.length ? `<ul class="list">${activityRows(todayActs)}</ul>` : '<p class="sub">Soccer, runs, games or anything else. It feeds your fuel ranges and recovery map.</p>'}</section>
-    <section class="card"><p class="lbl">Senzu map · recovery</p>
+    </section>`],
+      ['duel', duel],
+      ['streak', `${streakCard(p, all, t)}`],
+      ['activity', `<section class="card"><div class="row"><p class="lbl" style="margin:0">Other training today</p><button class="cta2" id="logAct">Log activity</button></div>
+      ${todayActs.length ? `<ul class="list">${activityRows(todayActs)}</ul>` : '<p class="sub">Soccer, runs, games or anything else. It feeds your fuel ranges and recovery map.</p>'}</section>`],
+      ['senzu', `<section class="card"><p class="lbl">Senzu map · recovery</p>
       <div class="senzu">${map.map(m => `<div class="sz ${m.days === null ? 'never' : m.days <= 0 ? 'd0' : m.days === 1 ? 'd1' : m.days === 2 ? 'd2' : 'd3'}">
         <span class="szdot" aria-hidden="true"></span><b>${esc(m.name)}</b><span class="sub">${m.days === null ? 'not this week' : m.days <= 0 ? 'trained today' : m.days === 1 ? '1 day ago' : m.days + ' days ago'}</span></div>`).join('')}</div>
       <p class="szkey sub" aria-hidden="true"><span class="sz d0"><span class="szdot"></span></span>today <span class="sz d1"><span class="szdot"></span></span>1 day <span class="sz d2"><span class="szdot"></span></span>2 days <span class="sz d3"><span class="szdot"></span></span>3+ days rested</p>
-      <p class="note">From your circuits and other training in the last 7 days. If a group still feels sore, swap or skip it.</p></section>
-    ${trendCard(p, all, t)}
-    <div class="grid">
+      <p class="note">From your circuits and other training in the last 7 days. If a group still feels sore, swap or skip it.</p></section>`],
+      ['trend', `${trendCard(p, all, t)}`],
+      ['stats', `<div class="grid">
       <section class="card"><p class="lbl">Last session</p>
         <p class="big num">${last ? round(sessionTotal(last) / minutes(last), 1) : '—'}</p><p class="sub">reps per minute</p></section>
       ${on(p, 'gut') ? `<section class="card"><p class="lbl">Gut today</p>
         <p class="big num">${gut?.data.bloat ?? '—'}<span class="sub">/10</span></p><p class="sub">${gut ? 'Logged' : 'Not logged yet'}</p></section>` : ''}
-    </div>
-    ${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>
-      <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}
-    ${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) + timingCard(p, cap + minutesOf(todayActs)) : ''}
-    ${on(p, 'hypertrophy') ? `<section class="card">
+    </div>`],
+      ['sleep', `${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>
+      <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}`],
+      ['fuel', `${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) : ''}`],
+      ['timing', `${on(p, 'fuel') ? timingCard(p, trainedToday || cap, { open: trainedToday > 0 }) : ''}`],
+      ['hardsets', `${on(p, 'hypertrophy') ? `<section class="card">
       <p class="lbl">Hard sets this week</p>
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
       <p class="note">Each set taken to failure counts once, drops included.</p>
-    </section>` : ''}
-  </div></div>`,
+    </section>` : ''}`]
+    ]),
     bind(root) {
       bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
       bindShared(root, p, t); bindBalls(root, p);
@@ -569,8 +575,7 @@ export async function gutView() {
         ${!target && !range ? '<p class="note">Add your weight in Settings → About you for a protein range.</p>' : ''}</section>
       <section class="card"><p class="lbl">Foods</p>${tags('foods', recentFoods)}<p class="voice">🎤 Tap the mic on your keyboard to say a food instead of typing.</p></section>
       <section class="card"><p class="lbl">Capsules and supplements</p>${tags('supplements', recentSupps)}</section>
-      <section class="card"><p class="lbl">Pattern, not proof</p>
-        <p class="sub">After 14 days of logs, this panel lists which foods and supplements show up most often on your high-bloating days. It's coming in a later update. You have ${all.length} day${all.length === 1 ? '' : 's'} logged.</p></section>
+      ${patternCard(gutPatterns(all))}
     </div></div>`,
     bind(root) {
       root.addEventListener('click', guard(async e => {
@@ -613,6 +618,18 @@ export async function gutView() {
       });
     },
   };
+}
+
+// Gut pattern finder card: frequencies from the person's own log, worded as a pattern only.
+const pct = (n, d) => Math.round(n / d * 100) + '%';
+function patternCard(g) {
+  const head = '<section class="card"><p class="lbl">Pattern, not proof</p>';
+  if (!g.ready) return `${head}<p class="sub">Once you've scored bloating on 14 days, including 3 days of ${HIGH_BLOAT} or more, this lists the foods and supplements that show up more often on those days.
+    So far: ${g.days} scored day${g.days === 1 ? '' : 's'}, ${g.high} at ${HIGH_BLOAT}+.</p></section>`;
+  return `${head}<p class="sub">High-bloating days are the ones you scored ${HIGH_BLOAT} or more: ${g.high} of your ${g.days} scored days.</p>
+    ${g.rows.length ? `<ul class="list">${g.rows.map(r => `<li><span><b>${esc(r.name)}</b><br><span class="chain">${r.h} of ${g.high} high days (${pct(r.h, g.high)}) · ${r.o} of ${g.other} other days (${pct(r.o, g.other)})</span></span></li>`).join('')}</ul>`
+      : '<p style="margin-top:8px">Nothing shows up more on high-bloating days yet.</p>'}
+    <p class="note">Showing up together isn't proof that a food causes bloating. Talk with your doctor or a dietitian before cutting foods out.</p></section>`;
 }
 
 // ---------- History ----------
