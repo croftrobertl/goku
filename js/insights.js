@@ -4,7 +4,7 @@ import * as db from './db.js';
 import { addDays, weekStart, daysBetween } from './time.js';
 import { activityGroups } from './activity.js';
 
-const LOGGED = ['session', 'activity', 'checkin', 'gut', 'rest'];
+const LOGGED = ['session', 'activity', 'checkin', 'gut', 'rest', 'food'];
 export async function loggedEntries(p) {
   return (await db.byIndex('entries', 'profile', p.id)).filter(e => LOGGED.includes(e.type));
 }
@@ -78,7 +78,7 @@ export function recapNumbers(all, from, to) {
   const inWeek = all.filter(e => e.day >= from && e.day <= to);
   const of = t => inWeek.filter(e => e.type === t);
   return {
-    sessions: of('session'), activities: of('activity'), checkins: of('checkin'), gut: of('gut'), rest: of('rest'),
+    sessions: of('session'), activities: of('activity'), checkins: of('checkin'), gut: of('gut'), food: of('food'), rest: of('rest'),
     days: new Set(inWeek.map(e => e.day)).size,
   };
 }

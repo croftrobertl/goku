@@ -7,7 +7,7 @@ import { esc, overlay, guard } from './ui.js';
 export const CARDS = {
   engine: [['balls', 'Dragon Ball news', true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
     ['nudge', 'Coach nudge', true], ['chamber', 'Gravity chamber', false], ['circuit', 'Circuit', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
-    ['activity', 'Other training', true], ['senzu', 'Senzu map', true], ['trend', 'Training trend', true], ['stats', 'Last session and gut', true],
+    ['activity', 'Other training', true], ['senzu', 'Senzu map', true], ['trend', 'Training trend', true], ['stats', 'Last session and food', true],
     ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['hardsets', 'Hard sets', true]],
   perf: [['ready', 'Readiness', false], ['balls', 'Dragon Ball news', true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
     ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],

@@ -20,7 +20,7 @@ import { whyBtn } from './why.js';
 // Session names come from the profile: Gymnastics and Vaulting, or a Custom profile's sports.
 const kindName = (p, s) => { const n = sessionNames(p); return s.data.kind === 'vault' ? n[1] || 'Other' : n[0]; };
 
-export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ['history', 'History'], ['settings', 'Settings']];
+export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings']];
 
 export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
 import { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';

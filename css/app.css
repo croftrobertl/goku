@@ -258,3 +258,19 @@ h1 + p.sub, h2 + p.sub, h1 + .sub, h2 + .sub { text-align: center; } /* the shor
 .steps { margin: 4px 0 0; padding-left: 1.3em; } .steps li { margin: 6px 0; line-height: 1.4; }
 .tipline { margin-top: 10px; }
 details.grp { margin: 8px 0 0; } details.grp .list { margin-top: 4px; }
+
+/* Nutrition (1.9) */
+.itemrow { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; text-align: left; background: none; border: 0; padding: 4px 0; color: inherit; font: inherit; min-height: 48px; }
+.itemrow > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.itemrow .num { flex: none; font-weight: 600; }
+.list li:has(> .itemrow) { padding: 0; }
+.macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; text-align: center; }
+.macros b { display: block; font-size: 1.1rem; }
+.macros span { font-size: .72rem; color: var(--tx2); }
+.split { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 12px 0 4px; background: var(--s2); }
+.split i { display: block; height: 100%; }
+.split .sp { background: var(--accent-line); } .split .sc { background: var(--ok); } .split .sf { background: var(--warn); }
+.meal h2 { text-align: left; }
+.scanbox { position: relative; margin-top: 10px; border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; }
+.scanbox video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.scanbox .aim { position: absolute; left: 12%; right: 12%; top: 32%; bottom: 32%; border: 3px solid #fff; border-radius: 10px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .35); }

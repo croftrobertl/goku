@@ -1,4 +1,4 @@
-// "Density Engine" profile: gravity-chamber circuits, rep counter, gut log.
+// "Density Engine" profile: gravity-chamber circuits, rep counter, exercise library.
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
 import * as db from './db.js';
 import { esc, toast, ask, overlay, stepper, unlockAudio, beep, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
@@ -7,7 +7,8 @@ import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volum
 import { coachCard, bindCoach, isMinor } from './coach.js';
 import { fuelCard, fuelRanges, timingCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
-import { loggedEntries, recovery, records, recordFor, progression, GROUPS, gutPatterns, HIGH_BLOAT } from './insights.js';
+import { loggedEntries, recovery, records, recordFor, progression, GROUPS } from './insights.js';
+import { openNutritionDay, nutritionDays, dayTotals } from './nutrition.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
 import { trendCard } from './trend.js';
 import { homeLayout } from './homelayout.js';
@@ -16,7 +17,7 @@ import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
 import { whyBtn } from './why.js';
 
-export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'gut') ? [['gut', 'Gut']] : []), ['history', 'History'], ['settings', 'Settings']];
+export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings']];
 
 // gravity: [rounds, rest seconds, time cap minutes, drop stages used]
 export const GRAVITY = { 10: [3, 90, 14, 1], 20: [4, 75, 16, 2], 50: [4, 45, 20, 99], 100: [5, 30, 24, 99] };
@@ -103,7 +104,7 @@ export async function home() {
   const sessions = all.filter(e => e.type === 'session').sort(byDay);
   const last = sessions[sessions.length - 1];
   const ghost = ghostFor(sessions, g);
-  const gut = on(p, 'gut') ? await db.get('entries', p.id + ':gut:' + today()) : null;
+  const eaten = on(p, 'nutrition') ? await dayTotals(p, today()) : null;
   const len = 2 * Math.PI * 80;
   const pct = { 10: .25, 20: .45, 50: .75, 100: 1 }[g];
   const wk = weekStart(today());
@@ -180,8 +181,8 @@ export async function home() {
       ['stats', `<div class="grid">
       <section class="card"><p class="lbl">Last session</p>
         <p class="big num">${last ? round(sessionTotal(last) / minutes(last), 1) : '—'}</p><p class="sub">reps per minute</p></section>
-      ${on(p, 'gut') ? `<section class="card"><p class="lbl">Gut today</p>
-        <p class="big num">${gut?.data.bloat ?? '—'}<span class="sub">/10</span></p><p class="sub">${gut ? 'Logged' : 'Not logged yet'}</p></section>` : ''}
+      ${eaten ? `<section class="card"><p class="lbl">Food today</p>
+        <p class="big num">${eaten.kcal}<span class="sub"> cal</span></p><p class="sub">${eaten.n ? `${eaten.p} g protein` : 'Nothing logged yet'}</p></section>` : ''}
     </div>`],
       ['sleep', `${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>
       <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}`],
@@ -519,125 +520,10 @@ function editExercise(ex) {
   draw();
 }
 
-// ---------- Gut log (any day in the last 60) ----------
-let gutDay = null, editPantry = false;
-export const openGutDay = day => { gutDay = day; window.goku.go('gut'); };
-
-export async function gutView() {
-  const p = profile();
-  const t = today();
-  if (!gutDay || gutDay > t) gutDay = t;
-  const day = gutDay;
-  const id = p.id + ':gut:' + day;
-  const saved = (await db.get('entries', id))?.data;
-  const cur = saved || { amWaist: null, pmWaist: null, bloat: null, foods: [], fluidsOz: 0, supplements: [], protein: [] };
-  const all = await entries('gut');
-  const lastWaist = [...all].reverse().map(e => e.data.amWaist ?? e.data.pmWaist).find(v => v != null) ?? 34;
-  const newestFirst = [...all].sort((a, b) => b.day.localeCompare(a.day));
-  const recentFoods = [...new Set(newestFirst.flatMap(e => e.data.foods))].slice(0, 12);
-  const recentSupps = [...new Set(newestFirst.flatMap(e => e.data.supplements))].slice(0, 8);
-  const proteinTotal = cur.protein.reduce((a, b) => a + b, 0);
-  const target = p.settings.proteinTarget;
-  const save = () => saveEntry('gut', cur, { id, day });
-  const tags = (key, recent) => `<div class="pills" style="margin-top:8px">${[...new Set([...recent, ...cur[key]])].map(tg =>
-    `<button data-tag="${key}" data-v="${esc(tg)}" aria-pressed="${cur[key].includes(tg)}">${esc(tg)}</button>`).join('')}</div>
-    <div class="row" style="margin-top:8px"><input data-new="${key}" placeholder="${key === 'foods' ? 'Add a food' : 'Add a capsule or supplement'}" aria-label="${key === 'foods' ? 'Add a food' : 'Add a capsule or supplement'}"><button class="cta2" data-add="${key}">Add</button></div>`;
-  const perMeal = target && p.settings.proteinPer === 'meal';
-  const range = fuelRanges(p, 0);
-  const goal = target || range?.protein[0] || null; // one number: your own target, else the bottom of the coach range
-  const pantry = p.settings.pantry || [];
-
-  return {
-    html: `<div class="row"><h1>Gut log</h1>${dayPicker(day, t, 'Gut log day')}</div>
-    <div class="cols"><div>
-      <section class="card" style="margin-top:12px"><p class="lbl">Bloating (0 = none, 10 = worst)</p>
-        ${stepper('bloat', cur.bloat ?? 'none', 'bloating')}</section>
-      <section class="card"><p class="lbl">Waist (${lengthUnit(p) === 'cm' ? 'centimeters' : 'inches'})</p>
-        <div class="row"><span>Morning</span>${stepper('amWaist', length(cur.amWaist, p) ?? 'none', 'morning waist')}</div>
-        <div class="row" style="margin-top:8px"><span>Evening</span>${stepper('pmWaist', length(cur.pmWaist, p) ?? 'none', 'evening waist')}</div>
-        <p class="note">Steps of ${lengthUnit(p) === 'cm' ? '½ cm' : '¼ inch'}. Measure at the same spot each time.</p></section>
-      <section class="card"><p class="lbl">Fluids</p>
-        <div class="row"><span class="num big">${esc(volume(cur.fluidsOz, p))} <span class="sub">${volumeUnit(p)}</span></span>
-        <span>${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join(' ')}</span></div></section>
-    </div><div>
-      <section class="card"><p class="lbl">Protein</p>
-        <p class="big num">${esc(proteinTotal)} g${goal ? ` <span class="sub">${perMeal ? `target ${esc(target)} g per meal` : `of ${esc(goal)} g`}</span>` : ''}</p>
-        ${goal && !perMeal ? `<div class="bar"><i style="width:${Math.min(100, proteinTotal / goal * 100)}%"></i></div>` : ''}
-        ${range ? `<p class="sub" style="margin-top:6px">Coach range ${range.protein[0]}–${range.protein[1]} g${target && !perMeal
-          ? (target < range.protein[0] ? ' · your target is below it' : target > range.protein[1] ? ' · your target is above it' : ' · your target sits inside it') : ''} ${whyBtn('protein', '0')}</p>` : ''}
-        ${cur.protein.length ? `<p class="sub" style="margin-top:6px">Meals: ${cur.protein.map(g => esc(g) + ' g' + (perMeal ? (g >= target ? ' ✓' : '') : '')).join(' · ')}</p>` : ''}
-        <div class="seg">${[10, 20, 30, 40, 50].map(g => `<button data-pr="${g}">+${g}</button>`).join('')}</div>
-        ${cur.protein.length ? '<button class="link" id="prUndo">Undo last</button>' : ''}
-        <p class="lbl" style="margin-top:14px">Capsule pantry · one tap</p>
-        ${pantry.length ? `<div class="pantry">${pantry.map((f, i) => `<button class="cta2" data-pan="${i}" aria-label="${editPantry ? 'Remove' : 'Add'} ${esc(f.n)}, ${esc(f.g)} grams of protein">${editPantry ? '✕ ' : ''}${esc(f.n)} · ${esc(f.g)} g</button>`).join('')}</div>
-          <button class="link" id="panEdit">${editPantry ? 'Done removing' : 'Remove foods'}</button>`
-          : '<p class="sub">Save foods you eat often with their protein. Then one tap logs both.</p>'}
-        <div class="row" style="margin-top:8px;gap:6px"><input id="panName" placeholder="Food, e.g. Greek yogurt" maxlength="40" aria-label="Food name">
-          <input id="panG" inputmode="numeric" placeholder="g" aria-label="Protein grams" style="width:70px"><button class="cta2" id="panAdd">Save</button></div>
-        ${!target && !range ? '<p class="note">Add your weight in Settings → About you for a protein range.</p>' : ''}</section>
-      <section class="card"><p class="lbl">Foods</p>${tags('foods', recentFoods)}<p class="voice">🎤 Tap the mic on your keyboard to say a food instead of typing.</p></section>
-      <section class="card"><p class="lbl">Capsules and supplements</p>${tags('supplements', recentSupps)}</section>
-      ${patternCard(gutPatterns(all))}
-    </div></div>`,
-    bind(root) {
-      root.addEventListener('click', guard(async e => {
-        const b = e.target.closest('button'); if (!b) return;
-        if (b.dataset.dayshift) { gutDay = addDays(day, +b.dataset.dayshift); if (gutDay < addDays(t, -60)) gutDay = addDays(t, -60); return window.goku.render(); }
-        const st = b.closest('[data-step]');
-        if (st && b.dataset.d) {
-          const k = st.dataset.step, d = +b.dataset.d;
-          if (k === 'bloat') cur.bloat = Math.min(10, Math.max(0, (cur.bloat ?? (d > 0 ? -1 : 1)) + d));
-          else cur[k] = Math.max(15, round((cur[k] ?? (k === 'pmWaist' && cur.amWaist ? cur.amWaist : lastWaist)) + d * lengthStep(p), 3));
-        } else if (b.dataset.fl) cur.fluidsOz = Math.max(0, round(cur.fluidsOz + +b.dataset.fl, 2));
-        else if (b.dataset.pr) cur.protein.push(+b.dataset.pr);
-        else if (b.dataset.pan !== undefined) {
-          const f = pantry[+b.dataset.pan];
-          if (editPantry) { pantry.splice(+b.dataset.pan, 1); p.settings.pantry = pantry; await saveProfile(p); return window.goku.render(); }
-          if (f.g) cur.protein.push(f.g);
-          const name = f.n.toLowerCase(); if (!cur.foods.includes(name)) cur.foods.push(name);
-          toast(`${f.n} · ${f.g} g logged`);
-        } else if (b.id === 'panEdit') { editPantry = !editPantry; return window.goku.render(); }
-        else if (b.id === 'panAdd') {
-          const n = root.querySelector('#panName').value.trim().slice(0, 40), g = Math.round(+root.querySelector('#panG').value.replace(/[^\d.]/g, ''));
-          if (!n || !(g >= 0 && g <= 300)) return toast('Add a food name and its grams of protein');
-          p.settings.pantry = [...pantry.filter(x => x.n.toLowerCase() !== n.toLowerCase()), { n, g }].slice(-40);
-          await saveProfile(p); toast('Saved to your pantry'); return window.goku.render();
-        }
-        else if (b.id === 'prUndo') cur.protein.pop();
-        else if (b.dataset.tag) {
-          const k = b.dataset.tag, v = b.dataset.v;
-          cur[k] = cur[k].includes(v) ? cur[k].filter(x => x !== v) : [...cur[k], v];
-        } else if (b.dataset.add) {
-          const inp = root.querySelector(`[data-new="${b.dataset.add}"]`);
-          const v = inp.value.trim().toLowerCase().slice(0, 40);
-          if (!v) return;
-          if (!cur[b.dataset.add].includes(v)) cur[b.dataset.add].push(v);
-        } else return;
-        await save(); window.goku.render();
-      }));
-      root.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && e.target.dataset.new) root.querySelector(`[data-add="${e.target.dataset.new}"]`).click();
-      });
-    },
-  };
-}
-
-// Gut pattern finder card: frequencies from the person's own log, worded as a pattern only.
-const pct = (n, d) => Math.round(n / d * 100) + '%';
-function patternCard(g) {
-  const head = '<section class="card"><p class="lbl">Pattern, not proof</p>';
-  if (!g.ready) return `${head}<p class="sub">Once you've scored bloating on 14 days, including 3 days of ${HIGH_BLOAT} or more, this lists the foods and supplements that show up more often on those days.
-    So far: ${g.days} scored day${g.days === 1 ? '' : 's'}, ${g.high} at ${HIGH_BLOAT}+.</p></section>`;
-  return `${head}<p class="sub">High-bloating days are the ones you scored ${HIGH_BLOAT} or more: ${g.high} of your ${g.days} scored days.</p>
-    ${g.rows.length ? `<ul class="list">${g.rows.map(r => `<li><span><b>${esc(r.name)}</b><br><span class="chain">${r.h} of ${g.high} high days (${pct(r.h, g.high)}) · ${r.o} of ${g.other} other days (${pct(r.o, g.other)})</span></span></li>`).join('')}</ul>`
-      : '<p style="margin-top:8px">Nothing shows up more on high-bloating days yet.</p>'}
-    <p class="note">Showing up together isn't proof that a food causes bloating. Talk with your doctor or a dietitian before cutting foods out.</p></section>`;
-}
-
 // ---------- History ----------
 export async function historyView() {
   const sessions = (await sessionsInOrder()).reverse();
-  const guts = (await entries('gut')).reverse();
+  const days = on(profile(), 'nutrition') ? await nutritionDays(profile()) : [];
   const acts = (await entries('activity')).sort((a, b) => b.day.localeCompare(a.day));
   const p = profile();
   return {
@@ -650,10 +536,10 @@ export async function historyView() {
         <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('')}</ul>`
         : '<div class="empty"><h2>No sessions yet</h2><p>Enter the chamber from Home. Each finished session lands here and becomes your next ghost.</p></div>'}
       </section>
-      ${on(profile(), 'gut') ? `<section class="card"><p class="lbl">Gut log days</p>
-      ${guts.length ? `<ul class="list">${guts.map(g => `<li><span>${prettyDay(g.day)}<br><span class="chain">bloat ${esc(g.data.bloat ?? '—')} · ${g.data.protein.reduce((a, b) => a + b, 0)} g protein</span></span>
-        <button class="cta2" data-gut="${esc(g.day)}" aria-label="Open gut log for ${prettyDay(g.day)}">Open</button></li>`).join('')}</ul>`
-        : '<div class="empty"><p>Log bloating, waist and food in the Gut tab.</p></div>'}</section>` : ''}
+      ${on(profile(), 'nutrition') ? `<section class="card"><p class="lbl">Nutrition days</p>
+      ${days.length ? `<ul class="list">${days.slice(0, 60).map(d => `<li><span>${prettyDay(d.day)}<br><span class="chain">${d.n ? `${d.kcal} cal · ${d.n} food${d.n === 1 ? '' : 's'}` : 'no foods logged'}${d.bloat != null ? ` · bloating ${esc(d.bloat)}` : ''}</span></span>
+        <button class="cta2" data-nday="${esc(d.day)}" aria-label="Open nutrition for ${prettyDay(d.day)}">Open</button></li>`).join('')}</ul>`
+        : '<div class="empty"><p>Days you log food or a check-in in Nutrition show up here.</p></div>'}</section>` : ''}
       <section class="card"><p class="lbl">Other training</p>
       ${acts.length ? `<ul class="list">${activityRows(acts.slice(0, 60))}</ul>` : '<div class="empty"><p>Log soccer, runs and other training from Home.</p></div>'}</section>
       <p class="note">Power level records are in the Library. Your training trend is on Home.</p>`,
@@ -661,7 +547,7 @@ export async function historyView() {
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.edit) editSession(sessions.find(s => s.id === b.dataset.edit));
-        if (b.dataset.gut) openGutDay(b.dataset.gut);
+        if (b.dataset.nday) openNutritionDay(b.dataset.nday);
         if (b.dataset.act) editActivityById(b.dataset.act);
       });
     },

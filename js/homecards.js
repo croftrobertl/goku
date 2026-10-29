@@ -4,6 +4,7 @@ import { esc, round, toast } from './ui.js';
 import { prettyDay, weekday } from './time.js';
 import { streak, lastWeek, recapNumbers } from './insights.js';
 import { whyBtn } from './why.js';
+import { dayProtein } from './nutrition.js';
 import { fuelRanges } from './fuel.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
 
@@ -42,10 +43,15 @@ export function recapCard(p, all, today) {
     // The same protein number the Gut log shows: your own daily target, else the bottom of the range.
     const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
     const target = own || fuelRanges(p, 0)?.protein[0];
-    if (target && n.gut.length) {
-      const hit = n.gut.filter(g => g.data.protein.reduce((a, b) => a + b, 0) >= target).length;
-      rows.push([own ? 'Protein target hit' : 'Protein range hit', `${hit} of ${n.gut.length} logged days`]);
-      if (hit < Math.ceil(n.gut.length / 2)) focus.push(`Reach ${target} g of protein on more days. The Capsule pantry makes it one tap.`);
+    // Days with food logged (or older Gut logs with protein taps), protein from both.
+    const byDay = {};
+    for (const g of n.gut) (byDay[g.day] ||= {}).gut = g.data;
+    for (const f of n.food) (byDay[f.day] ||= {}).food = f.data;
+    const days = Object.values(byDay).filter(d => d.food?.items?.length || d.gut?.protein?.length);
+    if (target && days.length) {
+      const hit = days.filter(d => dayProtein(d.food, d.gut) >= target).length;
+      rows.push([own ? 'Protein target hit' : 'Protein range hit', `${hit} of ${days.length} logged days`]);
+      if (hit < Math.ceil(days.length / 2)) focus.push(`Reach ${target} g of protein on more days. Saved meals in Nutrition make it one tap.`);
     }
     if (goal && n.sessions.length < goal) focus.push(`Fit in ${goal} sessions. Short ×10 or ×20 days still count.`);
     if (!focus.length) focus.push('Strong week. Try one gravity level higher, or beat your ghost by a few reps.');

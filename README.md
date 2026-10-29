@@ -32,7 +32,20 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
-- *Capsule pantry:* save foods you eat often with their protein, then log both in one tap.
+- *Nutrition* (1.9.0): a food log in the style of the big calorie-counting apps, fully offline.
+  - 32,906 foods: 13,224 generic and as-eaten foods (USDA SR Legacy 2018 and FNDDS survey foods 2024)
+    and 19,682 brand items from 273 well-known US brands (USDA Branded Foods, October 2026, label data
+    from the makers). Built by `tools/build-foods.py` from the public-domain USDA FoodData Central
+    downloads; the brand list is `tools/food-brands.txt`.
+  - Breakfast, lunch, dinner and snacks; calories, protein, carbs, fat and fiber with a calorie split;
+    all 8 nutrients per day; water. An optional calorie target the person sets (Goku never picks one).
+  - Search ranked for plain foods first, serving sizes from USDA portions or the label, Recent foods,
+    My foods, saved meals, Quick add, and Add from a label (saved to My foods, with an optional barcode).
+  - Barcode scanning with the camera (ZXing 0.23.0, Apache-2.0, `vendor/zxing.min.js` with its license),
+    or typing the numbers. Frames are read live; nothing is recorded.
+  - The old Gut tab is folded in: optional symptom check-ins (bloating, heartburn, cramps, gas, nausea,
+    low energy, waist if wanted, supplements) and the pattern finder, which now uses logged foods.
+  - The Capsule pantry's foods moved to My foods; old quick protein taps still count toward the day.
 - *One protein number:* your own target if you set one, otherwise the bottom of the coach range,
   with the range shown beside it.
 - *Streak with Senzu beans:* any logged day counts. Rest days count too, up to the days your plan
@@ -68,7 +81,7 @@ used to dictate.
 - *Edit Home* (1.6.0): Settings → Arrange Home cards reorders or hides each profile's Home cards.
   The main card (Gravity chamber or Readiness) and the Care check always show.
 - *Gut pattern finder* (1.6.0): after 14 days with a bloating score, including 3 days of 6 or more,
-  the Gut tab lists foods and supplements that show up more often on those high-bloating days, with
+  Nutrition lists foods and supplements that show up more often on those high-bloating days, with
   the counts (only items on 3 or more high days, and at least 20 points more often than on other days).
   Worded as a pattern, never a cause. The 6-out-of-10 line and the 20-point gap are Goku's choices.
 - *Flexibility in the skill tree* (1.6.0): splits, bridge and similar goals climb Working on it →
@@ -115,7 +128,7 @@ Each person can install it on their own phone. To share one phone, use **Add a p
 
 | What | Where | Leaves the phone? |
 |---|---|---|
-| Profiles, sessions, check-ins, gut log | IndexedDB database `goku`, on this device | Only when you export it |
+| Profiles, sessions, check-ins, food log | IndexedDB database `goku`, on this device | Only when you export it |
 | Passcodes | Salted PBKDF2 hash (150,000 rounds) inside the profile | Never; exports leave it out |
 | App files (HTML, JS, CSS, icons) | Service-worker cache `goku-app-<version>` | Downloaded from GitHub Pages |
 
@@ -371,6 +384,11 @@ js/duel.js             Duels between profiles
 js/figure.js           original exercise drawings (side-view figure from joint angles)
 js/moves.js            the 120-exercise catalog: steps, tips, drop chains
 js/movepicker.js       Library search, ? popups, adding exercises
+js/foods.js            the offline food list: loading, search, servings
+js/nutrition.js        the Nutrition tab, adding foods, meals, labels, symptoms
+js/scan.js             barcode scanner
+data/foods.json        32,906 foods (built by tools/build-foods.py)
+vendor/zxing.min.js    ZXing barcode reader (Apache-2.0, see ZXING-LICENSE.txt)
 tools/figures.html     dev page: every exercise's two drawings (open at 127.0.0.1)
 js/health.js           Scouter link: Health file import
 js/perf-score.js       readiness score and sleep target

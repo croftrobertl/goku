@@ -58,6 +58,18 @@ const stages = v => (Array.isArray(v) ? v.slice(0, 8).map(s => ({ label: str(s?.
 
 const ids = v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && /^\w{1,20}$/.test(x)))].slice(0, 40) : [];
 
+// Food log items carry their own numbers; every field is checked and anything odd dropped.
+const NK = ['kcal', 'p', 'c', 'f', 'fib', 'sug', 'na', 'sat'];
+const per = v => Object.fromEntries(NK.map(k => [k, v && typeof v === 'object' ? num(v[k], 0, 100000) : null]));
+const MEALS = ['breakfast', 'lunch', 'dinner', 'snacks'];
+function foodItem(it) {
+  if (!it || typeof it !== 'object') return null;
+  const base = { meal: MEALS.includes(it.meal) ? it.meal : 'snacks', name: str(it.name, 80).trim() || 'Food', brand: str(it.brand, 40), n: per(it.n) };
+  if (it.quick === true) return { ...base, quick: true };
+  return { ...base, src: ['sr', 'fndds', 'brand', 'mine'].includes(it.src) ? it.src : 'mine', per: per(it.per), unit: it.unit === 'ml' ? 'ml' : 'g',
+    portions: str(it.portions, 400), pl: str(it.pl, 48) || 'serving', pg: num(it.pg, 0.1, 5000, 100), qty: num(it.qty, 0.01, 5000, 1) };
+}
+
 const DATA = {
   exercise: d => ({ name: str(d.name, 40), slot: str(d.slot, 12, 'push'), module: d.module === 'soccer' ? 'soccer' : null,
     order: int(d.order, 0, 10000, 999), mode: d.mode === 'hold' ? 'hold' : 'reps', ...(/^[a-z0-9-]{1,40}$/.test(d.moveId || '') ? { moveId: d.moveId } : {}),
@@ -69,7 +81,12 @@ const DATA = {
         round: int(s?.round, 1, 100, 1), stages: stages(s?.stages) })) : [],
       repTimes: nums(d.repTimes, 20000, 0, 1e6) }),
   gut: d => ({ amWaist: num(d.amWaist, 10, 100), pmWaist: num(d.pmWaist, 10, 100), bloat: int(d.bloat, 0, 10), foods: strs(d.foods, 100, 40),
-    fluidsOz: num(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500) }),
+    fluidsOz: num(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500),
+    ...Object.fromEntries(['heartburn', 'cramps', 'gas', 'nausea', 'lowEnergy'].filter(k => d[k] === true).map(k => [k, true])) }),
+  food: d => ({ items: Array.isArray(d.items) ? d.items.slice(0, 200).map(foodItem).filter(Boolean) : [], water: num(d.water, 0, 1000) }),
+  myfood: d => ({ name: str(d.name, 60).trim() || 'Food', brand: str(d.brand, 40), upc: String(d.upc || '').replace(/\D/g, '').slice(0, 14), unit: d.unit === 'ml' ? 'ml' : 'g',
+    serving: str(d.serving, 48) || '1 serving', servingG: num(d.servingG, 0.1, 5000, 100), per: per(d.per) }),
+  meal: d => ({ name: str(d.name, 40).trim() || 'Meal', items: Array.isArray(d.items) ? d.items.slice(0, 60).map(foodItem).filter(Boolean) : [] }),
   activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'hike', 'sport', 'lift', 'other'].includes(d.kind) ? d.kind : 'other',
     minutes: int(d.minutes, 1, 1440, 30), effort: int(d.effort, 0, 10, 5), ...(d.source === 'health' ? { source: 'health' } : {}) }),
   rest: () => ({}),
@@ -98,7 +115,7 @@ export function cleanBackup(prof, entries) {
     dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
-    settings: { sound: prof.settings?.sound !== false, duel: false, // sharing is chosen again on each phone
+    settings: { sound: prof.settings?.sound !== false, duel: false, kcalTarget: int(prof.settings?.kcalTarget, 800, 6000), trackWaist: prof.settings?.trackWaist === true, // sharing is chosen again on each phone
       homeOrder: ids(prof.settings?.homeOrder), homeHidden: ids(prof.settings?.homeHidden),
       theme: THEMES[prof.settings?.theme] ? prof.settings.theme : 'capsule', mode: ['auto', 'dark', 'light'].includes(prof.settings?.mode) ? prof.settings.mode : 'auto', ...(prof.kind === 'engine'
       ? { gravity: [10, 20, 50, 100].includes(prof.settings?.gravity) ? prof.settings.gravity : 50, shuffleSeed: int(prof.settings?.shuffleSeed, 0, 1e6, 0),

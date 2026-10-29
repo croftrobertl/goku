@@ -1,0 +1,295 @@
+# Brands kept from the USDA Branded Foods data (matched on brand name or owner, case ignored).
+# Protein and sports nutrition
+premier protein
+fairlife
+core power
+muscle milk
+pure protein
+quest
+rxbar
+kind
+clif
+clif bar
+luna
+nature valley
+built
+one
+barebells
+optimum nutrition
+orgain
+ensure
+boost
+gatorade
+powerade
+bodyarmor
+body armor
+propel
+liquid i.v.
+nuun
+celsius
+# Dairy and eggs
+chobani
+fage
+oikos
+dannon
+yoplait
+siggi's
+noosa
+stonyfield
+two good
+ratio
+horizon
+organic valley
+lactaid
+tillamook
+kerrygold
+land o lakes
+land o'lakes
+sargento
+kraft
+philadelphia
+daisy
+breakstone's
+babybel
+the laughing cow
+cabot
+galbani
+borden
+eggland's best
+vital farms
+pete and gerry's
+kozy shack
+jell-o
+# Plant milks
+silk
+almond breeze
+oatly
+califia farms
+planet oat
+so delicious
+# Breakfast and cereal
+kellogg's
+general mills
+cheerios
+quaker
+post
+kashi
+special k
+frosted flakes
+honey bunches of oats
+life
+nature's path
+bob's red mill
+kodiak
+kodiak cakes
+eggo
+aunt jemima
+pearl milling company
+thomas'
+pop-tarts
+nutri-grain
+belvita
+# Bread and baked goods
+nature's own
+dave's killer bread
+pepperidge farm
+sara lee
+arnold
+wonder
+bimbo
+king's hawaiian
+mission
+old el paso
+la banderita
+entenmann's
+little debbie
+hostess
+# Meat, fish and deli
+tyson
+perdue
+hormel
+oscar mayer
+hillshire farm
+jimmy dean
+boar's head
+applegate
+johnsonville
+ball park
+butterball
+smithfield
+bumble bee
+starkist
+chicken of the sea
+wild planet
+gorton's
+spam
+# Meals, soups and frozen
+campbell's
+progresso
+lean cuisine
+stouffer's
+healthy choice
+banquet
+marie callender's
+amy's
+digiorno
+totino's
+hot pockets
+evol
+devour
+red baron
+birds eye
+green giant
+annie's
+kraft macaroni
+chef boyardee
+lipton
+knorr
+uncle ben's
+ben's original
+minute
+rice-a-roni
+near east
+barilla
+ronzoni
+ragu
+prego
+bertolli
+rao's
+classico
+la choy
+# Produce and fruit
+dole
+del monte
+chiquita
+mott's
+musselman's
+ocean spray
+welch's
+sun-maid
+wonderful
+blue diamond
+planters
+emerald
+# Spreads, sauces and pantry
+jif
+skippy
+peter pan
+smucker's
+nutella
+justin's
+heinz
+hellmann's
+best foods
+french's
+hidden valley
+kraft heinz
+hunt's
+frank's redhot
+sweet baby ray's
+lawry's
+mccormick
+domino
+honey maid
+nabisco
+ritz
+triscuit
+wheat thins
+goldfish
+cheez-it
+pringles
+lay's
+doritos
+cheetos
+tostitos
+fritos
+ruffles
+sunchips
+smartfood
+popchips
+skinnypop
+boom chicka pop
+orville redenbacher's
+pop secret
+snyder's of hanover
+rold gold
+# Sweets and desserts
+oreo
+chips ahoy!
+keebler
+famous amos
+hershey's
+reese's
+kit kat
+m&m's
+snickers
+twix
+milky way
+3 musketeers
+ghirardelli
+lindt
+dove
+skittles
+starburst
+haribo
+jolly rancher
+ben & jerry's
+haagen-dazs
+häagen-dazs
+breyers
+blue bell
+halo top
+talenti
+dreyer's
+edy's
+klondike
+popsicle
+outshine
+yasso
+# Drinks
+coca-cola
+pepsi
+sprite
+dr pepper
+mountain dew
+canada dry
+7up
+a&w
+schweppes
+la croix
+bubly
+spindrift
+vitaminwater
+smartwater
+tropicana
+minute maid
+simply
+naked
+bolthouse farms
+capri sun
+kool-aid
+crystal light
+v8
+starbucks
+dunkin'
+dunkin
+nescafe
+folgers
+maxwell house
+international delight
+coffee mate
+red bull
+monster
+arizona
+lipton iced tea
+pure leaf
+honest tea
+snapple
+# Store brands (capped like every other brand)
+kirkland signature
+great value
+good & gather
+365 by whole foods market
+trader joe's
+market pantry
+signature select
