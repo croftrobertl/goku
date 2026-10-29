@@ -7,12 +7,15 @@ import { onboard, ACCENTS } from './onboarding.js';
 import { cleanBackup } from './validate.js';
 import { esc, ask, overlay, toast, guard } from './ui.js';
 import { VERSION } from './version.js';
+import { dayKey } from './time.js';
 
 export const SCHEMA_VERSION = 1;
 const DAY = 86400000;
 
 // ---------- Export format (documented in README) ----------
-const toISO = o => { const r = { ...o }; for (const k in r) if (k.endsWith('At') && typeof r[k] === 'number') r[k] = r[k] ? new Date(r[k]).toISOString() : null; return r; };
+// Timestamps end in "At". dayEndsAt is an hour (0-6), not a timestamp, so it stays a number.
+const isStamp = k => k.endsWith('At') && k !== 'dayEndsAt';
+const toISO = o => { const r = { ...o }; for (const k in r) if (isStamp(k) && typeof r[k] === 'number') r[k] = r[k] ? new Date(r[k]).toISOString() : null; return r; };
 const fromISO = o => { const r = { ...o }; for (const k in r) if (k.endsWith('At') && typeof r[k] === 'string') r[k] = Date.parse(r[k]) || 0; return r; };
 
 export async function buildExport(p) {
@@ -47,7 +50,7 @@ export async function exportNow(encrypted = false) {
     toast('Encrypting…');
     payload = await encryptJSON(payload, pass);
   }
-  const stamp = new Date().toISOString().slice(0, 10);
+  const stamp = dayKey(Date.now(), 0); // today's date in US Eastern
   const safe = p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'profile';
   const name = `goku-${safe}-${stamp}${encrypted ? '-encrypted' : ''}.json`;
   const file = new File([JSON.stringify(payload, null, 1)], name, { type: 'application/json' });
@@ -69,7 +72,8 @@ export async function exportNow(encrypted = false) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') close();
     if (b.id === 'share') {
-      try { await navigator.share({ files: [file], title: name }); await done('share'); }
+      // No title: iOS saves a title as a stray text file next to the backup.
+      try { await navigator.share({ files: [file] }); await done('share'); }
       catch (err) { if (err.name !== 'AbortError') el.querySelector('#m').textContent = "The share sheet didn't open. Try Download instead."; }
     }
     if (b.id === 'dl') {

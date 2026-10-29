@@ -66,6 +66,7 @@ p { margin: 0; }
 .ghost b { color: var(--accent-text); }
 .dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(var(--safe-b) + 8px);
   background: var(--bg); border-top: 1px solid var(--line); z-index: 5; }
+.dock:empty { display: none; }
 .dock-in { max-width: 1100px; margin: 0 auto; }
 .brand { display: none; }
 .cta { width: 100%; min-height: 56px; border-radius: 16px; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 1.1rem; }

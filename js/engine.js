@@ -424,7 +424,7 @@ export async function gutView() {
       <section class="card"><p class="lbl">Foods</p>${tags('foods', recentFoods)}</section>
       <section class="card"><p class="lbl">Capsules and supplements</p>${tags('supplements', recentSupps)}</section>
       <section class="card"><p class="lbl">Pattern, not proof</p>
-        <p class="sub">After 14 days of logs, this panel lists which foods and supplements show up most often on your high-bloating days. It arrives in M2. You have ${all.length} day${all.length === 1 ? '' : 's'} logged.</p></section>
+        <p class="sub">After 14 days of logs, this panel lists which foods and supplements show up most often on your high-bloating days. It's coming in a later update. You have ${all.length} day${all.length === 1 ? '' : 's'} logged.</p></section>
     </div></div>`,
     bind(root) {
       root.addEventListener('click', guard(async e => {
@@ -473,7 +473,7 @@ export async function historyView() {
       ${guts.length ? `<ul class="list">${guts.map(g => `<li><span>${prettyDay(g.day)}<br><span class="chain">bloat ${esc(g.data.bloat ?? '—')} · ${g.data.protein.reduce((a, b) => a + b, 0)} g protein</span></span>
         <button class="cta2" data-gut="${esc(g.day)}" aria-label="Open gut log for ${prettyDay(g.day)}">Open</button></li>`).join('')}</ul>`
         : '<div class="empty"><p>Log bloating, waist and food in the Gut tab.</p></div>'}</section>` : ''}
-      <p class="note">Charts, PRs and the power-level score arrive in M2.</p>`,
+      <p class="note">Charts, PRs and the power-level score are coming in a later update.</p>`,
     bind(root) {
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;

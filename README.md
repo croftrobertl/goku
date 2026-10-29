@@ -19,10 +19,10 @@ Live at: https://croftrobertl.github.io/goku/
 ## Install on iPhone (5 steps)
 
 1. Open **Safari** and go to **croftrobertl.github.io/goku**.
-2. Tap the **Share** button (the square with an arrow).
-3. Scroll down and tap **Add to Home Screen**, then **Add**.
+2. Tap **Share**. It's in Safari's toolbar, or inside the **☰** or **•••** menu.
+3. Tap **View More** if you see it, then **Add to Home Screen**, then **Add**.
 4. Open **Goku from the Home Screen**, not from Safari. Data saved in a Safari tab is kept
-   separately from the Home Screen app *(verify)*.
+   separately from the Home Screen app.
 5. Pick your training type, enter your name, choose a color and modules, then set a passcode.
 
 Each person can install it on their own phone. To share one phone, use **Add a profile** in Settings.
@@ -67,8 +67,9 @@ and from which profile, it was reset. With only one profile on the phone, restor
 **Delete a profile:** Settings → *Delete this profile*. It offers an export first, asks for that
 profile's passcode, then erases the profile and all its entries.
 
-**Privacy curtain:** while Goku is in the background, the screen shows only the orb, so the iPhone
-app switcher doesn't show anyone's data *(verify)*.
+**App switcher:** iOS takes the app-switcher picture before Goku hears it's being hidden, so the
+switcher can show the last screen you were on. The passcode still applies when the app is opened.
+To keep a screen private, tap **Lock now** in Settings before leaving the app.
 
 ---
 
@@ -83,7 +84,7 @@ For a real nudge at a set time:
 4. Tap **Done**.
 
 Avoid an "Open URL" action. It would open Goku in a Safari tab, which has separate storage, rather
-than the Home Screen app *(verify)*.
+than the Home Screen app.
 
 ---
 
@@ -178,21 +179,28 @@ food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---
 
-## Testing status (1.1.0)
+## Testing status (1.1.1)
 
-Tested in the Mac browser (Chromium engine) at 320 px, phone and desktop widths, in light and dark mode:
+**Mac browser** (Chromium engine) at 320 px, phone and desktop widths, in light and dark mode:
 upgrading from 1.0.2 with existing data; onboarding with Cancel; passcodes (create, change with Cancel,
 wrong tries, wait, remember-for, relock without losing unsaved input, a single lock screen, reset by
 another profile with notice, verify before delete); one workout per tap, double-tap protection, rest
 that stray taps can't skip, undo across reps, drops, sets and rests, an abandoned workout saved at its
 last rep; backdated gut log and edited sessions; export sheet; import refusing another profile's
 backup, cleaning damaged entries, and an all-or-nothing Replace rolled back after a forced failure;
-red-flag rule across a skipped day and the care toggle; privacy curtain; text contrast ≥ 4.5:1 in both
-modes (including a yellow accent); text scaling; desktop sidebar; and full offline use.
+red-flag rule across a skipped day and the care toggle; text contrast ≥ 4.5:1 in both modes
+(including a yellow accent); text scaling; desktop sidebar; and full offline use.
 
-**Not yet tested on iOS** (needs the iOS 26 simulator runtime): Home Screen install and separate
-storage, Safari share sheet export, Screen Wake Lock, audio cues after screen lock, safe areas,
-and Dynamic Type. Items marked *(verify)* above depend on that test.
+**iPhone 17 simulator, iOS 27.0** (no iOS 26 simulator was available; phones on iOS 26 may differ):
+- Works: Add to Home Screen with the orb icon and cover image; full-screen launch; Safari tab and
+  Home Screen app keep separate data; both profile types set up; fast taps on the rep counter,
+  keypad, steppers and body map (6 quick reps counted 6, no zoom); scrolling that starts on a button;
+  safe areas around the Dynamic Island and home indicator; Dynamic Type at the largest standard size;
+  passcode relock after 2 minutes away with "Always ask"; export through the share sheet to Files
+  (one file); import with Merge, including a 1.1.0 backup; the update bar and Update.
+- Doesn't work: the app-switcher picture still shows the last screen (see *App switcher* above).
+- Not testable in the simulator: Screen Wake Lock (the simulator never sleeps) and audio cues after
+  the screen locks. Check these on a real iPhone during a workout.
 
 ---
 

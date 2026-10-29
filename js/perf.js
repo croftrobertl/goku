@@ -89,11 +89,11 @@ export async function home() {
           `<p>${planned.gym ? `Gymnastics ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `Vaulting ${round(planned.vault / 60, 1)} h` : ''}</p>`}
         ${todays.length ? `<ul class="list" style="margin-top:8px">${todays.map(s => `<li><span>${s.data.kind === 'vault' ? 'Vaulting' : 'Gymnastics'} · ${esc(s.data.minutes)} min</span>
           <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}
-        <p class="note">Load = minutes × effort (0–10). Trends and gentle color bands arrive in M2.</p>
+        <p class="note">Load = minutes × effort (0–10). Trends and gentle color bands are coming in a later update.</p>
       </section>
       ${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Fuel · long day</p>
         <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p>
-        <p class="note">Energy ranges with their published source arrive in M2. A pediatrician or sports dietitian should confirm any numbers.</p></section>` : ''}
+        <p class="note">Energy ranges with their published source are coming in a later update. A pediatrician or sports dietitian should confirm any numbers.</p></section>` : ''}
     </div></div>`,
     bind(root) {
       root.addEventListener('click', e => { if (e.target.closest('[data-day]')) window.goku.go('week'); });

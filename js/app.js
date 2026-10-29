@@ -118,8 +118,8 @@ function installGate() {
       <p class="sub" style="margin-top:8px">On iPhone, data saved in a Safari tab is kept apart from the Home Screen app,
       and Safari can delete it after 7 days without a visit. Install first so nothing you log gets stranded or lost.</p>
       <ol style="line-height:1.9;padding-left:20px;margin:12px 0 0">
-        <li>Tap the <b>Share</b> button in Safari's toolbar.</li>
-        <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+        <li>Tap <b>Share</b>. It's in Safari's toolbar, or inside the <b>☰</b> or <b>•••</b> menu.</li>
+        <li>Tap <b>View More</b> if you see it, then <b>Add to Home Screen</b>.</li>
         <li>Tap <b>Add</b>, then open Goku from your Home Screen.</li>
       </ol></section>
       <button class="link" id="anyway" style="width:100%">Try it in Safari anyway (data may be deleted)</button>`;

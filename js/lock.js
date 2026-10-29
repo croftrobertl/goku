@@ -122,8 +122,9 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
   return promise;
 }
 
-// Privacy curtain: covers the screen whenever the app is hidden, so the iPhone app
-// switcher snapshot shows the orb, not someone's data (verify on iOS).
+// Privacy curtain: covers the screen whenever the app is hidden. On iOS 27 the app
+// switcher snapshot is taken before the page hears it's hidden, so the switcher can
+// still show the last screen; the curtain only covers what's seen on return.
 // "Always ask" unlocks end after 2 minutes away; onRelock decides what to do.
 let hiddenAt = 0;
 export function watchRelock(onRelock) {

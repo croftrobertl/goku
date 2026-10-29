@@ -134,6 +134,27 @@ document.addEventListener('visibilitychange', () => {
   if (wantWake && document.visibilityState === 'visible') keepAwake(true);
 });
 
+// Fast taps. In a Home Screen app iOS ignores touch-action and treats two quick taps as
+// zoom, which swallowed reps (seen on iOS 27). A still, short touch on a button is
+// handled the moment the finger lifts; scrolls, long presses and pinches are untouched.
+const TAPPABLE = 'button, [role="button"]'; // includes the SVG body-map zones
+let touch = null;
+document.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  touch = e.touches.length === 1 ? { x: t.clientX, y: t.clientY, at: Date.now(), b: e.target.closest(TAPPABLE) } : null;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  const s = touch; touch = null;
+  const t = e.changedTouches[0];
+  if (!s?.b || s.b.disabled || e.touches.length) return;
+  if (Math.hypot(t.clientX - s.x, t.clientY - s.y) > 10 || Date.now() - s.at > 600) return;
+  if (document.elementFromPoint(t.clientX, t.clientY)?.closest(TAPPABLE) !== s.b) return;
+  e.preventDefault();
+  const a = document.activeElement;
+  if (a && a !== s.b && a.matches('input, textarea, select')) a.blur();
+  s.b.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); // SVG has no .click()
+}, { passive: false });
+
 // ---------- Day picker: ‹ Wed, Oct 28 › for logging past days ----------
 export function dayPicker(day, todayKey, label = 'Day') {
   const d = new Date(day + 'T12:00:00Z');
