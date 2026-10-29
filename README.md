@@ -32,6 +32,12 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *Manga panel look* (2.0.0): every screen restyled from the Dribbble study: ink outlines and hard
+  offset shadows (light ink in dark mode), bold section titles in full-strength text instead of
+  small grey capitals, regular-font numbers, color-coded macro tiles (protein, carbs, fat, fiber).
+  All six themes keep their colors. Nutrition has one Add food button (the meal is picked in the
+  sheet), Scan a barcode on its own row with a barcode picture, up and down arrows for the amount,
+  and a centered How you feel section. Popup buttons stay inside the screen.
 - *Nutrition* (1.9.0): a food log in the style of the big calorie-counting apps, fully offline.
   - 32,906 foods: 13,224 generic and as-eaten foods (USDA SR Legacy 2018 and FNDDS survey foods 2024)
     and 19,682 brand items from 273 well-known US brands (USDA Branded Foods, October 2026, label data

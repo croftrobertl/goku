@@ -14,6 +14,11 @@ import { loadFoods, myFoods, search, portionsOf, defaultPortion, scale, sumN, by
 import { scanBarcode } from './scan.js';
 
 export const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']];
+// A small barcode picture, so the scan button is recognizable at a glance.
+const BARCODE = '<svg viewBox="0 0 34 22" aria-hidden="true">' + [[0, 2], [3, 1], [5, 3], [9, 1], [11, 2], [14, 1], [16, 3], [20, 1], [22, 2], [25, 1], [27, 1], [29, 3], [33, 1]]
+  .map(([x, w]) => `<rect x="${x}" y="1" width="${w}" height="20" fill="currentColor"/>`).join('') + '</svg>';
+const ARROW_UP = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 13l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ARROW_DOWN = ARROW_UP.replace('M4 13l6-6 6 6', 'M4 7l6 6 6-6');
 const mealName = k => MEALS.find(m => m[0] === k)?.[1] || 'Snacks';
 const SYMPTOMS = [['heartburn', 'Heartburn'], ['cramps', 'Cramps'], ['gas', 'Gas'], ['nausea', 'Nausea'], ['lowEnergy', 'Low energy']];
 
@@ -92,24 +97,23 @@ export async function nutritionView() {
       ${list.length ? `<ul class="list">${list.map(([it, idx]) => `<li><button class="itemrow" data-item="${idx}" aria-label="Edit ${esc(it.name)}">
         <span><b>${esc(it.name)}</b>${it.brand ? ` <span class="sub">${esc(it.brand)}</span>` : ''}<br><span class="chain">${esc(amountText(it))}</span></span>
         <span class="num">${kcalOf(it.n) ?? '—'}</span></button></li>`).join('')}</ul>` : ''}
-      <div class="row" style="margin-top:8px;justify-content:center;gap:8px"><button class="cta2" data-addmeal="${k}">+ Add food</button>
-      ${list.filter(([it]) => it.legacy === undefined).length >= 2 ? `<button class="link" data-savemeal="${k}">Save as a meal</button>` : ''}</div></section>`;
+      ${list.filter(([it]) => it.legacy === undefined).length >= 2 ? `<div class="row" style="margin-top:6px;justify-content:center"><button class="link" data-savemeal="${k}">Save as a meal</button></div>` : ''}
+      ${list.length ? '' : '<p class="sub" style="text-align:center;margin-top:4px">Nothing yet</p>'}</section>`;
   };
 
   return {
-    cta: ['Add food', () => addFood(nowMeal(), day)],
     html: `<div class="row"><h1 style="margin:0">Nutrition</h1>${dayPicker(day, t, 'Nutrition day')}</div>
     <div class="cols"><div>
       <section class="card sum" style="margin-top:12px">
         <p class="lbl">Calories</p>
-        <p class="big num" style="text-align:center">${Math.round(tot.kcal || 0)}${target ? `<span class="sub"> of ${target}</span>` : ''}</p>
+        <p class="big num" style="text-align:center;font-size:2.6rem;line-height:1.1">${Math.round(tot.kcal || 0)}${target ? `<span class="sub"> of ${target}</span>` : ''}</p>
         ${target ? `<div class="bar"><i style="width:${Math.min(100, (tot.kcal || 0) / target * 100)}%"></i></div>
           <p class="sub" style="text-align:center;margin-top:4px">${tot.kcal > target ? `${Math.round(tot.kcal - target)} over` : `${Math.round(target - (tot.kcal || 0))} left`}</p>` : ''}
         <div class="macros">
-          <div><b class="num">${fmt(tot.p)}</b><span>Protein${pGoal ? `<br>goal ${pGoal} g` : ''}</span></div>
-          <div><b class="num">${fmt(tot.c)}</b><span>Carbs</span></div>
-          <div><b class="num">${fmt(tot.f)}</b><span>Fat</span></div>
-          <div><b class="num">${fmt(tot.fib)}</b><span>Fiber</span></div></div>
+          <div class="mp"><b class="num">${pGoal ? `${Math.round(tot.p || 0)}<small>/${pGoal}</small>` : fmt(tot.p)}</b><span>Protein</span></div>
+          <div class="mc"><b class="num">${fmt(tot.c)}</b><span>Carbs</span></div>
+          <div class="mf"><b class="num">${fmt(tot.f)}</b><span>Fat</span></div>
+          <div class="mfb"><b class="num">${fmt(tot.fib)}</b><span>Fiber</span></div></div>
         ${macroK ? `<div class="split" role="img" aria-label="Calories from protein ${pct(tot.p * 4)}%, carbohydrate ${pct(tot.c * 4)}%, fat ${pct(tot.f * 9)}%">
           <i class="sp" style="width:${pct(tot.p * 4)}%"></i><i class="sc" style="width:${pct(tot.c * 4)}%"></i><i class="sf" style="width:${pct(tot.f * 9)}%"></i></div>
           <p class="sub" style="text-align:center">Protein ${pct(tot.p * 4)}% · Carbs ${pct(tot.c * 4)}% · Fat ${pct(tot.f * 9)}% of calories</p>` : ''}
@@ -117,22 +121,23 @@ export async function nutritionView() {
         <div class="row" style="justify-content:center;margin-top:8px;gap:8px"><button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>
           <button class="link" id="dayDetail">All nutrients</button></div>
       </section>
+      <button class="cta addtop" id="addFood">+ Add food</button>
       ${MEALS.map(mealCard).join('')}
     </div><div>
       <section class="card"><div class="row"><p class="lbl" style="margin:0">Water</p><span class="num big">${esc(volume(water, p))} <span class="sub">${volumeUnit(p)}</span></span></div>
         <div class="row" style="justify-content:center;gap:8px;margin-top:8px">${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join('')}</div></section>
-      ${symptomsOn ? `<details class="card fold" ${gut ? 'open' : ''}><summary class="lbl">How you feel today</summary>
+      ${symptomsOn ? `<details class="card fold feel" ${gut ? 'open' : ''}><summary class="lbl">How you feel today</summary>
         <p class="sub">Optional. It helps the pattern finder spot foods that line up with bad days.</p>
         <p class="lbl" style="margin-top:10px">Bloating (0 = none, 10 = worst)</p>${stepper('bloat', g.bloat ?? 'none', 'bloating')}
         <div class="pills" style="margin-top:10px">${SYMPTOMS.map(([k, n]) => `<button data-sym="${k}" aria-pressed="${!!g[k]}">${n}</button>`).join('')}</div>
         ${g.amWaist != null || g.pmWaist != null || p.settings.trackWaist ? `<p class="lbl" style="margin-top:12px">Waist (${lengthUnit(p) === 'cm' ? 'cm' : 'inches'})</p>
-          <div class="row"><span>Morning</span>${stepper('amWaist', length(g.amWaist, p) ?? 'none', 'morning waist')}</div>
-          <div class="row" style="margin-top:6px"><span>Evening</span>${stepper('pmWaist', length(g.pmWaist, p) ?? 'none', 'evening waist')}</div>`
+          <div class="waist"><span>Morning</span>${stepper('amWaist', length(g.amWaist, p) ?? 'none', 'morning waist')}
+          <span>Evening</span>${stepper('pmWaist', length(g.pmWaist, p) ?? 'none', 'evening waist')}</div>`
           : '<button class="link" id="trackWaist" style="margin-top:8px">Also track waist size</button>'}
         <p class="lbl" style="margin-top:12px">Supplements</p>
         <div class="pills">${[...new Set([...allGut.flatMap(e => e.data.supplements || []).slice(-8), ...(g.supplements || [])])].map(v =>
           `<button data-supp="${esc(v)}" aria-pressed="${(g.supplements || []).includes(v)}">${esc(v)}</button>`).join('')}</div>
-        <div class="row" style="margin-top:8px"><input id="newSupp" placeholder="Add a supplement" maxlength="40" aria-label="Add a supplement"><button class="cta2" id="addSupp">Add</button></div>
+        <div class="supp"><input id="newSupp" placeholder="Add a supplement" maxlength="40" aria-label="Add a supplement"><button class="cta2" id="addSupp">Add</button></div>
       </details>
       ${patternCard(gutPatterns(mergeForPatterns(allGut, allFood)))}` : ''}
       <p class="note">${esc(SOURCE_NOTE)}</p>
@@ -141,7 +146,7 @@ export async function nutritionView() {
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.overlay')) return;
         if (b.dataset.dayshift) { navDay = addDays(day, +b.dataset.dayshift); if (navDay < addDays(t, -60)) navDay = addDays(t, -60); return window.goku.render(); }
-        if (b.dataset.addmeal) return addFood(b.dataset.addmeal, day);
+        if (b.id === 'addFood') return addFood(nowMeal(), day);
         if (b.dataset.item !== undefined) {
           const it = items[+b.dataset.item];
           if (it.legacy !== undefined) { if (await ask('Remove this quick protein entry?', esc(it.n.p + ' g'), [{ label: 'Remove', value: true, danger: true }])) { g.protein.splice(it.legacy, 1); await saveGut(); window.goku.render(); } return; }
@@ -200,14 +205,14 @@ async function addItems(day, list) {
 export function addFood(meal, day) {
   const p = profile();
   let tab = 'recent', q = '', all = null, mine = [], recent = [], meals = [], failed = false;
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add to ${esc(mealName(meal))}</h1><button class="cta2" id="x" data-close>Close</button></div>
-    <div class="pills" role="group" aria-label="Meal">${MEALS.map(([k, n]) => `<button data-meal="${k}" aria-pressed="${k === meal}">${n}</button>`).join('')}</div>
-    <div class="row" style="gap:8px;margin-top:10px"><input id="fq" type="search" placeholder="Search foods, e.g. banana" autocomplete="off" enterkeyhint="search" aria-label="Search foods" style="flex:1">
-      <button class="cta2" id="scan" aria-label="Scan a barcode">Scan</button></div>
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add food</h1><button class="cta2" id="x" data-close>Close</button></div>
+    <div class="seg meals" role="group" aria-label="Meal">${MEALS.map(([k, n]) => `<button data-meal="${k}" aria-pressed="${k === meal}">${n}</button>`).join('')}</div>
+    <input id="fq" type="search" placeholder="Search foods, e.g. banana" autocomplete="off" enterkeyhint="search" aria-label="Search foods" style="margin-top:10px">
     <div class="seg" id="tabs" role="group" aria-label="Show" style="margin-top:8px"></div>
     <p class="sub" id="fstat" role="status"></p>
     <div class="scroll" id="fres"></div>
-    <div class="row" style="gap:8px;margin-top:8px"><button class="cta2" id="quick" style="flex:1">Quick add</button><button class="cta2" id="label" style="flex:1">Add from a label</button></div>`, { label: 'Add food' });
+    <div class="row" style="gap:8px;margin-top:8px;margin-right:3px"><button class="cta2" id="quick" style="flex:1">Quick add</button><button class="cta2" id="label" style="flex:1">Add from a label</button></div>
+    <button class="cta2 scanbtn" id="scan">${BARCODE}<span>Scan a barcode</span></button>`, { label: 'Add food' });
   const $ = s => el.querySelector(s);
   const row = (f, key, sub) => `<li><button class="itemrow" data-pick="${esc(key)}"><span><b>${esc(f.name)}</b>${f.brand ? ` <span class="sub">${esc(f.brand)}</span>` : ''}<br>
     <span class="chain">${esc(sub)}</span></span><span class="num">${f.kc ?? ''}</span></button></li>`;
@@ -250,7 +255,7 @@ export function addFood(meal, day) {
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
-    if (b.dataset.meal) { meal = b.dataset.meal; el.querySelectorAll('[data-meal]').forEach(x => x.setAttribute('aria-pressed', x.dataset.meal === meal)); el.querySelector('h1').textContent = 'Add to ' + mealName(meal); return; }
+    if (b.dataset.meal) { meal = b.dataset.meal; el.querySelectorAll('[data-meal]').forEach(x => x.setAttribute('aria-pressed', x.dataset.meal === meal)); return; }
     if (b.dataset.ftab) { tab = b.dataset.ftab; return draw(); }
     if (b.dataset.pick) return pick(b.dataset.pick);
     if (b.id === 'quick') return quickAdd(meal, async item => { await addItems(day, [item]); close(); window.goku.render(); });
@@ -280,7 +285,8 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
     ${f.brand ? `<p class="sub" style="text-align:center">${esc(f.brand)}</p>` : ''}
     <div class="scroll">
       <div class="row" style="gap:8px;margin-top:8px">
-        <label class="f" style="width:110px;margin:0"><span>Amount</span><input id="qty" inputmode="decimal" value="${round(qty, 2)}" aria-label="Amount"></label>
+        <div style="width:170px"><label class="f" for="qty" style="margin:0"><span>Amount</span></label>
+          <div class="amt"><button class="cta2" data-qd="-1" aria-label="Less">${ARROW_DOWN}</button><input id="qty" inputmode="decimal" value="${round(qty, 2)}" aria-label="Amount"><button class="cta2" data-qd="1" aria-label="More">${ARROW_UP}</button></div></div>
         <label class="f" style="flex:1;margin:0"><span>Serving</span><select id="por">${ps.map((x, i) => `<option value="${i}" ${i === pi ? 'selected' : ''}>${esc(x.label)}</option>`).join('')}</select></label></div>
       <div class="seg" style="margin-top:8px">${[0.5, 1, 1.5, 2].map(v => `<button data-q="${v}">${v === 0.5 ? '½' : v === 1.5 ? '1½' : v}</button>`).join('')}</div>
       <div id="nt"></div>
@@ -302,6 +308,7 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
     if (b.dataset.q) { $('#qty').value = b.dataset.q; return draw(); }
+    if (b.dataset.qd) { const stepBy = ps[pi].g <= 1 ? 10 : ps[pi].g >= 100 && /^100 /.test(ps[pi].label) ? 0.25 : 0.5; $('#qty').value = round(Math.max(0, amount() + +b.dataset.qd * stepBy), 2); return draw(); }
     if (b.id === 'ok') { if (!(amount() > 0)) return toast('Enter an amount'); close(); await onDone(itemFrom(f, amount(), ps[pi], meal)); }
     if (b.id === 'rm') { close(); await onRemove(); }
   }));
