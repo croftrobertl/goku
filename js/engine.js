@@ -5,7 +5,11 @@ import { esc, toast, ask, overlay, stepper, unlockAudio, beep, buzz, soundReady,
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
 import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
 import { coachCard, bindCoach, isMinor } from './coach.js';
-import { fuelCard } from './fuel.js';
+import { fuelCard, fuelRanges } from './fuel.js';
+import { logActivity, activitiesOn, minutesOf, activityRows, editActivityById } from './activity.js';
+import { loggedEntries, recovery, records, recordFor, progression } from './insights.js';
+import { streakCard, recapCard, bindShared } from './homecards.js';
+import { whyBtn } from './why.js';
 
 export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'gut') ? [['gut', 'Gut']] : []), ['history', 'History'], ['settings', 'Settings']];
 
@@ -77,6 +81,12 @@ const ghostFor = (sessions, g) => sessions.filter(s => s.data.gravity === g).pop
 const sessionTotal = s => s.data.sets.reduce((a, set) => a + set.stages.reduce((b, st) => b + st.reps, 0), 0);
 const minutes = s => Math.max(1, (s.data.endedAt - s.data.startedAt) / 60000);
 
+// Sleep: the last 7 nights imported from Health if there are any, else the coach answer.
+async function recentSleep(p) {
+  const nights = (await entries('sleep')).filter(e => e.day >= addDays(today(), -6) && e.data.hours > 0);
+  return nights.length ? round(nights.reduce((a, e) => a + e.data.hours, 0) / nights.length, 1) : p.about?.sleepH || null;
+}
+
 // ---------- Home ----------
 export async function home() {
   const p = profile();
@@ -100,19 +110,34 @@ export async function home() {
   const asked = fresh && (feel.g ?? g) === g; // one answer suggests one step, not a run through every level
   const nudge = asked && feel.v === 'easy' && g < 100 ? levels[levels.indexOf(g) + 1] : asked && feel.v === 'hard' && g > 10 ? levels[levels.indexOf(g) - 1] : null;
   const sleepMin = isMinor(p) ? 8 : 7;
-  const lowSleep = p.about?.sleepH && p.about.sleepH < sleepMin;
+  const sleepH = await recentSleep(p);
+  const lowSleep = sleepH && sleepH < sleepMin;
+  const t = today();
+  const todayActs = await activitiesOn(t);
+  const allActs = await entries('activity');
+  const all = await loggedEntries(p);
+  const map = recovery(sessions.filter(s => s.day >= addDays(t, -6)), allActs.filter(a => a.day >= addDays(t, -6)), t);
+  const prog = progression(sessions, g);
+  const showProg = prog && p.coach?.progSeen !== prog.latest.id;
+  const nextG = levels[levels.indexOf(g) + 1];
 
   return {
     cta: circuit.length ? ['Enter chamber', () => startRun(circuit)] : null,
     html: `<div class="cols"><div>
+    ${recapCard(p, all, t)}
     ${coachCard(p, ctx)}
+    ${showProg ? `<section class="card coachnote"><div class="row"><p class="lbl" style="margin:0">Level up</p>${whyBtn('progress', JSON.stringify(prog.reps))}</div>
+      <p>You beat your ghost twice in a row at ×${g}: ${prog.reps.join(' → ')} reps.</p>
+      <div class="row" style="margin-top:8px;justify-content:flex-start;gap:8px">${nextG ? `<button class="cta2" data-g="${nextG}" data-prog="${esc(prog.latest.id)}">Move to ×${nextG}</button>` : ''}
+      <button class="cta2" id="addLoad" data-prog="${esc(prog.latest.id)}">Add load to an exercise</button>
+      <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}
     ${nudge ? `<section class="card"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}
     <section class="card" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
       <p class="sub">${rounds} rounds · ${rest}s rest · ${cap}-min cap · ${depth === 1 ? 'one stage per set' : depth === 2 ? 'to failure, one drop' : 'to failure, then drop'}</p>
-      ${p.about?.days ? `<p class="sub">This week: <b class="num">${weekCount}</b> of ${esc(p.about.days)} sessions${weekCount >= +p.about.days ? ' · goal met' : ''}</p>` : ''}
+      ${p.about?.days ? `<p class="sub">This week: <b class="num">${weekCount}</b> of ${esc(p.about.days)} sessions${weekCount >= +p.about.days ? ' · goal met' : ''} ${whyBtn('weekgoal')}</p>` : ''}
       <div class="dial" aria-hidden="true">
         <svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="80" fill="none" stroke="var(--s2)" stroke-width="14"/>
         <circle cx="95" cy="95" r="80" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round"
@@ -133,15 +158,22 @@ export async function home() {
       ${p.about?.limits ? `<p class="note">Your notes: ${esc(p.about.limits)}. Swap or skip anything that hurts.</p>` : ''}
     </section>
   </div><div>
+    ${streakCard(p, all, t)}
+    <section class="card"><div class="row"><p class="lbl" style="margin:0">Other training today</p><button class="cta2" id="logAct">Log activity</button></div>
+      ${todayActs.length ? `<ul class="list">${activityRows(todayActs)}</ul>` : '<p class="sub">Soccer, runs, games or anything else. It feeds your fuel ranges and recovery map.</p>'}</section>
+    <section class="card"><p class="lbl">Senzu map · recovery</p>
+      <div class="senzu">${map.map(m => `<div class="sz ${m.days === null ? 'never' : m.days <= 0 ? 'd0' : m.days === 1 ? 'd1' : m.days === 2 ? 'd2' : 'd3'}">
+        <span class="szdot" aria-hidden="true"></span><b>${esc(m.name)}</b><span class="sub">${m.days === null ? 'not this week' : m.days <= 0 ? 'trained today' : m.days === 1 ? '1 day ago' : m.days + ' days ago'}</span></div>`).join('')}</div>
+      <p class="note">From your circuits and other training in the last 7 days. If a group still feels sore, swap or skip it.</p></section>
     <div class="grid">
       <section class="card"><p class="lbl">Last session</p>
         <p class="big num">${last ? round(sessionTotal(last) / minutes(last), 1) : '—'}</p><p class="sub">reps per minute</p></section>
       ${on(p, 'gut') ? `<section class="card"><p class="lbl">Gut today</p>
         <p class="big num">${gut?.data.bloat ?? '—'}<span class="sub">/10</span></p><p class="sub">${gut ? 'Logged' : 'Not logged yet'}</p></section>` : ''}
     </div>
-    ${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(p.about.sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>
+    ${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>
       <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}
-    ${on(p, 'fuel') ? fuelCard(p, cap) : ''}
+    ${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) : ''}
     ${on(p, 'hypertrophy') ? `<section class="card">
       <p class="lbl">Hard sets this week</p>
       ${SLOTS.map(s => `<div class="row" style="margin-top:8px"><span>${s[0].toUpperCase() + s.slice(1)}</span><span class="num sub">${sets[s] || 0}</span></div>`).join('')}
@@ -150,8 +182,14 @@ export async function home() {
   </div></div>`,
     bind(root) {
       bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
+      bindShared(root, p, t);
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
+        if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
+        if (b.id === 'addLoad') return window.goku.go('library');
+        if (b.id === 'progLater') return window.goku.render();
+        if (b.id === 'logAct') return logActivity();
+        if (b.dataset.act) return editActivityById(b.dataset.act);
         if (b.dataset.g) { p.settings.gravity = +b.dataset.g; await saveProfile(p); window.goku.render(); }
         if (b.id === 'shuffle') { p.settings.shuffleSeed = (p.settings.shuffleSeed || 0) + 1; await saveProfile(p); window.goku.render(); }
       }));
@@ -175,6 +213,7 @@ async function startRun(circuit) {
     const run = {
       startedAt: Date.now(), gravity: g, rounds, rest, cap, round: 1, ex: 0, stage: 0, phase: 'set', restUntil: 0,
       plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, stages: e.data.stages.slice(0, depth) })),
+      best: Object.fromEntries(Object.entries(records(await sessionsInOrder())).map(([k, v]) => [k, v.reps])),
       sets: [], cur: null, repTimes: [], ghost: ghost?.data.repTimes || null,
     };
     await db.setMeta(runKey(), run);
@@ -357,6 +396,9 @@ function openRunner(run) {
       if (run.phase === 'rest') return; // a stray rep-tap never skips rest
       remember(); ensureSet();
       run.cur.stages[run.stage].reps++;
+      const key = run.cur.exId + '|' + run.cur.stages[run.stage].label, prev = run.best?.[key] || 0;
+      if (prev && run.cur.stages[run.stage].reps === prev + 1) { toast(`⚡ New power level record: ${run.cur.stages[run.stage].reps} reps`); beep(1320, 120, 1); }
+      if (run.best && run.cur.stages[run.stage].reps > prev) run.best[key] = run.cur.stages[run.stage].reps; // later rounds race the new record
       run.repTimes.push(Math.round((Date.now() - run.startedAt) / 100) / 10);
       buzz();
       b.classList.add('bump'); setTimeout(() => b.classList.remove('bump'), 120);
@@ -385,14 +427,17 @@ function openRunner(run) {
 export async function libraryView() {
   const p = profile();
   const lib = await library();
+  const best = records(await sessionsInOrder());
   const groups = {};
   for (const e of lib) (groups[e.data.slot] ||= []).push(e);
+  const pr = e => e.data.stages.map(st => [st.label, recordFor(best, e.id, st.label)]).filter(([, r]) => r);
   return {
     cta: ['Add exercise', () => editExercise()],
-    html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group.</p>
+    html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group. ⚡ marks your power level record: the most reps in one set.</p>
       ${Object.entries(groups).map(([slot, list]) => `<section class="card" style="margin-top:12px">
         <p class="lbl">${esc(slot)}</p><ul class="list">${list.map(e => `<li><span>${esc(e.data.name)}<br>
-        <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(weight(s.load, p))} ${weightUnit(p)})` : '')).join(' → ')}</span></span>
+        <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(weight(s.load, p))} ${weightUnit(p)})` : '')).join(' → ')}</span>
+        ${pr(e).length ? `<br><span class="chain pr">⚡ ${pr(e).map(([l, r]) => `${esc(l)} ${r}`).join(' · ')}</span>` : ''}</span>
         <button class="cta2" data-edit="${esc(e.id)}">Edit</button></li>`).join('')}</ul></section>`).join('')}`,
     bind(root) {
       root.addEventListener('click', e => {
@@ -402,6 +447,10 @@ export async function libraryView() {
     },
   };
 }
+
+// Dumbbell steps in the person's own units; the stored step snaps to the nearest one shown.
+const stepOptions = p => weightUnit(p) === 'kg' ? [1, 2, 2.5, 5] : [2.5, 5, 10];
+const stepShown = p => { const v = weight(p.settings.dbStep || 5, p); return stepOptions(p).reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); };
 
 function editExercise(ex) {
   const p = profile();
@@ -420,7 +469,12 @@ function editExercise(ex) {
         <input data-i="${i}" data-k="label" value="${esc(s.label)}" placeholder="Stage ${i + 1}" aria-label="Stage ${i + 1} name">
         <input data-i="${i}" data-k="load" value="${esc(weight(s.load, p))}" inputmode="decimal" placeholder="${weightUnit(p)}" aria-label="Stage ${i + 1} load in ${weightUnit(p) === 'kg' ? 'kilograms' : 'pounds'}" style="width:80px">
         <button class="cta2" data-rm="${i}" aria-label="Remove stage ${i + 1}">−</button></div>`).join('')}
-      <button class="cta2" id="add" style="margin-top:8px">Add stage</button>`;
+      <button class="cta2" id="add" style="margin-top:8px">Add stage</button>
+      ${d.stages.some(s => s.load) ? `<div class="card" style="margin-top:14px"><p class="lbl">Dumbbell math</p>
+        <p class="sub">Loads are per dumbbell. A pair of ${esc(weight(d.stages.find(s => s.load).load, p))} ${weightUnit(p)} is ${esc(weight(d.stages.find(s => s.load).load * 2, p))} ${weightUnit(p)} in total.</p>
+        <label class="f"><span>Your dumbbells go up in steps of</span><select id="dbstep">${stepOptions(p).map(v =>
+          `<option value="${v}" ${v === stepShown(p) ? 'selected' : ''}>${v} ${weightUnit(p)}</option>`).join('')}</select></label>
+        <button class="cta2" id="stepUp" style="margin-top:8px">Add one step to every loaded stage</button></div>` : ''}`;
   }
   el.addEventListener('input', e => {
     const t = e.target;
@@ -428,11 +482,15 @@ function editExercise(ex) {
     if (t.dataset.k === 'label') d.stages[+t.dataset.i].label = t.value;
     if (t.dataset.k === 'load') d.stages[+t.dataset.i].load = toLb(t.value, p);
   });
-  el.addEventListener('change', e => { if (e.target.id === 'slot') d.slot = e.target.value; });
+  el.addEventListener('change', async e => {
+    if (e.target.id === 'slot') d.slot = e.target.value;
+    if (e.target.id === 'dbstep') { p.settings.dbStep = toLb(e.target.value, p); await saveProfile(p); }
+  });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') close();
     if (b.id === 'add') { d.stages.push({ label: '', load: null }); draw(); }
+    if (b.id === 'stepUp') { const step = toLb(stepShown(p), p); d.stages.forEach(s => { if (s.load) s.load = round(s.load + step, 3); }); draw(); toast('Loads raised. Tap Save to keep them.'); }
     if (b.dataset.rm) { if (d.stages.length > 1) { d.stages.splice(+b.dataset.rm, 1); draw(); } }
     if (b.id === 'save') {
       d.stages = d.stages.filter(s => s.label.trim());
@@ -448,7 +506,7 @@ function editExercise(ex) {
 }
 
 // ---------- Gut log (any day in the last 60) ----------
-let gutDay = null;
+let gutDay = null, editPantry = false;
 export const openGutDay = day => { gutDay = day; window.goku.go('gut'); };
 
 export async function gutView() {
@@ -471,6 +529,9 @@ export async function gutView() {
     `<button data-tag="${key}" data-v="${esc(tg)}" aria-pressed="${cur[key].includes(tg)}">${esc(tg)}</button>`).join('')}</div>
     <div class="row" style="margin-top:8px"><input data-new="${key}" placeholder="${key === 'foods' ? 'Add a food' : 'Add a capsule or supplement'}" aria-label="${key === 'foods' ? 'Add a food' : 'Add a capsule or supplement'}"><button class="cta2" data-add="${key}">Add</button></div>`;
   const perMeal = target && p.settings.proteinPer === 'meal';
+  const range = fuelRanges(p, 0);
+  const goal = target || range?.protein[0] || null; // one number: your own target, else the bottom of the coach range
+  const pantry = p.settings.pantry || [];
 
   return {
     html: `<div class="row"><h1>Gut log</h1>${dayPicker(day, t, 'Gut log day')}</div>
@@ -486,12 +547,20 @@ export async function gutView() {
         <span>${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join(' ')}</span></div></section>
     </div><div>
       <section class="card"><p class="lbl">Protein</p>
-        <p class="big num">${esc(proteinTotal)} g${target ? ` <span class="sub">${perMeal ? `target ${esc(target)} g per meal` : `of ${esc(target)} g`}</span>` : ''}</p>
-        ${target && !perMeal ? `<div class="bar"><i style="width:${Math.min(100, proteinTotal / target * 100)}%"></i></div>` : ''}
+        <p class="big num">${esc(proteinTotal)} g${goal ? ` <span class="sub">${perMeal ? `target ${esc(target)} g per meal` : `of ${esc(goal)} g`}</span>` : ''}</p>
+        ${goal && !perMeal ? `<div class="bar"><i style="width:${Math.min(100, proteinTotal / goal * 100)}%"></i></div>` : ''}
+        ${range ? `<p class="sub" style="margin-top:6px">Coach range ${range.protein[0]}–${range.protein[1]} g${target && !perMeal
+          ? (target < range.protein[0] ? ' · your target is below it' : target > range.protein[1] ? ' · your target is above it' : ' · your target sits inside it') : ''} ${whyBtn('protein', '0')}</p>` : ''}
         ${cur.protein.length ? `<p class="sub" style="margin-top:6px">Meals: ${cur.protein.map(g => esc(g) + ' g' + (perMeal ? (g >= target ? ' ✓' : '') : '')).join(' · ')}</p>` : ''}
         <div class="seg">${[10, 20, 30, 40, 50].map(g => `<button data-pr="${g}">+${g}</button>`).join('')}</div>
         ${cur.protein.length ? '<button class="link" id="prUndo">Undo last</button>' : ''}
-        ${!target ? '<p class="note">Add your target in Settings.</p>' : ''}</section>
+        <p class="lbl" style="margin-top:14px">Capsule pantry · one tap</p>
+        ${pantry.length ? `<div class="pantry">${pantry.map((f, i) => `<button class="cta2" data-pan="${i}" aria-label="${editPantry ? 'Remove' : 'Add'} ${esc(f.n)}, ${esc(f.g)} grams of protein">${editPantry ? '✕ ' : ''}${esc(f.n)} · ${esc(f.g)} g</button>`).join('')}</div>
+          <button class="link" id="panEdit">${editPantry ? 'Done removing' : 'Remove foods'}</button>`
+          : '<p class="sub">Save foods you eat often with their protein. Then one tap logs both.</p>'}
+        <div class="row" style="margin-top:8px;gap:6px"><input id="panName" placeholder="Food, e.g. Greek yogurt" maxlength="40" aria-label="Food name">
+          <input id="panG" inputmode="numeric" placeholder="g" aria-label="Protein grams" style="width:70px"><button class="cta2" id="panAdd">Save</button></div>
+        ${!target && !range ? '<p class="note">Add your weight in Settings → About you for a protein range.</p>' : ''}</section>
       <section class="card"><p class="lbl">Foods</p>${tags('foods', recentFoods)}<p class="voice">🎤 Tap the mic on your keyboard to say a food instead of typing.</p></section>
       <section class="card"><p class="lbl">Capsules and supplements</p>${tags('supplements', recentSupps)}</section>
       <section class="card"><p class="lbl">Pattern, not proof</p>
@@ -508,6 +577,19 @@ export async function gutView() {
           else cur[k] = Math.max(15, round((cur[k] ?? (k === 'pmWaist' && cur.amWaist ? cur.amWaist : lastWaist)) + d * lengthStep(p), 3));
         } else if (b.dataset.fl) cur.fluidsOz = Math.max(0, round(cur.fluidsOz + +b.dataset.fl, 2));
         else if (b.dataset.pr) cur.protein.push(+b.dataset.pr);
+        else if (b.dataset.pan !== undefined) {
+          const f = pantry[+b.dataset.pan];
+          if (editPantry) { pantry.splice(+b.dataset.pan, 1); p.settings.pantry = pantry; await saveProfile(p); return window.goku.render(); }
+          if (f.g) cur.protein.push(f.g);
+          const name = f.n.toLowerCase(); if (!cur.foods.includes(name)) cur.foods.push(name);
+          toast(`${f.n} · ${f.g} g logged`);
+        } else if (b.id === 'panEdit') { editPantry = !editPantry; return window.goku.render(); }
+        else if (b.id === 'panAdd') {
+          const n = root.querySelector('#panName').value.trim().slice(0, 40), g = Math.round(+root.querySelector('#panG').value.replace(/[^\d.]/g, ''));
+          if (!n || !(g >= 0 && g <= 300)) return toast('Add a food name and its grams of protein');
+          p.settings.pantry = [...pantry.filter(x => x.n.toLowerCase() !== n.toLowerCase()), { n, g }].slice(-40);
+          await saveProfile(p); toast('Saved to your pantry'); return window.goku.render();
+        }
         else if (b.id === 'prUndo') cur.protein.pop();
         else if (b.dataset.tag) {
           const k = b.dataset.tag, v = b.dataset.v;
@@ -531,6 +613,7 @@ export async function gutView() {
 export async function historyView() {
   const sessions = (await sessionsInOrder()).reverse();
   const guts = (await entries('gut')).reverse();
+  const acts = (await entries('activity')).sort((a, b) => b.day.localeCompare(a.day));
   return {
     html: `<h1>History</h1>
       <section class="card" style="margin-top:12px"><p class="lbl">Sessions</p>
@@ -544,12 +627,15 @@ export async function historyView() {
       ${guts.length ? `<ul class="list">${guts.map(g => `<li><span>${prettyDay(g.day)}<br><span class="chain">bloat ${esc(g.data.bloat ?? '—')} · ${g.data.protein.reduce((a, b) => a + b, 0)} g protein</span></span>
         <button class="cta2" data-gut="${esc(g.day)}" aria-label="Open gut log for ${prettyDay(g.day)}">Open</button></li>`).join('')}</ul>`
         : '<div class="empty"><p>Log bloating, waist and food in the Gut tab.</p></div>'}</section>` : ''}
-      <p class="note">Charts, PRs and the power-level score are coming in a later update.</p>`,
+      <section class="card"><p class="lbl">Other training</p>
+      ${acts.length ? `<ul class="list">${activityRows(acts.slice(0, 60))}</ul>` : '<div class="empty"><p>Log soccer, runs and other training from Home.</p></div>'}</section>
+      <p class="note">Power level records are in the Library. Charts are coming in a later update.</p>`,
     bind(root) {
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.edit) editSession(sessions.find(s => s.id === b.dataset.edit));
         if (b.dataset.gut) openGutDay(b.dataset.gut);
+        if (b.dataset.act) editActivityById(b.dataset.act);
       });
     },
   };

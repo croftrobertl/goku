@@ -4,7 +4,7 @@ import { KINDS, newProfile, saveProfile, S, liveModules, soonModules } from './s
 import { showLock } from './lock.js';
 import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
 import { DOW, deviceTZ } from './time.js';
-import { essentials, questionHTML, questionClick, questionRead, markAsked } from './coach.js';
+import { setupScreens, screenHTML, screenClick, screenRead, progress } from './coach.js';
 import { avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
 
 // Starting gravity from the coach answers: newer lifters start lighter, conditioning goals faster.
@@ -28,12 +28,11 @@ export function onboard({ cancellable = false } = {}) {
     const h = m => round(m / 60, 2);
 
     // One coach question per screen, about 3 minutes in all.
-    const qList = () => d.kind ? essentials(d) : [];
+    const screens = () => setupScreens(d.kind ? d : { kind: 'engine' });
     const firstQ = 3;
-    const qAt = i => d.kind && i >= firstQ && i < firstQ + qList().length ? qList()[i - firstQ] : null;
-    const qSteps = () => (d.kind ? qList() : essentials({ kind: 'engine' })).map((q, i) => () =>
-      `<p class="lbl">${label()} · your coach</p>${questionHTML(qList()[i], d)}`);
-    const label = () => `Step ${step + 1} of ${steps.length}`;
+    const qAt = i => d.kind && i >= firstQ && i < firstQ + screens().length ? screens()[i - firstQ][1] : null;
+    const qSteps = () => screens().map(([title], i) => () => `<div class="lbl">${label()}</div><h1>${esc(title)}</h1>${screenHTML(screens()[i][1], d)}`);
+    const label = () => progress(step, steps.length, step >= firstQ && qAt(step) ? 'Your coach' : '');
     let steps = [];
     const build = () => [
       () => `<p class="lbl">${S.profiles.length ? 'New profile' : 'Welcome'}</p>
@@ -45,29 +44,29 @@ export function onboard({ cancellable = false } = {}) {
           <h2>${v.label}</h2><p class="sub">${k === 'engine' ? 'Density circuits, drop sets, ghost races and a gut log.' :
           'Readiness, week planner, training load and fueling.'}</p></button>`).join('')}
         <p class="note">More sports are on the way.</p>`,
-      () => `<p class="lbl">${label()}</p><h1>What should we call you?</h1>
+      () => `<div class="lbl">${label()}</div><h1>What should we call you?</h1>
         <label class="f"><span>First name or nickname</span>
         <input id="nm" autocomplete="off" autocapitalize="words" maxlength="24" value="${esc(d.name)}"></label>
         <p class="note">Only shown inside the app on this phone.</p>
         <h2 style="margin-top:20px">Pick your color</h2>
         <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}"
           aria-pressed="${c === (d.accent || KINDS[d.kind].accent)}" aria-label="Color ${c}"></button>`).join('')}</div>`,
-      () => `<p class="lbl">${label()}</p><h1>Choose your fighter</h1>${avatarPicker({ ...d, name: d.name || '?' })}`,
+      () => `<div class="lbl">${label()}</div><h1>Choose your fighter</h1>${avatarPicker({ ...d, name: d.name || '?' })}`,
       ...qSteps(),
-      () => `<p class="lbl">${label()}</p><h1>What should the app show?</h1>
+      () => `<div class="lbl">${label()}</div><h1>What should the app show?</h1>
         <p class="sub">Turn on what helps. You can change this any time in Settings.</p>
         <div class="card" style="margin-top:12px">${liveModules(d.kind).map(([k, n, desc]) => `
           <label class="toggle"><span><b>${n}</b><br><span class="sub">${desc}</span></span>
           <input type="checkbox" data-mod="${k}" ${d.modules[k] !== false ? 'checked' : ''}></label>`).join('')}</div>
         ${soonModules(d.kind).length ? `<p class="note">Coming soon: ${soonModules(d.kind).map(m => esc(m[1])).join(' · ')}.</p>` : ''}`,
       () => d.kind === 'engine'
-        ? `<p class="lbl">${label()}</p><h1>Protein target</h1>
+        ? `<div class="lbl">${label()}</div><h1>Protein target</h1>
           <p class="sub">If a coach or dietitian gave you a number, type it. Otherwise leave it blank: Goku shows a range sized for you on Home.</p>
           <label class="f"><span>Grams</span><input id="pt" inputmode="numeric" pattern="[0-9]*" value="${esc(d.protein)}" placeholder="160"></label>
           <div class="seg" role="group" aria-label="Target applies to">
             <button data-per="day" aria-pressed="${d.proteinPer === 'day'}">Per day</button>
             <button data-per="meal" aria-pressed="${d.proteinPer === 'meal'}">Per meal</button></div>`
-        : `<p class="lbl">${label()}</p><h1>Your usual week</h1>
+        : `<div class="lbl">${label()}</div><h1>Your usual week</h1>
           <p class="sub">Hours of training on each day. Skip it if you like; you can change it any time from the Week tab.</p>
           <p class="num sub" style="margin-top:8px" id="wtot">${round(d.week.reduce((a, x) => a + x.gym + x.vault, 0) / 60, 1)} h a week</p>
           ${DOW.map((day, i) => `<div class="card" style="margin-top:8px;padding:10px 14px"><p class="lbl">${day}</p>
@@ -78,7 +77,6 @@ export function onboard({ cancellable = false } = {}) {
 
     function draw() {
       $('#ob').innerHTML = steps[step]();
-      $('#ob').dataset.q = qAt(step)?.id || '';
       const ready = step === 0 ? !!d.kind : step === 1 ? d.name.trim().length > 0 : true;
       $('#obnav').innerHTML = `<p class="msg" id="obm" role="status"></p>
         <button class="cta" id="next">${step === steps.length - 1 ? 'Set passcode' : 'Continue'}</button>
@@ -101,8 +99,8 @@ export function onboard({ cancellable = false } = {}) {
     el.addEventListener('click', async e => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.id === 'cancel') { close(); resolve(null); return; }
-      const q = qAt(step);
-      if (q && b.closest('.q')) { if (questionClick(q, d, b) === 'redraw') { questionRead(q, d, el); draw(); } return; }
+      const qs = qAt(step);
+      if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }
       if (b.dataset.avatar) { pickAvatar(d, b.dataset.avatar); draw(); return; }
       if (b.dataset.kind) { d.kind = b.dataset.kind; d.accent = null; steps = build(); draw(); }
       else if (b.dataset.acc) { d.accent = b.dataset.acc; draw(); }
@@ -113,10 +111,10 @@ export function onboard({ cancellable = false } = {}) {
         b.closest('[data-step]').querySelector('.num').textContent = h(d.week[+i][k]) + ' h';
         $('#wtot').textContent = round(d.week.reduce((a, x) => a + x.gym + x.vault, 0) / 60, 1) + ' h a week';
       }
-      else if (b.id === 'back') { if (q) questionRead(q, d, el); step--; draw(); }
+      else if (b.id === 'back') { if (qs) qs.forEach(q => screenRead([q], d, el)); step--; draw(); }
       else if (b.id === 'next') {
         if (b.dataset.ready !== 'true') { $('#obm').textContent = step === 0 ? 'Pick one to continue.' : 'Enter a name to continue.'; return; }
-        if (q) { const err = questionRead(q, d, el); if (err) { el.querySelector('.q .msg').textContent = err; return; } markAsked(q, d); }
+        if (qs && !screenRead(qs, d, el)) return;
         if (step < steps.length - 1) { step++; draw(); $('#ob').scrollTop = 0; return; }
         const p = newProfile(d.kind, d.name.trim(), d.accent);
         for (const [k, v] of Object.entries(d.modules)) p.modules[k] = v;

@@ -35,7 +35,8 @@ function cleanCoach(c) {
   if (!c || typeof c !== 'object') return undefined;
   const asked = Object.fromEntries(Object.entries(c.asked || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && DAY.test(v || '')).slice(0, 50));
   const feel = c.feel && DAY.test(c.feel.day || '') && ['easy', 'right', 'hard'].includes(c.feel.v) ? { day: c.feel.day, v: c.feel.v, ...([10, 20, 50, 100].includes(c.feel.g) ? { g: c.feel.g } : {}) } : undefined;
-  return { asked, ...(feel ? { feel } : {}) };
+  const seen = k => (k === 'recapSeen' ? DAY.test(c[k] || '') : ID.test(c[k] || '')) ? { [k]: c[k] } : {};
+  return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen') };
 }
 function cleanAvatar(v) {
   if (!v || typeof v !== 'object') return null;
@@ -60,6 +61,10 @@ const DATA = {
       repTimes: nums(d.repTimes, 20000, 0, 1e6) }),
   gut: d => ({ amWaist: num(d.amWaist, 10, 100), pmWaist: num(d.pmWaist, 10, 100), bloat: int(d.bloat, 0, 10), foods: strs(d.foods, 100, 40),
     fluidsOz: num(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500) }),
+  activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'hike', 'sport', 'lift', 'other'].includes(d.kind) ? d.kind : 'other',
+    minutes: int(d.minutes, 1, 1440, 30), effort: int(d.effort, 0, 10, 5), ...(d.source === 'health' ? { source: 'health' } : {}) }),
+  rest: () => ({}),
+  sleep: d => ({ hours: num(d.hours, 0, 24, 0), source: 'health' }),
   checkin: d => ({ sleepH: num(d.sleepH, 0, 24, 8), sleepQ: int(d.sleepQ, 1, 5, 3), fatigue: int(d.fatigue, 1, 5, 3), stress: int(d.stress, 1, 5, 3),
     mood: int(d.mood, 1, 5, 3), fun: int(d.fun, 1, 5, 3), sore: strs(d.sore, 10, 20).filter(a => AREAS.includes(a)),
     archPain: bool(d.archPain), techPain: bool(d.techPain), dizzy: bool(d.dizzy) }),
@@ -85,7 +90,9 @@ export function cleanBackup(prof, entries) {
     settings: { sound: prof.settings?.sound !== false, haptics: prof.settings?.haptics !== false,
       theme: THEMES[prof.settings?.theme] ? prof.settings.theme : 'capsule', mode: ['auto', 'dark', 'light'].includes(prof.settings?.mode) ? prof.settings.mode : 'auto', ...(prof.kind === 'engine'
       ? { gravity: [10, 20, 50, 100].includes(prof.settings?.gravity) ? prof.settings.gravity : 50, shuffleSeed: int(prof.settings?.shuffleSeed, 0, 1e6, 0),
-        proteinTarget: int(prof.settings?.proteinTarget, 1, 1000), proteinPer: prof.settings?.proteinPer === 'meal' ? 'meal' : 'day' }
+        proteinTarget: int(prof.settings?.proteinTarget, 1, 1000), proteinPer: prof.settings?.proteinPer === 'meal' ? 'meal' : 'day',
+        pantry: Array.isArray(prof.settings?.pantry) ? prof.settings.pantry.slice(0, 40).map(x => ({ n: str(x?.n, 40).trim(), g: int(x?.g, 0, 300, 0) })).filter(x => x.n) : [],
+        dbStep: num(prof.settings?.dbStep, 1, 50, 5) }
       : { weekPlan: plan, sharing: false }) },
     lockRemember: [0, 1, 7, 30].includes(prof.lockRemember) ? prof.lockRemember : 7,
   };

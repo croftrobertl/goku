@@ -103,6 +103,18 @@ nav.tabs button[aria-current="page"] { color: var(--accent-text); font-weight: 6
 .foot li { margin-top: 4px; }
 sup { font-size: .65em; color: var(--tx3); }
 .coach { border-color: var(--accent); }
+.prog { display: block; height: 6px; border-radius: 3px; background: var(--s2); overflow: hidden; margin-bottom: 6px; width: 100%; }
+.prog > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.qsep { border: 0; border-top: 1px solid var(--line); margin: 18px 0 14px; }
+.senzu { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 8px; }
+.sz { background: var(--s2); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 2px; font-size: .875rem; }
+.sz .sub { font-size: .75rem; }
+.szdot { width: 14px; height: 14px; border-radius: 50%; background: var(--line); margin-bottom: 4px; }
+.sz.d0 .szdot { background: var(--care); } .sz.d1 .szdot { background: var(--warn); }
+.sz.d2 .szdot { background: var(--warn); background: color-mix(in srgb, var(--warn) 50%, var(--ok)); } .sz.d3 .szdot { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.chain.pr { color: var(--accent-text); }
+.pantry { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.why { font-size: .8125rem; color: var(--accent-text); padding: 0 4px; min-height: 32px; text-decoration: underline; text-underline-offset: 2px; }
 .voice { font-size: .8125rem; color: var(--tx3); margin: 6px 0 0; }
 .swatches { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 .swatches button { width: 44px; height: 44px; border-radius: 50%; border: 3px solid transparent; }

@@ -33,21 +33,26 @@ export function fuelRanges(p, minutes) {
   };
 }
 
+const why = (k, m) => `<button class="why" data-why="${k}" data-arg="${+m || 0}">Why?</button>`;
+
 export function fuelCard(p, minutes, { title = 'Fuel today' } = {}) {
   const r = fuelRanges(p, minutes);
   if (!r) return `<section class="card"><p class="lbl">${esc(title)}</p>
     <p class="sub">Add your weight in Settings → About you and Goku sizes protein and carbohydrate ranges for you.</p></section>`;
   const likes = p.about?.likes || [];
+  const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
   const allowed = proteinIdeas(p);
   const ideas = [...new Set([...likes.filter(x => allowed.includes(x)), ...allowed])].slice(0, 6);
   return `<section class="card"><p class="lbl">${esc(title)}</p>
-    <div class="row" style="margin-top:4px"><span>Protein<sup>1</sup></span><b class="num">${r.protein[0]}–${r.protein[1]} g</b></div>
+    <div class="row" style="margin-top:4px"><span>Protein<sup>1</sup> ${why('protein', minutes)}</span><b class="num">${r.protein[0]}–${r.protein[1]} g</b></div>
+    ${own ? `<p class="sub" style="text-align:right">your target ${own} g ${own < r.protein[0] ? 'is below this range' : own > r.protein[1] ? 'is above this range' : 'sits inside it ✓'}</p>` : ''}
     ${r.perMeal ? `<p class="sub" style="text-align:right">about ${r.perMeal} g at each of your ${r.meals} meals<sup>1</sup></p>` : ''}
-    <div class="row" style="margin-top:8px"><span>Carbohydrate<sup>2</sup></span><b class="num">${r.carbs[0]}–${r.carbs[1]} g</b></div>
+    <div class="row" style="margin-top:8px"><span>Carbohydrate<sup>2</sup> ${why('carbs', minutes)}</span><b class="num">${r.carbs[0]}–${r.carbs[1]} g</b></div>
     <p class="sub" style="text-align:right">${esc(r.tier)}</p>
     ${ideas.length ? `<p class="sub" style="margin-top:8px">Protein ideas: ${ideas.map(esc).join(' · ')}</p>` : ''}
     <ol class="foot"><li>1.4–2.0 g per kg a day; about 0.25 g per kg per meal. ${esc(SOURCES.issn)}</li>
       <li>3–12 g per kg a day by training load. ${esc(SOURCES.acsm)}</li></ol>
+    ${minutes ? `<p class="note">Counting ${minutes} minutes of training today.</p>` : ''}
     <p class="note">${isMinor(p) ? 'These ranges come from studies of adults. For athletes under 18, a pediatrician or sports dietitian should confirm them.'
       : 'General ranges, not a prescription. A sports dietitian can fine-tune them.'}</p></section>`;
 }

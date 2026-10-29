@@ -7,23 +7,14 @@ import { DOW, addDays, weekStart, weekday, prettyDay, daysBetween } from './time
 import { AREAS } from './validate.js';
 import { coachCard, bindCoach, ageOf } from './coach.js';
 import { fuelCard } from './fuel.js';
+import { loggedEntries } from './insights.js';
+import { streakCard, recapCard, bindShared } from './homecards.js';
+import { whyBtn } from './why.js';
 
 export const tabs = () => [['home', 'Home'], ['week', 'Week'], ['checkin', 'Check-in'], ['history', 'History'], ['settings', 'Settings']];
 
-// Readiness (0–100), documented in the README. Full sleep marks at the age-group target:
-// 9 h for under 18 (middle of the AASM's 8–10 h for ages 13–18), 7 h for adults (AASM/SRS "7 or more").
-export const sleepTarget = p => { const a = ageOf(p); return a !== null && a >= 18 ? 7 : 9; };
-export function readiness(c, target = 9) {
-  if (!c) return null;
-  const sleep = Math.min(c.sleepH / target, 1) * 30;
-  const quality = (c.sleepQ - 1) / 4 * 10;
-  const fatigue = (5 - c.fatigue) / 4 * 15;
-  const stress = (5 - c.stress) / 4 * 10;
-  const mood = (c.mood - 1) / 4 * 10;
-  const fun = (c.fun - 1) / 4 * 10;
-  const sore = Math.max(0, 15 - c.sore.length * 5);
-  return Math.round(sleep + quality + fatigue + stress + mood + fun + sore);
-}
+export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
+import { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
 const word = r => r >= 75 ? 'Good to go' : r >= 55 ? 'Take it steady' : 'Talk to your coach today';
 
 // Red flags (only when the person has "Red flags and care checks" on).
@@ -59,6 +50,7 @@ export async function home() {
   const planned = plan[weekday(t)];
   const weekMins = plan.reduce((a, d) => a + d.gym + d.vault, 0);
   const flags = await careFlags();
+  const all = await loggedEntries(p);
   const comp = p.about?.comp && p.about.comp >= t ? daysBetween(t, p.about.comp) : null;
 
   return {
@@ -71,10 +63,12 @@ export async function home() {
           <circle cx="85" cy="85" r="72" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${len * r / 100} ${len}"/></svg>
           <div style="text-align:center"><div class="big num" style="font-size:2.6rem">${r}</div><div class="sub">of 100</div></div></div>
           <h1 id="h-ready" style="text-align:center">${word(r)}</h1>
+          <p style="text-align:center">${whyBtn('readiness', JSON.stringify(c))}</p>
           <p class="sub" style="text-align:center">From sleep, energy, stress, mood, fun and soreness.</p>`
         : `<div class="empty"><h1 id="h-ready">Check in to see readiness</h1>
           <p>Six quick questions about sleep, energy and how your body feels. It takes about 30 seconds.</p></div>`}
       </section>
+      ${recapCard(p, all, t)}
       ${coachCard(p, {})}
       ${comp !== null ? `<section class="card"><p class="lbl">Competition</p><p class="big num">${comp === 0 ? 'Today' : comp + (comp === 1 ? ' day' : ' days')}</p>
         <p class="sub">${comp === 0 ? 'Good luck. Trust your training.' : 'until your next competition.'}</p></section>` : ''}
@@ -96,6 +90,7 @@ export async function home() {
         : '<div class="empty"><p>Add your usual training hours and Goku shows your week here, with rest days.</p><button class="cta2" data-day="0">Plan my week</button></div>'}
       </section>
     </div><div>
+      ${streakCard(p, all, t)}
       <section class="card"><p class="lbl">Today</p>
         ${planned.gym + planned.vault === 0 ? `<p>${weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
           `<p>${planned.gym ? `Gymnastics ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `Vaulting ${round(planned.vault / 60, 1)} h` : ''}</p>`}
@@ -109,6 +104,7 @@ export async function home() {
     </div></div>`,
     bind(root) {
       bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
+      bindShared(root, p, t);
       root.addEventListener('click', e => { if (e.target.closest('[data-day]') && !e.target.closest('.coach')) window.goku.go('week'); });
     },
   };
@@ -148,8 +144,9 @@ export async function checkinView() {
   const id = p.id + ':checkin:' + day;
   const existing = (await db.get('entries', id))?.data;
   const prev = (await entries('checkin')).filter(x => x.day < day).pop()?.data;
+  const health = (await entries('sleep')).find(x => x.day === day)?.data.hours; // from the Scouter link, if used
   const c = existing ? structuredClone(existing) : {
-    sleepH: prev?.sleepH ?? 9, sleepQ: 3, fatigue: 3, stress: 2, mood: 3, fun: 3, sore: [],
+    sleepH: health ? Math.round(health * 2) / 2 : prev?.sleepH ?? 9, sleepQ: 3, fatigue: 3, stress: 2, mood: 3, fun: 3, sore: [],
     archPain: false, techPain: false, dizzy: false,
   };
   const care = on(p, 'care');

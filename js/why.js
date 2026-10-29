@@ -1,0 +1,51 @@
+// "Why this number?": every range or suggestion can explain its own math in plain words.
+// Buttons carry data-why="key" (and data-arg when needed); app.js opens the explanation.
+import { esc, round } from './ui.js';
+import { kgOf, weight, weightUnit } from './units.js';
+import { SOURCES, carbTier, fuelRanges } from './fuel.js';
+import { isMinor, ageOf } from './coach.js';
+
+export const whyBtn = (key, arg = '') => `<button class="why" data-why="${key}" data-arg="${esc(arg)}">Why?</button>`;
+
+const kgLine = p => { const kg = kgOf(p); return `Your weight: ${weight(p.about.weightLb, p)} ${weightUnit(p)}${weightUnit(p) === 'kg' ? '' : ` (${round(kg, 1)} kg)`}.`; };
+
+export const WHY = {
+  protein: (p, minutes) => {
+    const kg = kgOf(p), r = fuelRanges(p, +minutes || 0);
+    return ['Your protein range', `<p>${p.kind === 'perf' ? 'Sized from your saved weight.' : esc(kgLine(p))}</p>
+      <p style="margin-top:8px">${round(kg, 1)} kg × 1.4 g = <b>${r.protein[0]} g</b>, up to ${round(kg, 1)} kg × 2.0 g = <b>${r.protein[1]} g</b> a day.</p>
+      ${r.perMeal ? `<p style="margin-top:8px">Per meal: ${round(kg, 1)} kg × 0.25 g ≈ <b>${r.perMeal} g</b>, across your ${r.meals} meals.</p>` : ''}
+      ${p.settings.proteinTarget && p.settings.proteinPer !== 'meal' ? `<p style="margin-top:8px">Your own target of ${esc(p.settings.proteinTarget)} g ${p.settings.proteinTarget < r.protein[0] ? 'is below' : p.settings.proteinTarget > r.protein[1] ? 'is above' : 'sits inside'} this range.</p>` : ''}
+      <p class="note">${esc(SOURCES.issn)}</p>${isMinor(p) ? '<p class="note">These ranges come from studies of adults; under 18, a pediatrician or sports dietitian should confirm them.</p>' : ''}`];
+  },
+  carbs: (p, minutes) => {
+    const kg = kgOf(p), t = carbTier(+minutes || 0), r = fuelRanges(p, +minutes || 0);
+    return ['Your carbohydrate range', `<p>Training counted today: <b>${esc(+minutes || 0)} minutes</b> (${esc(t[1].toLowerCase())}).</p>
+      <p style="margin-top:8px">That tier is ${t[2]}–${t[3]} g per kg: ${round(kg, 1)} kg × ${t[2]} = <b>${r.carbs[0]} g</b> to × ${t[3]} = <b>${r.carbs[1]} g</b>.</p>
+      <p style="margin-top:8px">Tiers: under 45 min, light 3–5; under 90 min, moderate 5–7; under 4 h, high 6–10; 4 h or more, very high 8–12. The minute cut-offs are Goku's reading of the statement's wording.</p>
+      <p class="note">${esc(SOURCES.acsm)}</p>`];
+  },
+  readiness: (p, json) => {
+    const c = JSON.parse(json || '{}'), target = (ageOf(p) ?? 0) >= 18 ? 7 : 9;
+    const parts = [['Sleep hours', Math.min(c.sleepH / target, 1) * 30, 30, `${c.sleepH} h of a ${target} h target`], ['Sleep quality', (c.sleepQ - 1) / 4 * 10, 10],
+      ['Low tiredness', (5 - c.fatigue) / 4 * 15, 15], ['Low stress', (5 - c.stress) / 4 * 10, 10], ['Mood', (c.mood - 1) / 4 * 10, 10],
+      ['Fun', (c.fun - 1) / 4 * 10, 10], ['No soreness', Math.max(0, 15 - (c.sore?.length || 0) * 5), 15, `${c.sore?.length || 0} sore area(s), 5 off each`]];
+    return ['How readiness is scored', `<ul class="list">${parts.map(([n, v, max, note]) => `<li><span>${n}${note ? `<br><span class="chain">${esc(note)}</span>` : ''}</span><span class="num">${Math.round(v)} / ${max}</span></li>`).join('')}</ul>
+      <p class="note">Sleep target: ${target === 9 ? 'middle of the 8–10 h the American Academy of Sleep Medicine recommends for ages 13–18' : '7 or more hours, AASM and Sleep Research Society adult consensus'}. It's a conversation starter, not a verdict.</p>`];
+  },
+  streak: (p, json) => {
+    const s = JSON.parse(json || '{}');
+    return ['How the streak works', `<p>Any day you log something counts: a session, an activity, a check-in, a gut log, or a planned rest day.</p>
+      <p style="margin-top:8px">Every 7 days in a row earns a Senzu bean (you can hold 3). Miss a day and a bean is spent instead of losing the streak.</p>
+      <p style="margin-top:8px">Right now: <b>${esc(s.days)}</b> days, <b>${esc(s.beans)}</b> bean${s.beans === 1 ? '' : 's'}${s.saved ? `, ${esc(s.saved)} day${s.saved === 1 ? '' : 's'} saved so far` : ''}.</p>
+      <p class="note">Rest is part of training, so logging a rest day keeps the streak too.</p>`];
+  },
+  progress: (p, json) => {
+    const r = JSON.parse(json || '[]');
+    return ['Why the coach says level up', `<p>Your last three sessions at this gravity: <b>${r.map(esc).join(' → ')}</b> reps.</p>
+      <p style="margin-top:8px">You beat your ghost twice in a row, which means the current level is getting easier. A small step up keeps you progressing.</p>
+      <p class="note">Progressive overload: gradually raising load or volume as you adapt (ACSM position stand on resistance training progression, 2009).</p>`];
+  },
+  weekgoal: p => ['Your weekly goal', `<p>You told the coach you can train <b>${esc(p.about?.days)}</b> days a week. Sessions from Sunday to Saturday count toward it.</p>
+    <p class="note">Change it in Settings → About you.</p>`],
+};

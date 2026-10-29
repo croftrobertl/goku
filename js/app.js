@@ -9,6 +9,7 @@ import * as perf from './perf.js';
 import { $, esc, toast, ask, setAccent, setTheme, setFeedback } from './ui.js';
 import { prettyDay } from './time.js';
 import { avatarHTML } from './avatar.js';
+import { WHY } from './why.js';
 
 const SCREENS = {
   engine: { tabs: engine.tabs, home: engine.home, library: engine.libraryView, gut: engine.gutView, history: engine.historyView },
@@ -104,6 +105,7 @@ document.addEventListener('click', e => {
   } else if (b.id === 'bk') go('settings');
   else if (b.id === 'updLater') { update.dismissed = true; render(); }
   else if (b.id === 'updNow') applyUpdate();
+  else if (b.dataset.why && WHY[b.dataset.why]) { const [t, html] = WHY[b.dataset.why](profile(), b.dataset.arg); ask(t, html, []); }
 });
 
 // Keeps the page's bottom padding equal to the dock's real height (it grows with text size).

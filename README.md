@@ -22,6 +22,28 @@ session goal, fuel ranges and protein ideas, sleep targets, reminders, and the c
 All answers can be changed in Settings → About you. Text boxes note that the keyboard's mic can be
 used to dictate.
 
+**Training extras (1.4).**
+- *Other training:* log soccer, runs, games or anything else (minutes and effort). It counts toward
+  the fuel ranges, the recovery map and the weekly recap.
+- *Senzu map:* how many days since each muscle group was trained, from circuits and other training.
+  It reports what you did; it doesn't prescribe recovery hours.
+- *Power level records:* the most reps in one set for each exercise and drop stage, shown in the
+  Library, with an alert in the workout the moment you beat one. *Dumbbell math* in the exercise
+  editor shows pair totals and raises loads by your dumbbell step.
+- *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
+  level or more load.
+- *Capsule pantry:* save foods you eat often with their protein, then log both in one tap.
+- *One protein number:* your own target if you set one, otherwise the bottom of the coach range,
+  with the range shown beside it.
+- *Streak with Senzu beans:* any logged day counts, including a planned rest day. Every 7 days in a
+  row earns a bean (up to 3), and a missed day spends one instead of ending the streak.
+- *Arc recap:* the first visit each week shows last week's numbers and one focus for the week ahead.
+- *Why?* buttons next to fuel ranges, readiness, the weekly goal, the streak and level-up explain
+  the math with your own numbers.
+- *Scouter link:* an Apple Shortcut exports sleep and workouts from the Health app to a text file;
+  Settings → Import from Health reads it (Settings shows the steps). Importing the same file twice
+  adds nothing. **The shortcut recipe hasn't been run on a real iPhone yet.**
+
 **Avatars.** Pick a fighter (an original orb in a Dragon Ball character's colors with their initial,
 labeled with their name; no official artwork is included), a power-up aura around your own initial,
 or a photo from your phone (resized to 192 px, kept on the phone and in backups only).
@@ -138,7 +160,7 @@ A stable JSON format, so a future native app could import the full history.
     "lockRemember": 7
   },
   "entries": [
-    { "id": "string", "type": "session | gut | exercise | checkin", "day": "YYYY-MM-DD",
+    { "id": "string", "type": "session | gut | exercise | checkin | activity | rest | sleep", "day": "YYYY-MM-DD",
       "time": "ISO-8601", "updatedAt": "ISO-8601", "data": { "...by type..." } }
   ]
 }
@@ -154,6 +176,9 @@ A stable JSON format, so a future native app could import the full history.
 | `exercise` | `name`, `slot` (push/pull/legs/core/power/joints), `module`, `order`, `stages[]` of `{label, load}` (hardest first) |
 | `session` (strength) | `gravity`, `startedAt`, `endedAt`, `sets[]` of `{exId, name, slot, round, stages[] of {label, load, reps}}`, `repTimes[]` (seconds from start for each rep; drives the ghost) |
 | `gut` | `amWaist`, `pmWaist`, `bloat` (0–10), `foods[]`, `fluidsOz`, `supplements[]`, `protein[]` (grams per addition) |
+| `activity` | `kind` (soccer/run/bike/swim/hike/sport/lift/other), `minutes`, `effort` (0–10), `source` (`health` if imported) |
+| `rest` | none: a planned rest day |
+| `sleep` | `hours`, `source` (`health`) |
 | `checkin` | `sleepH`, `sleepQ`, `fatigue`, `stress`, `mood`, `fun` (each 1–5), `sore[]` (areas), `archPain`, `techPain`, `dizzy` |
 | `session` (gymnastics) | `kind` (gym/vault), `minutes`, `effort` (0–10). Load = minutes × effort |
 
@@ -214,7 +239,7 @@ food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---
 
-## Testing status (1.3.0)
+## Testing status (1.4.0)
 
 **Mac browser** (Chromium engine) at 320 px, phone and desktop widths, in light and dark mode:
 upgrading from 1.0.2 with existing data; onboarding with Cancel; passcodes (create, change with Cancel,
@@ -243,6 +268,10 @@ red-flag rule across a skipped day and the care toggle; text contrast ≥ 4.5:1 
   checked by hand), allergy and diet filtering, equipment-based library, coach follow-ups capped at
   two a day, older profiles offered setup with data kept, and the avatar picker and photo avatar
   from the iPhone photo library on the simulator.
+- 1.4.0 in the browser: activity logging into fuel (110 min → high tier, 82 kg × 6 = 492 g), Senzu
+  map, Why explanations, streak, level-up after three rising sessions, weekly recap, records,
+  pantry logging, the 10-screen setup, and the Health file parser (sleep segments summed per night,
+  workouts mapped, repeat imports ignored).
 - Each release also gets an independent code review; 1.2.0's found five issues and 1.3.0's found
   nine, all fixed.
 
@@ -272,6 +301,12 @@ js/coach.js            coach questions, setup and daily follow-ups
 js/fuel.js             protein and carbohydrate ranges with sources
 js/avatar.js           fighter orbs, auras and photo avatars
 js/units.js            US and metric units
+js/activity.js         other training log
+js/insights.js         streak, recovery map, records, progression, recap numbers
+js/homecards.js        streak and weekly recap cards
+js/why.js              "Why?" explanations
+js/health.js           Scouter link: Health file import
+js/perf-score.js       readiness score and sleep target
 js/crypto.js           passcode hashing and encrypted exports
 js/time.js             day logic in each profile's time zone
 ```

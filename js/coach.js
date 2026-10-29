@@ -95,6 +95,30 @@ export const answered = (q, p) => {
   return a[q.key] != null && a[q.key] !== '';
 };
 export const essentials = p => QUESTIONS.filter(q => q.essential && forKind(q, p));
+
+// Setup screens: related essentials share a screen, so setup is 5 screens, not 10.
+const GROUPS = [['Units and time', ['units']], ['About you', ['birthYear', 'body']], ['Your training', ['experience', 'goal', 'equipment', 'days']],
+  ['Food', ['diet', 'allergies']], ['Anything to watch?', ['limits']]];
+export const setupScreens = (p, only = null) => only ? [[null, QUESTIONS.filter(q => q.id === only)]]
+  : GROUPS.map(([title, ids]) => [title, ids.map(id => QUESTIONS.find(q => q.id === id)).filter(q => forKind(q, p))]).filter(([, qs]) => qs.length);
+export const screenHTML = (qs, p) => qs.map(q => questionHTML(q, p)).join('<hr class="qsep">');
+// A tap inside one of a screen's questions.
+export function screenClick(qs, p, b, root) {
+  const q = qs.find(x => x.id === b.closest('.q')?.dataset.qid);
+  if (!q) return false;
+  if (questionClick(q, p, b) !== 'redraw') return false;
+  qs.forEach(x => questionRead(x, p, root)); // keep what was typed elsewhere on the screen
+  return true;
+}
+// Reads every question on a screen; shows the first problem next to its question.
+export function screenRead(qs, p, root) {
+  for (const q of qs) {
+    const err = questionRead(q, p, root);
+    if (err) { const m = root.querySelector(`.q[data-qid="${q.id}"] .msg`); if (m) m.textContent = err; return false; }
+  }
+  qs.forEach(q => { if (q.type === 'multi') p.about[q.key] ||= []; markAsked(q, p); }); // Next with nothing picked means "none"
+  return true;
+}
 export const missingEssentials = p => essentials(p).filter(q => !answered(q, p));
 
 // ---------- Rendering one question ----------
@@ -166,11 +190,14 @@ export function questionRead(q, p, root) {
   if (q.type === 'text') a[q.key] = v('#q-t').slice(0, 300);
   if (q.type === 'date') a[q.key] = v('#q-d');
   if (q.other) a[q.other] = v('#q-other').slice(0, 80);
-  if (q.type === 'multi') a[q.key] ||= []; // choosing none is an answer too
   return '';
 }
 
 export function markAsked(q, p) { p.coach ||= {}; (p.coach.asked ||= {})[q.id] = todayOf(p); }
+
+// A labeled progress bar for multi-screen flows.
+export const progress = (i, n, title) => `<span class="prog" role="progressbar" aria-valuemin="1" aria-valuemax="${n}" aria-valuenow="${i + 1}"
+  aria-label="Step ${i + 1} of ${n}"><i style="width:${Math.round((i + 1) / n * 100)}%"></i></span><span>${esc(title || '')}</span>`;
 
 // ---------- Daily follow-ups ----------
 // Up to two a day. Missing essentials come first, then follow-ups whose conditions hold.
@@ -223,6 +250,7 @@ export function bindCoach(root, p, ctx, save) {
     if (b.id === 'coachSave') {
       const err = questionRead(q, draft, card);
       if (err) { card.querySelector('.msg').textContent = err; return; }
+      if (q.type === 'multi') draft.about[q.key] ||= [];
       Object.assign(p, { about: draft.about, units: draft.units, tz: draft.tz });
       if (q.id === 'feel') p.coach = { ...p.coach, feel: { day: todayOf(p), v: draft.about._feel, g: p.settings.gravity || 50 } };
       delete p.about._feel;
@@ -243,7 +271,7 @@ export function bindCoach(root, p, ctx, save) {
 // The full set of essentials, one per screen. Used at first setup (inside onboarding) and
 // from the Home card for profiles made before 1.3.
 export function setupFlow(p, save, { only = null } = {}) {
-  const qs = only ? QUESTIONS.filter(q => q.id === only) : essentials(p);
+  const screens = setupScreens(p, only);
   const draft = structuredClone(p);
   draft.about ||= {};
   let i = 0;
@@ -252,10 +280,11 @@ export function setupFlow(p, save, { only = null } = {}) {
     <button class="cta" id="qs-next"></button><button class="cta2" id="qs-skip" style="width:100%;margin-top:8px">Skip</button>`, { label: 'Your coach' });
   const $ = s => el.querySelector(s);
   const draw = () => {
-    $('#qs-n').textContent = qs.length > 1 ? `Question ${i + 1} of ${qs.length}` : 'Your coach';
-    $('#qs').innerHTML = questionHTML(qs[i], draft);
-    $('#qs-next').textContent = i === qs.length - 1 ? 'Done' : 'Next';
-    $('#qs-skip').hidden = qs[i].type === 'units';
+    const [title, qs] = screens[i];
+    $('#qs-n').innerHTML = screens.length > 1 ? progress(i, screens.length, title) : 'Your coach';
+    $('#qs').innerHTML = screenHTML(qs, draft);
+    $('#qs-next').textContent = i === screens.length - 1 ? 'Done' : 'Next';
+    $('#qs-skip').hidden = qs.some(q => q.type === 'units');
   };
   const finish = async () => {
     Object.assign(p, { about: draft.about, units: draft.units || 'imperial', tz: draft.tz || p.tz });
@@ -264,18 +293,15 @@ export function setupFlow(p, save, { only = null } = {}) {
   };
   el.addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return;
-    const q = qs[i];
+    const qs = screens[i][1];
     if (b.id === 'x') return finish(); // keep whatever was answered so far
     if (b.id === 'qs-next' || b.id === 'qs-skip') {
-      if (b.id === 'qs-next') { const err = questionRead(q, draft, el); if (err) { el.querySelector('.q .msg').textContent = err; return; } }
-      markAsked(q, draft);
-      if (i < qs.length - 1) { i++; draw(); $('#qs').scrollTop = 0; } else await finish();
+      if (b.id === 'qs-next' && !screenRead(qs, draft, el)) return;
+      if (b.id === 'qs-skip') qs.forEach(q => markAsked(q, draft));
+      if (i < screens.length - 1) { i++; draw(); $('#qs').scrollTop = 0; } else await finish();
       return;
     }
-    if (questionClick(q, draft, b) === 'redraw') {
-      questionRead(q, draft, el);
-      draw();
-    }
+    if (screenClick(qs, draft, b, el)) draw();
   });
   draw();
 }

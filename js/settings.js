@@ -14,6 +14,7 @@ import { avatarHTML, avatarName, avatarPicker, pickAvatar, photoToAvatar } from 
 import { QUESTIONS, essentials, setupFlow, GOALS, EQUIPMENT, ALLERGIES } from './coach.js';
 import { weight, weightUnit, length, lengthUnit } from './units.js';
 import { deviceTZ, TZ } from './time.js';
+import { parseHealth, saveHealth, RECIPE } from './health.js';
 
 export const SCHEMA_VERSION = 1;
 const DAY = 86400000;
@@ -208,6 +209,23 @@ async function deleteThisProfile() {
   else { const np = await onboard(); window.goku.open(np.id); }
 }
 
+function healthImport() {
+  const input = Object.assign(document.createElement('input'), { type: 'file', accept: '.txt,.csv,text/plain,text/csv' });
+  input.onchange = async () => {
+    const f = input.files[0]; if (!f) return;
+    try { await readHealthFile(f); } catch (e) { ask('Import stopped', `Nothing was changed. (${esc(e.message || 'Unknown error')})`, []); }
+  };
+  input.click();
+}
+async function readHealthFile(f) {
+    if (f.size > 2e6) return ask("That file is too big", "A Scouter file is usually a few kilobytes. Pick the file the shortcut saved.", []);
+    const r = parseHealth(await f.text(), profile());
+    if (!r.nights.length && !r.workouts.length) return ask('Nothing to import', `No sleep or workout lines were found${r.bad ? ` (${r.bad} lines weren't recognized)` : ''}. See "How to set up the shortcut".`, []);
+    const ok = await ask('Import from Health?', `${r.nights.length} night${r.nights.length === 1 ? '' : 's'} of sleep and ${r.workouts.length} workout${r.workouts.length === 1 ? '' : 's'}${r.bad ? `; ${r.bad} lines skipped` : ''}. Workouts are added as other training; sleep fills in your check-ins and recovery notes.`, [{ label: 'Import', value: true }]);
+    if (!ok) return;
+    const n = await saveHealth(r); toast(n ? `Imported ${n} new item${n === 1 ? '' : 's'}` : 'Already up to date'); window.goku.render();
+}
+
 const saveAndDraw = async p => { await saveProfile(p); window.goku.render(); };
 
 // Readable summary of each coach answer for the About you list.
@@ -312,6 +330,11 @@ export async function settingsView() {
       <button class="cta2" id="expEnc" style="width:100%;margin-top:8px">Export encrypted backup</button>
       <button class="cta2" id="imp" style="width:100%;margin-top:8px">Import a backup</button>
     </section>
+    <section class="card"><p class="lbl">Scouter link · Apple Health</p>
+      <p class="sub">Bring sleep and workouts from the Health app into Goku with an Apple Shortcut. Everything stays on this phone.</p>
+      <button class="cta2" id="health" style="width:100%;margin-top:8px">Import from Health</button>
+      <button class="link" id="healthHow" style="width:100%">How to set up the shortcut</button>
+    </section>
     <section class="card"><p class="lbl">Passcode</p>
       <p class="sub">Don't ask again on this phone for</p>
       <div class="seg">${[[0, 'Always ask'], [1, '1 day'], [7, '1 week'], [30, '30 days']].map(([v, l]) => `<button data-rem="${v}" aria-pressed="${p.lock.remember === v}">${l}</button>`).join('')}</div>
@@ -361,6 +384,9 @@ export async function settingsView() {
         else if (b.id === 'exp') await exportNow(false);
         else if (b.id === 'expEnc') await exportNow(true);
         else if (b.id === 'imp') importFlow();
+        else if (b.id === 'health') healthImport();
+        else if (b.id === 'healthHow') ask('Set up the Scouter link', `<ol style="padding-left:20px;line-height:1.6">${RECIPE.map(x => `<li style="margin-top:6px">${esc(x)}</li>`).join('')}</ol>
+          <p class="note">Shortcuts differ a little between iOS versions. If an import shows nothing, check the file has lines like: sleep, 2026-10-28T23:10:00, 2026-10-29T06:40:00.</p>`, []);
         else if (b.id === 'chg') { if (await showLock(p, { mode: 'create', cancellable: true })) toast('Passcode changed'); window.goku.render(); }
         else if (b.id === 'lockNow') { lockNow(p); await saveProfile(p); window.goku.open(p.id); }
         else if (b.id === 'delp') await deleteThisProfile();
