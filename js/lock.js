@@ -2,6 +2,7 @@
 import { S, saveProfile } from './state.js';
 import { hashPin, checkPin } from './crypto.js';
 import { overlay, esc, ask, setAccent, setTheme, announce } from './ui.js';
+import { avatarHTML } from './avatar.js';
 
 const DAY = 86400000;
 const MAX_TRIES = 5, WAIT_MS = 30000;
@@ -31,7 +32,7 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
     setAccent(p.accent);
     const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'Delete'];
     const { el, close } = overlay(`
-      <div class="av" style="width:56px;height:56px;font-size:1.4rem">${esc(p.name.slice(0, 1).toUpperCase())}</div>
+      <div style="display:grid;place-items:center">${avatarHTML(p, 56)}</div>
       <h1 id="lt"></h1><p class="sub" id="ls"></p>
       <div class="dots" id="dots" aria-hidden="true">${'<i></i>'.repeat(6)}</div>
       <p class="sr" id="lcount" aria-live="polite"></p>

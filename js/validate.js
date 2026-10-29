@@ -12,6 +12,38 @@ const bool = v => v === true;
 const strs = (v, max, each) => (Array.isArray(v) ? v.filter(x => typeof x === 'string').map(x => x.slice(0, each)).slice(0, max) : []);
 const nums = (v, max, lo, hi) => (Array.isArray(v) ? v.map(x => num(x, lo, hi)).filter(x => x !== null).slice(0, max) : []);
 
+const tzOk = tz => { if (typeof tz !== 'string' || tz.length > 60) return false; try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return true; } catch { return false; } };
+const oneOf = (v, list) => (list.includes(v) ? v : undefined);
+const pick = (v, list) => (Array.isArray(v) ? v.filter(x => list.includes(x)) : undefined);
+function cleanAbout(a) {
+  if (!a || typeof a !== 'object') return {};
+  const o = {
+    birthYear: int(a.birthYear, 1900, 2100) ?? undefined, heightIn: num(a.heightIn, 20, 110) ?? undefined,
+    weightLb: num(a.weightLb, 30, 800) ?? undefined, weightAt: num(a.weightAt, 0, 1e14) ?? undefined,
+    experience: oneOf(a.experience, ['0', '1', '3', '5', '10']), goal: typeof a.goal === 'string' && /^\w{1,20}$/.test(a.goal) ? a.goal : undefined,
+    equipment: pick(a.equipment, ['db', 'trx', 'bar']), days: oneOf(a.days, ['2', '3', '4', '5', '6']),
+    diet: oneOf(a.diet, ['any', 'pescatarian', 'vegetarian', 'vegan']),
+    allergies: pick(a.allergies, ['dairy', 'gluten', 'peanuts', 'nuts', 'eggs', 'soy', 'fish', 'shellfish']),
+    allergyOther: typeof a.allergyOther === 'string' ? str(a.allergyOther, 80) : undefined,
+    limits: typeof a.limits === 'string' ? str(a.limits, 300) : undefined, meals: oneOf(a.meals, ['2', '3', '4', '5', '6']),
+    likes: Array.isArray(a.likes) ? strs(a.likes, 30, 40) : undefined, sleepH: num(a.sleepH, 3, 12) ?? undefined,
+    comp: typeof a.comp === 'string' && (a.comp === '' || DAY.test(a.comp)) ? a.comp : undefined,
+  };
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
+}
+function cleanCoach(c) {
+  if (!c || typeof c !== 'object') return undefined;
+  const asked = Object.fromEntries(Object.entries(c.asked || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && DAY.test(v || '')).slice(0, 50));
+  const feel = c.feel && DAY.test(c.feel.day || '') && ['easy', 'right', 'hard'].includes(c.feel.v) ? { day: c.feel.day, v: c.feel.v, ...([10, 20, 50, 100].includes(c.feel.g) ? { g: c.feel.g } : {}) } : undefined;
+  return { asked, ...(feel ? { feel } : {}) };
+}
+function cleanAvatar(v) {
+  if (!v || typeof v !== 'object') return null;
+  if ((v.type === 'char' || v.type === 'aura') && /^\w{1,20}$/.test(v.id || '')) return { type: v.type, id: v.id };
+  if (v.type === 'photo' && typeof v.img === 'string' && v.img.length < 300000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v.img)) return { type: 'photo', img: v.img };
+  return null;
+}
+
 export const AREAS = ['Neck', 'Shoulders', 'Elbows', 'Wrists', 'Upper back', 'Lower back', 'Hips', 'Knees', 'Ankles', 'Feet'];
 
 const stages = v => (Array.isArray(v) ? v.slice(0, 8).map(s => ({ label: str(s?.label, 40), load: num(s?.load, 0, 2000), reps: int(s?.reps, 0, 10000, 0) })) : []);
@@ -27,7 +59,7 @@ const DATA = {
         round: int(s?.round, 1, 100, 1), stages: stages(s?.stages) })) : [],
       repTimes: nums(d.repTimes, 20000, 0, 1e6) }),
   gut: d => ({ amWaist: num(d.amWaist, 10, 100), pmWaist: num(d.pmWaist, 10, 100), bloat: int(d.bloat, 0, 10), foods: strs(d.foods, 100, 40),
-    fluidsOz: int(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500) }),
+    fluidsOz: num(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500) }),
   checkin: d => ({ sleepH: num(d.sleepH, 0, 24, 8), sleepQ: int(d.sleepQ, 1, 5, 3), fatigue: int(d.fatigue, 1, 5, 3), stress: int(d.stress, 1, 5, 3),
     mood: int(d.mood, 1, 5, 3), fun: int(d.fun, 1, 5, 3), sore: strs(d.sore, 10, 20).filter(a => AREAS.includes(a)),
     archPain: bool(d.archPain), techPain: bool(d.techPain), dizzy: bool(d.dizzy) }),
@@ -44,7 +76,10 @@ export function cleanBackup(prof, entries) {
     ? prof.settings.weekPlan.map(d => ({ gym: int(d?.gym, 0, 1440, 0), vault: int(d?.vault, 0, 1440, 0) })) : null;
   const clean = {
     id: prof.id, kind: prof.kind, name, accent: /^#[0-9a-f]{6}$/i.test(prof.accent || '') ? prof.accent : null,
-    units: 'imperial', dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
+    units: prof.units === 'metric' || prof.units === 'imperial' ? prof.units : undefined, tz: tzOk(prof.tz) ? prof.tz : undefined,
+    about: prof.about ? cleanAbout(prof.about) : undefined, coach: cleanCoach(prof.coach),
+    avatar: 'avatar' in prof ? cleanAvatar(prof.avatar) : undefined,
+    dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
     settings: { sound: prof.settings?.sound !== false, haptics: prof.settings?.haptics !== false,

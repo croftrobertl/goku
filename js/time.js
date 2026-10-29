@@ -1,21 +1,24 @@
-// All dates are US/Eastern. A "day" runs until the profile's dayEndsAt hour
-// (default 3 AM), so a 1 AM entry counts toward the previous day.
+// Each profile has a time zone (profiles made before 1.3 stay on US Eastern). A "day" runs
+// until the profile's dayEndsAt hour (default 3 AM), so a 1 AM entry counts toward the day before.
 export const TZ = 'America/New_York';
 const DAY = 86400000;
 
-const parts = new Intl.DateTimeFormat('en-US', {
-  timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23',
-});
+export const deviceTZ = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || TZ; } catch { return TZ; } };
+export const validTZ = tz => { try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return true; } catch { return false; } };
 
-function eastern(ts) {
+const fmts = {};
+function local(ts, tz) {
+  const f = fmts[tz] ||= new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23',
+  });
   const o = {};
-  for (const p of parts.formatToParts(new Date(ts))) o[p.type] = p.value;
+  for (const p of f.formatToParts(new Date(ts))) o[p.type] = p.value;
   return { y: +o.year, m: +o.month, d: +o.day, h: +o.hour };
 }
 
 // ISO date string (YYYY-MM-DD) of the training day that ts falls in.
-export function dayKey(ts = Date.now(), dayEndsAt = 3) {
-  const e = eastern(ts);
+export function dayKey(ts = Date.now(), dayEndsAt = 3, tz = TZ) {
+  const e = local(ts, validTZ(tz) ? tz : TZ);
   const date = new Date(Date.UTC(e.y, e.m - 1, e.d));
   if (e.h < dayEndsAt) date.setUTCDate(date.getUTCDate() - 1);
   return date.toISOString().slice(0, 10);

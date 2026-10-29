@@ -13,6 +13,19 @@ Each profile has its own 6-digit passcode, theme (six themes, each with light an
 sound and haptics settings. Profile names and every other personal value are typed in on first
 launch; none of them are in this code.
 
+**Tailored from the first launch.** Setup asks about 3 minutes of coach questions: units and time
+zone, birth year, height and weight, training history, goal, equipment and training days (strength),
+diet and allergies, and any injuries. After that the coach asks one or two follow-ups a day on Home
+(meals a day, favorite protein foods, sleep, how the week felt, competition dates, schedule changes).
+Every answer changes something: the starting gravity, which exercises are in the library, the weekly
+session goal, fuel ranges and protein ideas, sleep targets, reminders, and the competition countdown.
+All answers can be changed in Settings → About you. Text boxes note that the keyboard's mic can be
+used to dictate.
+
+**Avatars.** Pick a fighter (an original orb in a Dragon Ball character's colors with their initial,
+labeled with their name; no official artwork is included), a power-up aura around your own initial,
+or a photo from your phone (resized to 192 px, kept on the phone and in backups only).
+
 Before relying on it for workouts, run **Settings → Test my phone**. It checks saving, offline use,
 the share sheet and keep-awake automatically, then walks through a test beep, a buzz, and a
 60-second hands-off test of the screen staying on and the rest beep playing.
@@ -118,7 +131,7 @@ A stable JSON format, so a future native app could import the full history.
   "exportedAt": "2026-10-28T19:15:43.005Z",
   "profile": {
     "id": "uuid", "kind": "engine | perf", "name": "string", "accent": "#5ea4ff",
-    "units": "imperial", "dayEndsAt": 3,
+    "units": "imperial | metric", "tz": "America/New_York", "dayEndsAt": 3,
     "createdAt": "ISO-8601", "updatedAt": "ISO-8601", "lastBackupAt": "ISO-8601 | null",
     "modules": { "<module>": true },
     "settings": { "...kind-specific..." },
@@ -131,7 +144,7 @@ A stable JSON format, so a future native app could import the full history.
 }
 ```
 
-- `day` is the training day in US/Eastern. Entries before `dayEndsAt` (default 3 AM) count toward
+- `day` is the training day in the profile's time zone (US/Eastern for profiles made before 1.3). Entries before `dayEndsAt` (default 3 AM) count toward
   the previous day.
 - Any field ending in `At` is an ISO-8601 timestamp.
 - Units are imperial: pounds for load, inches for waist and height, fluid ounces for drinks.
@@ -149,10 +162,25 @@ Encrypted exports wrap this object: `{ app, encrypted: true, cipher, kdf, iterat
 
 ---
 
-## Readiness score (M1 formula, reviewed in M2)
+## Fuel ranges and their sources
 
-Out of 100: sleep hours 30 (full marks at 9 h, the middle of the 8–10 h the American Academy of
-Sleep Medicine recommends for ages 13–18), sleep quality 10, low tiredness 15, low stress 10,
+Shown on Home when a weight is saved, with the sources as footnotes. No calorie numbers are shown.
+- **Protein:** 1.4–2.0 g per kg a day; about 0.25 g per kg per meal. Jäger R, et al. ISSN Position
+  Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20 (checked against the open-access text).
+- **Carbohydrate:** 3–5 g/kg (light or skill work), 5–7 (about an hour), 6–10 (1–3 hours), 8–12 (4–5+
+  hours). Thomas DT, Erdman KA, Burke LM. Nutrition and Athletic Performance. Med Sci Sports Exerc.
+  2016;48(3):543–568. **These tiers were checked against several published reproductions of the
+  statement's table; the original is paywalled and wasn't read directly.** Which tier a day falls in
+  (under 45 min, under 90, under 4 h, 4 h or more) is Goku's mapping of the statement's wording.
+- Under 18, the card says the ranges come from adult studies and should be confirmed by a
+  pediatrician or sports dietitian.
+- Sleep notes: AASM pediatric consensus (2016) 8–10 h for ages 13–18; AASM/SRS adult consensus (2015)
+  7 or more hours.
+
+## Readiness score
+
+Out of 100: sleep hours 30 (full marks at 9 h under 18, the middle of the AASM's 8–10 h for ages
+13–18, and at 7 h for adults, per the AASM/SRS "7 or more"), sleep quality 10, low tiredness 15, low stress 10,
 mood 10, fun 10, and no soreness 15 (minus 5 per sore area). It's a conversation starter, not a
 verdict. Low scores suggest talking to a coach and never say "skip training".
 
@@ -186,7 +214,7 @@ food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---
 
-## Testing status (1.2.0)
+## Testing status (1.3.0)
 
 **Mac browser** (Chromium engine) at 320 px, phone and desktop widths, in light and dark mode:
 upgrading from 1.0.2 with existing data; onboarding with Cancel; passcodes (create, change with Cancel,
@@ -211,7 +239,12 @@ red-flag rule across a skipped day and the care toggle; text contrast ≥ 4.5:1 
 - Not testable in the simulator: whether the screen really stays on, audio after the screen
   locks, and the haptic tick (the simulator has no haptics). **Settings → Test my phone** checks
   all three on a real iPhone.
-- Each release also gets an independent code review; 1.2.0's found five issues, all fixed.
+- 1.3.0: full setup in metric and US units (82 kg saved as 180.8 lb; protein 115–164 g, 21 g a meal
+  checked by hand), allergy and diet filtering, equipment-based library, coach follow-ups capped at
+  two a day, older profiles offered setup with data kept, and the avatar picker and photo avatar
+  from the iPhone photo library on the simulator.
+- Each release also gets an independent code review; 1.2.0's found five issues and 1.3.0's found
+  nine, all fixed.
 
 ---
 
@@ -235,6 +268,10 @@ tools/release.sh       bumps the version and checks a release before publishing
 tools/check-themes.mjs fails the release if any theme color is below 4.5:1 contrast
 js/themes.js           the six themes (light and dark palettes)
 js/devcheck.js         Settings → Test my phone
+js/coach.js            coach questions, setup and daily follow-ups
+js/fuel.js             protein and carbohydrate ranges with sources
+js/avatar.js           fighter orbs, auras and photo avatars
+js/units.js            US and metric units
 js/crypto.js           passcode hashing and encrypted exports
-js/time.js             US/Eastern day logic
+js/time.js             day logic in each profile's time zone
 ```

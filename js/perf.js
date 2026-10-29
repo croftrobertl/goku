@@ -3,16 +3,19 @@
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
 import * as db from './db.js';
 import { esc, ask, overlay, stepper, round, guard, toast, dayPicker } from './ui.js';
-import { DOW, addDays, weekStart, weekday, prettyDay } from './time.js';
+import { DOW, addDays, weekStart, weekday, prettyDay, daysBetween } from './time.js';
 import { AREAS } from './validate.js';
+import { coachCard, bindCoach, ageOf } from './coach.js';
+import { fuelCard } from './fuel.js';
 
 export const tabs = () => [['home', 'Home'], ['week', 'Week'], ['checkin', 'Check-in'], ['history', 'History'], ['settings', 'Settings']];
 
-// M1 readiness formula (0–100). Reviewed in M2; documented in the README.
-// Sleep target: 9 h, the middle of the 8–10 h the American Academy of Sleep Medicine recommends for ages 13–18.
-export function readiness(c) {
+// Readiness (0–100), documented in the README. Full sleep marks at the age-group target:
+// 9 h for under 18 (middle of the AASM's 8–10 h for ages 13–18), 7 h for adults (AASM/SRS "7 or more").
+export const sleepTarget = p => { const a = ageOf(p); return a !== null && a >= 18 ? 7 : 9; };
+export function readiness(c, target = 9) {
   if (!c) return null;
-  const sleep = Math.min(c.sleepH / 9, 1) * 30;
+  const sleep = Math.min(c.sleepH / target, 1) * 30;
   const quality = (c.sleepQ - 1) / 4 * 10;
   const fatigue = (5 - c.fatigue) / 4 * 15;
   const stress = (5 - c.stress) / 4 * 10;
@@ -47,7 +50,7 @@ export async function home() {
   const p = profile();
   const t = today();
   const c = (await db.get('entries', p.id + ':checkin:' + t))?.data;
-  const r = readiness(c);
+  const r = readiness(c, sleepTarget(p));
   const len = 2 * Math.PI * 72;
   const plan = p.settings.weekPlan;
   const ws = weekStart(t);
@@ -56,6 +59,7 @@ export async function home() {
   const planned = plan[weekday(t)];
   const weekMins = plan.reduce((a, d) => a + d.gym + d.vault, 0);
   const flags = await careFlags();
+  const comp = p.about?.comp && p.about.comp >= t ? daysBetween(t, p.about.comp) : null;
 
   return {
     cta: c ? ['Log a session', () => logSession()] : ['Check in · 30 s', () => openCheckin(t)],
@@ -71,9 +75,12 @@ export async function home() {
         : `<div class="empty"><h1 id="h-ready">Check in to see readiness</h1>
           <p>Six quick questions about sleep, energy and how your body feels. It takes about 30 seconds.</p></div>`}
       </section>
+      ${coachCard(p, {})}
+      ${comp !== null ? `<section class="card"><p class="lbl">Competition</p><p class="big num">${comp === 0 ? 'Today' : comp + (comp === 1 ? ' day' : ' days')}</p>
+        <p class="sub">${comp === 0 ? 'Good luck. Trust your training.' : 'until your next competition.'}</p></section>` : ''}
       ${flags.length ? `<section class="card flag"><p class="lbl">Care check</p>
         <p>${flags.map(esc).join(' ')}</p>
-        <p style="margin-top:6px">That's worth telling a parent, your coach and your doctor.</p>
+        <p style="margin-top:6px">That's worth telling ${(ageOf(p) ?? 0) >= 18 ? 'your coach and your doctor' : 'a parent, your coach and your doctor'}.</p>
         <p class="note">Don't try to treat it yourself or push through it.</p></section>` : ''}
       <section class="card">
         <div class="row"><h2>This week</h2><span class="num sub">${round(weekMins / 60, 1)} h planned</span></div>
@@ -96,12 +103,13 @@ export async function home() {
           <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}
         <p class="note">Load = minutes × effort (0–10). Trends and gentle color bands are coming in a later update.</p>
       </section>
-      ${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Fuel · long day</p>
-        <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p>
-        <p class="note">Energy ranges with their published source are coming in a later update. A pediatrician or sports dietitian should confirm any numbers.</p></section>` : ''}
+      ${on(p, 'fuel') ? fuelCard(p, planned.gym + planned.vault, { title: planned.gym + planned.vault ? 'Fuel today' : 'Fuel · rest day' }) : ''}
+      ${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
+        <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}
     </div></div>`,
     bind(root) {
-      root.addEventListener('click', e => { if (e.target.closest('[data-day]')) window.goku.go('week'); });
+      bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
+      root.addEventListener('click', e => { if (e.target.closest('[data-day]') && !e.target.closest('.coach')) window.goku.go('week'); });
     },
   };
 }
@@ -178,7 +186,7 @@ export async function checkinView() {
         ${yn('archPain', 'Back hurts when you arch?')}
         ${yn('techPain', 'Pain changing how you do a skill?')}
         ${yn('dizzy', 'Felt dizzy or faint?')}
-        <p class="note">A "yes" shows a reminder to tell a parent and your doctor. It never tells you to train through it.</p>
+        <p class="note">A "yes" shows a reminder to tell ${(ageOf(profile()) ?? 0) >= 18 ? 'your coach and your doctor' : 'a parent and your doctor'}. It never tells you to train through it.</p>
       </section>` : '<p class="note">Red flags and care checks are off. You can turn them on in Settings.</p>'}
     </div></div>`,
     bind(root) {
@@ -292,7 +300,7 @@ export async function historyView() {
     html: `<h1>History</h1>
     <section class="card" style="margin-top:12px"><p class="lbl">Check-ins</p>
       ${cs.length ? `<ul class="list">${cs.map(c => `<li><span>${prettyDay(c.day)}<br><span class="chain">${esc(c.data.sleepH)} h sleep${c.data.sore.length ? ' · sore: ' + c.data.sore.map(esc).join(', ') : ''}</span></span>
-        <span class="row" style="gap:8px"><span class="num">${readiness(c.data)}</span><button class="cta2" data-ci="${esc(c.day)}" aria-label="Edit check-in from ${prettyDay(c.day)}">Edit</button></span></li>`).join('')}</ul>`
+        <span class="row" style="gap:8px"><span class="num">${readiness(c.data, sleepTarget(profile()))}</span><button class="cta2" data-ci="${esc(c.day)}" aria-label="Edit check-in from ${prettyDay(c.day)}">Edit</button></span></li>`).join('')}</ul>`
         : '<div class="empty"><h2>No check-ins yet</h2><p>Your daily check-ins show up here, with the readiness score for each day.</p></div>'}
     </section>
     <section class="card"><p class="lbl">Sessions</p>

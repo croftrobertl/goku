@@ -3,6 +3,9 @@ import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from
 import * as db from './db.js';
 import { esc, toast, ask, overlay, stepper, unlockAudio, beep, buzz, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
+import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
+import { coachCard, bindCoach, isMinor } from './coach.js';
+import { fuelCard } from './fuel.js';
 
 export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'gut') ? [['gut', 'Gut']] : []), ['history', 'History'], ['settings', 'Settings']];
 
@@ -11,20 +14,27 @@ export const GRAVITY = { 10: [3, 90, 14, 1], 20: [4, 75, 16, 2], 50: [4, 45, 20,
 const SLOTS = ['push', 'pull', 'legs', 'core'];
 const STALE_MS = 3 * 3600000; // an untouched workout older than this asks before resuming
 
+// [name, group, drop chain, module, equipment]. bw = bodyweight only. A new profile's library
+// keeps only what its equipment answer allows, so every group still has an option.
 const SEED = [
-  ['Perfect Pushup', 'push', ['deficit', 'flat', 'knees']],
-  ['TRX row', 'pull', ['steep', 'mid', 'shallow']],
-  ['DB goblet squat', 'legs', ['heavy', 'medium', 'bodyweight']],
-  ['Hanging leg raise', 'core', ['straight legs', 'bent knees']],
-  ['DB push press', 'push', ['heavy', 'medium', 'light']],
-  ['Playset pull-up', 'pull', ['strict', 'jumping', 'slow negatives']],
-  ['TRX pistol', 'legs', ['low assist', 'high assist']],
-  ['TRX knee tuck', 'core', ['pike', 'knee tuck']],
-  ['TRX chest press', 'push', ['steep', 'mid', 'shallow']],
-  ['DB row', 'pull', ['heavy', 'medium', 'light']],
-  ['DB reverse lunge', 'legs', ['heavy', 'light', 'bodyweight']],
-  ['Broad jump', 'power', ['quality reps only'], 'soccer'],
-  ['Copenhagen plank', 'joints', ['long lever', 'short lever'], 'soccer'],
+  ['Perfect Pushup', 'push', ['deficit', 'flat', 'knees'], null, 'bw'],
+  ['TRX row', 'pull', ['steep', 'mid', 'shallow'], null, 'trx'],
+  ['DB goblet squat', 'legs', ['heavy', 'medium', 'bodyweight'], null, 'db'],
+  ['Hanging leg raise', 'core', ['straight legs', 'bent knees'], null, 'bar'],
+  ['DB push press', 'push', ['heavy', 'medium', 'light'], null, 'db'],
+  ['Playset pull-up', 'pull', ['strict', 'jumping', 'slow negatives'], null, 'bar'],
+  ['TRX pistol', 'legs', ['low assist', 'high assist'], null, 'trx'],
+  ['TRX knee tuck', 'core', ['pike', 'knee tuck'], null, 'trx'],
+  ['TRX chest press', 'push', ['steep', 'mid', 'shallow'], null, 'trx'],
+  ['DB row', 'pull', ['heavy', 'medium', 'light'], null, 'db'],
+  ['DB reverse lunge', 'legs', ['heavy', 'light', 'bodyweight'], null, 'db'],
+  ['Pike pushup', 'push', ['feet raised', 'floor', 'kneeling'], null, 'bw'],
+  ['Prone Y-T-W raise', 'pull', ['slow 3-second hold', 'standard'], null, 'bw'],
+  ['Bodyweight squat', 'legs', ['jump squat', 'tempo squat', 'squat'], null, 'bw'],
+  ['Split squat', 'legs', ['rear foot raised', 'split squat', 'hand-assisted'], null, 'bw'],
+  ['Dead bug', 'core', ['straight legs', 'bent knees'], null, 'bw'],
+  ['Broad jump', 'power', ['quality reps only'], 'soccer', 'bw'],
+  ['Copenhagen plank', 'joints', ['long lever', 'short lever'], 'soccer', 'bw'],
 ];
 
 const byOrder = (a, b) => (a.data.order ?? 999) - (b.data.order ?? 999) || a.data.name.localeCompare(b.data.name);
@@ -32,7 +42,9 @@ const byOrder = (a, b) => (a.data.order ?? 999) - (b.data.order ?? 999) || a.dat
 export async function library() {
   let lib = await entries('exercise');
   if (!lib.length && !(await db.getMeta('seeded:' + profile().id))) {
-    for (const [i, [name, slot, stages, mod]] of SEED.entries())
+    const eq = profile().about?.equipment; // unanswered: everything
+    const keep = SEED.filter(x => !eq || x[4] === 'bw' || eq.includes(x[4]));
+    for (const [i, [name, slot, stages, mod]] of keep.entries())
       await saveEntry('exercise', { name, slot, module: mod || null, order: i, stages: stages.map(label => ({ label, load: null })) }, { day: '1970-01-01' });
     await db.setMeta('seeded:' + profile().id, true);
     lib = await entries('exercise');
@@ -80,14 +92,27 @@ export async function home() {
   const wk = weekStart(today());
   const sets = {};
   for (const s of sessions.filter(s => s.day >= wk)) for (const set of s.data.sets) sets[set.slot] = (sets[set.slot] || 0) + 1;
+  const weekCount = sessions.filter(s => s.day >= wk).length;
+  const ctx = { sessionsThisWeek: sessions.filter(s => s.day >= addDays(today(), -6)).length };
+  // Coach notes from the person's own answers.
+  const feel = p.coach?.feel, levels = [10, 20, 50, 100];
+  const fresh = feel && feel.day >= addDays(today(), -7);
+  const asked = fresh && (feel.g ?? g) === g; // one answer suggests one step, not a run through every level
+  const nudge = asked && feel.v === 'easy' && g < 100 ? levels[levels.indexOf(g) + 1] : asked && feel.v === 'hard' && g > 10 ? levels[levels.indexOf(g) - 1] : null;
+  const sleepMin = isMinor(p) ? 8 : 7;
+  const lowSleep = p.about?.sleepH && p.about.sleepH < sleepMin;
 
   return {
     cta: circuit.length ? ['Enter chamber', () => startRun(circuit)] : null,
     html: `<div class="cols"><div>
+    ${coachCard(p, ctx)}
+    ${nudge ? `<section class="card"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
+      <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}
     <section class="card" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
       <p class="sub">${rounds} rounds · ${rest}s rest · ${cap}-min cap · ${depth === 1 ? 'one stage per set' : depth === 2 ? 'to failure, one drop' : 'to failure, then drop'}</p>
+      ${p.about?.days ? `<p class="sub">This week: <b class="num">${weekCount}</b> of ${esc(p.about.days)} sessions${weekCount >= +p.about.days ? ' · goal met' : ''}</p>` : ''}
       <div class="dial" aria-hidden="true">
         <svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="80" fill="none" stroke="var(--s2)" stroke-width="14"/>
         <circle cx="95" cy="95" r="80" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round"
@@ -105,6 +130,7 @@ export async function home() {
       ${circuit.length ? `<ul class="list">${circuit.map(e => `<li><span>${esc(e.data.name)}<br>
         <span class="chain">${e.data.stages.slice(0, depth).map(s => esc(s.label)).join(' → ')}</span></span></li>`).join('')}</ul>`
         : '<div class="empty"><h2>Your library is empty</h2><p>Add exercises in the Library tab to build circuits.</p></div>'}
+      ${p.about?.limits ? `<p class="note">Your notes: ${esc(p.about.limits)}. Swap or skip anything that hurts.</p>` : ''}
     </section>
   </div><div>
     <div class="grid">
@@ -113,6 +139,9 @@ export async function home() {
       ${on(p, 'gut') ? `<section class="card"><p class="lbl">Gut today</p>
         <p class="big num">${gut?.data.bloat ?? '—'}<span class="sub">/10</span></p><p class="sub">${gut ? 'Logged' : 'Not logged yet'}</p></section>` : ''}
     </div>
+    ${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(p.about.sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>
+      <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}
+    ${on(p, 'fuel') ? fuelCard(p, cap) : ''}
     ${on(p, 'hypertrophy') ? `<section class="card">
       <p class="lbl">Hard sets this week</p>
       ${SLOTS.map(s => `<div class="row" style="margin-top:8px"><span>${s[0].toUpperCase() + s.slice(1)}</span><span class="num sub">${sets[s] || 0}</span></div>`).join('')}
@@ -120,8 +149,9 @@ export async function home() {
     </section>` : ''}
   </div></div>`,
     bind(root) {
+      bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
       root.addEventListener('click', guard(async e => {
-        const b = e.target.closest('button'); if (!b) return;
+        const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
         if (b.dataset.g) { p.settings.gravity = +b.dataset.g; await saveProfile(p); window.goku.render(); }
         if (b.id === 'shuffle') { p.settings.shuffleSeed = (p.settings.shuffleSeed || 0) + 1; await saveProfile(p); window.goku.render(); }
       }));
@@ -159,7 +189,7 @@ export async function resumeRun() {
   if (!run || document.getElementById('runner')) return;
   const idle = Date.now() - lastActivity(run);
   if (idle > STALE_MS) {
-    const when = new Date(run.startedAt).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
+    const when = new Date(run.startedAt).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: profile().tz || 'America/New_York' });
     const choice = await ask('Unfinished workout', `You started a workout on ${esc(when)} and didn't finish it.`,
       [{ label: 'Save it as it was', value: 'save' }, { label: 'Keep going', value: 'resume' }, { label: 'Discard it', value: 'discard' }]);
     if (choice === 'save') return saveRun(run, lastActivity(run));
@@ -174,7 +204,7 @@ async function saveRun(run, endedAt) {
   run.cur = null;
   if (run.sets.length) {
     await saveEntry('session', { gravity: run.gravity, startedAt: run.startedAt, endedAt, sets: run.sets, repTimes: run.repTimes },
-      { ts: run.startedAt, day: dayKey(run.startedAt, profile().dayEndsAt) });
+      { ts: run.startedAt, day: dayKey(run.startedAt, profile().dayEndsAt, profile().tz) });
   }
   await db.setMeta(runKey(), null);
   const reps = run.sets.reduce((a, s) => a + s.stages.reduce((b, x) => b + x.reps, 0), 0);
@@ -290,7 +320,7 @@ function openRunner(run) {
     $('#reps').setAttribute('aria-live', 'polite');
     $('#stage').textContent = run.cur.stages.length > 1 ? `Stage ${run.stage + 1} of ${run.cur.stages.length} · ${st.label}` : st.label;
     $('#reps').textContent = st.reps;
-    $('#ex').textContent = curEx().name + (st.load ? ` · ${st.load} lb` : '');
+    $('#ex').textContent = curEx().name + (st.load ? ` · ${weight(st.load, p)} ${weightUnit(p)}` : '');
     $('#tap').setAttribute('aria-label', `Add one rep. ${st.reps} so far`);
     $('#next').textContent = run.stage < run.cur.stages.length - 1 ? 'Drop to ' + run.cur.stages[run.stage + 1].label : 'Set done';
   }
@@ -353,6 +383,7 @@ function openRunner(run) {
 
 // ---------- Library ----------
 export async function libraryView() {
+  const p = profile();
   const lib = await library();
   const groups = {};
   for (const e of lib) (groups[e.data.slot] ||= []).push(e);
@@ -361,7 +392,7 @@ export async function libraryView() {
     html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group.</p>
       ${Object.entries(groups).map(([slot, list]) => `<section class="card" style="margin-top:12px">
         <p class="lbl">${esc(slot)}</p><ul class="list">${list.map(e => `<li><span>${esc(e.data.name)}<br>
-        <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(s.load)} lb)` : '')).join(' → ')}</span></span>
+        <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(weight(s.load, p))} ${weightUnit(p)})` : '')).join(' → ')}</span></span>
         <button class="cta2" data-edit="${esc(e.id)}">Edit</button></li>`).join('')}</ul></section>`).join('')}`,
     bind(root) {
       root.addEventListener('click', e => {
@@ -373,6 +404,7 @@ export async function libraryView() {
 }
 
 function editExercise(ex) {
+  const p = profile();
   const d = ex ? structuredClone(ex.data) : { name: '', slot: 'push', module: null, order: 999, stages: [{ label: '', load: null }] };
   const { el, close } = overlay(`<div class="row"><h1>${ex ? 'Edit exercise' : 'New exercise'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="f"></div>
@@ -386,7 +418,7 @@ function editExercise(ex) {
       <p class="lbl" style="margin-top:16px">Drop chain, hardest first</p>
       ${d.stages.map((s, i) => `<div class="row" style="margin-top:8px">
         <input data-i="${i}" data-k="label" value="${esc(s.label)}" placeholder="Stage ${i + 1}" aria-label="Stage ${i + 1} name">
-        <input data-i="${i}" data-k="load" value="${esc(s.load ?? '')}" inputmode="decimal" placeholder="lb" aria-label="Stage ${i + 1} load in pounds" style="width:80px">
+        <input data-i="${i}" data-k="load" value="${esc(weight(s.load, p))}" inputmode="decimal" placeholder="${weightUnit(p)}" aria-label="Stage ${i + 1} load in ${weightUnit(p) === 'kg' ? 'kilograms' : 'pounds'}" style="width:80px">
         <button class="cta2" data-rm="${i}" aria-label="Remove stage ${i + 1}">−</button></div>`).join('')}
       <button class="cta2" id="add" style="margin-top:8px">Add stage</button>`;
   }
@@ -394,7 +426,7 @@ function editExercise(ex) {
     const t = e.target;
     if (t.id === 'nm') d.name = t.value;
     if (t.dataset.k === 'label') d.stages[+t.dataset.i].label = t.value;
-    if (t.dataset.k === 'load') d.stages[+t.dataset.i].load = t.value && isFinite(+t.value) ? +t.value : null;
+    if (t.dataset.k === 'load') d.stages[+t.dataset.i].load = toLb(t.value, p);
   });
   el.addEventListener('change', e => { if (e.target.id === 'slot') d.slot = e.target.value; });
   el.addEventListener('click', guard(async e => {
@@ -445,13 +477,13 @@ export async function gutView() {
     <div class="cols"><div>
       <section class="card" style="margin-top:12px"><p class="lbl">Bloating (0 = none, 10 = worst)</p>
         ${stepper('bloat', cur.bloat ?? 'none', 'bloating')}</section>
-      <section class="card"><p class="lbl">Waist (inches)</p>
-        <div class="row"><span>Morning</span>${stepper('amWaist', cur.amWaist ?? 'none', 'morning waist')}</div>
-        <div class="row" style="margin-top:8px"><span>Evening</span>${stepper('pmWaist', cur.pmWaist ?? 'none', 'evening waist')}</div>
-        <p class="note">Steps of ¼ inch. Measure at the same spot each time.</p></section>
+      <section class="card"><p class="lbl">Waist (${lengthUnit(p) === 'cm' ? 'centimeters' : 'inches'})</p>
+        <div class="row"><span>Morning</span>${stepper('amWaist', length(cur.amWaist, p) ?? 'none', 'morning waist')}</div>
+        <div class="row" style="margin-top:8px"><span>Evening</span>${stepper('pmWaist', length(cur.pmWaist, p) ?? 'none', 'evening waist')}</div>
+        <p class="note">Steps of ${lengthUnit(p) === 'cm' ? '½ cm' : '¼ inch'}. Measure at the same spot each time.</p></section>
       <section class="card"><p class="lbl">Fluids</p>
-        <div class="row"><span class="num big">${esc(cur.fluidsOz)} <span class="sub">oz</span></span>
-        <span><button class="cta2" data-fl="-8">−8</button> <button class="cta2" data-fl="8">+8</button> <button class="cta2" data-fl="16">+16</button></span></div></section>
+        <div class="row"><span class="num big">${esc(volume(cur.fluidsOz, p))} <span class="sub">${volumeUnit(p)}</span></span>
+        <span>${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join(' ')}</span></div></section>
     </div><div>
       <section class="card"><p class="lbl">Protein</p>
         <p class="big num">${esc(proteinTotal)} g${target ? ` <span class="sub">${perMeal ? `target ${esc(target)} g per meal` : `of ${esc(target)} g`}</span>` : ''}</p>
@@ -460,7 +492,7 @@ export async function gutView() {
         <div class="seg">${[10, 20, 30, 40, 50].map(g => `<button data-pr="${g}">+${g}</button>`).join('')}</div>
         ${cur.protein.length ? '<button class="link" id="prUndo">Undo last</button>' : ''}
         ${!target ? '<p class="note">Add your target in Settings.</p>' : ''}</section>
-      <section class="card"><p class="lbl">Foods</p>${tags('foods', recentFoods)}</section>
+      <section class="card"><p class="lbl">Foods</p>${tags('foods', recentFoods)}<p class="voice">🎤 Tap the mic on your keyboard to say a food instead of typing.</p></section>
       <section class="card"><p class="lbl">Capsules and supplements</p>${tags('supplements', recentSupps)}</section>
       <section class="card"><p class="lbl">Pattern, not proof</p>
         <p class="sub">After 14 days of logs, this panel lists which foods and supplements show up most often on your high-bloating days. It's coming in a later update. You have ${all.length} day${all.length === 1 ? '' : 's'} logged.</p></section>
@@ -473,8 +505,8 @@ export async function gutView() {
         if (st && b.dataset.d) {
           const k = st.dataset.step, d = +b.dataset.d;
           if (k === 'bloat') cur.bloat = Math.min(10, Math.max(0, (cur.bloat ?? (d > 0 ? -1 : 1)) + d));
-          else cur[k] = Math.max(15, round((cur[k] ?? (k === 'pmWaist' && cur.amWaist ? cur.amWaist : lastWaist)) + d * 0.25, 2));
-        } else if (b.dataset.fl) cur.fluidsOz = Math.max(0, cur.fluidsOz + +b.dataset.fl);
+          else cur[k] = Math.max(15, round((cur[k] ?? (k === 'pmWaist' && cur.amWaist ? cur.amWaist : lastWaist)) + d * lengthStep(p), 3));
+        } else if (b.dataset.fl) cur.fluidsOz = Math.max(0, round(cur.fluidsOz + +b.dataset.fl, 2));
         else if (b.dataset.pr) cur.protein.push(+b.dataset.pr);
         else if (b.id === 'prUndo') cur.protein.pop();
         else if (b.dataset.tag) {

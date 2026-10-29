@@ -10,6 +10,10 @@ import { VERSION } from './version.js';
 import { dayKey } from './time.js';
 import { phoneCheck } from './devcheck.js';
 import { THEMES, MODES } from './themes.js';
+import { avatarHTML, avatarName, avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
+import { QUESTIONS, essentials, setupFlow, GOALS, EQUIPMENT, ALLERGIES } from './coach.js';
+import { weight, weightUnit, length, lengthUnit } from './units.js';
+import { deviceTZ, TZ } from './time.js';
 
 export const SCHEMA_VERSION = 1;
 const DAY = 86400000;
@@ -52,7 +56,7 @@ export async function exportNow(encrypted = false) {
     toast('Encrypting…');
     payload = await encryptJSON(payload, pass);
   }
-  const stamp = dayKey(Date.now(), 0); // today's date in US Eastern
+  const stamp = dayKey(Date.now(), 0, p.tz); // today's date in the profile's time zone
   const safe = p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'profile';
   const name = `goku-${safe}-${stamp}${encrypted ? '-encrypted' : ''}.json`;
   const file = new File([JSON.stringify(payload, null, 1)], name, { type: 'application/json' });
@@ -161,7 +165,7 @@ async function previewImport({ prof, entries, skipped }) {
   try {
     if (choice === 'add') {
       const fresh = newProfile(prof.kind, prof.name);
-      const p = { ...fresh, ...rest, accent: rest.accent || fresh.accent, modules: { ...fresh.modules, ...rest.modules },
+      const p = { ...fresh, ...Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)), accent: rest.accent || fresh.accent, modules: { ...fresh.modules, ...rest.modules },
         settings: { ...fresh.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([, v]) => v !== null)) },
         lock: { ...fresh.lock, remember: lockRemember } };
       await db.putMany('entries', entries);
@@ -172,6 +176,8 @@ async function previewImport({ prof, entries, skipped }) {
     } else if (choice === 'replace') {
       await db.replaceProfileEntries(cur.id, entries);
       Object.assign(cur, { name: rest.name, accent: rest.accent || cur.accent, dayEndsAt: rest.dayEndsAt, modules: { ...cur.modules, ...rest.modules },
+        units: rest.units || cur.units, tz: rest.tz || cur.tz, about: rest.about || cur.about, coach: rest.about ? rest.coach || cur.coach : cur.coach,
+        avatar: rest.avatar === undefined ? cur.avatar : rest.avatar,
         settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([, v]) => v !== null)) } });
       await saveProfile(cur);
     } else {
@@ -202,6 +208,48 @@ async function deleteThisProfile() {
   else { const np = await onboard(); window.goku.open(np.id); }
 }
 
+const saveAndDraw = async p => { await saveProfile(p); window.goku.render(); };
+
+// Readable summary of each coach answer for the About you list.
+function aboutRows(p) {
+  const a = p.about || {};
+  const pick = (list, v) => list.find(x => x[0] === v)?.[1];
+  const qs = essentials(p).concat(QUESTIONS.filter(q => ['meals', 'sleep', 'comp'].includes(q.id) && (!q.kinds || q.kinds.includes(p.kind))));
+  const shown = {
+    units: `${p.units === 'metric' ? 'Metric' : 'US units'} · ${p.tz || TZ}`,
+    birthYear: a.birthYear ? String(a.birthYear) : '',
+    body: [a.heightIn != null ? `${length(a.heightIn, p)} ${lengthUnit(p)}` : '', a.weightLb != null ? (p.kind === 'perf' ? 'weight saved' : `${weight(a.weightLb, p)} ${weightUnit(p)}`) : ''].filter(Boolean).join(' · '),
+    experience: pick(QUESTIONS.find(q => q.id === 'experience').options, a.experience),
+    goal: pick(GOALS[p.kind], a.goal),
+    equipment: a.equipment ? (a.equipment.map(v => pick(EQUIPMENT, v)).join(', ') || 'Bodyweight only') : '',
+    days: a.days ? a.days + ' days a week' : '',
+    diet: { any: 'Everything', pescatarian: 'Pescatarian', vegetarian: 'Vegetarian', vegan: 'Vegan' }[a.diet],
+    allergies: a.allergies ? ([...a.allergies.map(v => pick(ALLERGIES, v)), a.allergyOther].filter(Boolean).join(', ') || 'None') : '',
+    limits: a.limits === '' ? 'None' : a.limits,
+    meals: a.meals ? a.meals + ' a day' : '',
+    sleep: a.sleepH ? a.sleepH + ' hours' : '',
+    comp: a.comp || '',
+  };
+  return qs.map(q => [q.id, q.title.replace(/\?$/, ''), shown[q.id === 'sleep' ? 'sleep' : q.id]]);
+}
+
+function avatarSheet(p) {
+  const { el, close } = overlay(`<div class="row"><h1>Avatar</h1><button class="cta2" id="x" data-close>Done</button></div>
+    <div class="scroll" id="av"></div>`, { label: 'Choose an avatar' });
+  const draw = () => { el.querySelector('#av').innerHTML = avatarPicker(p); };
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'x') { close(); window.goku.render(); return; }
+    if (b.dataset.avatar) { pickAvatar(p, b.dataset.avatar); await saveProfile(p); draw(); }
+  });
+  el.addEventListener('change', async e => {
+    if (!e.target.matches('[data-avatar-photo]')) return;
+    try { p.avatar = await photoToAvatar(e.target.files[0]); t.value = ''; e.target.value = ''; await saveProfile(p); draw(); }
+    catch (err) { toast(err.message || "That photo couldn't be read."); }
+  });
+  draw();
+}
+
 // ---------- Settings screen ----------
 export async function settingsView() {
   const p = profile();
@@ -213,6 +261,8 @@ export async function settingsView() {
     html: `<h1>Settings</h1>
     <div class="cols"><div>
     <section class="card" style="margin-top:12px"><p class="lbl">Profile</p>
+      <div class="row" style="justify-content:flex-start;gap:12px">${avatarHTML(p, 56)}<span><b>${esc(avatarName(p))}</b><br>
+        <button class="link" id="avatar" style="padding:0">Change avatar</button></span></div>
       <label class="f"><span>Name</span><input id="nm" value="${esc(p.name)}" maxlength="24"></label>
       <p class="lbl" style="margin-top:14px">Color</p>
       <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="Color ${c}"></button>`).join('')}</div>
@@ -239,9 +289,20 @@ export async function settingsView() {
       <button class="cta2" id="devcheck" style="width:100%;margin-top:8px">Test my phone</button>
       <p class="note">Checks that the screen stays on, sound plays and saving works on this phone.</p>
     </section>
-    <section class="card"><p class="lbl">Day ends at</p>
-      <select id="de" aria-label="Day ends at">${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}" ${h === p.dayEndsAt ? 'selected' : ''}>${h === 0 ? 'Midnight' : h + ':00 AM'}</option>`).join('')}</select>
-      <p class="note">Entries before this hour count toward the day before. Times are US Eastern.</p>
+    <section class="card"><p class="lbl">Units and time</p>
+      <div class="seg" role="group" aria-label="Units"><button data-units="imperial" aria-pressed="${p.units !== 'metric'}">lb · in · oz</button>
+        <button data-units="metric" aria-pressed="${p.units === 'metric'}">kg · cm · ml</button></div>
+      <label class="f"><span>Time zone</span><select id="tz">${[...new Set([p.tz || TZ, deviceTZ(), 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Europe/London'])]
+        .map(z => `<option ${z === (p.tz || TZ) ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label>
+      <label class="f"><span>Day ends at</span>
+      <select id="de">${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}" ${h === p.dayEndsAt ? 'selected' : ''}>${h === 0 ? 'Midnight' : h + ':00 AM'}</option>`).join('')}</select></label>
+      <p class="note">Entries before this hour count toward the day before.</p>
+    </section>
+    <section class="card"><p class="lbl">About you</p>
+      <p class="sub">Your coach uses these to tailor your plan and fuel ranges. Tap any to change it.</p>
+      <ul class="list">${aboutRows(p).map(([id, label, value]) => `<li><span>${esc(label)}<br><span class="chain">${esc(value || 'Not answered')}</span></span>
+        <button class="cta2" data-about="${id}" aria-label="Change ${esc(label)}">Change</button></li>`).join('')}</ul>
+      <button class="cta2" id="aboutAll" style="width:100%;margin-top:8px">Go through all questions</button>
     </section>
     </div><div>
     <section class="card" ${age === null || age >= 7 ? 'style="border-color:var(--warn)"' : ''}><p class="lbl">Backup</p>
@@ -276,11 +337,20 @@ export async function settingsView() {
         if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.id === 'pt') { p.settings.proteinTarget = t.value ? +t.value.replace(/\D/g, '') || null : null; await saveProfile(p); }
         if (t.id === 'de') { p.dayEndsAt = +t.value; await saveProfile(p); }
+        if (t.id === 'tz') { p.tz = t.value; await saveProfile(p); window.goku.render(); }
+        if (t.matches('[data-avatar-photo]')) {
+          try { p.avatar = await photoToAvatar(t.files[0]); t.value = ''; await saveProfile(p); toast('Photo saved'); window.goku.render(); }
+          catch (err) { toast(err.message || "That photo couldn't be read."); }
+        }
       });
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.acc) { p.accent = b.dataset.acc; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.theme) { p.settings.theme = b.dataset.theme; p.accent = THEMES[b.dataset.theme].accent; await saveProfile(p); window.goku.render(); }
+        else if (b.dataset.units) { p.units = b.dataset.units; await saveProfile(p); window.goku.render(); }
+        else if (b.id === 'avatar') avatarSheet(p);
+        else if (b.dataset.about) setupFlow(p, saveAndDraw, { only: b.dataset.about });
+        else if (b.id === 'aboutAll') setupFlow(p, saveAndDraw);
         else if (b.dataset.mode) { p.settings.mode = b.dataset.mode; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.per) { p.settings.proteinPer = b.dataset.per; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.rem) {

@@ -14,12 +14,13 @@ export const MODULES = {
     ['hypertrophy', 'Home hypertrophy tracker', 'Weekly hard sets per muscle group.'],
     ['shuffle', 'Shuffle', 'A fresh circuit from your library on demand.'],
     ['soccer', 'Soccer engine pack', 'Adds explosive-power and joint-armor exercises to circuits.'],
+    ['fuel', 'Fuel ranges', 'Protein and carbohydrate ranges for your weight and training, with sources.'],
     ['skills', 'Playset skill unlocks', 'Bodyweight skill ladders.', true],
     ['duel', 'Duels with another profile', 'Shared challenges, only shown when the other profile taps Share.', true],
   ],
   perf: [
     ['care', 'Red flags and care checks', 'Health questions in the check-in, and a reminder to talk to a parent, coach or doctor when something needs attention.'],
-    ['fuel', 'Fueling tips', 'Snack and water reminders on long training days.'],
+    ['fuel', 'Fuel ranges and tips', 'Protein and carbohydrate ranges for each training day, with sources, plus snack and water reminders.'],
     ['skills', 'Skill progressions', 'Mark skills as tried, landed or consistent.', true],
     ['strength', 'Strength for skills', 'Hollow holds, handstand holds and coach circuits.', true],
     ['flex', 'Flexibility progressions', 'Splits and bridge checkpoints.', true],
@@ -63,7 +64,7 @@ export function newProfile(kind, name, accent) {
   };
 }
 
-export const today = p => dayKey(Date.now(), (p || profile())?.dayEndsAt ?? 3);
+export const today = p => { const x = p || profile(); return dayKey(Date.now(), x?.dayEndsAt ?? 3, x?.tz); };
 
 export async function entries(type, p = profile()) {
   return (await db.byIndex('entries', 'profileType', [p.id, type])).sort((a, b) => a.ts - b.ts);

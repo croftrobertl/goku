@@ -92,6 +92,18 @@ nav.tabs button[aria-current="page"] { color: var(--accent-text); font-weight: 6
 .note { font-size: .75rem; color: var(--tx3); margin-top: 8px; }
 .flag { border-color: color-mix(in srgb, var(--care) 55%, var(--line)); }
 .flag .lbl { color: var(--care); }
+.av-art { background: none; overflow: hidden; }
+.av-art img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.avgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; margin-top: 6px; }
+.avgrid button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 12px;
+  background: var(--s2); border: 2px solid transparent; font-size: .75rem; line-height: 1.2; text-align: center; }
+.avgrid button[aria-pressed="true"] { border-color: var(--accent); }
+.filebtn { display: inline-flex; align-items: center; padding: 0 16px; min-height: 44px; cursor: pointer; }
+.foot { margin: 10px 0 0; padding-left: 18px; font-size: .75rem; color: var(--tx3); }
+.foot li { margin-top: 4px; }
+sup { font-size: .65em; color: var(--tx3); }
+.coach { border-color: var(--accent); }
+.voice { font-size: .8125rem; color: var(--tx3); margin: 6px 0 0; }
 .swatches { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 .swatches button { width: 44px; height: 44px; border-radius: 50%; border: 3px solid transparent; }
 .swatches button[aria-pressed="true"] { border-color: var(--tx); }

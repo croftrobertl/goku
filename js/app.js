@@ -8,6 +8,7 @@ import * as engine from './engine.js';
 import * as perf from './perf.js';
 import { $, esc, toast, ask, setAccent, setTheme, setFeedback } from './ui.js';
 import { prettyDay } from './time.js';
+import { avatarHTML } from './avatar.js';
 
 const SCREENS = {
   engine: { tabs: engine.tabs, home: engine.home, library: engine.libraryView, gut: engine.gutView, history: engine.historyView },
@@ -53,7 +54,7 @@ async function draw() {
       <span class="row" style="gap:8px"><button class="cta2" id="updLater">Later</button><button class="cta" id="updNow" style="width:auto;min-height:44px;padding:0 16px">Update</button></span></div>` : ''}
     <header class="top">
       <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch profile' : 'Add a profile'}">
-        <span class="av">${esc(p.name.slice(0, 1).toUpperCase())}</span><span class="chipname">${esc(p.name)}</span><span class="sub" aria-hidden="true">⇄</span></button>
+        ${avatarHTML(p, 36)}<span class="chipname">${esc(p.name)}</span><span class="sub" aria-hidden="true">⇄</span></button>
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}</main>`;
