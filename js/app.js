@@ -12,7 +12,8 @@ import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
 import { setupFlow } from './coach.js';
 import { skillsView } from './skills.js';
-import { nutritionView } from './nutrition.js';
+import { nutritionView, forgetHistory, poweredUp } from './nutrition.js';
+import { loadFoods, foodVocab } from './foods.js';
 
 const SCREENS = {
   engine: { tabs: engine.tabs, home: engine.home, library: engine.libraryView, nutrition: nutritionView, history: engine.historyView },
@@ -23,7 +24,16 @@ let update = null; // { reg, dismissed }
 
 const goku = window.goku = { busy: false, toast, render, go, open, idle: () => render() };
 
-function go(tab) { tabs[S.current] = tab; render().then(() => window.scrollTo(0, 0)); }
+function go(tab) { if (tab !== 'nutrition') forgetHistory(); tabs[S.current] = tab; render().then(() => window.scrollTo(0, 0)); warmFoods(); }
+// The food list (and its spelling index) loads quietly a moment after start, so the first search is instant.
+let warmed = false;
+function warmFoods() {
+  const p = profile();
+  if (warmed || !p || !p.modules || p.modules.nutrition === false) return;
+  warmed = true;
+  const idle = window.requestIdleCallback || (f => setTimeout(f, 1500));
+  idle(() => loadFoods().then(() => idle(() => foodVocab())).catch(() => { warmed = false; }));
+}
 
 let rendering = Promise.resolve();
 function render() { rendering = rendering.then(draw, draw); return rendering; }
@@ -46,6 +56,7 @@ async function draw() {
   setAccent(p.accent);
   setFeedback(p);
   const scr = SCREENS[p.kind];
+  const charged = await poweredUp(p).catch(() => false);
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';
   if (tab !== 'settings' && !list.some(([id]) => id === tab)) tab = tabs[p.id] = 'home';
@@ -58,7 +69,7 @@ async function draw() {
       <span class="row" style="gap:8px"><button class="cta2" id="updLater">Later</button><button class="cta" id="updNow" style="width:auto;min-height:44px;padding:0 16px">Update</button></span></div>` : ''}
     <header class="top">
       <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch profile' : 'Add a profile'}">
-        ${avatarHTML(p, 36)}<span class="chipname">${esc(p.name)}</span><span class="sub" aria-hidden="true">⇄</span></button>
+        <span class="aura${charged ? ' charged' : ''}"${charged ? ' title="Protein goal reached today"' : ''}>${avatarHTML(p, 36)}</span><span class="chipname">${esc(p.name)}</span><span class="sub" aria-hidden="true">⇄</span></button>
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}</main>`;
@@ -85,6 +96,7 @@ async function open(id) {
     if (!ok) return;
   }
   await render();
+  warmFoods();
   if (p.kind === 'engine') engine.resumeRun();
 }
 

@@ -5,6 +5,8 @@ import { prettyDay, weekday } from './time.js';
 import { streak, lastWeek, recapNumbers } from './insights.js';
 import { whyBtn } from './why.js';
 import { dayProtein } from './nutrition.js';
+import { sumN } from './foods.js';
+import { volume, volumeUnit } from './units.js';
 import { fuelRanges } from './fuel.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
 
@@ -69,9 +71,15 @@ export function recapCard(p, all, today) {
     if (n.checkins.length < 4) focus.push('Check in on more days so readiness can spot patterns.');
     if (!focus.length) focus.push('Great week. Keep the same rhythm.');
   }
+  // Nutrition for the week, on days something was eaten or drunk.
+  if (p.modules?.nutrition !== false) {
+    const fed = n.food.filter(f => f.data.items?.length), watered = n.food.filter(f => f.data.water);
+    if (fed.length) rows.push(['Average calories', `${Math.round(fed.reduce((a, f) => a + sumN(f.data.items).kcal, 0) / fed.length)} on ${fed.length} day${fed.length === 1 ? '' : 's'}`]);
+    if (watered.length) rows.push(['Average water', `${volume(watered.reduce((a, f) => a + f.data.water, 0) / watered.length, p)} ${volumeUnit(p)}`]);
+  }
   return `<section class="card recap"><p class="lbl">Arc recap · ${prettyDay(from)} – ${prettyDay(to)}</p>
     <ul class="list">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b class="num">${esc(v)}</b></li>`).join('')}</ul>
-    <p style="margin-top:10px"><b>Next week's focus:</b> ${esc(focus[0])}</p>
+    <p class="say"><b>Next week's focus:</b> ${esc(focus[0])}</p>
     <button class="cta2" id="recapDone" data-week="${from}" style="margin-top:10px;width:100%">Got it</button></section>`;
 }
 

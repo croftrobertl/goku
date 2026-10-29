@@ -142,7 +142,7 @@ export async function home() {
       <div class="row" style="margin-top:8px;justify-content:flex-start;gap:8px">${nextG ? `<button class="cta2" data-g="${nextG}" data-prog="${esc(prog.latest.id)}">Move to ×${nextG}</button>` : ''}
       <button class="cta2" id="addLoad" data-prog="${esc(prog.latest.id)}">Add load to an exercise</button>
       <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}`],
-      ['nudge', `${nudge && !showProg ? `<section class="card"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
+      ['nudge', `${nudge && !showProg ? `<section class="card coach"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}`],
       ['chamber', `<section class="card" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
@@ -226,7 +226,7 @@ async function startRun(circuit) {
     const ghost = ghostFor(await sessionsInOrder(), g);
     const run = {
       startedAt: Date.now(), gravity: g, rounds, rest, cap, round: 1, ex: 0, stage: 0, phase: 'set', restUntil: 0,
-      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, stages: e.data.stages.slice(0, depth) })),
+      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, moveId: e.data.moveId, stages: e.data.stages.slice(0, depth) })),
       best: Object.fromEntries(Object.entries(records(await sessionsInOrder())).map(([k, v]) => [k, v.reps])),
       sets: [], cur: null, repTimes: [], ghost: ghost?.data.repTimes || null,
     };
@@ -275,6 +275,7 @@ function openRunner(run) {
       <button class="cta2" id="end">Finish</button>
     </div>
     <p class="sub" id="where" style="text-align:center;margin-top:8px"></p>
+    <p style="text-align:center"><button class="link" id="howEx" hidden></button></p>
     <p class="devstat" id="dev" aria-live="polite"></p>
     <button class="tap" id="tap"><span>
       <span class="lbl" id="stage"></span>
@@ -351,6 +352,7 @@ function openRunner(run) {
       $('#stage').textContent = 'Rest · next: ' + curEx().name;
       $('#reps').textContent = clock(left);
       $('#ex').textContent = 'Breathe. Rest ends on its own.';
+      { const how = moveFor(curEx()); $('#howEx').hidden = !how; if (how) $('#howEx').textContent = `? Next: how to do ${curEx().name}`; }
       $('#tap').setAttribute('aria-label', `Resting, ${Math.ceil(left / 1000)} seconds left`);
       $('#tap').classList.add('resting');
       $('#next').textContent = 'Skip rest';
@@ -374,6 +376,8 @@ function openRunner(run) {
     $('#stage').textContent = run.cur.stages.length > 1 ? `Stage ${run.stage + 1} of ${run.cur.stages.length} · ${st.label}` : st.label;
     $('#reps').textContent = st.reps;
     $('#ex').textContent = curEx().name + (st.load ? ` · ${weight(st.load, p)} ${weightUnit(p)}` : '');
+    const how = moveFor(curEx()); // the catalog drawing and steps, when this exercise has them
+    $('#howEx').hidden = !how; if (how) $('#howEx').textContent = `? How to do ${curEx().name}`;
     $('#tap').setAttribute('aria-label', `Add one rep. ${st.reps} so far`);
     $('#next').textContent = run.stage < run.cur.stages.length - 1 ? 'Drop to ' + run.cur.stages[run.stage + 1].label : 'Set done';
   }
@@ -406,6 +410,7 @@ function openRunner(run) {
   el.addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b || closed) return;
     unlockAudio();
+    if (b.id === 'howEx') { const m = moveFor(curEx()); if (m) showMove(m.id); return; }
     if (b.id === 'tap') {
       if (run.phase === 'rest') return; // a stray rep-tap never skips rest
       remember(); ensureSet();

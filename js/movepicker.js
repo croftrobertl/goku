@@ -1,6 +1,6 @@
 // Library helpers (1.8): the "?" explanation for any exercise, and a searchable picker that
 // adds catalog exercises to the person's circuit library.
-import { MOVES, GROUPS, EQUIP, LEVELS, moveById, searchMoves } from './moves.js';
+import { MOVES, GROUPS, EQUIP, LEVELS, moveById, searchMoves, suggestMoves } from './moves.js';
 import { figureSVG } from './figure.js';
 import { profile, saveEntry } from './state.js';
 import { esc, overlay, guard, toast } from './ui.js';
@@ -56,6 +56,7 @@ export function pickMove({ onCustom, have = [] } = {}) {
   const f = { q: '', group: '', equip: '' };
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add exercise</h1><button class="cta2" id="x" data-close>Close</button></div>
     <label class="f"><span>Search</span><input id="q" type="search" placeholder="e.g. squat, chest, band" autocomplete="off" enterkeyhint="search"></label>
+    <div class="pills sugg" id="sugg" aria-label="Suggestions"></div>
     <div class="row" style="gap:8px;margin-top:8px">
       <label class="f" style="flex:1;margin:0"><span>Group</span><select id="grp"><option value="">All groups</option>${GROUPS.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('')}</select></label>
       <label class="f" style="flex:1;margin:0"><span>Equipment</span><select id="eq"><option value="">Any</option>${p.about?.equipment ? '<option value="have">What I have (from setup)</option>' : ''}${EQUIP.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('')}</select></label>
@@ -66,9 +67,10 @@ export function pickMove({ onCustom, have = [] } = {}) {
   const row = m => `<li><span><b>${esc(m.name)}</b><br><span class="chain">${esc(LEVELS[m.level])} · ${esc(equipName(m.equip))}${have.includes(m.id) ? ' · in your library' : ''}</span></span>
     <span class="row" style="gap:6px">${howBtn(m.id, m.name)}<button class="cta2" data-add="${m.id}" ${have.includes(m.id) ? 'disabled' : ''} aria-label="Add ${esc(m.name)}">${have.includes(m.id) ? 'Added' : 'Add'}</button></span></li>`;
   const draw = () => {
-    const list = searchMoves({ q: f.q, group: f.group, equip: f.equip === 'have' ? '' : f.equip, have: f.equip === 'have' ? owned : null })
-      .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-    el.querySelector('#count').textContent = `${list.length} of ${MOVES.length} exercises`;
+    const list = searchMoves({ q: f.q, group: f.group, equip: f.equip === 'have' ? '' : f.equip, have: f.equip === 'have' ? owned : null });
+    if (!f.q.trim()) list.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name)); // typed searches keep best-match order
+    el.querySelector('#sugg').innerHTML = suggestMoves(f.q).map(s => `<button data-sugg="${esc(s)}">${esc(s)}</button>`).join('');
+    el.querySelector('#count').textContent = (list.fixed ? `Showing results for “${list.fixed}” · ` : '') + `${list.length} of ${MOVES.length} exercises`;
     el.querySelector('#res').innerHTML = !list.length ? '<div class="empty"><p>Nothing matches. Try another word or set Equipment to Any.</p></div>'
       : f.q || f.group ? `<ul class="list">${list.map(row).join('')}</ul>`
       : GROUPS.map(([k, n]) => { const g = list.filter(m => m.group === k); return g.length ? `<details class="card fold grp"><summary class="lbl">${esc(n)} · ${g.length}</summary><ul class="list">${g.map(row).join('')}</ul></details>` : ''; }).join('');
@@ -79,6 +81,7 @@ export function pickMove({ onCustom, have = [] } = {}) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') { close(); return window.goku.render(); }
     if (b.id === 'custom') { close(); return onCustom?.(); }
+    if (b.dataset.sugg) { f.q = b.dataset.sugg + ' '; const i = el.querySelector('#q'); i.value = f.q; i.focus(); return draw(); }
     if (b.dataset.how) return showMove(b.dataset.how, { added: have.includes(b.dataset.how), onAdd: async m => { await addMove(m); have.push(m.id); draw(); el.querySelector(`[data-how="${m.id}"]`)?.focus(); } });
     if (b.dataset.add && !have.includes(b.dataset.add)) { await addMove(moveById(b.dataset.add)); have.push(b.dataset.add); draw(); el.querySelector(`[data-how="${b.dataset.add}"]`)?.focus(); }
   }));

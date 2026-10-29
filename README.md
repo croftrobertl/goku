@@ -32,6 +32,16 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.1.0:* forgiving search for foods and exercises (`js/fuzzy.js`: spelling fixes such as
+  "bananna" → banana, plurals, shorthand such as pb, oats, pushup and abs, and word suggestions as
+  you type, each checked to lead to a real result); 160 everyday foods with friendly names listed
+  first (`tools/everyday-foods.txt` → `tools/build-everyday.py` → `data/everyday.json`, each one
+  pointing at one USDA food); tidier brand names and servings; empty meals fold away; the food list
+  loads quietly after start; Ki charge bars for calories and protein (the protein one bursts at the
+  goal; animations follow Reduce Motion); water shown as glasses (8 oz or 250 ml each, a picture of
+  what's logged, not a target); weekly calories and water in the Arc recap; the avatar's aura glows
+  on days the protein goal is reached; coach tips as speech bubbles; the workout screen in the panel
+  look with a "How to do" link for the current exercise.
 - *Manga panel look* (2.0.0): every screen restyled from the Dribbble study: ink outlines and hard
   offset shadows (light ink in dark mode), bold section titles in full-strength text instead of
   small grey capitals, regular-font numbers, color-coded macro tiles (protein, carbs, fat, fiber).
@@ -391,6 +401,8 @@ js/figure.js           original exercise drawings (side-view figure from joint a
 js/moves.js            the 120-exercise catalog: steps, tips, drop chains
 js/movepicker.js       Library search, ? popups, adding exercises
 js/foods.js            the offline food list: loading, search, servings
+js/fuzzy.js            spelling fixes, synonyms and suggestions for food and exercise search
+data/everyday.json     160 everyday foods (built by tools/build-everyday.py)
 js/nutrition.js        the Nutrition tab, adding foods, meals, labels, symptoms
 js/scan.js             barcode scanner
 data/foods.json        32,906 foods (built by tools/build-foods.py)

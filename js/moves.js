@@ -1,3 +1,4 @@
+import { vocabulary, expand, complete } from './fuzzy.js';
 // The exercise catalog (1.8): original drawings (js/figure.js) and original instructions
 // written for someone new to training. Each entry:
 // [id, name, group, equipment, level 1–3, muscles, start pose, finish pose, steps, tip, drop chain, mode]
@@ -394,11 +395,21 @@ export const MOVES = [
 
 export const moveById = id => MOVES.find(m => m.id === id) || null;
 
-// Search by any part of the name, muscle or group; ignores case and dashes.
+// Forgiving search over name, muscles and group: typos, plurals and shorthand
+// ("pushup", "abs", "bicep") all work. Results carry .fixed when a spelling fix was used.
 const norm = s => String(s).toLowerCase().replace(/[-–]/g, ' ');
+const text = m => norm(`${m.name} ${m.muscles} ${m.group} ${m.equip === 'db' ? 'dumbbell' : m.equip === 'kb' ? 'kettlebell' : m.equip === 'bb' ? 'barbell' : ''}`);
+let vocab = null;
+const moveVocab = () => vocab ||= vocabulary(MOVES.map(text));
 export function searchMoves({ q = '', group = '', equip = '', have = null } = {}) {
-  const words = norm(q).split(/\s+/).filter(Boolean);
-  return MOVES.filter(m => (!group || m.group === group) && (!equip || m.equip === equip)
+  const { groups, fixed } = expand(moveVocab(), q);
+  const out = MOVES.filter(m => (!group || m.group === group) && (!equip || m.equip === equip)
     && (!have || have.includes(m.equip))
-    && words.every(w => norm(`${m.name} ${m.muscles} ${m.group}`).includes(w)));
+    && groups.every(g => g.some(w => text(m).includes(norm(w)))));
+  // Name matches first, then the group ("abs" → the core group), then muscle mentions.
+  const rank = m => groups.reduce((a, g) => a + (g.some(w => norm(m.name).includes(norm(w))) ? 4 : g.some(w => m.group === w) ? 2 : 0), 0);
+  if (q.trim()) out.sort((a, b) => rank(b) - rank(a));
+  out.fixed = fixed;
+  return out;
 }
+export const suggestMoves = q => complete(moveVocab(), q, 20).filter(s => MOVES.some(m => s.split(' ').every(w => text(m).includes(w)))).slice(0, 5);

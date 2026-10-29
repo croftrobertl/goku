@@ -1,6 +1,7 @@
 // The offline food database (data/foods.json, built by tools/build-foods.py from USDA
 // FoodData Central) plus the person's own foods. Loaded once, searched in memory.
 import { entries } from './state.js';
+import { vocabulary, expand, complete } from './fuzzy.js';
 
 const K = ['kcal', 'p', 'c', 'f', 'fib', 'sug', 'na', 'sat'];
 export const NUTRIENTS = [['kcal', 'Calories', ''], ['p', 'Protein', 'g'], ['c', 'Carbohydrate', 'g'], ['f', 'Fat', 'g'],
@@ -10,12 +11,24 @@ export const SOURCE_NOTE = 'Food data: USDA FoodData Central (public domain). Br
 let db = null, loading = null;
 export function loadFoods() {
   if (db) return Promise.resolve(db);
-  return loading ||= fetch('data/foods.json').then(r => { if (!r.ok) throw new Error('food list'); return r.json(); }).then(j => {
-    db = j.foods.map((a, i) => ({ i, name: a[0], brand: a[1], per: Object.fromEntries(K.map((k, j) => [k, a[2 + j]])), portions: a[10], upc: a[11], src: a[12], unit: a[13],
-      key: (a[0] + ' ' + a[1]).toLowerCase() }));
+  const get = path => fetch(path).then(r => { if (!r.ok) throw new Error('food list'); return r.json(); });
+  return loading ||= Promise.all([get('data/foods.json'), get('data/everyday.json').catch(() => [])]).then(([j, every]) => {
+    db = [...every, ...j.foods].map((a, i) => ({ i, name: tidyName(a[0], a[12]), brand: a[1], per: Object.fromEntries(K.map((k, j) => [k, a[2 + j]])),
+      portions: tidyServing(a[10]), upc: a[11], src: a[12], unit: a[13], key: (a[0] + ' ' + a[1]).toLowerCase() }));
     return db;
   }).catch(e => { loading = null; throw e; });
 }
+
+// Brand labels often repeat the flavor at the end ("Chocolate Shake, Chocolate"); that tail is dropped.
+export function tidyName(name, src) {
+  if (src !== 'brand') return name;
+  const parts = name.split(', ');
+  if (parts.length < 2) return name;
+  const head = parts.slice(0, -1).join(', ').toLowerCase(), tail = parts.at(-1).toLowerCase().split(/[\s;]+/).filter(Boolean);
+  return tail.length && tail.every(w => head.includes(w)) ? parts.slice(0, -1).join(', ') : name;
+}
+// "1 Shake (11.5 fl oz) (345 ml)" reads better as "1 Shake (11.5 fl oz, 345 ml)".
+export const tidyServing = p => String(p || '').replace(/\(([^()|;]+)\) \(([^()|;]+)\)/g, '($1, $2)');
 export const foodAt = i => db?.[i] || null;
 
 // Serving choices: the food's own portions, then standard weights or volumes.
@@ -47,27 +60,41 @@ export async function myFoods() {
 }
 
 // Ranked search: every word must match; whole words, name starts and plain generic foods rank first.
+let vocab = null;
+export const foodVocab = () => vocab ||= vocabulary((db || []).map(f => f.key));
+// Completions that actually lead somewhere: each suggested phrase must match at least one food.
+export const suggestFoods = q => !db ? [] : complete(foodVocab(), q, 20).filter(s => { const ws = s.split(' '); return db.some(f => ws.every(w => f.key.includes(w))); }).slice(0, 5);
+
+// Ranked, forgiving search: every typed word (or its synonym, plural or spelling fix) must
+// match; whole words, name starts and plain everyday foods rank first. The result array
+// carries .fixed, the corrected query, when a spelling fix was used.
 export function search(list, q, limit = 60) {
-  const words = q.toLowerCase().replace(/[^\p{L}\p{N}%&' ]+/gu, ' ').split(/\s+/).filter(Boolean);
-  if (!words.length) return [];
-  const res = [], esc = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const starts = words.map(w => new RegExp('(^|[^\\p{L}])' + esc(w), 'u')), whole = words.map(w => new RegExp('(^|[^\\p{L}])' + esc(w) + '($|[^\\p{L}])', 'u'));
+  const { groups, fixed } = expand(db ? foodVocab() : new Map(), q);
+  if (!groups.length) return [];
+  const res = [], rx = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const starts = groups.map(g => g.map(w => new RegExp('(^|[^\\p{L}])' + rx(w), 'u'))), whole = groups.map(g => g.map(w => new RegExp('(^|[^\\p{L}])' + rx(w) + '($|[^\\p{L}])', 'u')));
+  const first = groups[0];
+  const phrase = groups.map(g => g[0]).join(' ');
   for (const f of list) {
-    if (!words.every(w => f.key.includes(w))) continue;
+    if (!groups.every(g => g.some(w => f.key.includes(w)))) continue;
     let s = 0;
     const name = f.name.toLowerCase();
-    if (name.startsWith(words[0])) s += 30;
+    if (first.some(w => name.startsWith(w))) s += 30;
     const head = name.split(',')[0];
-    if (head === words.join(' ') || head === words.join(' ') + 's') s += 14; // "Rice, white, cooked" before "Rice milk"
+    if (head === phrase || head === phrase + 's') s += 14; // "Rice, white, cooked" before "Rice milk"
     if (/, nfs\b/.test(name)) s += 6; // the USDA's plain "not further specified" version
-    starts.forEach((r, i) => { if (whole[i].test(f.key)) s += 14; else if (r.test(f.key)) s += 6; });
+    groups.forEach((g, i) => { if (whole[i].some(r => r.test(f.key))) s += 14; else if (starts[i].some(r => r.test(f.key))) s += 6; });
+    if (f.brand && groups.some(g => g.some(w => f.brand.toLowerCase().includes(w)))) s += 16; // "premier protein" means the brand
     if (f.src === 'mine') s += 40;
+    if (f.src === 'common') s += 45; // the everyday list: "Apple, medium", "Eggs, scrambled"
     if (f.src === 'fndds') s += 10; // foods as people eat them: cooked rice, a glass of milk
     if (f.src === 'sr') s += 6;
     s -= name.length / 12;
     res.push([s, f]);
   }
-  return res.sort((a, b) => b[0] - a[0]).slice(0, limit).map(x => x[1]);
+  const out = res.sort((a, b) => b[0] - a[0]).slice(0, limit).map(x => x[1]);
+  out.fixed = fixed;
+  return out;
 }
 
 // Barcodes: UPC-A and EAN-13 differ by a leading zero; the database drops leading zeros.
