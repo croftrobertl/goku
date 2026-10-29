@@ -472,3 +472,102 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .kame > span { position: relative; z-index: 1; }
 .kame::before { content: ""; position: absolute; inset: 0; width: 0; background: #36d7ff; }
 .kame.charging::before { width: 100%; transition: width .9s linear; }
+/* Compact Scouter (2.3) */
+.scdet > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 8px; min-height: 48px; padding-top: 6px; }
+.scdet > summary::-webkit-details-marker { display: none; }
+.scdet > summary b { font-size: 1.6rem; color: #39ff88; }
+.scdet > summary::after { content: "▾"; color: #39ff88; font-weight: 800; }
+.scdet[open] > summary::after { content: "▴"; }
+.minibar { flex-basis: 100%; height: 8px; border-radius: 5px; background: #1c3626; overflow: hidden; }
+.minibar > i { display: block; height: 100%; background: #39ff88; }
+.scdet[open] .minibar { display: none; }
+/* Ki menu (2.3): quick actions fanned above the center button */
+.overlay.kiov { background: rgba(10, 10, 10, .72); padding: 0; }
+.overlay.kiov .inner { max-width: none; justify-content: flex-end; }
+.kimenu { position: relative; height: 100%; min-height: 320px; }
+.kiclose { position: absolute; left: 50%; bottom: calc(var(--safe-b) + 22px); transform: translateX(-50%); width: 62px; height: 62px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--shade); display: grid; place-items: center; }
+.kiclose svg { width: 26px; height: 26px; }
+.kiitem { position: absolute; left: 50%; bottom: calc(var(--safe-b) + 40px); transform: translate(calc(-50% + var(--x)), var(--y)); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 76px; padding: 8px 6px; border-radius: 16px; background: var(--s1); color: var(--tx); border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--shade); font-weight: 800; font-size: .8rem; }
+.kiitem svg { width: 24px; height: 24px; }
+.kiitem:first-child { background: var(--accent); color: var(--on-accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .kiitem { animation: kipop .22s ease-out both; }
+  @keyframes kipop { from { transform: translate(-50%, 0) scale(.4); opacity: 0; } }
+}
+.kihint { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--dock-h) + 14px); z-index: 6; background: var(--ink); color: var(--bg);
+  padding: 8px 14px; border-radius: 14px; font-size: .85rem; font-weight: 700; max-width: 80vw; text-align: center; }
+.kihint::after { content: ""; position: absolute; left: 50%; bottom: -7px; margin-left: -7px; border: 7px solid transparent; border-bottom: 0; border-top-color: var(--ink); }
+@media (min-width: 900px) { .kihint { display: none; } }
+
+/* 2.3 Fuel now: a timed prompt with one-tap logging */
+.fuelnow h2 { margin: 2px 0 4px; }
+.qlog { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.qlog .cta2 { flex: 1 1 auto; min-height: 44px; }
+.risk { border-color: var(--accent-line); box-shadow: 4px 4px 0 var(--accent-line); }
+.risk h2 { margin: 2px 0 4px; }
+
+/* 2.3 Fanned circuit cards: a hand of cards that scrolls sideways and straightens when touched */
+.fan { list-style: none; margin: 6px -4px 0; padding: 16px 22px 18px; display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.fcard { flex: 0 0 148px; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; gap: 4px; padding: 10px 10px 12px;
+  background: var(--s2); border: 2px solid var(--ink, var(--line)); border-radius: 12px; box-shadow: 3px 3px 0 var(--shade, rgba(0,0,0,.18));
+  transform: rotate(calc((var(--i) - (var(--n) - 1) / 2) * 1.8deg)); transform-origin: 50% 100%; margin-left: -14px; transition: transform .18s ease; }
+.fcard:first-child { margin-left: 0; }
+.fcard:hover, .fcard:focus-within { transform: rotate(0) translateY(-6px); z-index: 2; }
+.fcard .fnum { position: absolute; top: 6px; left: 10px; font-weight: 800; color: var(--accent-text); }
+.fcard .ffig { display: block; min-height: 70px; margin-top: 14px; } .fcard .ffig .fig { max-height: 96px; }
+.fcard .chain { font-size: 12px; }
+.fcard .how { align-self: flex-end; margin-top: auto; }
+@media (min-width: 720px) { .fcard { flex-basis: 170px; } }
+@media (prefers-reduced-motion: reduce) { .fcard { transition: none; } }
+
+/* 2.3 Training calendar in History */
+.cal .row .cta2 { min-width: 44px; }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 10px auto 0; max-width: 360px; }
+.cal > .row { max-width: 360px; margin: 0 auto; }
+.calgrid .cw { text-align: center; font-size: 12px; color: var(--tx2); font-weight: 700; }
+.cd { position: relative; aspect-ratio: 1; min-height: 38px; border-radius: 10px; border: 1.5px solid var(--line); background: none; color: var(--tx); font: inherit; font-size: 13px; padding: 0; }
+.cd.tr { background: var(--accent); color: var(--on-accent); border-color: var(--accent-line); font-weight: 800; }
+.cd.rs { border-style: dashed; border-color: var(--accent-line); }
+.cd.lg { background: color-mix(in srgb, var(--accent) 22%, var(--s1)); }
+.cd.now { outline: 2.5px solid var(--ink, var(--tx)); outline-offset: 1px; }
+.cd.out, .cd.fut { opacity: .35; }
+.cd .rec, .calkey .reck { font-style: normal; font-size: 12px; line-height: 1; color: var(--ink, var(--tx)); }
+.cd .rec { position: absolute; top: 2px; right: 3px; }
+.cd .bean { position: absolute; bottom: 3px; left: 50%; width: 9px; height: 6px; margin-left: -4.5px; border-radius: 50%; background: var(--ok); }
+.calkey { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; margin-top: 10px; }
+.calkey .cd { display: inline-block; width: 14px; height: 14px; min-height: 0; aspect-ratio: auto; border-radius: 4px; }
+.calkey .cd .bean { bottom: 3px; width: 8px; height: 5px; margin-left: -4px; }
+
+/* 2.3 Poster boss and the Arc cleared screen */
+.poster { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 4px; padding: 10px 12px; border: 2px dashed var(--accent-line); border-radius: 12px; background: var(--s2); }
+.poster .wanted { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
+.poster b { font-size: 18px; line-height: 1.25; }
+.poster .hp { height: 10px; border-radius: 6px; border: 1.5px solid var(--ink, var(--line)); overflow: hidden; background: var(--s1); }
+.poster .hp i { display: block; height: 100%; background: var(--care); transition: width .4s ease; }
+.poster.won { border-style: solid; }
+.poster.won .hp i { background: var(--ok); }
+#cleared .inner { display: flex; align-items: center; justify-content: center; }
+.clr { position: relative; isolation: isolate; text-align: center; max-width: 420px; margin: auto; padding: 24px 8px; }
+.clr h1 { font-size: 34px; margin: 6px 0 10px; }
+.clr .beat { font-size: 17px; margin-bottom: 6px; }
+.clr .cta { margin-top: 22px; }
+.burst { position: absolute; inset: -40px 0 auto; height: 200px; pointer-events: none; z-index: -1; }
+.burst i { position: absolute; left: 50%; top: 60px; width: 6px; height: 46px; margin-left: -3px; border-radius: 3px; background: var(--accent);
+  transform-origin: 50% 110px; transform: rotate(calc(var(--k) * 30deg)) translateY(-40px); opacity: 0; animation: burst .9s ease-out forwards; }
+@keyframes burst { 0% { opacity: 0; transform: rotate(calc(var(--k) * 30deg)) translateY(0) scaleY(.2); } 40% { opacity: 1; } 100% { opacity: .55; transform: rotate(calc(var(--k) * 30deg)) translateY(-34px) scaleY(.8); } }
+.clr::before { content: ''; position: absolute; left: 50%; top: 40px; width: 300px; height: 300px; margin-left: -150px; border-radius: 50%; z-index: -1;
+  background: radial-gradient(circle, var(--accent) 0, color-mix(in srgb, var(--accent) 35%, transparent) 45%, transparent 70%); opacity: .55; }
+.clr > .lbl { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-text); }
+.clr h1 { font-size: 44px; text-shadow: 3px 3px 0 var(--accent); }
+@media (prefers-reduced-motion: reduce) { .burst { display: none; } .poster .hp i { transition: none; } }
+
+/* 2.3 Giant-number setup */
+.giant { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 14px 0 4px; }
+.giant > button { width: 56px; height: 56px; border-radius: 50%; border: 2.5px solid var(--ink, var(--accent-line)); background: var(--s2); color: var(--tx); font-size: 28px; font-weight: 800; box-shadow: 3px 3px 0 var(--shade, transparent); }
+.giant > button:disabled { opacity: .35; box-shadow: none; }
+.giant .gn { display: flex; flex-direction: column; align-items: center; min-width: 110px; }
+.giant .gn b { font-size: 76px; line-height: 1; color: var(--accent-text); }
+.cheer { text-align: center; font-weight: 700; min-height: 1.4em; margin: 6px 0 4px; }
+.q .giant ~ .pills { justify-content: center; }

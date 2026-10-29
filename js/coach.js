@@ -58,7 +58,9 @@ export const QUESTIONS = [
   { id: 'equipment', essential: true, kinds: ['engine'], title: 'What equipment do you have?', type: 'multi', key: 'equipment', options: EQUIPMENT,
     help: 'Your exercise library is built from this. Pick none for bodyweight only.' },
   { id: 'days', essential: true, kinds: ['engine'], title: 'How many days a week can you train?', type: 'choice', key: 'days',
-    options: [['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']], help: 'Home tracks your sessions against this each week.' },
+    options: [['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']], help: 'Home tracks your sessions against this each week.', big: 'days a week',
+    cheer: { 2: 'Two days you keep beats five you skip.', 3: 'Three days: a classic training rhythm.', 4: 'Four days: plenty of training, room to recover.',
+      5: 'Five days: a serious schedule.', 6: 'Six days. Rest days still keep your streak alive.' } },
   { id: 'diet', essential: true, title: 'How do you eat?', type: 'choice', key: 'diet',
     options: [['any', 'I eat everything'], ['pescatarian', 'Pescatarian'], ['vegetarian', 'Vegetarian'], ['vegan', 'Vegan']],
     help: 'Protein ideas only suggest foods that fit.' },
@@ -68,7 +70,8 @@ export const QUESTIONS = [
     help: 'Shown as a reminder on your plan. Leave blank if none.' },
   // Follow-ups
   { id: 'meals', title: 'How many times a day do you usually eat?', type: 'choice', key: 'meals',
-    options: [['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6+']], help: 'Splits your protein range into amounts per meal.' },
+    options: [['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6+']], help: 'Splits your protein range into amounts per meal.', big: 'times a day',
+    cheer: { 2: 'Two bigger meals.', 3: 'Three square meals.', 4: 'Four chances to fit in protein.', 5: 'Five: steady fuel all day.', 6: 'Six or more: a grazing pro.' } },
   { id: 'likes', title: 'Which protein foods do you actually like?', type: 'multi', key: 'likes', options: p => proteinIdeas(p).map(n => [n, n]),
     when: p => p.about?.meals, help: 'Your fuel ideas will lead with these.' },
   { id: 'sleep', kinds: ['engine'], title: 'How many hours do you usually sleep?', type: 'number', key: 'sleepH', min: 3, max: 12, step: 0.5,
@@ -142,6 +145,15 @@ export function questionHTML(q, p) {
   } else if (q.type === 'choice' || q.type === 'yesno') {
     const opts = q.type === 'yesno' ? [['yes', 'Yes'], ['no', 'No']] : val(q.options, p);
     body = `<div class="pills" style="margin-top:8px">${opts.map(([v, l]) => `<button data-q="${esc(v)}" aria-pressed="${String(a[q.key]) === v}">${esc(l)}</button>`).join('')}</div>`;
+    // Giant number (2.3): one big number with − and +, and a line that cheers the pick.
+    if (q.big) {
+      const i = opts.findIndex(([v]) => String(a[q.key]) === v), mid = Math.floor(opts.length / 2);
+      const lo = i < 0 ? mid : Math.max(0, i - 1), hi = i < 0 ? mid : Math.min(opts.length - 1, i + 1);
+      body = `<div class="giant"><button data-q="${esc(opts[lo][0])}" aria-label="Fewer"${i === 0 ? ' disabled' : ''}>−</button>
+        <span class="gn" aria-live="polite"><b class="num">${i < 0 ? '?' : esc(opts[i][1])}</b><span class="sub">${esc(q.big)}</span></span>
+        <button data-q="${esc(opts[hi][0])}" aria-label="More"${i === opts.length - 1 ? ' disabled' : ''}>+</button></div>
+        <p class="cheer">${i < 0 ? 'Tap + or − to pick.' : esc(q.cheer?.[opts[i][0]] || '')}</p>${body}`;
+    }
   } else if (q.type === 'multi') {
     const sel = a[q.key] || [];
     body = `<div class="pills" style="margin-top:8px">${val(q.options, p).map(([v, l]) => `<button data-qm="${esc(v)}" aria-pressed="${sel.includes(v)}">${esc(l)}</button>`).join('')}</div>

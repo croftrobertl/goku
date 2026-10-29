@@ -201,7 +201,7 @@ function glasses(waterOz, p) {
     <p class="sub" style="text-align:center">Each glass is ${volumeUnit(p) === 'ml' ? '250 ml' : '8 oz'}.</p>`;
 }
 
-const nowMeal = () => { const tz = profile().tz; let h; try { h = +new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: tz }).format(new Date()); } catch { h = new Date().getHours(); } return h < 10 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snacks'; };
+export const nowMeal = () => { const tz = profile().tz; let h; try { h = +new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: tz }).format(new Date()); } catch { h = new Date().getHours(); } return h < 10 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snacks'; };
 const amountText = it => it.quick ? (it.name === 'Quick add' ? 'Numbers only' : 'Quick add') : it.qty === 1 ? it.pl : `${round(it.qty, 2)} × ${it.pl}`;
 
 // Pattern finder: the day's foods come from the food log and any older Gut log names.
@@ -466,6 +466,24 @@ export async function poweredUp(p) {
   if (p.modules?.nutrition === false) return false;
   const goal = proteinGoal(p);
   return !!goal && (await dayTotals(p, today(p))).p >= goal;
+}
+
+// One glass of water from the Ki menu: 8 oz, or 250 ml in metric.
+export async function quickWater(p = profile()) {
+  const day = today(p), { food, gut } = await readDay(p, day);
+  food.water = round(waterOf(food, gut) + (volumeUnit(p) === 'ml' ? 250 / 29.5735 : 8), 2);
+  await saveDay(p, day, food, true);
+  return food.water;
+}
+
+// One-tap log (2.3): adds one first serving of an everyday food to the meal for now.
+export async function quickLog(name, p = profile()) {
+  const f = (await loadFoods()).find(x => x.src === 'common' && x.name === name);
+  if (!f) { toast("That food isn't in the list. Try Add food."); return null; }
+  const po = portionsOf(f)[0]; // the everyday list puts its friendly serving first
+  await addItems(today(p), [itemFrom(f, 1, po, nowMeal())]);
+  toast(`Logged ${f.name.toLowerCase()}, ${po.label.replace(/,? \(?NFS\)?/g, '')}`);
+  return f;
 }
 
 // Home's "Food today" card.

@@ -3,6 +3,7 @@
 import { esc, round } from './ui.js';
 import { kgOf } from './units.js';
 import { isMinor, proteinIdeas } from './coach.js';
+import { minutesNow, clockOf } from './time.js';
 
 export const SOURCES = {
   issn: 'Jäger R, et al. International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20.',
@@ -77,4 +78,36 @@ export function timingCard(p, minutes, { open = true } = {}) {
   // Before any training is logged, it stays folded so Home isn't crowded on days off.
   return open ? `<section class="card"><p class="lbl">Fuel timing</p>${body}</section>`
     : `<details class="card fold"><summary class="lbl">Fuel timing for when you train</summary>${body}</details>`;
+}
+
+// Fuel now (2.3): a prompt timed to today's practice, with one-tap logging.
+//   Before: 1–4 g of carbohydrate per kg in the 1–4 hours before exercise (SOURCES.acsm).
+//     Goku reads it as about 1 g per kg for each hour before, so a meal 3 h out gets about 3 g per kg.
+//   After: protein 0.25–0.40 g per kg within 2 hours of finishing (SOURCES.timing).
+// at = start in minutes after midnight (or null), minutes = how long, lastEnd = ts of training logged today.
+const qbtn = (name, label) => `<button class="cta2" data-qlog="${esc(name)}">${esc(label)}</button>`;
+export function fuelNowCard(p, { at = null, minutes = 0, lastEnd = 0 } = {}) {
+  const now = minutesNow(p.tz), kg = kgOf(p);
+  const minor = isMinor(p) ? ' Studied in adults; under 18, a pediatrician or sports dietitian should confirm.' : '';
+  const card = (head, body, btns, src) => `<section class="card fuelnow"><p class="lbl">Fuel now</p><h2>${head}</h2><p>${body}</p>
+    ${btns ? `<div class="qlog">${btns}<button class="cta2" data-qadd>Something else</button></div>` : ''}
+    <p class="note">${esc(src)}${minor}</p></section>`;
+  const sinceLogged = lastEnd ? (Date.now() - lastEnd) / 60000 : Infinity;
+  const end = at != null && minutes ? at + minutes : null;
+  if (sinceLogged <= 120 || (end != null && now >= end && now - end <= 120)) {
+    const left = Math.round(120 - Math.min(sinceLogged, end != null && now >= end ? now - end : Infinity));
+    const dose = kg ? `about ${Math.round(kg * 0.25)}–${Math.round(kg * 0.4)} g of protein` : '20–40 g of protein';
+    return card('Refuel after training', `Have ${dose} within 2 hours of finishing: about ${left} minutes left.`,
+      qbtn('Greek yogurt, plain', 'Greek yogurt') + qbtn('Chocolate milk', 'Chocolate milk') + qbtn('String cheese', 'String cheese'), SOURCES.timing);
+  }
+  if (at == null || now >= at) return '';
+  const until = at - now, h = until / 60;
+  if (h > 4) return '';
+  if (h < 1) return `<section class="card fuelnow"><p class="lbl">Fuel now</p><h2>Practice at ${clockOf(at)}</h2>
+    <p>Starts in ${until} minutes. Fill your water bottle.</p><div class="qlog"><button class="cta2" data-qwater>Log a glass of water</button></div></section>`;
+  const gpk = Math.min(4, Math.max(1, Math.round(h)));
+  const carbs = kg ? `about ${Math.round(kg * gpk)} g of carbohydrate (${gpk} g per kg)` : `about ${gpk} g of carbohydrate per kg of body weight`;
+  return card(`Practice at ${clockOf(at)}`, `In ${h >= 1.25 ? `about ${(hh => hh % 1 ? Math.floor(hh) + '½' : hh)(Math.round(h * 2) / 2)} hours` : 'about an hour'}. A meal or snack now with ${carbs} tops up your energy.`,
+    qbtn('Banana', 'Banana') + qbtn('Bagel, plain', 'Bagel') + qbtn('Oatmeal, cooked', 'Oatmeal'),
+    `1–4 g per kg in the 1–4 hours before; Goku uses about 1 g per kg per hour. ${SOURCES.acsm}`);
 }

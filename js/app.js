@@ -1,5 +1,5 @@
 // Boot, routing, profile switching, the update bar.
-import { S, loadProfiles, profile, today, KINDS, saveProfile, kindLabel } from './state.js';
+import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, kindLabel } from './state.js';
 import * as db from './db.js';
 import { showLock, isUnlocked, watchRelock } from './lock.js';
 import { onboard } from './onboarding.js';
@@ -7,6 +7,42 @@ import { settingsView, backupAgeDays } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
 import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback } from './ui.js';
+
+// One word under the center button: "Enter chamber" → Train, "Check in · 30 s" → Check in.
+const SHORT = { 'Enter chamber': 'Train', 'Log a session': 'Log', 'Add exercise': 'Add', 'Add a skill': 'Add', 'Add food': 'Add' };
+const shortLabel = s => s ? (SHORT[s] || s.split(' · ')[0]) : '';
+
+// The Ki menu: the screen's own action plus quick logs, fanned out above the center button.
+async function kiMenu(p, action, scr) {
+  db.setMeta('kiHint', true); document.querySelector('.kihint')?.remove();
+  const main = scr.mainAction ? await scr.mainAction() : null;
+  const items = [];
+  if (action) items.push([shortLabel(action[0]) === 'Ki' ? action[0] : action[0], ICON.bolt, action[1]]);
+  if (main && (!action || main[0] !== action[0])) items.push([main[0], ICON.bolt, main[1]]);
+  if (p.modules?.nutrition !== false) {
+    items.push(['Log food', ICON.nutrition, () => { go('nutrition'); addFood(nowMeal(), today()); }]);
+    items.push(['Water', ICON.water, async () => { await quickWater(p); toast('Glass of water logged'); render(); }]);
+  }
+  items.push(['Activity', ICON.run, () => logActivity()]);
+  items.push(['Rest day', ICON.moon, async () => { await saveEntry('rest', {}, { id: p.id + ':rest:' + today(), day: today() }); toast('Rest day logged. Recovery is training too.'); render(); }]);
+  const n = items.length;
+  const { el, close } = overlay(`<div class="kimenu">${items.map(([label, icon], i) => {
+      const a = Math.PI * (1 - (i + .5) / n), x = Math.cos(a) * 128, y = Math.sin(a) * 128; // a half circle above the button
+      return `<button class="kiitem" data-i="${i}" style="--x:${x.toFixed(0)}px;--y:${(-y).toFixed(0)}px">${icon}<span>${esc(label)}</span></button>`; }).join('')}
+      <button class="kiclose" id="x" data-close aria-label="Close quick actions">${ICON.close}</button></div>`, { label: 'Quick actions' });
+  el.classList.add('kiov');
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('button');
+    if (!b || b.id === 'x' || e.target === el) return close();
+    const it = items[+b.dataset.i]; close(); await it[2]();
+  });
+}
+function showKiHint() {
+  const c = document.getElementById('cta'); if (!c || document.querySelector('.kihint')) return;
+  const tip = document.createElement('div'); tip.className = 'kihint'; tip.setAttribute('role', 'status');
+  tip.textContent = 'Tap ⚡ for quick actions: train, food, water and more';
+  document.body.append(tip);
+}
 
 // Tab icons: simple outline drawings in the panel style.
 const svg = d => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -20,13 +56,18 @@ const ICON = {
   skills: svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
   more: svg('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
   bolt: svg('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
+  water: svg('<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>'),
+  run: svg('<circle cx="15" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v5M6 12l3-4 4 1 3 4 3 1"/>'),
+  moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
+  close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
 };
 import { prettyDay } from './time.js';
 import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
 import { setupFlow } from './coach.js';
 import { skillsView } from './skills.js';
-import { nutritionView, forgetHistory, poweredUp } from './nutrition.js';
+import { nutritionView, forgetHistory, poweredUp, addFood, nowMeal, quickWater } from './nutrition.js';
+import { logActivity } from './activity.js';
 import { loadFoods, foodVocab } from './foods.js';
 import { streakSeen } from './homecards.js';
 
@@ -104,14 +145,13 @@ async function draw() {
   $('#dock').innerHTML = `<div class="dock-in">
     <div class="brand" aria-hidden="true"><img src="icons/favicon-48.png" alt="" width="28" height="28"><span>Goku</span></div>
     <nav class="tabs" aria-label="Sections">${main.slice(0, 2).map(t => tabBtn(t)).join('')}
-      ${action ? `<button class="tb center" id="cta" aria-label="${esc(action[0])}"><span class="ki-btn">${ICON.bolt}</span><span>${esc(action[0])}</span></button>` : '<span class="tb center" aria-hidden="true"></span>'}
+      <button class="tb center" id="cta" aria-label="Quick actions${action ? ': ' + esc(action[0]) + ' and more' : ''}" aria-haspopup="dialog"><span class="ki-btn">${ICON.bolt}</span><span>${esc(shortLabel(action?.[0]) || 'Ki')}</span></button>
       ${main.slice(2).map(t => tabBtn(t)).join('')}
       ${more.map(t => tabBtn(t, 'more-item')).join('')}
       ${more.length ? `<button class="tb more-btn" id="moreTabs" ${inMore ? 'aria-current="page"' : ''} aria-label="More: ${esc(more.map(m => m[1]).join(', '))}">${ICON.more}<span>More</span></button>` : ''}</nav></div>`;
-  if (action) {
-    let running = false;
-    $('#cta').onclick = async () => { if (running) return; running = true; try { await action[1](); } finally { running = false; } };
-  }
+  // The center button opens the Ki menu (2.3): this screen's action first, then quick logs.
+  $('#cta').onclick = () => kiMenu(p, action, scr);
+  if (!(await db.getMeta('kiHint'))) showKiHint();
   if (more.length) $('#moreTabs').onclick = () => {
     const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">More</h1><button class="cta2" id="x" data-close>Close</button></div>
       <div class="moregrid">${more.map(([id, label]) => `<button class="card pick" data-go="${id}">${ICON[id] || ''}<b>${esc(label)}</b></button>`).join('')}</div>`, { label: 'More' });

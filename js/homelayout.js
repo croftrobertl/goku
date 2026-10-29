@@ -5,19 +5,23 @@ import { esc, overlay, guard } from './ui.js';
 
 // [id, name, can hide?] in the default order.
 export const CARDS = {
-  engine: [['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
-    ['nudge', 'Coach nudge', true], ['scouter', 'Scouter', true], ['chamber', 'Gravity chamber', false], ['circuit', 'Circuit', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
+  engine: [['risk', 'Streak at risk', true], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
+    ['nudge', 'Coach nudge', true], ['chamber', 'Gravity chamber', false], ['circuit', 'Circuit', true], ['fuelnow', 'Fuel now', true], ['scouter', 'Scouter', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
     ['activity', 'Other training', true], ['senzu', 'Senzu map', true], ['trend', 'Training trend', true], ['stats', 'Last session and food', true],
     ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['hardsets', 'Hard sets', true]],
-  perf: [['ready', 'Scouter and readiness', false], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
-    ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
+  perf: [['risk', 'Streak at risk', true], ['ready', 'Scouter and readiness', false], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
+    ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['fuelnow', 'Fuel now', true], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
     ['today', 'Today', true], ['skills', 'Skill tree', true], ['trend', 'Training trend', true], ['fuel', 'Fuel ranges', true],
     ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['longday', 'Long day tip', true]],
 };
 
 const order = p => {
   const ids = CARDS[p.kind].map(c => c[0]), saved = (p.settings.homeOrder || []).filter(id => ids.includes(id));
-  return [...saved, ...ids.filter(id => !saved.includes(id))]; // cards added in a later version go last
+  // A card added in a later version slots in after its neighbor in the default order.
+  const out = [...saved];
+  ids.forEach((id, i) => { if (out.includes(id)) return;
+    const prev = ids.slice(0, i).reverse().find(x => out.includes(x)); out.splice(prev ? out.indexOf(prev) + 1 : 0, 0, id); });
+  return out;
 };
 const hidden = p => new Set((p.settings.homeHidden || []).filter(id => CARDS[p.kind].find(c => c[0] === id)?.[2]));
 

@@ -6,9 +6,9 @@ import { esc, ask, overlay, stepper, round, guard, toast, dayPicker } from './ui
 import { DOW, addDays, weekStart, weekday, prettyDay, daysBetween } from './time.js';
 import { AREAS } from './validate.js';
 import { coachCard, bindCoach, ageOf } from './coach.js';
-import { fuelCard, timingCard } from './fuel.js';
+import { fuelCard, timingCard, fuelNowCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
-import { streakCard, recapCard, bindShared } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
@@ -17,6 +17,7 @@ import { duelCard } from './duel.js';
 import { skillSummary, skillList } from './skills.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
+import { calendarCard, bindCalendar } from './calendar.js';
 
 // Check-in has no tab of its own (the big button and Home's readiness card open it), so five tabs fit.
 // Session names come from the profile: Gymnastics and Vaulting, or a Custom profile's sports.
@@ -85,6 +86,8 @@ export async function home() {
           <p>${whyBtn('readiness', JSON.stringify(c))} <button class="link" data-ci="${t}">Edit check-in</button></p></div>`
         : `<div class="scread"><h2 id="h-ready">No reading yet today</h2><p class="sub">Six quick questions about sleep, energy and how your body feels, about 30 seconds.</p>
           <button class="cta2" data-ci="${t}" style="margin-top:8px">Check in</button></div>` })],
+      ['risk', riskCard(p, all, t)],
+      ['fuelnow', on(p, 'fuel') ? fuelNowCard(p, { at: planned.at ?? null, minutes: planned.gym + planned.vault, lastEnd: Math.max(0, ...todays.map(s => s.ts)) }) : ''],
       ['balls', `${newBallsCard(p, milestones(p, all, t, skills))}`],
       ['wish', wishCard(p, milestones(p, all, t, skills))],
       ['recap', `${recapCard(p, all, t)}`],
@@ -121,7 +124,7 @@ export async function home() {
       ['trend', `${trendCard(p, all, t)}`],
       ['fuel', `${on(p, 'fuel') ? fuelCard(p, fuelMin, { title: fuelMin ? 'Fuel today' : 'Fuel · rest day' }) : ''}`],
       ['timing', `${on(p, 'fuel') ? timingCard(p, fuelMin) : ''}`],
-      ['saga', sagaCard(arcs, t)],
+      ['saga', sagaCard(arcs, t, { skills })],
       ['longday', `${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
         <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}`]
     ]),
@@ -256,6 +259,8 @@ export async function weekView() {
   const editor = i => `<section class="card" id="wedit"><div class="row"><h2 style="margin:0">${DOW[i]}${addDays(ws, i) === t ? ' · today' : ''}</h2><span class="sub" id="rest">${plan[i].gym + plan[i].vault ? '' : 'Rest day'}</span></div>
       <div class="row" style="margin-top:8px"><span>${esc(nm[0])}</span>${stepper('gym:' + i, h(plan[i].gym), nm[0].toLowerCase() + ' on ' + DOW[i], ' h')}</div>
       ${nm[1] || plan[i].vault ? `<div class="row" style="margin-top:6px"><span>${esc(nm[1] || 'Other')}</span>${stepper('vault:' + i, h(plan[i].vault), (nm[1] || 'other').toLowerCase() + ' on ' + DOW[i], ' h')}</div>` : ''}
+      ${plan[i].gym + plan[i].vault ? `<label class="f" style="margin-top:8px"><span>Usually starts at (optional, for Fuel now)</span>
+        <input type="time" id="wat" value="${plan[i].at != null ? String(Math.floor(plan[i].at / 60)).padStart(2, '0') + ':' + String(plan[i].at % 60).padStart(2, '0') : ''}"></label>` : ''}
       <p class="note">15-minute steps. This is your usual week; it repeats.</p></section>`;
   return {
     cta: ['Log a session', () => logSession()],
@@ -267,6 +272,12 @@ export async function weekView() {
     <div id="wstrip">${strip()}</div>
     <div id="weditor">${editor(weekPick)}</div>`,
     bind(root) {
+      root.addEventListener('change', async e => {
+        if (e.target.id !== 'wat') return;
+        const m = /^(\d{2}):(\d{2})$/.exec(e.target.value);
+        plan[weekPick].at = m ? +m[1] * 60 + +m[2] : null;
+        await saveProfile(p); toast(m ? 'Start time saved' : 'Start time cleared');
+      });
       root.addEventListener('click', guard(async e => {
         const pick = e.target.closest('[data-wd]');
         if (pick) { weekPick = +pick.dataset.wd; root.querySelector('#wstrip').innerHTML = strip(); root.querySelector('#weditor').innerHTML = editor(weekPick); return; }
@@ -277,6 +288,7 @@ export async function weekView() {
         b.closest('[data-step]').querySelector('.num').textContent = h(plan[+i][k]) + ' h';
         root.querySelector('#wtot').textContent = total() + ' h';
         root.querySelector('#rest').textContent = plan[+i].gym + plan[+i].vault ? '' : 'Rest day';
+        if (!root.querySelector('#wat') !== !(plan[+i].gym + plan[+i].vault)) root.querySelector('#weditor').innerHTML = editor(+i);
         root.querySelector('#wstrip').innerHTML = strip();
       }));
     },
@@ -330,11 +342,11 @@ export function logSession(existing) {
 export async function historyView() {
   const cs = (await entries('checkin')).reverse();
   const ss = (await entries('session')).reverse();
-  const p = profile();
-  const balls = milestones(p, await loggedEntries(p), today(), on(p, 'skills') ? await skillList() : []);
+  const p = profile(), all = await loggedEntries(p), t = today(), skills = on(p, 'skills') ? await skillList() : [];
+  const balls = milestones(p, all, t, skills);
   return {
     html: `<h1>History</h1>
-    <div style="margin-top:12px">${ballsCard(balls)}</div>
+    <div style="margin-top:12px">${calendarCard(p, all, t, skills)}${ballsCard(balls)}</div>
     <section class="card"><p class="lbl">Check-ins</p>
       ${cs.length ? `<ul class="list">${cs.map(c => `<li><span>${prettyDay(c.day)}<br><span class="chain">${esc(c.data.sleepH)} h sleep${c.data.sore.length ? ' · sore: ' + c.data.sore.map(esc).join(', ') : ''}</span></span>
         <span class="row" style="gap:8px"><span class="num">${readiness(c.data, sleepTarget(profile()))}</span><button class="cta2" data-ci="${esc(c.day)}" aria-label="Edit check-in from ${prettyDay(c.day)}">Edit</button></span></li>`).join('')}</ul>`
@@ -348,6 +360,7 @@ export async function historyView() {
         : '<div class="empty"><p>Log sessions from Home or Week. Each one adds to your training load.</p></div>'}
     </section>`,
     bind(root) {
+      bindCalendar(root, p, all, t, skills);
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.ci) openCheckin(b.dataset.ci);

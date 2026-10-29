@@ -91,7 +91,8 @@ const DATA = {
   activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'hike', 'sport', 'lift', 'other'].includes(d.kind) ? d.kind : 'other',
     minutes: int(d.minutes, 1, 1440, 30), effort: int(d.effort, 0, 10, 5), ...(d.source === 'health' ? { source: 'health' } : {}) }),
   rest: () => ({}),
-  arc: d => ({ name: str(d.name, 40).trim() || 'Arc', boss: str(d.boss, 80).trim() || 'My goal', start: DAY.test(d.start || '') ? d.start : '1970-01-01', weeks: int(d.weeks, 1, 52, 4), done: DAY.test(d.done || '') ? d.done : null }),
+  arc: d => ({ name: str(d.name, 40).trim() || 'Arc', boss: str(d.boss, 80).trim() || 'My goal', start: DAY.test(d.start || '') ? d.start : '1970-01-01', weeks: int(d.weeks, 1, 52, 4), done: DAY.test(d.done || '') ? d.done : null,
+    link: d.link && (d.link.type === 'ex' || d.link.type === 'skill') && str(d.link.id, 64) ? { type: d.link.type, id: str(d.link.id, 64), ...(d.link.type === 'ex' ? { stage: str(d.link.stage, 40) } : {}), target: int(d.link.target, 1, 999, 1) } : null }),
   skill: d => ({ name: str(d.name, 40).trim() || 'Skill', event: ['vault', 'floor', 'beam', 'bars', 'flex', 'other'].includes(d.event) ? d.event : 'other',
     stage: int(d.stage, 0, 3, 0), log: Array.isArray(d.log) ? d.log.slice(-40).filter(l => DAY.test(l?.day || '')).map(l => ({ stage: int(l.stage, 0, 3, 0), day: l.day })) : [] }),
   sleep: d => ({ hours: num(d.hours, 0, 24, 0), source: 'health' }),
@@ -108,7 +109,7 @@ export function cleanBackup(prof, entries) {
   const name = str(prof.name, 24).trim();
   if (!name) throw new Error('This backup has no profile name.');
   const plan = Array.isArray(prof.settings?.weekPlan) && prof.settings.weekPlan.length === 7
-    ? prof.settings.weekPlan.map(d => ({ gym: int(d?.gym, 0, 1440, 0), vault: int(d?.vault, 0, 1440, 0) })) : null;
+    ? prof.settings.weekPlan.map(d => ({ gym: int(d?.gym, 0, 1440, 0), vault: int(d?.vault, 0, 1440, 0), at: int(d?.at, 0, 1439, null) })) : null;
   const clean = {
     id: prof.id, kind: prof.kind, name, accent: /^#[0-9a-f]{6}$/i.test(prof.accent || '') ? prof.accent : null,
     units: prof.units === 'metric' || prof.units === 'imperial' ? prof.units : undefined, tz: tzOk(prof.tz) ? prof.tz : undefined,

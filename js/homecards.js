@@ -1,10 +1,10 @@
 // Home cards both profile types share: the streak with Senzu saves and the weekly arc recap.
 import { saveEntry, saveProfile } from './state.js';
 import { esc, round, toast } from './ui.js';
-import { prettyDay, weekday } from './time.js';
+import { prettyDay, weekday, minutesNow, clockOf } from './time.js';
 import { streak, lastWeek, recapNumbers } from './insights.js';
 import { whyBtn } from './why.js';
-import { dayProtein } from './nutrition.js';
+import { dayProtein, quickLog, quickWater, addFood, nowMeal } from './nutrition.js';
 import { sumN } from './foods.js';
 import { volume, volumeUnit } from './units.js';
 import { fuelRanges } from './fuel.js';
@@ -30,8 +30,21 @@ export function streakCard(p, all, today) {
     <div class="row" style="margin-top:4px"><span class="big num">${s.days}<span class="sub"> day${s.days === 1 ? '' : 's'}</span></span>
     ${s.beans ? `<span aria-label="${s.beans} Senzu bean${s.beans === 1 ? '' : 's'}" title="Senzu beans">${'🫘'.repeat(s.beans)}</span>` : '<span class="sub">no beans yet</span>'}</div>
     ${s.todayDone ? '<p class="sub">Today counts. ✓</p>' : s.restLeft ? `<p class="sub">${plannedRest ? 'Today is a planned rest day.' : 'Log anything today to keep it going.'}</p>
-      <button class="cta2" id="restDay" style="margin-top:8px;width:100%">${plannedRest ? 'Count today\'s rest' : 'Log a planned rest day'}</button>`
+      <button class="cta2" data-restday style="margin-top:8px;width:100%">${plannedRest ? 'Count today\'s rest' : 'Log a planned rest day'}</button>`
       : `<p class="sub">This week's ${s.restPerWeek} rest day${s.restPerWeek === 1 ? ' is' : 's are'} used. Log training to keep it going.</p>`}</section>`;
+}
+
+// Streak at risk (2.3): from 6 PM in the profile's time zone, when nothing is logged yet today
+// and there's a streak of 2+ days to protect. The day ends at dayEndsAt (3 AM by default).
+export function riskCard(p, all, today) {
+  const s = streak(all, today, restAllowance(p));
+  const now = minutesNow(p.tz), late = now >= 18 * 60 || now < (p.dayEndsAt ?? 3) * 60; // after midnight still counts
+  if (s.todayDone || s.days < 2 || !late) return '';
+  const ends = clockOf((p.dayEndsAt ?? 3) * 60);
+  return `<section class="card risk" role="status"><p class="lbl">Streak at risk</p>
+    <h2>Your ${s.days}-day streak needs one log by ${ends}</h2>
+    <p class="sub">${s.beans ? `A Senzu bean would save it, but logging anything keeps your ${s.beans === 1 ? 'bean' : 'beans'}.` : 'No Senzu beans left to save it.'} Anything counts: food, water, training${s.restLeft ? ' or a rest day' : ''}.</p>
+    <div class="qlog"><button class="cta2" data-qadd>Log food</button><button class="cta2" data-qwater>Log water</button>${s.restLeft ? '<button class="cta2" data-restday>Rest day</button>' : ''}</div></section>`;
 }
 
 // Shown in a new week until dismissed, if anything was logged last week.
@@ -88,8 +101,16 @@ export function recapCard(p, all, today) {
 }
 
 export function bindShared(root, p, today) {
-  root.querySelector('#restDay')?.addEventListener('click', async () => {
+  root.querySelectorAll('[data-restday]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
     await saveEntry('rest', {}, { id: p.id + ':rest:' + today, day: today }); toast('Rest day logged. Recovery is training too.'); window.goku.render();
+  }));
+  root.addEventListener('click', async e => {
+    const b = e.target.closest('[data-qlog],[data-qwater],[data-qadd]'); if (!b || b.disabled) return;
+    if (b.dataset.qadd !== undefined) return addFood(nowMeal(), today);
+    b.disabled = true;
+    if (b.dataset.qwater !== undefined) { await quickWater(p); toast('Glass of water logged'); } else await quickLog(b.dataset.qlog, p);
+    window.goku.render();
   });
   root.querySelector('#recapDone')?.addEventListener('click', async e => {
     p.coach = { ...(p.coach || {}), recapSeen: e.target.dataset.week }; await saveProfile(p); window.goku.render();

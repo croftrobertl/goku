@@ -16,6 +16,16 @@ function local(ts, tz) {
   return { y: +o.year, m: +o.month, d: +o.day, h: +o.hour };
 }
 
+// Minutes since local midnight in a time zone (2.3: the fuel prompt's clock).
+export function minutesNow(tz = TZ, ts = Date.now()) {
+  try {
+    const o = {};
+    for (const x of new Intl.DateTimeFormat('en-US', { timeZone: validTZ(tz) ? tz : TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(ts))) o[x.type] = x.value;
+    return +o.hour * 60 + +o.minute;
+  } catch { const d = new Date(ts); return d.getHours() * 60 + d.getMinutes(); }
+}
+export const clockOf = m => { const h = Math.floor(m / 60) % 24, mm = String(m % 60).padStart(2, '0'); return `${h % 12 || 12}:${mm} ${h < 12 ? 'AM' : 'PM'}`; };
+
 // ISO date string (YYYY-MM-DD) of the training day that ts falls in.
 export function dayKey(ts = Date.now(), dayEndsAt = 3, tz = TZ) {
   const e = local(ts, validTZ(tz) ? tz : TZ);

@@ -32,6 +32,15 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.3.0:* Train by feel (pick how much ki you have and the coach suggests a gravity, or choose any
+  level); a radial Ki menu behind the center button (log food, water, activity or a rest day from
+  anywhere) with short center labels; the workout first on Home with a compact Scouter; Fuel now, a
+  prompt timed to a practice start time you set in Week (carbohydrate 1–4 hours before, protein
+  within 2 hours after) with one-tap logging of everyday foods; a streak-at-risk banner from 6 PM
+  when nothing is logged yet; fanned circuit cards with the exercise drawings and a "?" for each; a
+  month training calendar in History (trained, rest, logged, records or skill stages, Senzu saves);
+  poster bosses whose HP drops on their own when linked to an exercise or skill; a full-screen Arc
+  cleared moment; and giant-number setup for training days and meals.
 - *2.2.0:* an icon tab bar with a big center action (Train, Check in, or the screen's own action)
   and More for the rest; a week strip with one day editor; the Scouter, a green scouter gauge with a
   power level (0 to 9,000: training days, fuel days and recovery over the last 7 days), clearly
@@ -270,7 +279,7 @@ Encrypted exports wrap this object: `{ app, encrypted: true, cipher, kdf, iterat
 
 ## Fuel ranges and their sources
 
-Shown on Home when a weight is saved, with the sources as footnotes. No calorie numbers are shown.
+Shown on Home when a weight is saved, with the sources as footnotes.
 - **Protein:** 1.4–2.0 g per kg a day; about 0.25 g per kg per meal. Jäger R, et al. ISSN Position
   Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20 (checked against the open-access text).
 - **Carbohydrate:** 3–5 g/kg (light or skill work), 5–7 (about an hour), 6–10 (1–3 hours), 8–12 (4–5+
@@ -278,6 +287,10 @@ Shown on Home when a weight is saved, with the sources as footnotes. No calorie 
   2016;48(3):543–568. **These tiers were checked against several published reproductions of the
   statement's table; the original is paywalled and wasn't read directly.** Which tier a day falls in
   (under 45 min, under 90, under 4 h, 4 h or more) is Goku's mapping of the statement's wording.
+- **Before practice (Fuel now):** 1–4 g of carbohydrate per kg in the 1–4 hours before exercise.
+  Thomas, Erdman & Burke 2016 (above). **Checked only against published reproductions, not the
+  paywalled original.** Goku's reading is about 1 g per kg for each hour before the start (3 hours
+  out: about 3 g per kg). Under an hour out, it only suggests water.
 - **Fuel timing:** Kerksick CM, et al. International Society of Sports Nutrition position stand:
   nutrient timing. J Int Soc Sports Nutr. 2017;14:33 (checked against the open-access text).
 - Under 18, the card says the ranges come from adult studies and should be confirmed by a
@@ -412,7 +425,8 @@ js/movepicker.js       Library search, ? popups, adding exercises
 js/foods.js            the offline food list: loading, search, servings
 js/fuzzy.js            spelling fixes, synonyms and suggestions for food and exercise search
 js/scouter.js          the Scouter gauge and power level
-js/saga.js             the Saga map: arcs and bosses
+js/saga.js             the Saga map: arcs, poster bosses and the Arc cleared screen
+js/calendar.js         the History training calendar
 data/everyday.json     160 everyday foods (built by tools/build-everyday.py)
 js/nutrition.js        the Nutrition tab, adding foods, meals, labels, symptoms
 js/scan.js             barcode scanner

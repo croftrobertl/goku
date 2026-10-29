@@ -5,16 +5,18 @@ import { esc, toast, ask, overlay, stepper, unlockAudio, beep, soundReady, awake
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
 import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
 import { coachCard, bindCoach, isMinor } from './coach.js';
-import { fuelCard, fuelRanges, timingCard } from './fuel.js';
+import { fuelCard, fuelRanges, timingCard, fuelNowCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
 import { loggedEntries, recovery, records, recordFor, progression, GROUPS } from './insights.js';
 import { openNutritionDay, nutritionDays, dayTotals } from './nutrition.js';
-import { streakCard, recapCard, bindShared } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
 import { homeLayout } from './homelayout.js';
 import { pickMove, showMove, howBtn, moveFor } from './movepicker.js';
+import { figureSVG } from './figure.js';
+import { calendarCard, bindCalendar } from './calendar.js';
 import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
@@ -99,7 +101,40 @@ async function recentSleep(p) {
 // The tab bar's center button on screens without their own action: start today's circuit.
 export async function mainAction() {
   const circuit = await todaysCircuit();
-  return circuit.length ? ['Train', () => startRun(circuit)] : null;
+  return circuit.length ? ['Train', () => trainByFeel(circuit)] : null;
+}
+
+// Train by how you feel (2.3): pick your energy, the coach suggests a gravity level (or rest).
+// It's a suggestion only; any level can still be chosen.
+const FEELS = [['empty', 'Running on empty', -9], ['tired', 'A bit tired', -1], ['ready', 'Ready', 0], ['fired', 'Fired up', 1]];
+export async function trainByFeel(circuit) {
+  const p = profile(), levels = [10, 20, 50, 100];
+  const sessions = await sessionsInOrder();
+  let feel = 'ready', g = p.settings.gravity || 50;
+  const pickFor = f => { const shift = FEELS.find(x => x[0] === f)[2], i = levels.indexOf(p.settings.gravity || 50);
+    return levels[Math.max(0, Math.min(3, shift === -9 ? 0 : i + shift))]; };
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">How much ki do you have today?</h1><button class="cta2" id="x" data-close>Close</button></div>
+    <div class="scroll" id="tf"></div>
+    <button class="cta" id="go">Enter the chamber</button>`, { label: 'How do you feel today?' });
+  const draw = () => {
+    const [rounds, rest, cap] = GRAVITY[g], ghost = ghostFor(sessions, g);
+    el.querySelector('#tf').innerHTML = `<div class="pills" style="margin-top:8px">${FEELS.map(([k, n]) => `<button data-feel="${k}" aria-pressed="${k === feel}">${n}</button>`).join('')}</div>
+      <section class="card pickcard" style="margin-top:14px"><p class="lbl" style="text-align:left">Coach's pick</p>
+        <p class="big num">×${g} gravity</p><p>${rounds} rounds · ${rest}s rest · ${cap}-min cap</p>
+        <p class="sub">${ghost ? `Your ghost: ${sessionTotal(ghost)} reps on ${prettyDay(ghost.day)}.` : `Your first ×${g} session sets the ghost.`}</p></section>
+      ${feel === 'empty' ? '<p class="say">Running on empty is a good day to rest or keep it light. Rest counts toward your streak too.</p><button class="cta2" id="rest" style="width:100%;margin-top:10px">Log a rest day instead</button>' : ''}
+      <p class="lbl" style="margin-top:14px">Or choose any level</p>
+      <div class="seg grav">${levels.map(x => `<button data-lv="${x}" aria-pressed="${x === g}">×${x}</button>`).join('')}</div>`;
+  };
+  el.addEventListener('click', guard(async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'x') return close();
+    if (b.dataset.feel) { feel = b.dataset.feel; g = pickFor(feel); return draw(); }
+    if (b.dataset.lv) { g = +b.dataset.lv; return draw(); }
+    if (b.id === 'rest') { await saveEntry('rest', {}, { id: p.id + ':rest:' + today(), day: today() }); close(); toast('Rest day logged. Recovery is training too.'); return window.goku.render(); }
+    if (b.id === 'go') { if (g !== p.settings.gravity) { p.settings.gravity = g; await saveProfile(p); } close(); await startRun(await todaysCircuit()); }
+  }));
+  draw();
 }
 
 export async function home() {
@@ -141,7 +176,7 @@ export async function home() {
   const nextG = levels[levels.indexOf(g) + 1];
 
   return {
-    cta: circuit.length ? ['Enter chamber', () => startRun(circuit)] : null,
+    cta: circuit.length ? ['Enter chamber', () => trainByFeel(circuit)] : null,
     html: homeLayout(p, [
       ['balls', `${newBallsCard(p, milestones(p, all, t))}`],
       ['wish', wishCard(p, milestones(p, all, t))],
@@ -154,7 +189,6 @@ export async function home() {
       <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}`],
       ['nudge', `${nudge && !showProg ? `<section class="card coach"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}`],
-      ['scouter', scouterCard(p, all, t)],
       ['chamber', `<section class="card" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
@@ -174,11 +208,16 @@ export async function home() {
     </section>`],
       ['circuit', `<section class="card">
       <div class="row"><h2>Circuit</h2>${on(p, 'shuffle') ? '<button class="cta2" id="shuffle">Shuffle</button>' : ''}</div>
-      ${circuit.length ? `<ul class="list">${circuit.map(e => `<li><span>${esc(e.data.name)}<br>
-        <span class="chain">${e.data.stages.slice(0, depth).map(s => esc(s.label)).join(' → ')}</span></span></li>`).join('')}</ul>`
+      ${circuit.length ? `<ol class="fan" aria-label="Today's circuit, ${circuit.length} exercises">${circuit.map((e, i) => { const m = moveFor(e.data);
+        // Fanned cards (2.3): a hand of exercise cards, each with its drawing and a "?" for how-to.
+        return `<li class="fcard" style="--i:${i};--n:${circuit.length}"><span class="fnum num">${i + 1}</span>
+          ${m ? `<span class="ffig" aria-hidden="true">${figureSVG(m.start)}</span>` : '<span class="ffig blank" aria-hidden="true"></span>'}
+          <b>${esc(e.data.name)}</b><span class="chain">${e.data.stages.slice(0, depth).map(s => esc(s.label)).join(' → ')}</span>
+          ${m ? howBtn(m.id, e.data.name) : ''}</li>`; }).join('')}</ol>`
         : '<div class="empty"><h2>Your library is empty</h2><p>Add exercises in the Library tab to build circuits.</p></div>'}
       ${p.about?.limits ? `<p class="note">Your notes: ${esc(p.about.limits)}. Swap or skip anything that hurts.</p>` : ''}
     </section>`],
+      ['scouter', scouterCard(p, all, t)],
       ['duel', duel],
       ['streak', `${streakCard(p, all, t)}`],
       ['activity', `<section class="card"><div class="row"><p class="lbl" style="margin:0">Other training today</p><button class="cta2" id="logAct">Log activity</button></div>
@@ -199,7 +238,9 @@ export async function home() {
       <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}`],
       ['fuel', `${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) : ''}`],
       ['timing', `${on(p, 'fuel') ? timingCard(p, trainedToday || cap, { open: trainedToday > 0 }) : ''}`],
-      ['saga', sagaCard(arcs, t)],
+      ['risk', riskCard(p, all, t)],
+      ['fuelnow', on(p, 'fuel') ? fuelNowCard(p, { lastEnd: Math.max(0, ...[...sessions.filter(s => s.day === t), ...todayActs].map(e => e.ts)) }) : ''],
+      ['saga', sagaCard(arcs, t, { sessions })],
       ['hardsets', `${on(p, 'hypertrophy') ? `<section class="card">
       <p class="lbl">Hard sets this week</p>
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
@@ -212,6 +253,7 @@ export async function home() {
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
+        if (b.dataset.how) return showMove(b.dataset.how);
         if (b.id === 'addLoad') return window.goku.go('library');
         if (b.id === 'progLater') return window.goku.render();
         if (b.id === 'logAct') return logActivity();
@@ -556,10 +598,10 @@ export async function historyView() {
   const sessions = (await sessionsInOrder()).reverse();
   const days = on(profile(), 'nutrition') ? await nutritionDays(profile()) : [];
   const acts = (await entries('activity')).sort((a, b) => b.day.localeCompare(a.day));
-  const p = profile();
+  const p = profile(), all = await loggedEntries(p), t = today();
   return {
     html: `<h1>History</h1>
-      <div style="margin-top:12px">${ballsCard(milestones(p, await loggedEntries(p), today()))}</div>
+      <div style="margin-top:12px">${calendarCard(p, all, t)}${ballsCard(milestones(p, all, t))}</div>
       <section class="card"><p class="lbl">Sessions</p>
       ${sessions.length ? `<ul class="list">${sessions.map(s => `<li><span>${prettyDay(s.day)} · ×${esc(s.data.gravity)}<br>
         <span class="chain">${s.data.sets.length} sets · ${round(minutes(s))} min</span></span>
@@ -575,6 +617,7 @@ export async function historyView() {
       ${acts.length ? `<ul class="list">${activityRows(acts.slice(0, 60))}</ul>` : '<div class="empty"><p>Log soccer, runs and other training from Home.</p></div>'}</section>
       <p class="note">Power level records are in the Library. Your training trend is on Home.</p>`,
     bind(root) {
+      bindCalendar(root, p, all, t);
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.edit) editSession(sessions.find(s => s.id === b.dataset.edit));
