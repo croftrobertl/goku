@@ -1,6 +1,6 @@
 // First-launch (and "Add profile") setup. Every personal value is entered here
 // and stored only on this device.
-import { KINDS, newProfile, saveProfile, S, liveModules, soonModules } from './state.js';
+import { KINDS, newProfile, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames } from './state.js';
 import { showLock } from './lock.js';
 import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
 import { DOW, deviceTZ } from './time.js';
@@ -19,7 +19,7 @@ export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '
 // Resolves with the new profile, or null if cancelled (only possible when cancellable).
 export function onboard({ cancellable = false } = {}) {
   return new Promise(resolve => {
-    const d = { kind: null, name: '', accent: null, modules: {}, protein: '', proteinPer: 'day', week: Array.from({ length: 7 }, () => ({ gym: 0, vault: 0 })),
+    const d = { pick: null, custom: null, kind: null, name: '', accent: null, modules: {}, protein: '', proteinPer: 'day', week: Array.from({ length: 7 }, () => ({ gym: 0, vault: 0 })),
       avatar: null, units: 'imperial', tz: deviceTZ(), about: {}, coach: { asked: {} } };
     let step = 0;
     const { el, close } = overlay(`${cancellable ? '<div class="row" style="justify-content:flex-end"><button class="cta2" id="cancel" data-close>Cancel</button></div>' : ''}
@@ -29,21 +29,30 @@ export function onboard({ cancellable = false } = {}) {
 
     // One coach question per screen, about 3 minutes in all.
     const screens = () => setupScreens(d.kind ? d : { kind: 'engine' });
-    const firstQ = 3;
-    const qAt = i => d.kind && i >= firstQ && i < firstQ + screens().length ? screens()[i - firstQ][1] : null;
+    const extra = () => d.pick === 'custom' ? 2 : 0; // Custom adds "What do you do?" and "How do you train?"
+    const firstQ = () => 3 + extra();
+    const qAt = i => d.kind && i >= firstQ() && i < firstQ() + screens().length ? screens()[i - firstQ()][1] : null;
     const qSteps = () => screens().map(([title], i) => () => `<div class="lbl">${label()}</div><h1>${esc(title)}</h1>${screenHTML(screens()[i][1], d)}`);
-    const label = () => progress(step, steps.length, step >= firstQ && qAt(step) ? 'Your coach' : '');
+    const label = () => progress(step, steps.length, step >= firstQ() && qAt(step) ? 'Your coach' : '');
     let steps = [];
+    const names = () => sessionNames(d.pick === 'custom' ? d : {});
     const build = () => [
       () => `<p class="lbl">${S.profiles.length ? 'New profile' : 'Welcome'}</p>
         <h1>Goku</h1>
         <p class="sub" style="margin-top:8px">Everything you log stays on this phone. There are no accounts and nothing is sent anywhere.
         Back up from Settings so a lost phone never means lost training history.</p>
         <h2 style="margin-top:20px">What do you train?</h2>
-        ${Object.entries(KINDS).map(([k, v]) => `<button class="card pick" data-kind="${k}" aria-pressed="${d.kind === k}">
+        ${Object.entries(KINDS).map(([k, v]) => `<button class="card pick" data-kind="${k}" aria-pressed="${d.pick === k}">
           <h2>${v.label}</h2><p class="sub">${k === 'engine' ? 'Density circuits, drop sets, ghost races and a gut log.' :
           'Readiness, week planner, training load and fueling.'}</p></button>`).join('')}
-        <p class="note">More sports are on the way.</p>`,
+        <button class="card pick" data-kind="custom" aria-pressed="${d.pick === 'custom'}"><h2>Custom</h2>
+          <p class="sub">Any sport or mix. A few questions build Goku around how you train.</p></button>`,
+      ...(d.pick === 'custom' ? [
+        () => `<div class="lbl">${label()}</div><h1>What do you do?</h1><p class="sub" style="text-align:center">Pick everything that's part of your training.</p>
+          <div class="pills" style="margin-top:12px">${SPORTS.map(([k, n]) => `<button data-sport="${k}" aria-pressed="${d.custom.sports.includes(k)}">${esc(n)}</button>`).join('')}</div>`,
+        () => `<div class="lbl">${label()}</div><h1>How do you like to train?</h1>
+          ${STYLES.map(([k, n, desc]) => `<button class="card pick" data-style="${k}" aria-pressed="${d.custom.style === k}"><h2>${esc(n)}</h2><p class="sub">${esc(desc)}</p></button>`).join('')}`,
+      ] : []),
       () => `<div class="lbl">${label()}</div><h1>What should we call you?</h1>
         <label class="f"><span>First name or nickname</span>
         <input id="nm" autocomplete="off" autocapitalize="words" maxlength="24" value="${esc(d.name)}"></label>
@@ -70,14 +79,16 @@ export function onboard({ cancellable = false } = {}) {
           <p class="sub">Hours of training on each day. Skip it if you like; you can change it any time from the Week tab.</p>
           <p class="num sub" style="margin-top:8px" id="wtot">${round(d.week.reduce((a, x) => a + x.gym + x.vault, 0) / 60, 1)} h a week</p>
           ${DOW.map((day, i) => `<div class="card" style="margin-top:8px;padding:10px 14px"><p class="lbl">${day}</p>
-            <div class="row"><span>Gymnastics</span>${stepper('gym:' + i, h(d.week[i].gym), 'gymnastics on ' + day, ' h')}</div>
-            <div class="row" style="margin-top:6px"><span>Vaulting</span>${stepper('vault:' + i, h(d.week[i].vault), 'vaulting on ' + day, ' h')}</div></div>`).join('')}`,
+            <div class="row"><span>${esc(names()[0])}</span>${stepper('gym:' + i, h(d.week[i].gym), names()[0].toLowerCase() + ' on ' + day, ' h')}</div>
+            ${names()[1] ? `<div class="row" style="margin-top:6px"><span>${esc(names()[1])}</span>${stepper('vault:' + i, h(d.week[i].vault), names()[1].toLowerCase() + ' on ' + day, ' h')}</div>` : ''}</div>`).join('')}`,
     ];
     steps = build();
 
     function draw() {
       $('#ob').innerHTML = steps[step]();
-      const ready = step === 0 ? !!d.kind : step === 1 ? d.name.trim().length > 0 : true;
+      const st = step - (step >= 1 ? extra() : 0); // the step counting from the name screen
+      const ready = step === 0 ? !!d.pick : extra() && step === 1 ? d.custom.sports.length > 0 : extra() && step === 2 ? !!d.custom.style
+        : st === 1 ? d.name.trim().length > 0 : true;
       $('#obnav').innerHTML = `<p class="msg" id="obm" role="status"></p>
         <button class="cta" id="next">${step === steps.length - 1 ? 'Set passcode' : 'Continue'}</button>
         ${step > 0 ? '<button class="cta2" id="back" style="width:100%;margin-top:8px">Back</button>' : ''}`;
@@ -102,7 +113,20 @@ export function onboard({ cancellable = false } = {}) {
       const qs = qAt(step);
       if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }
       if (b.dataset.avatar) { pickAvatar(d, b.dataset.avatar); draw(); return; }
-      if (b.dataset.kind) { d.kind = b.dataset.kind; d.accent = null; steps = build(); draw(); }
+      if (b.dataset.kind) {
+        d.pick = b.dataset.kind; d.accent = null;
+        if (d.pick === 'custom') {
+          d.custom ||= { sports: [], style: null }; // coming back keeps earlier answers, and the kind they chose
+          d.kind = d.custom.style ? (d.custom.style === 'sessions' ? 'perf' : 'engine') : null;
+          d.modules = d.kind ? presetModules(d.kind, d.custom.sports) : {};
+        } else { d.kind = d.pick; d.modules = {}; }
+        steps = build(); draw();
+      }
+      else if (b.dataset.sport) { const s = d.custom.sports, k = b.dataset.sport; s.includes(k) ? s.splice(s.indexOf(k), 1) : s.push(k); d.modules = d.kind ? presetModules(d.kind, s) : {}; draw(); }
+      else if (b.dataset.style) {
+        d.custom.style = b.dataset.style; d.kind = d.custom.style === 'sessions' ? 'perf' : 'engine';
+        d.modules = presetModules(d.kind, d.custom.sports); steps = build(); draw();
+      }
       else if (b.dataset.acc) { d.accent = b.dataset.acc; draw(); }
       else if (b.dataset.per) { d.proteinPer = b.dataset.per; draw(); }
       else if (b.dataset.d && b.closest('[data-step]')) {
@@ -113,12 +137,13 @@ export function onboard({ cancellable = false } = {}) {
       }
       else if (b.id === 'back') { if (qs) qs.forEach(q => screenRead([q], d, el)); step--; draw(); }
       else if (b.id === 'next') {
-        if (b.dataset.ready !== 'true') { $('#obm').textContent = step === 0 ? 'Pick one to continue.' : 'Enter a name to continue.'; return; }
+        if (b.dataset.ready !== 'true') { $('#obm').textContent = step === 0 || (extra() && step <= 2) ? 'Pick one to continue.' : 'Enter a name to continue.'; return; }
         if (qs && !screenRead(qs, d, el)) return;
         if (step < steps.length - 1) { step++; draw(); $('#ob').scrollTop = 0; return; }
         const p = newProfile(d.kind, d.name.trim(), d.accent);
         for (const [k, v] of Object.entries(d.modules)) p.modules[k] = v;
         Object.assign(p, { avatar: d.avatar, units: d.units, tz: d.tz, about: d.about, coach: d.coach });
+        if (d.pick === 'custom') p.custom = { sports: [...d.custom.sports], style: d.custom.style };
         if (d.kind === 'engine') p.settings.gravity = startGravity(d.about);
         if (d.kind === 'engine') { p.settings.proteinTarget = d.protein ? +d.protein : null; p.settings.proteinPer = d.proteinPer; }
         else p.settings.weekPlan = d.week;

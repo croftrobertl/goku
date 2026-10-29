@@ -10,7 +10,7 @@ Everything you enter stays on the device it was entered on.
   (minutes × effort), and care checks that point to a parent, coach or doctor.
 
 Each profile has its own 6-digit passcode, theme (six themes, each with light and dark), and
-sound and haptics settings. Profile names and every other personal value are typed in on first
+sound setting. Profile names and every other personal value are typed in on first
 launch; none of them are in this code.
 
 **Tailored from the first launch.** Setup asks about 3 minutes of coach questions: units and time
@@ -53,6 +53,12 @@ used to dictate.
 - *Dragon Ball milestones* (1.5.0): seven orbs for real achievements (first session or check-in, 7 and
   30 days in a row, a first record or skill moved up, a goal week, 25 sessions or a competition-ready
   skill, 100 days logged). Worked out from the log; History shows all seven, Home celebrates new ones.
+- *Custom profile* (1.7.0): besides the two presets, setup offers Custom. It asks which sports you do
+  and whether you like guided workouts, logging your practices, or both, then builds the profile on
+  the matching engine (guided or both: circuits plus other training; practices: readiness, week plan
+  and load) with features switched on to fit, and names sessions after your sports.
+- *Centered layout* (1.7.0): titles, headers, section labels, option buttons and choice cards are
+  centered; lists and paragraphs stay left-aligned for easier reading.
 - *Edit Home* (1.6.0): Settings → Arrange Home cards reorders or hides each profile's Home cards.
   The main card (Gravity chamber or Readiness) and the Care check always show.
 - *Gut pattern finder* (1.6.0): after 14 days with a bloating score, including 3 days of 6 or more,
@@ -79,7 +85,7 @@ labeled with their name; no official artwork is included), a power-up aura aroun
 or a photo from your phone (resized to 192 px, kept on the phone and in backups only).
 
 Before relying on it for workouts, run **Settings → Test my phone**. It checks saving, offline use,
-the share sheet and keep-awake automatically, then walks through a test beep, a buzz, and a
+the share sheet and keep-awake automatically, then walks through a test beep and a
 60-second hands-off test of the screen staying on and the rest beep playing.
 
 Live at: https://croftrobertl.github.io/goku/
@@ -307,9 +313,9 @@ red-flag rule across a skipped day and the care toggle; text contrast ≥ 4.5:1 
 - Doesn't work: the app-switcher picture still shows the last screen (see *App switcher* above).
 - 1.2.0 on the simulator: themes in light and dark, the Dragon Radar week, and the automatic part
   of Test my phone (all six checks pass, including keep-awake support).
-- Not testable in the simulator: whether the screen really stays on, audio after the screen
-  locks, and the haptic tick (the simulator has no haptics). **Settings → Test my phone** checks
-  all three on a real iPhone.
+- Not testable in the simulator: whether the screen really stays on, and audio after the screen
+  locks. **Settings → Test my phone** checks both on a real iPhone. (The rep buzz was removed in
+  1.7.0: on a real iPhone the test showed web apps can't trigger it.)
 - 1.3.0: full setup in metric and US units (82 kg saved as 180.8 lb; protein 115–164 g, 21 g a meal
   checked by hand), allergy and diet filtering, equipment-based library, coach follow-ups capped at
   two a day, older profiles offered setup with data kept, and the avatar picker and photo avatar

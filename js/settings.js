@@ -1,5 +1,5 @@
 // Settings, profile management, and backup (export / import).
-import { S, profile, saveProfile, KINDS, newProfile, liveModules, soonModules } from './state.js';
+import { S, profile, saveProfile, KINDS, newProfile, liveModules, soonModules, kindLabel } from './state.js';
 import * as db from './db.js';
 import { encryptJSON, decryptJSON } from './crypto.js';
 import { showLock, lockNow } from './lock.js';
@@ -149,7 +149,7 @@ async function previewImport({ prof, entries, skipped }) {
   const counts = {};
   for (const e of entries) counts[e.type] = (counts[e.type] || 0) + 1;
   const days = entries.map(e => e.day).filter(d => d > '1970-01-01').sort();
-  const body = `<b>${esc(prof.name)}</b> · ${esc(KINDS[prof.kind].label)}<br>
+  const body = `<b>${esc(prof.name)}</b> · ${esc(kindLabel(prof))}<br>
     ${Object.entries(counts).map(([k, n]) => `${n} ${esc(k)}${n === 1 ? '' : 's'}`).join(' · ') || 'No entries'}<br>
     ${days.length ? `From ${esc(days[0])} to ${esc(days[days.length - 1])}` : ''}
     ${skipped ? `<br>${skipped} damaged entr${skipped === 1 ? 'y' : 'ies'} will be skipped.` : ''}<br><br>
@@ -178,7 +178,7 @@ async function previewImport({ prof, entries, skipped }) {
     } else if (choice === 'replace') {
       await db.replaceProfileEntries(cur.id, entries);
       Object.assign(cur, { name: rest.name, accent: rest.accent || cur.accent, dayEndsAt: rest.dayEndsAt, modules: { ...cur.modules, ...rest.modules },
-        units: rest.units || cur.units, tz: rest.tz || cur.tz, about: rest.about || cur.about, coach: rest.about ? rest.coach || cur.coach : cur.coach,
+        units: rest.units || cur.units, tz: rest.tz || cur.tz, custom: rest.custom, about: rest.about || cur.about, coach: rest.about ? rest.coach || cur.coach : cur.coach,
         avatar: rest.avatar === undefined ? cur.avatar : rest.avatar,
         // Duels stay as chosen on this phone, and an older backup without a Home layout keeps this one.
         settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([k, v]) => v !== null && k !== 'duel' && !(['homeOrder', 'homeHidden'].includes(k) && !v.length))) } });
@@ -308,8 +308,8 @@ export async function settingsView() {
       <label class="toggle"><span><b>Duel other profiles on this phone</b><br><span class="sub">Shares only how many days you trained this week, with profiles that also turn this on. Off until you choose.</span></span>
         <input type="checkbox" data-duel ${p.settings.duel === true ? 'checked' : ''}></label>
     </section>
-    <section class="card"><p class="lbl">Sound and haptics</p>
-      ${[['sound', 'Sound cues', 'Beeps when rest ends and at the time cap.'], ['haptics', 'Buzz on each rep', 'A light tap you can feel when a rep counts.']].map(([k, n, d]) =>
+    <section class="card"><p class="lbl">Sound</p>
+      ${[['sound', 'Sound cues', 'Beeps when rest ends and at the time cap.']].map(([k, n, d]) =>
         `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span><input type="checkbox" data-fb="${k}" ${p.settings[k] !== false ? 'checked' : ''}></label>`).join('')}
       <button class="cta2" id="devcheck" style="width:100%;margin-top:8px">Test my phone</button>
       <p class="note">Checks that the screen stays on, sound plays and saving works on this phone.</p>
@@ -348,7 +348,7 @@ export async function settingsView() {
       <div class="row" style="margin-top:12px"><button class="cta2" id="chg">Change passcode</button><button class="cta2" id="lockNow">Lock now</button></div>
     </section>
     <section class="card"><p class="lbl">Profiles on this phone</p>
-      ${others.map(o => `<div class="toggle"><span>${esc(o.name)}<br><span class="sub">${esc(KINDS[o.kind].label)}</span></span>
+      ${others.map(o => `<div class="toggle"><span>${esc(o.name)}<br><span class="sub">${esc(kindLabel(o))}</span></span>
         <span class="row" style="gap:8px"><button class="cta2" data-open="${esc(o.id)}">Open</button><button class="cta2" data-reset="${esc(o.id)}">Reset passcode</button></span></div>`).join('')}
       <button class="cta2" id="add" style="width:100%;margin-top:8px">Add a profile</button>
     </section>

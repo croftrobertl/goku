@@ -1,5 +1,5 @@
 // Boot, routing, profile switching, the update bar.
-import { S, loadProfiles, profile, today, KINDS, saveProfile } from './state.js';
+import { S, loadProfiles, profile, today, KINDS, saveProfile, kindLabel } from './state.js';
 import * as db from './db.js';
 import { showLock, isUnlocked, watchRelock } from './lock.js';
 import { onboard } from './onboarding.js';
@@ -91,7 +91,7 @@ async function chooseProfile() {
   const others = S.profiles.filter(x => x.id !== S.current);
   if (others.length === 1 && isUnlocked(profile())) return open(others[0].id);
   const pick = await ask('Switch profile', 'Each profile keeps its own data and passcode.',
-    [...S.profiles.map(x => ({ label: `${x.name} · ${KINDS[x.kind].label}`, value: x.id })), { label: 'Add a profile', value: 'add' }]);
+    [...S.profiles.map(x => ({ label: `${x.name} · ${kindLabel(x)}`, value: x.id })), { label: 'Add a profile', value: 'add' }]);
   if (pick === 'add') { const np = await onboard({ cancellable: true }); if (np) return open(np.id); }
   if (pick && pick !== 'add') return open(pick);
   if (!isUnlocked(profile())) return open(S.current);

@@ -1,6 +1,6 @@
 // "Performance" profile: readiness, check-in, week planner, session load.
 // Shows no weight, calorie-deficit or body-shape content.
-import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
+import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on, sessionNames } from './state.js';
 import * as db from './db.js';
 import { esc, ask, overlay, stepper, round, guard, toast, dayPicker } from './ui.js';
 import { DOW, addDays, weekStart, weekday, prettyDay, daysBetween } from './time.js';
@@ -17,6 +17,9 @@ import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js'
 import { whyBtn } from './why.js';
 
 // Check-in has no tab of its own (the big button and Home's readiness card open it), so five tabs fit.
+// Session names come from the profile: Gymnastics and Vaulting, or a Custom profile's sports.
+const kindName = (p, s) => { const n = sessionNames(p); return s.data.kind === 'vault' ? n[1] || 'Other' : n[0]; };
+
 export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ['history', 'History'], ['settings', 'Settings']];
 
 export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
@@ -45,6 +48,7 @@ export async function careFlags() {
 // ---------- Home ----------
 export async function home() {
   const p = profile();
+  const nm = sessionNames(p);
   const t = today();
   const c = (await db.get('entries', p.id + ':checkin:' + t))?.data;
   const r = readiness(c, sleepTarget(p));
@@ -104,8 +108,8 @@ export async function home() {
       ['streak', `${streakCard(p, all, t)}`],
       ['today', `<section class="card"><p class="lbl">Today</p>
         ${planned.gym + planned.vault === 0 ? `<p>${weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
-          `<p>${planned.gym ? `Gymnastics ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `Vaulting ${round(planned.vault / 60, 1)} h` : ''}</p>`}
-        ${todays.length ? `<ul class="list" style="margin-top:8px">${todays.map(s => `<li><span>${s.data.kind === 'vault' ? 'Vaulting' : 'Gymnastics'} · ${esc(s.data.minutes)} min</span>
+          `<p>${planned.gym ? `${esc(nm[0])} ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `${esc(nm[1] || 'Other')} ${round(planned.vault / 60, 1)} h` : ''}</p>`}
+        ${todays.length ? `<ul class="list" style="margin-top:8px">${todays.map(s => `<li><span>${esc(kindName(p, s))} · ${esc(s.data.minutes)} min</span>
           <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}
         <p class="note">Load = minutes × effort (0–10).</p>
       </section>`],
@@ -231,6 +235,7 @@ export async function checkinView() {
 // ---------- Week planner ----------
 export async function weekView() {
   const p = profile();
+  const nm = sessionNames(p);
   const plan = p.settings.weekPlan;
   const t = today(), ws = weekStart(t);
   const sessions = (await db.byIndexRange('entries', 'profileDay', [p.id, ws], [p.id, addDays(ws, 6)])).filter(e => e.type === 'session');
@@ -246,8 +251,8 @@ export async function weekView() {
     </div>
     ${DOW.map((d, i) => `<section class="card" style="${addDays(ws, i) === t ? 'border-color:var(--accent-line)' : ''}">
       <div class="row"><h2>${d}${addDays(ws, i) === t ? ' · today' : ''}</h2><span class="sub" id="rest${i}">${plan[i].gym + plan[i].vault ? '' : 'Rest day'}</span></div>
-      <div class="row" style="margin-top:6px"><span>Gymnastics</span>${stepper('gym:' + i, h(plan[i].gym), 'gymnastics on ' + d, ' h')}</div>
-      <div class="row" style="margin-top:6px"><span>Vaulting</span>${stepper('vault:' + i, h(plan[i].vault), 'vaulting on ' + d, ' h')}</div>
+      <div class="row" style="margin-top:6px"><span>${esc(nm[0])}</span>${stepper('gym:' + i, h(plan[i].gym), nm[0].toLowerCase() + ' on ' + d, ' h')}</div>
+      ${nm[1] || plan[i].vault ? `<div class="row" style="margin-top:6px"><span>${esc(nm[1] || 'Other')}</span>${stepper('vault:' + i, h(plan[i].vault), (nm[1] || 'other').toLowerCase() + ' on ' + d, ' h')}</div>` : ''}
     </section>`).join('')}`,
     bind(root) {
       root.addEventListener('click', guard(async e => {
@@ -272,7 +277,7 @@ export function logSession(existing) {
   const { el, close } = overlay(`<div class="row"><h1>${existing ? 'Edit session' : 'Log a session'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll">
       <div class="row" style="margin:8px 0"><span class="lbl" style="margin:0">Day</span><span id="dp"></span></div>
-      <div class="seg" role="group" aria-label="Session type"><button data-k="gym">Gymnastics</button><button data-k="vault">Vaulting</button></div>
+      ${sessionNames(p)[1] || s.kind === 'vault' ? `<div class="seg" role="group" aria-label="Session type"><button data-k="gym">${esc(sessionNames(p)[0])}</button><button data-k="vault">${esc(sessionNames(p)[1] || 'Other')}</button></div>` : ''}
       <div class="q"><p class="lbl">Minutes</p>${stepper('min', s.minutes, 'minutes')}</div>
       <div class="q"><p class="lbl">How hard was it overall? (0 = rest, 10 = maximal)</p>
         <div class="seg" role="group" aria-label="Session effort">${[...Array(11).keys()].map(v => `<button data-e="${v}" style="min-width:44px">${v}</button>`).join('')}</div></div>
@@ -321,7 +326,7 @@ export async function historyView() {
         : '<div class="empty"><h2>No check-ins yet</h2><p>Your daily check-ins show up here, with the readiness score for each day.</p></div>'}
     </section>
     <section class="card"><p class="lbl">Sessions</p>
-      ${ss.length ? `<ul class="list">${ss.map(s => `<li><span>${prettyDay(s.day)} · ${s.data.kind === 'vault' ? 'Vaulting' : 'Gymnastics'}<br>
+      ${ss.length ? `<ul class="list">${ss.map(s => `<li><span>${prettyDay(s.day)} · ${esc(kindName(profile(), s))}<br>
         <span class="chain">${esc(s.data.minutes)} min · effort ${esc(s.data.effort)}</span></span>
         <span class="row" style="gap:8px"><span class="num">${s.data.minutes * s.data.effort}</span>
         <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('')}</ul>`

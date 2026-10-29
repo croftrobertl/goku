@@ -1,7 +1,7 @@
 // "Test my phone": checks what a workout depends on, on this exact phone.
-// Automatic checks run first; sound, buzz and the screen-on test need the person to confirm.
+// Automatic checks run first; sound and the screen-on test need the person to confirm.
 import * as db from './db.js';
-import { overlay, ask, unlockAudio, beep, buzz, soundReady, keepAwake, awake, esc } from './ui.js';
+import { overlay, ask, unlockAudio, beep, soundReady, keepAwake, awake, esc } from './ui.js';
 import { VERSION } from './version.js';
 
 const HANDS_OFF_S = 60;
@@ -50,13 +50,6 @@ export async function phoneCheck() {
   add(soundReady() && await yesNo('Did you hear two beeps?'), 'Sound plays', 'Check the ringer switch, volume and Sound in Settings.');
   if (stopped) return;
 
-  // Haptics
-  await button('Test buzz');
-  if (stopped) return;
-  buzz(); // must run inside the tap: iOS only gives the haptic during a user gesture
-  const felt = await yesNo('Did you feel a light tap?');
-  add(felt ? true : null, felt ? 'Buzz on each rep works' : 'Buzz not available on this phone (rep taps still count)');
-  if (stopped) return;
 
   // Hands-off test: the real workout conditions
   await button(`Start ${HANDS_OFF_S}-second hands-off test`,

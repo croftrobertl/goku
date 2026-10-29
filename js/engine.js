@@ -1,7 +1,7 @@
 // "Density Engine" profile: gravity-chamber circuits, rep counter, gut log.
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
 import * as db from './db.js';
-import { esc, toast, ask, overlay, stepper, unlockAudio, beep, buzz, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
+import { esc, toast, ask, overlay, stepper, unlockAudio, beep, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
 import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
 import { coachCard, bindCoach, isMinor } from './coach.js';
@@ -412,7 +412,6 @@ function openRunner(run) {
       if (prev && run.cur.stages[run.stage].reps === prev + 1) { toast(`⚡ New power level record: ${run.cur.stages[run.stage].reps} reps`); beep(1320, 120, 1); }
       if (run.best && run.cur.stages[run.stage].reps > prev) run.best[key] = run.cur.stages[run.stage].reps; // later rounds race the new record
       run.repTimes.push(Math.round((Date.now() - run.startedAt) / 100) / 10);
-      buzz();
       b.classList.add('bump'); setTimeout(() => b.classList.remove('bump'), 120);
       draw(); save();
     } else if (b.id === 'undo') undo();

@@ -223,3 +223,16 @@ sup { font-size: .65em; color: var(--tx3); }
 details.fold > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; margin: -4px 0; }
 details.fold[open] > summary { margin-bottom: 8px; }
 .trend .paceline { stroke: var(--tx); stroke-width: 3; stroke-linecap: round; }
+
+/* Centered by default: titles, section labels, option buttons and choice cards (1.7).
+   Lists and paragraphs stay left-aligned so they're easy to read. */
+h1, h2, .lbl, summary.lbl { text-align: center; }
+.card.pick { text-align: center; }
+.pills { justify-content: center; }
+.card > .row:first-child:has(> .lbl:only-child), .card > .row:first-child:has(> h2:only-child),
+.card > .row:first-child:has(> .lbl + .why:last-child) { justify-content: center; flex-wrap: wrap; gap: 6px 10px; } /* a title alone, or a title and its Why? */
+.card > .row:first-child > .lbl, .card > .row:first-child > h2 { margin: 0; }
+details.fold > summary { justify-content: center; }
+.list h1, .list h2, .list .lbl, .row > h1, .toggle .lbl { text-align: left; }
+h1 + p.sub, h2 + p.sub, h1 + .sub, h2 + .sub { text-align: center; } /* the short line under a title */
+.swatches { justify-content: center; }

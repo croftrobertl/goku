@@ -1,6 +1,6 @@
 // Other training (soccer, runs, pickup games): minutes and effort, so fuel ranges, the
 // recovery map and the weekly recap see all of a person's training, not only circuits.
-import { entries, saveEntry, deleteEntry, today } from './state.js';
+import { entries, saveEntry, deleteEntry, today, profile } from './state.js';
 import { esc, ask, overlay, guard, toast, dayPicker } from './ui.js';
 import { addDays, prettyDay } from './time.js';
 import { forgetHealthWorkout } from './health.js';
@@ -24,7 +24,10 @@ export function activityRows(list, { edit = true } = {}) {
 }
 
 export function logActivity(existing = null, onDone = () => window.goku.render()) {
-  const d = existing ? structuredClone(existing.data) : { kind: 'soccer', minutes: 60, effort: 6 };
+  // A Custom profile starts on its own sport; everyone else on soccer, the original pack.
+  const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'sport', martial: 'sport', gymnastics: 'sport', yoga: 'other' };
+  const first = profile().custom?.sports?.map(x => own[x]).find(Boolean);
+  const d = existing ? structuredClone(existing.data) : { kind: first || 'soccer', minutes: 60, effort: 6 };
   let day = existing?.day || today();
   const { el, close } = overlay(`<div class="row"><h1>${existing ? 'Edit activity' : 'Log activity'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="f"></div>

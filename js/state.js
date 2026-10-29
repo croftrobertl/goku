@@ -28,6 +28,32 @@ export const MODULES = {
   ],
 };
 
+// Custom profiles (1.7) are built from these answers on top of one of the two presets:
+// guided workouts use the strength engine, logged practices use the performance engine.
+export const SPORTS = [['strength', 'Strength or gym'], ['run', 'Running'], ['soccer', 'Soccer'], ['swim', 'Swimming'], ['bike', 'Cycling'],
+  ['dance', 'Dance'], ['martial', 'Martial arts'], ['gymnastics', 'Gymnastics'], ['team', 'Team sport'], ['yoga', 'Yoga or flexibility'],
+  ['fitness', 'General fitness'], ['other', 'Something else']];
+export const STYLES = [['guided', 'Guided workouts', 'Follow timed circuits on your phone, with rest timers and a ghost to race.'],
+  ['sessions', 'Log my practices', "Log what you did and how hard it was, check in on how you feel, and plan your week."],
+  ['both', 'Both', 'Guided circuits, plus logging your other sports and practices.']];
+const sportName = id => SPORTS.find(s => s[0] === id)?.[1];
+const join = list => list.length > 2 ? list.slice(0, -1).join(', ') + ' and ' + list.at(-1) : list.join(' and ');
+export const kindLabel = p => p.custom?.sports?.length ? join(p.custom.sports.slice(0, 3).map(sportName).filter(Boolean).map((n, i) => i ? n.toLowerCase() : n)) + (p.custom.sports.length > 3 ? ' and more' : '')
+  : p.custom ? 'Custom' : KINDS[p.kind].label;
+// The two session types a practice-log profile tracks: [first, second or null].
+export function sessionNames(p) {
+  if (!p.custom) return ['Gymnastics', 'Vaulting'];
+  const named = (p.custom.sports || []).filter(s => !['strength', 'fitness', 'other'].includes(s)).map(sportName);
+  return named.length ? [named[0], named[1] || null] : ['Training', null];
+}
+// Starting features for a Custom profile from its sports.
+export function presetModules(kind, sports) {
+  const has = (...ids) => ids.some(id => sports.includes(id));
+  return kind === 'engine'
+    ? { gut: false, hypertrophy: has('strength', 'fitness'), shuffle: true, soccer: has('soccer', 'team'), fuel: true }
+    : { care: true, fuel: true, skills: has('gymnastics', 'dance', 'martial', 'yoga') };
+}
+
 export const liveModules = kind => MODULES[kind].filter(m => !m[3]);
 export const soonModules = kind => MODULES[kind].filter(m => m[3]);
 export const on = (p, key) => p.modules[key] !== false;

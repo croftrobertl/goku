@@ -124,9 +124,10 @@ export function unlockAudio() {
   } catch { actx = null; }
   return Promise.resolve();
 }
-// Settings can mute sound and haptics; both default to on.
-let prefs = { sound: true, haptics: true };
-export const setFeedback = p => { prefs = { sound: p?.settings?.sound !== false, haptics: p?.settings?.haptics !== false }; };
+// Settings can mute sound; it defaults to on. (The rep buzz was removed in 1.7: iPhone web apps
+// can't vibrate on their own.)
+let prefs = { sound: true };
+export const setFeedback = p => { prefs = { sound: p?.settings?.sound !== false }; };
 
 // delay (seconds) books the sound ahead on the audio clock, so a rest-over cue lands on
 // time even if the page is busy. Returns a function that cancels it.
@@ -147,21 +148,6 @@ export function beep(freq = 880, ms = 160, times = 1, delay = 0) {
 }
 export const soundReady = () => !!actx && actx.state === 'running';
 
-// Haptic tick. iOS has no vibration API, but toggling a switch control gives a system
-// haptic on iOS 18 and later (verify on device); elsewhere navigator.vibrate is used.
-let hap = null;
-export function buzz() {
-  if (!prefs.haptics) return;
-  if (navigator.vibrate) { navigator.vibrate(12); return; }
-  if (!hap) {
-    hap = document.createElement('label');
-    hap.setAttribute('aria-hidden', 'true');
-    hap.style.cssText = 'position:fixed;left:-100px;top:0;width:1px;height:1px;overflow:hidden;opacity:0';
-    hap.innerHTML = '<input type="checkbox" switch tabindex="-1">';
-    document.body.append(hap);
-  }
-  hap.click();
-}
 
 // Screen Wake Lock: supported in iOS 27 Home Screen apps; whether the screen really stays
 // on is checked with "Test my phone" in Settings. Silently does nothing where unsupported.

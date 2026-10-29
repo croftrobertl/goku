@@ -1,6 +1,7 @@
 // Checks and cleans everything that comes from an imported backup, so a bad or
 // hostile file can never break the app or inject markup.
 import { THEMES } from './themes.js';
+import { SPORTS, STYLES } from './state.js';
 const ID = /^[A-Za-z0-9:._-]{1,100}$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const KINDS = ['engine', 'perf'];
@@ -38,6 +39,11 @@ function cleanCoach(c) {
   const seen = k => (k === 'recapSeen' ? DAY.test(c[k] || '') : ID.test(c[k] || '')) ? { [k]: c[k] } : {};
   const balls = Array.isArray(c.balls) ? [...new Set(c.balls.filter(n => Number.isInteger(n) && n >= 1 && n <= 7))].sort() : null;
   return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen'), ...(balls ? { balls } : {}) };
+}
+function cleanCustom(c) {
+  if (!c || typeof c !== 'object') return undefined;
+  const sports = Array.isArray(c.sports) ? [...new Set(c.sports.filter(s => SPORTS.some(x => x[0] === s)))] : [];
+  return { sports, style: STYLES.some(x => x[0] === c.style) ? c.style : 'both' };
 }
 function cleanAvatar(v) {
   if (!v || typeof v !== 'object') return null;
@@ -87,12 +93,12 @@ export function cleanBackup(prof, entries) {
   const clean = {
     id: prof.id, kind: prof.kind, name, accent: /^#[0-9a-f]{6}$/i.test(prof.accent || '') ? prof.accent : null,
     units: prof.units === 'metric' || prof.units === 'imperial' ? prof.units : undefined, tz: tzOk(prof.tz) ? prof.tz : undefined,
-    about: prof.about ? cleanAbout(prof.about) : undefined, coach: cleanCoach(prof.coach),
+    about: prof.about ? cleanAbout(prof.about) : undefined, coach: cleanCoach(prof.coach), custom: cleanCustom(prof.custom),
     avatar: 'avatar' in prof ? cleanAvatar(prof.avatar) : undefined,
     dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
-    settings: { sound: prof.settings?.sound !== false, haptics: prof.settings?.haptics !== false, duel: false, // sharing is chosen again on each phone
+    settings: { sound: prof.settings?.sound !== false, duel: false, // sharing is chosen again on each phone
       homeOrder: ids(prof.settings?.homeOrder), homeHidden: ids(prof.settings?.homeHidden),
       theme: THEMES[prof.settings?.theme] ? prof.settings.theme : 'capsule', mode: ['auto', 'dark', 'light'].includes(prof.settings?.mode) ? prof.settings.mode : 'auto', ...(prof.kind === 'engine'
       ? { gravity: [10, 20, 50, 100].includes(prof.settings?.gravity) ? prof.settings.gravity : 50, shuffleSeed: int(prof.settings?.shuffleSeed, 0, 1e6, 0),
