@@ -10,20 +10,30 @@ export async function loggedEntries(p) {
 }
 
 // ---------- Streak with Senzu saves ----------
-// A day counts when anything is logged, including a planned rest day. Every 7 days in a row
+// A day counts when anything is logged. Rest days count too, up to restPerWeek in each
+// Sunday-to-Saturday week, so a streak can't run on rest alone. Every 7 days in a row
 // earns a Senzu bean (up to 3). A missed day spends a bean instead of ending the streak.
-export function streak(all, today) {
-  const days = new Set(all.map(e => e.day));
-  if (!days.size) return { days: 0, beans: 0, todayDone: false, saved: 0 };
-  const first = [...days].sort()[0];
-  let run = 0, beans = 0, saved = 0;
+// Rest logged before the cap arrived (1.4.1, week of Oct 25 2026) always counts, so updating never costs a streak.
+const REST_CAP_FROM = '2026-10-25';
+export function streak(all, today, restPerWeek = 2) {
+  const days = new Set(all.filter(e => e.type !== 'rest').map(e => e.day));
+  const rest = new Set(all.filter(e => e.type === 'rest' && !days.has(e.day)).map(e => e.day));
+  const thisWeek = weekStart(today);
+  const restUsed = [...rest].filter(d => d >= thisWeek && d <= today).length;
+  const restLeft = Math.max(0, restPerWeek - restUsed);
+  if (!days.size && !rest.size) return { days: 0, beans: 0, todayDone: false, saved: 0, restLeft, restPerWeek };
+  const first = [...days, ...rest].sort()[0];
+  let run = 0, beans = 0, saved = 0, week = null, used = 0;
   for (let d = first; d <= today; d = addDays(d, 1)) {
-    if (days.has(d)) { run++; if (run % 7 === 0 && beans < 3) beans++; }
+    const ws = weekStart(d); if (ws !== week) { week = ws; used = 0; }
+    const counts = days.has(d) || (rest.has(d) && (d < REST_CAP_FROM || used++ < restPerWeek));
+    if (counts) { run++; if (run % 7 === 0 && beans < 3) beans++; }
     else if (d === today) break; // today isn't over yet
     else if (run > 0 && beans > 0) { beans--; saved++; }
     else run = 0;
   }
-  return { days: run, beans, todayDone: days.has(today), saved };
+  const todayDone = days.has(today) || (rest.has(today) && (today < REST_CAP_FROM || restUsed <= restPerWeek));
+  return { days: run, beans, todayDone, saved, restLeft, restPerWeek };
 }
 
 // ---------- Recovery ("Senzu map") ----------

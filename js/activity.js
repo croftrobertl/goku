@@ -36,11 +36,11 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
       <div class="pills">${ACTIVITIES.map(([k, n]) => `<button data-kind="${k}" aria-pressed="${d.kind === k}">${esc(n)}</button>`).join('')}</div>
       <p class="lbl" style="margin-top:16px">Minutes</p>
       <div class="seg">${[30, 45, 60, 90, 120].map(m => `<button data-min="${m}" aria-pressed="${d.minutes === m}">${m}</button>`).join('')}</div>
-      <input id="mins" type="number" inputmode="numeric" min="1" max="600" value="${esc(d.minutes)}" aria-label="Minutes" style="margin-top:8px">
+      <input id="mins" type="number" inputmode="numeric" min="1" max="600" value="${d.minutes ? esc(d.minutes) : ''}" aria-label="Minutes" style="margin-top:8px">
       <p class="lbl" style="margin-top:16px">Effort (0 easy, 10 all-out)</p>
       <div class="seg">${[2, 4, 6, 8, 10].map(v => `<button data-eff="${v}" aria-pressed="${d.effort === v}">${v}</button>`).join('')}</div>`;
   };
-  el.addEventListener('input', e => { if (e.target.id === 'mins') d.minutes = Math.max(1, Math.min(600, Math.round(+e.target.value || 0))); });
+  el.addEventListener('input', e => { if (e.target.id === 'mins') d.minutes = e.target.value === '' ? 0 : Math.max(1, Math.min(600, Math.round(+e.target.value || 0))); });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();

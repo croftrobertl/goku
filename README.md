@@ -35,8 +35,10 @@ used to dictate.
 - *Capsule pantry:* save foods you eat often with their protein, then log both in one tap.
 - *One protein number:* your own target if you set one, otherwise the bottom of the coach range,
   with the range shown beside it.
-- *Streak with Senzu beans:* any logged day counts, including a planned rest day. Every 7 days in a
-  row earns a bean (up to 3), and a missed day spends one instead of ending the streak.
+- *Streak with Senzu beans:* any logged day counts. Rest days count too, up to the days your plan
+  leaves free each week (7 minus your weekly goal; your schedule's rest days; 2 with no plan), so a
+  streak can't run on rest alone. Every 7 days in a row earns a bean (up to 3), and a missed day
+  spends one instead of ending the streak.
 - *Arc recap:* the first visit each week shows last week's numbers and one focus for the week ahead.
 - *Why?* buttons next to fuel ranges, readiness, the weekly goal, the streak and level-up explain
   the math with your own numbers.

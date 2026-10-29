@@ -38,7 +38,8 @@ const why = (k, m) => `<button class="why" data-why="${k}" data-arg="${+m || 0}"
 export function fuelCard(p, minutes, { title = 'Fuel today' } = {}) {
   const r = fuelRanges(p, minutes);
   if (!r) return `<section class="card"><p class="lbl">${esc(title)}</p>
-    <p class="sub">Add your weight in Settings → About you and Goku sizes protein and carbohydrate ranges for you.</p></section>`;
+    <p class="sub">Add your weight and Goku sizes protein and carbohydrate ranges for you.</p>
+    <button class="cta2" data-setup="body" style="margin-top:8px;width:100%">Add my weight</button></section>`;
   const likes = p.about?.likes || [];
   const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
   const allowed = proteinIdeas(p);

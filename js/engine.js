@@ -6,8 +6,8 @@ import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
 import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
 import { coachCard, bindCoach, isMinor } from './coach.js';
 import { fuelCard, fuelRanges } from './fuel.js';
-import { logActivity, activitiesOn, minutesOf, activityRows, editActivityById } from './activity.js';
-import { loggedEntries, recovery, records, recordFor, progression } from './insights.js';
+import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
+import { loggedEntries, recovery, records, recordFor, progression, GROUPS } from './insights.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
 import { whyBtn } from './why.js';
 
@@ -93,7 +93,9 @@ export async function home() {
   const g = p.settings.gravity || 50;
   const [rounds, rest, cap, depth] = GRAVITY[g];
   const circuit = await todaysCircuit();
-  const sessions = await sessionsInOrder();
+  // One read of the log feeds every card below.
+  const all = (await loggedEntries(p)).sort((a, b) => a.ts - b.ts);
+  const sessions = all.filter(e => e.type === 'session').sort(byDay);
   const last = sessions[sessions.length - 1];
   const ghost = ghostFor(sessions, g);
   const gut = on(p, 'gut') ? await db.get('entries', p.id + ':gut:' + today()) : null;
@@ -113,12 +115,11 @@ export async function home() {
   const sleepH = await recentSleep(p);
   const lowSleep = sleepH && sleepH < sleepMin;
   const t = today();
-  const todayActs = await activitiesOn(t);
-  const allActs = await entries('activity');
-  const all = await loggedEntries(p);
+  const allActs = all.filter(e => e.type === 'activity');
+  const todayActs = allActs.filter(e => e.day === t);
   const map = recovery(sessions.filter(s => s.day >= addDays(t, -6)), allActs.filter(a => a.day >= addDays(t, -6)), t);
   const prog = progression(sessions, g);
-  const showProg = prog && p.coach?.progSeen !== prog.latest.id;
+  const showProg = prog && p.coach?.progSeen !== prog.latest.id && !(fresh && feel.v === 'hard');
   const nextG = levels[levels.indexOf(g) + 1];
 
   return {
@@ -131,7 +132,7 @@ export async function home() {
       <div class="row" style="margin-top:8px;justify-content:flex-start;gap:8px">${nextG ? `<button class="cta2" data-g="${nextG}" data-prog="${esc(prog.latest.id)}">Move to ×${nextG}</button>` : ''}
       <button class="cta2" id="addLoad" data-prog="${esc(prog.latest.id)}">Add load to an exercise</button>
       <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}
-    ${nudge ? `<section class="card"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
+    ${nudge && !showProg ? `<section class="card"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}
     <section class="card" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
@@ -164,6 +165,7 @@ export async function home() {
     <section class="card"><p class="lbl">Senzu map · recovery</p>
       <div class="senzu">${map.map(m => `<div class="sz ${m.days === null ? 'never' : m.days <= 0 ? 'd0' : m.days === 1 ? 'd1' : m.days === 2 ? 'd2' : 'd3'}">
         <span class="szdot" aria-hidden="true"></span><b>${esc(m.name)}</b><span class="sub">${m.days === null ? 'not this week' : m.days <= 0 ? 'trained today' : m.days === 1 ? '1 day ago' : m.days + ' days ago'}</span></div>`).join('')}</div>
+      <p class="szkey sub" aria-hidden="true"><span class="sz d0"><span class="szdot"></span></span>today <span class="sz d1"><span class="szdot"></span></span>1 day <span class="sz d2"><span class="szdot"></span></span>2 days <span class="sz d3"><span class="szdot"></span></span>3+ days rested</p>
       <p class="note">From your circuits and other training in the last 7 days. If a group still feels sore, swap or skip it.</p></section>
     <div class="grid">
       <section class="card"><p class="lbl">Last session</p>
@@ -176,7 +178,7 @@ export async function home() {
     ${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) : ''}
     ${on(p, 'hypertrophy') ? `<section class="card">
       <p class="lbl">Hard sets this week</p>
-      ${SLOTS.map(s => `<div class="row" style="margin-top:8px"><span>${s[0].toUpperCase() + s.slice(1)}</span><span class="num sub">${sets[s] || 0}</span></div>`).join('')}
+      ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
       <p class="note">Each set taken to failure counts once, drops included.</p>
     </section>` : ''}
   </div></div>`,

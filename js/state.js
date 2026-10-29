@@ -20,7 +20,7 @@ export const MODULES = {
   ],
   perf: [
     ['care', 'Red flags and care checks', 'Health questions in the check-in, and a reminder to talk to a parent, coach or doctor when something needs attention.'],
-    ['fuel', 'Fuel ranges and tips', 'Protein and carbohydrate ranges for each training day, with sources, plus snack and water reminders.'],
+    ['fuel', 'Fuel ranges and tips', 'Protein and carbohydrate ranges for each training day, with sources, plus snack and water tips.'],
     ['skills', 'Skill progressions', 'Mark skills as tried, landed or consistent.', true],
     ['strength', 'Strength for skills', 'Hollow holds, handstand holds and coach circuits.', true],
     ['flex', 'Flexibility progressions', 'Splits and bridge checkpoints.', true],

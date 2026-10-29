@@ -3,7 +3,8 @@
 import { esc, round } from './ui.js';
 import { kgOf, weight, weightUnit } from './units.js';
 import { SOURCES, carbTier, fuelRanges } from './fuel.js';
-import { isMinor, ageOf } from './coach.js';
+import { isMinor } from './coach.js';
+import { readiness, sleepTargetFor } from './perf-score.js';
 
 export const whyBtn = (key, arg = '') => `<button class="why" data-why="${key}" data-arg="${esc(arg)}">Why?</button>`;
 
@@ -26,16 +27,22 @@ export const WHY = {
       <p class="note">${esc(SOURCES.acsm)}</p>`];
   },
   readiness: (p, json) => {
-    const c = JSON.parse(json || '{}'), target = (ageOf(p) ?? 0) >= 18 ? 7 : 9;
+    const c = JSON.parse(json || '{}'), target = sleepTargetFor(p);
     const parts = [['Sleep hours', Math.min(c.sleepH / target, 1) * 30, 30, `${c.sleepH} h of a ${target} h target`], ['Sleep quality', (c.sleepQ - 1) / 4 * 10, 10],
       ['Low tiredness', (5 - c.fatigue) / 4 * 15, 15], ['Low stress', (5 - c.stress) / 4 * 10, 10], ['Mood', (c.mood - 1) / 4 * 10, 10],
       ['Fun', (c.fun - 1) / 4 * 10, 10], ['No soreness', Math.max(0, 15 - (c.sore?.length || 0) * 5), 15, `${c.sore?.length || 0} sore area(s), 5 off each`]];
-    return ['How readiness is scored', `<ul class="list">${parts.map(([n, v, max, note]) => `<li><span>${n}${note ? `<br><span class="chain">${esc(note)}</span>` : ''}</span><span class="num">${Math.round(v)} / ${max}</span></li>`).join('')}</ul>
+    // Whole points that add up to the score shown: round down, then hand the rest to the largest remainders.
+    const score = readiness({ sore: [], ...c }, target), shown = parts.map(x => Math.floor(x[1]));
+    let left = score - shown.reduce((a, b) => a + b, 0);
+    for (const i of parts.map((x, i) => i).sort((a, b) => (parts[b][1] % 1) - (parts[a][1] % 1))) if (left-- > 0) shown[i]++;
+    return ['How readiness is scored', `<ul class="list">${parts.map(([n, , max, note], i) => `<li><span>${n}${note ? `<br><span class="chain">${esc(note)}</span>` : ''}</span><span class="num">${shown[i]} / ${max}</span></li>`).join('')}
+      <li><b>Readiness</b><b class="num">${score} / 100</b></li></ul>
       <p class="note">Sleep target: ${target === 9 ? 'middle of the 8–10 h the American Academy of Sleep Medicine recommends for ages 13–18' : '7 or more hours, AASM and Sleep Research Society adult consensus'}. It's a conversation starter, not a verdict.</p>`];
   },
   streak: (p, json) => {
     const s = JSON.parse(json || '{}');
     return ['How the streak works', `<p>Any day you log something counts: a session, an activity, a check-in, a gut log, or a planned rest day.</p>
+      <p style="margin-top:8px">Rest days count up to <b>${esc(s.restPerWeek)}</b> a week, the days your plan leaves free, so the streak still needs training.</p>
       <p style="margin-top:8px">Every 7 days in a row earns a Senzu bean (you can hold 3). Miss a day and a bean is spent instead of losing the streak.</p>
       <p style="margin-top:8px">Right now: <b>${esc(s.days)}</b> days, <b>${esc(s.beans)}</b> bean${s.beans === 1 ? '' : 's'}${s.saved ? `, ${esc(s.saved)} day${s.saved === 1 ? '' : 's'} saved so far` : ''}.</p>
       <p class="note">Rest is part of training, so logging a rest day keeps the streak too.</p>`];

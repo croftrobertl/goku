@@ -50,7 +50,7 @@ export const QUESTIONS = [
   { id: 'body', essential: true, title: 'Height and weight', type: 'body',
     help: p => p.kind === 'perf' ? 'Only used to size your fueling ranges. Your weight is never shown on any screen, chart or summary.'
       : 'Sizes your protein and carbohydrate ranges. Skip it if you like.' },
-  { id: 'experience', essential: true, title: 'How long have you trained seriously?', type: 'choice', key: 'experience',
+  { id: 'experience', essential: true, kinds: ['engine'], title: 'How long have you trained seriously?', type: 'choice', key: 'experience',
     options: [['0', 'Less than a year'], ['1', '1–3 years'], ['3', '3–5 years'], ['5', '5–10 years'], ['10', 'More than 10 years']],
     help: 'Sets where your starting gravity level begins.' },
   { id: 'goal', essential: true, title: 'What matters most right now?', type: 'choice', key: 'goal', options: p => GOALS[p.kind],
@@ -230,7 +230,7 @@ export function countAnswerToday(p) {
 // The Home card. onDone(question, answer-or-null) saves and redraws.
 export function coachCard(p, ctx) {
   if (!p.tz || !p.coach?.asked) return `<section class="card coach"><p class="lbl">Your coach</p>
-    <h2>Make Goku yours</h2><p class="sub">A few questions so your plan, fuel ranges and reminders fit you, not everyone. About 3 minutes.</p>
+    <h2>Make Goku yours</h2><p class="sub">A few questions so your plan and fuel ranges fit you, not everyone. About 3 minutes.</p>
     <button class="cta" id="coachSetup" style="margin-top:12px">Start</button></section>`;
   const q = nextQuestion(p, ctx);
   if (!q) return '';

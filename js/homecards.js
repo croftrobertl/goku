@@ -1,20 +1,30 @@
 // Home cards both profile types share: the streak with Senzu saves and the weekly arc recap.
 import { saveEntry, saveProfile } from './state.js';
 import { esc, round, toast } from './ui.js';
-import { prettyDay } from './time.js';
+import { prettyDay, weekday } from './time.js';
 import { streak, lastWeek, recapNumbers } from './insights.js';
 import { whyBtn } from './why.js';
 import { fuelRanges } from './fuel.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
 
+// Rest days that count each week: the days you don't plan to train (at least 1; 2 with no plan).
+const offDay = d => d.gym + d.vault === 0;
+export function restAllowance(p) {
+  if (p.kind === 'engine') return p.about?.days ? Math.max(1, 7 - +p.about.days) : 2;
+  const plan = p.settings.weekPlan || [], off = plan.filter(offDay).length;
+  return !plan.length || off === 7 ? 2 : Math.max(1, off);
+}
+
 export function streakCard(p, all, today) {
-  const s = streak(all, today);
-  const beans = '🫘'.repeat(s.beans) || '—';
+  const s = streak(all, today, restAllowance(p));
+  const plan = p.kind === 'perf' ? p.settings.weekPlan || [] : [];
+  const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
   return `<section class="card streak"><div class="row"><p class="lbl" style="margin:0">Streak</p>${whyBtn('streak', JSON.stringify(s))}</div>
     <div class="row" style="margin-top:4px"><span class="big num">${s.days}<span class="sub"> day${s.days === 1 ? '' : 's'}</span></span>
-    <span aria-label="${s.beans} Senzu bean${s.beans === 1 ? '' : 's'}" title="Senzu beans">${beans}</span></div>
-    ${s.todayDone ? '<p class="sub">Today counts. ✓</p>' : `<p class="sub">Log anything today to keep it going.</p>
-      <button class="cta2" id="restDay" style="margin-top:8px;width:100%">Log a planned rest day</button>`}</section>`;
+    ${s.beans ? `<span aria-label="${s.beans} Senzu bean${s.beans === 1 ? '' : 's'}" title="Senzu beans">${'🫘'.repeat(s.beans)}</span>` : '<span class="sub">no beans yet</span>'}</div>
+    ${s.todayDone ? '<p class="sub">Today counts. ✓</p>' : s.restLeft ? `<p class="sub">${plannedRest ? 'Today is a planned rest day.' : 'Log anything today to keep it going.'}</p>
+      <button class="cta2" id="restDay" style="margin-top:8px;width:100%">${plannedRest ? 'Count today\'s rest' : 'Log a planned rest day'}</button>`
+      : `<p class="sub">This week's ${s.restPerWeek} rest day${s.restPerWeek === 1 ? ' is' : 's are'} used. Log training to keep it going.</p>`}</section>`;
 }
 
 // Shown in a new week until dismissed, if anything was logged last week.
@@ -29,11 +39,13 @@ export function recapCard(p, all, today) {
     const goal = +(p.about?.days || 0);
     rows.push(['Sessions', `${n.sessions.length}${goal ? ` of ${goal}` : ''}`], ['Total reps', reps]);
     if (n.activities.length) rows.push(['Other training', `${n.activities.reduce((a, x) => a + x.data.minutes, 0)} min`]);
-    const range = fuelRanges(p, 0);
-    if (range && n.gut.length) {
-      const hit = n.gut.filter(g => g.data.protein.reduce((a, b) => a + b, 0) >= range.protein[0]).length;
-      rows.push(['Protein range hit', `${hit} of ${n.gut.length} logged days`]);
-      if (hit < Math.ceil(n.gut.length / 2)) focus.push(`Reach ${range.protein[0]} g of protein on more days. The Capsule pantry makes it one tap.`);
+    // The same protein number the Gut log shows: your own daily target, else the bottom of the range.
+    const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
+    const target = own || fuelRanges(p, 0)?.protein[0];
+    if (target && n.gut.length) {
+      const hit = n.gut.filter(g => g.data.protein.reduce((a, b) => a + b, 0) >= target).length;
+      rows.push([own ? 'Protein target hit' : 'Protein range hit', `${hit} of ${n.gut.length} logged days`]);
+      if (hit < Math.ceil(n.gut.length / 2)) focus.push(`Reach ${target} g of protein on more days. The Capsule pantry makes it one tap.`);
     }
     if (goal && n.sessions.length < goal) focus.push(`Fit in ${goal} sessions. Short ×10 or ×20 days still count.`);
     if (!focus.length) focus.push('Strong week. Try one gravity level higher, or beat your ghost by a few reps.');
