@@ -6,12 +6,15 @@ import { esc, ask, overlay, stepper, round, guard, toast, dayPicker } from './ui
 import { DOW, addDays, weekStart, weekday, prettyDay, daysBetween } from './time.js';
 import { AREAS } from './validate.js';
 import { coachCard, bindCoach, ageOf } from './coach.js';
-import { fuelCard } from './fuel.js';
+import { fuelCard, timingCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
+import { trendCard } from './trend.js';
+import { skillSummary, skillList } from './skills.js';
+import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
 import { whyBtn } from './why.js';
 
-export const tabs = () => [['home', 'Home'], ['week', 'Week'], ['checkin', 'Check-in'], ['history', 'History'], ['settings', 'Settings']];
+export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in'], ['history', 'History'], ['settings', 'Settings']];
 
 export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
 import { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
@@ -51,6 +54,7 @@ export async function home() {
   const weekMins = plan.reduce((a, d) => a + d.gym + d.vault, 0);
   const flags = await careFlags();
   const all = await loggedEntries(p);
+  const skills = on(p, 'skills') ? await skillList() : [];
   const comp = p.about?.comp && p.about.comp >= t ? daysBetween(t, p.about.comp) : null;
 
   return {
@@ -68,6 +72,7 @@ export async function home() {
         : `<div class="empty"><h1 id="h-ready">Check in to see readiness</h1>
           <p>Six quick questions about sleep, energy and how your body feels. It takes about 30 seconds.</p></div>`}
       </section>
+      ${newBallsCard(p, milestones(p, all, t, skills))}
       ${recapCard(p, all, t)}
       ${coachCard(p, {})}
       ${comp !== null ? `<section class="card"><p class="lbl">Competition</p><p class="big num">${comp === 0 ? 'Today' : comp + (comp === 1 ? ' day' : ' days')}</p>
@@ -96,15 +101,17 @@ export async function home() {
           `<p>${planned.gym ? `Gymnastics ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `Vaulting ${round(planned.vault / 60, 1)} h` : ''}</p>`}
         ${todays.length ? `<ul class="list" style="margin-top:8px">${todays.map(s => `<li><span>${s.data.kind === 'vault' ? 'Vaulting' : 'Gymnastics'} · ${esc(s.data.minutes)} min</span>
           <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}
-        <p class="note">Load = minutes × effort (0–10). Trends and gentle color bands are coming in a later update.</p>
+        <p class="note">Load = minutes × effort (0–10).</p>
       </section>
-      ${on(p, 'fuel') ? fuelCard(p, planned.gym + planned.vault, { title: planned.gym + planned.vault ? 'Fuel today' : 'Fuel · rest day' }) : ''}
+      ${on(p, 'skills') ? skillSummary(skills) : ''}
+      ${trendCard(p, all, t)}
+      ${on(p, 'fuel') ? fuelCard(p, planned.gym + planned.vault, { title: planned.gym + planned.vault ? 'Fuel today' : 'Fuel · rest day' }) + timingCard(p, planned.gym + planned.vault) : ''}
       ${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
         <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}
     </div></div>`,
     bind(root) {
       bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
-      bindShared(root, p, t);
+      bindShared(root, p, t); bindBalls(root, p);
       root.addEventListener('click', e => { if (e.target.closest('[data-day]') && !e.target.closest('.coach')) window.goku.go('week'); });
     },
   };
@@ -293,9 +300,12 @@ export function logSession(existing) {
 export async function historyView() {
   const cs = (await entries('checkin')).reverse();
   const ss = (await entries('session')).reverse();
+  const p = profile();
+  const balls = milestones(p, await loggedEntries(p), today(), on(p, 'skills') ? await skillList() : []);
   return {
     html: `<h1>History</h1>
-    <section class="card" style="margin-top:12px"><p class="lbl">Check-ins</p>
+    <div style="margin-top:12px">${ballsCard(balls)}</div>
+    <section class="card"><p class="lbl">Check-ins</p>
       ${cs.length ? `<ul class="list">${cs.map(c => `<li><span>${prettyDay(c.day)}<br><span class="chain">${esc(c.data.sleepH)} h sleep${c.data.sore.length ? ' · sore: ' + c.data.sore.map(esc).join(', ') : ''}</span></span>
         <span class="row" style="gap:8px"><span class="num">${readiness(c.data, sleepTarget(profile()))}</span><button class="cta2" data-ci="${esc(c.day)}" aria-label="Edit check-in from ${prettyDay(c.day)}">Edit</button></span></li>`).join('')}</ul>`
         : '<div class="empty"><h2>No check-ins yet</h2><p>Your daily check-ins show up here, with the readiness score for each day.</p></div>'}

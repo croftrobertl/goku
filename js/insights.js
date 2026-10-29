@@ -21,19 +21,20 @@ export function streak(all, today, restPerWeek = 2) {
   const thisWeek = weekStart(today);
   const restUsed = [...rest].filter(d => d >= thisWeek && d <= today).length;
   const restLeft = Math.max(0, restPerWeek - restUsed);
-  if (!days.size && !rest.size) return { days: 0, beans: 0, todayDone: false, saved: 0, restLeft, restPerWeek };
+  if (!days.size && !rest.size) return { days: 0, beans: 0, todayDone: false, saved: 0, restLeft, restPerWeek, reached: {} };
   const first = [...days, ...rest].sort()[0];
   let run = 0, beans = 0, saved = 0, week = null, used = 0;
+  const reached = {}; // the first day a run hit 7 and 30 days, for milestones
   for (let d = first; d <= today; d = addDays(d, 1)) {
     const ws = weekStart(d); if (ws !== week) { week = ws; used = 0; }
     const counts = days.has(d) || (rest.has(d) && (d < REST_CAP_FROM || used++ < restPerWeek));
-    if (counts) { run++; if (run % 7 === 0 && beans < 3) beans++; }
+    if (counts) { run++; if (run % 7 === 0 && beans < 3) beans++; for (const n of [7, 30]) if (run === n) reached[n] ||= d; }
     else if (d === today) break; // today isn't over yet
     else if (run > 0 && beans > 0) { beans--; saved++; }
     else run = 0;
   }
   const todayDone = days.has(today) || (rest.has(today) && (today < REST_CAP_FROM || restUsed <= restPerWeek));
-  return { days: run, beans, todayDone, saved, restLeft, restPerWeek };
+  return { days: run, beans, todayDone, saved, restLeft, restPerWeek, reached };
 }
 
 // ---------- Recovery ("Senzu map") ----------

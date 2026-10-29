@@ -5,10 +5,12 @@ import { esc, toast, ask, overlay, stepper, unlockAudio, beep, buzz, soundReady,
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
 import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
 import { coachCard, bindCoach, isMinor } from './coach.js';
-import { fuelCard, fuelRanges } from './fuel.js';
+import { fuelCard, fuelRanges, timingCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
 import { loggedEntries, recovery, records, recordFor, progression, GROUPS } from './insights.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
+import { trendCard } from './trend.js';
+import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
 import { whyBtn } from './why.js';
 
 export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'gut') ? [['gut', 'Gut']] : []), ['history', 'History'], ['settings', 'Settings']];
@@ -125,6 +127,7 @@ export async function home() {
   return {
     cta: circuit.length ? ['Enter chamber', () => startRun(circuit)] : null,
     html: `<div class="cols"><div>
+    ${newBallsCard(p, milestones(p, all, t))}
     ${recapCard(p, all, t)}
     ${coachCard(p, ctx)}
     ${showProg ? `<section class="card coachnote"><div class="row"><p class="lbl" style="margin:0">Level up</p>${whyBtn('progress', JSON.stringify(prog.reps))}</div>
@@ -167,6 +170,7 @@ export async function home() {
         <span class="szdot" aria-hidden="true"></span><b>${esc(m.name)}</b><span class="sub">${m.days === null ? 'not this week' : m.days <= 0 ? 'trained today' : m.days === 1 ? '1 day ago' : m.days + ' days ago'}</span></div>`).join('')}</div>
       <p class="szkey sub" aria-hidden="true"><span class="sz d0"><span class="szdot"></span></span>today <span class="sz d1"><span class="szdot"></span></span>1 day <span class="sz d2"><span class="szdot"></span></span>2 days <span class="sz d3"><span class="szdot"></span></span>3+ days rested</p>
       <p class="note">From your circuits and other training in the last 7 days. If a group still feels sore, swap or skip it.</p></section>
+    ${trendCard(p, all, t)}
     <div class="grid">
       <section class="card"><p class="lbl">Last session</p>
         <p class="big num">${last ? round(sessionTotal(last) / minutes(last), 1) : '—'}</p><p class="sub">reps per minute</p></section>
@@ -175,7 +179,7 @@ export async function home() {
     </div>
     ${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>
       <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}
-    ${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) : ''}
+    ${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) + timingCard(p, cap + minutesOf(todayActs)) : ''}
     ${on(p, 'hypertrophy') ? `<section class="card">
       <p class="lbl">Hard sets this week</p>
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
@@ -184,7 +188,7 @@ export async function home() {
   </div></div>`,
     bind(root) {
       bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
-      bindShared(root, p, t);
+      bindShared(root, p, t); bindBalls(root, p);
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
@@ -616,9 +620,11 @@ export async function historyView() {
   const sessions = (await sessionsInOrder()).reverse();
   const guts = (await entries('gut')).reverse();
   const acts = (await entries('activity')).sort((a, b) => b.day.localeCompare(a.day));
+  const p = profile();
   return {
     html: `<h1>History</h1>
-      <section class="card" style="margin-top:12px"><p class="lbl">Sessions</p>
+      <div style="margin-top:12px">${ballsCard(milestones(p, await loggedEntries(p), today()))}</div>
+      <section class="card"><p class="lbl">Sessions</p>
       ${sessions.length ? `<ul class="list">${sessions.map(s => `<li><span>${prettyDay(s.day)} · ×${esc(s.data.gravity)}<br>
         <span class="chain">${s.data.sets.length} sets · ${round(minutes(s))} min</span></span>
         <span class="row" style="gap:8px"><span class="num">${sessionTotal(s)} reps</span>
@@ -631,7 +637,7 @@ export async function historyView() {
         : '<div class="empty"><p>Log bloating, waist and food in the Gut tab.</p></div>'}</section>` : ''}
       <section class="card"><p class="lbl">Other training</p>
       ${acts.length ? `<ul class="list">${activityRows(acts.slice(0, 60))}</ul>` : '<div class="empty"><p>Log soccer, runs and other training from Home.</p></div>'}</section>
-      <p class="note">Power level records are in the Library. Charts are coming in a later update.</p>`,
+      <p class="note">Power level records are in the Library. Your training trend is on Home.</p>`,
     bind(root) {
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;

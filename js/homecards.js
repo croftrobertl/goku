@@ -53,7 +53,7 @@ export function recapCard(p, all, today) {
     const scores = n.checkins.map(c => readiness(c.data, sleepTargetFor(p)));
     const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
     const sleep = n.checkins.length ? round(n.checkins.reduce((a, c) => a + c.data.sleepH, 0) / n.checkins.length, 1) : null;
-    rows.push(['Check-ins', `${n.checkins.length} of 7`]);
+    rows.push(['Check-ins', `${new Set(n.checkins.map(c => c.day)).size} of 7`]); // days, so an edited day never counts twice
     if (avg !== null) rows.push(['Average readiness', avg]);
     if (sleep !== null) rows.push(['Average sleep', sleep + ' h']);
     const mins = n.sessions.reduce((a, s) => a + (s.data.minutes || 0), 0);

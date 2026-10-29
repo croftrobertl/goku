@@ -39,6 +39,20 @@ used to dictate.
   leaves free each week (7 minus your weekly goal; your schedule's rest days; 2 with no plan), so a
   streak can't run on rest alone. Every 7 days in a row earns a bean (up to 3), and a missed day
   spends one instead of ending the streak.
+- *Training trend* (1.5.0): the last 8 weeks as bars, with a dashed line for the average of the 4
+  weeks before this one. Gymnastics counts load (minutes × effort, the session-RPE method: Foster C,
+  et al. J Strength Cond Res. 2001;15(1):109–115); strength counts training minutes, because circuits
+  don't ask for an effort score. Trend only: no zones and no injury-risk score, because the science
+  behind those numbers is disputed.
+- *Skill tree* (gymnastics, 1.5.0): a Skills tab where each skill climbs Learning → With spot → Solo →
+  Competition-ready, grouped by event, with the date of each move. Competition-ready asks for the
+  coach's OK first.
+- *Fuel timing* (1.5.0): on training days, protein every 3–4 hours and within 2 hours after training
+  (0.25–0.40 g/kg a dose), carbohydrate during sessions over an hour (30–60 g an hour), and fast
+  refuelling when training again within 4 hours (1.2 g/kg an hour). Caffeine is left out on purpose.
+- *Dragon Ball milestones* (1.5.0): seven orbs for real achievements (first session or check-in, 7 and
+  30 days in a row, a first record or skill moved up, a goal week, 25 sessions or a competition-ready
+  skill, 100 days logged). Worked out from the log; History shows all seven, Home celebrates new ones.
 - *Arc recap:* the first visit each week shows last week's numbers and one focus for the week ahead.
 - *Why?* buttons next to fuel ranges, readiness, the weekly goal, the streak and level-up explain
   the math with your own numbers.
@@ -180,6 +194,7 @@ A stable JSON format, so a future native app could import the full history.
 | `gut` | `amWaist`, `pmWaist`, `bloat` (0–10), `foods[]`, `fluidsOz`, `supplements[]`, `protein[]` (grams per addition) |
 | `activity` | `kind` (soccer/run/bike/swim/hike/sport/lift/other), `minutes`, `effort` (0–10), `source` (`health` if imported) |
 | `rest` | none: a planned rest day |
+| `skill` | `name`, `event` (vault/floor/beam/bars/other), `stage` (0 Learning – 3 Competition-ready), `log[]` of `{stage, day}` |
 | `sleep` | `hours`, `source` (`health`) |
 | `checkin` | `sleepH`, `sleepQ`, `fatigue`, `stress`, `mood`, `fun` (each 1–5), `sore[]` (areas), `archPain`, `techPain`, `dizzy` |
 | `session` (gymnastics) | `kind` (gym/vault), `minutes`, `effort` (0–10). Load = minutes × effort |
@@ -199,6 +214,8 @@ Shown on Home when a weight is saved, with the sources as footnotes. No calorie 
   2016;48(3):543–568. **These tiers were checked against several published reproductions of the
   statement's table; the original is paywalled and wasn't read directly.** Which tier a day falls in
   (under 45 min, under 90, under 4 h, 4 h or more) is Goku's mapping of the statement's wording.
+- **Fuel timing:** Kerksick CM, et al. International Society of Sports Nutrition position stand:
+  nutrient timing. J Int Soc Sports Nutr. 2017;14:33 (checked against the open-access text).
 - Under 18, the card says the ranges come from adult studies and should be confirmed by a
   pediatrician or sports dietitian.
 - Sleep notes: AASM pediatric consensus (2016) 8–10 h for ages 13–18; AASM/SRS adult consensus (2015)
@@ -241,7 +258,12 @@ food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---
 
-## Testing status (1.4.0)
+## Testing status (1.5.0)
+
+**1.5.0 in the Mac browser at phone width** (light and dark): 8-week trend for both profiles with
+8 weeks of data, Why on the trend, skill tree (add with quick picks, move up, the competition-ready
+check, stage history), six tabs on one line, Dragon Ball celebration card and History list for both
+profiles, fuel timing with and without a saved weight. **Not yet on the iOS simulator or a real iPhone.**
 
 **Mac browser** (Chromium engine) at 320 px, phone and desktop widths, in light and dark mode:
 upgrading from 1.0.2 with existing data; onboarding with Cancel; passcodes (create, change with Cancel,
@@ -307,6 +329,9 @@ js/activity.js         other training log
 js/insights.js         streak, recovery map, records, progression, recap numbers
 js/homecards.js        streak and weekly recap cards
 js/why.js              "Why?" explanations
+js/trend.js            8-week training trend
+js/skills.js           gymnastics skill tree
+js/milestones.js       Dragon Ball milestones
 js/health.js           Scouter link: Health file import
 js/perf-score.js       readiness score and sleep target
 js/crypto.js           passcode hashing and encrypted exports

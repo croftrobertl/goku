@@ -11,10 +11,11 @@ import { prettyDay } from './time.js';
 import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
 import { setupFlow } from './coach.js';
+import { skillsView } from './skills.js';
 
 const SCREENS = {
   engine: { tabs: engine.tabs, home: engine.home, library: engine.libraryView, gut: engine.gutView, history: engine.historyView },
-  perf: { tabs: perf.tabs, home: perf.home, week: perf.weekView, checkin: perf.checkinView, history: perf.historyView },
+  perf: { tabs: perf.tabs, home: perf.home, week: perf.weekView, skills: skillsView, checkin: perf.checkinView, history: perf.historyView },
 };
 const tabs = {}; // current tab per profile id
 let update = null; // { reg, dismissed }

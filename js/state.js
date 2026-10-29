@@ -21,7 +21,7 @@ export const MODULES = {
   perf: [
     ['care', 'Red flags and care checks', 'Health questions in the check-in, and a reminder to talk to a parent, coach or doctor when something needs attention.'],
     ['fuel', 'Fuel ranges and tips', 'Protein and carbohydrate ranges for each training day, with sources, plus snack and water tips.'],
-    ['skills', 'Skill progressions', 'Mark skills as tried, landed or consistent.', true],
+    ['skills', 'Skill tree', 'Each skill climbs Learning, With spot, Solo and Competition-ready, with dates.'],
     ['strength', 'Strength for skills', 'Hollow holds, handstand holds and coach circuits.', true],
     ['flex', 'Flexibility progressions', 'Splits and bridge checkpoints.', true],
     ['vaulting', 'Vaulting practice', 'Compulsory moves on horse or barrel.', true],

@@ -1,11 +1,11 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '1.4.1';
+const CACHE_VERSION = '1.5.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './js/app.js', './js/db.js', './js/time.js', './js/crypto.js', './js/ui.js', './js/state.js', './js/validate.js',
-  './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/health.js', './js/version.js',
+  './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/trend.js', './js/skills.js', './js/milestones.js', './js/health.js', './js/version.js',
   './icons/apple-touch-icon.png', './icons/favicon-32.png', './icons/favicon-48.png', './icons/favicon-192.png',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
 ];

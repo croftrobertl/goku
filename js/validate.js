@@ -36,7 +36,8 @@ function cleanCoach(c) {
   const asked = Object.fromEntries(Object.entries(c.asked || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && DAY.test(v || '')).slice(0, 50));
   const feel = c.feel && DAY.test(c.feel.day || '') && ['easy', 'right', 'hard'].includes(c.feel.v) ? { day: c.feel.day, v: c.feel.v, ...([10, 20, 50, 100].includes(c.feel.g) ? { g: c.feel.g } : {}) } : undefined;
   const seen = k => (k === 'recapSeen' ? DAY.test(c[k] || '') : ID.test(c[k] || '')) ? { [k]: c[k] } : {};
-  return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen') };
+  const balls = Array.isArray(c.balls) ? [...new Set(c.balls.filter(n => Number.isInteger(n) && n >= 1 && n <= 7))].sort() : null;
+  return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen'), ...(balls ? { balls } : {}) };
 }
 function cleanAvatar(v) {
   if (!v || typeof v !== 'object') return null;
@@ -64,6 +65,8 @@ const DATA = {
   activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'hike', 'sport', 'lift', 'other'].includes(d.kind) ? d.kind : 'other',
     minutes: int(d.minutes, 1, 1440, 30), effort: int(d.effort, 0, 10, 5), ...(d.source === 'health' ? { source: 'health' } : {}) }),
   rest: () => ({}),
+  skill: d => ({ name: str(d.name, 40).trim() || 'Skill', event: ['vault', 'floor', 'beam', 'bars', 'other'].includes(d.event) ? d.event : 'other',
+    stage: int(d.stage, 0, 3, 0), log: Array.isArray(d.log) ? d.log.slice(-40).filter(l => DAY.test(l?.day || '')).map(l => ({ stage: int(l.stage, 0, 3, 0), day: l.day })) : [] }),
   sleep: d => ({ hours: num(d.hours, 0, 24, 0), source: 'health' }),
   checkin: d => ({ sleepH: num(d.sleepH, 0, 24, 8), sleepQ: int(d.sleepQ, 1, 5, 3), fatigue: int(d.fatigue, 1, 5, 3), stress: int(d.stress, 1, 5, 3),
     mood: int(d.mood, 1, 5, 3), fun: int(d.fun, 1, 5, 3), sore: strs(d.sore, 10, 20).filter(a => AREAS.includes(a)),

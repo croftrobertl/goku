@@ -6,6 +6,7 @@ import { isMinor, proteinIdeas } from './coach.js';
 
 export const SOURCES = {
   issn: 'Jäger R, et al. International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr. 2017;14:20.',
+  timing: 'Kerksick CM, et al. International Society of Sports Nutrition position stand: nutrient timing. J Int Soc Sports Nutr. 2017;14:33.',
   acsm: 'Thomas DT, Erdman KA, Burke LM. Nutrition and Athletic Performance (Academy of Nutrition and Dietetics, Dietitians of Canada, American College of Sports Medicine). Med Sci Sports Exerc. 2016;48(3):543–568.',
 };
 
@@ -56,4 +57,22 @@ export function fuelCard(p, minutes, { title = 'Fuel today' } = {}) {
     ${minutes ? `<p class="note">Counting ${minutes} minutes of training today.</p>` : ''}
     <p class="note">${isMinor(p) ? 'These ranges come from studies of adults. For athletes under 18, a pediatrician or sports dietitian should confirm them.'
       : 'General ranges, not a prescription. A sports dietitian can fine-tune them.'}</p></section>`;
+}
+
+// Fuel timing for a training day, from the ISSN nutrient-timing position stand (2017).
+// Caffeine, which the same statement mentions for fast glycogen refuelling, is left out on purpose.
+export function timingCard(p, minutes) {
+  if (!(minutes > 0)) return '';
+  const kg = kgOf(p);
+  const dose = kg ? `about ${Math.round(kg * 0.25)}–${Math.round(kg * 0.4)} g (0.25–0.40 g per kg)` : '20–40 g';
+  const rows = [
+    ['Through the day', `Protein ${dose} every 3 to 4 hours, so the daily total is spread out.`],
+    ['After training', `High-quality protein, ${dose}, within 2 hours of finishing.`],
+    ...(minutes > 60 ? [['During long, hard sessions', 'Past about an hour of hard work, 30–60 g of carbohydrate an hour, as sips of a sports drink every 10–15 minutes.']] : []),
+    ['Training again within 4 hours', kg ? `Carbohydrate about ${Math.round(kg * 1.2)} g an hour (1.2 g per kg) until the next session, or ${Math.round(kg * 0.8)} g an hour with ${Math.round(kg * 0.2)}–${Math.round(kg * 0.4)} g of protein an hour.`
+      : 'Carbohydrate about 1.2 g per kg of body weight an hour until the next session.'],
+  ];
+  return `<section class="card"><p class="lbl">Fuel timing</p>
+    <ul class="list">${rows.map(([k, v]) => `<li><span><b>${esc(k)}</b><br><span class="sub">${esc(v)}</span></span></li>`).join('')}</ul>
+    <p class="note">${esc(SOURCES.timing)}${isMinor(p) ? ' Studied in adults; for athletes under 18, a pediatrician or sports dietitian should confirm.' : ''}</p></section>`;
 }

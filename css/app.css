@@ -75,6 +75,8 @@ p { margin: 0; }
 .danger-fill { background: var(--care); color: var(--bg); }
 nav.tabs { display: flex; justify-content: space-between; margin-top: 8px; }
 nav.tabs button { flex: 1; font-size: .75rem; color: var(--tx3); min-width: 0; }
+nav.tabs button { padding: 0 1px; white-space: nowrap; } /* six tabs fit at 375 px without "Check-in" breaking */
+@media (max-width: 360px) { nav.tabs button { font-size: .6875rem; letter-spacing: -.01em; } }
 nav.tabs button[aria-current="page"] { color: var(--accent-text); font-weight: 600; }
 .ring { position: relative; width: 170px; height: 170px; margin: 6px auto; display: grid; place-items: center; }
 .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
@@ -198,3 +200,21 @@ sup { font-size: .65em; color: var(--tx3); }
 .szkey .sz { background: none; padding: 0; display: inline-flex; }
 .szkey .szdot { width: 10px; height: 10px; margin: 0 0 0 6px; }
 .szkey .sz:first-child .szdot { margin-left: 0; }
+.trend .tb { fill: var(--tx3); opacity: .55; } .trend .tb.now { fill: var(--accent); opacity: 1; }
+.trend .avgline { stroke: var(--tx); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.pips { display: inline-flex; gap: 3px; vertical-align: middle; margin-right: 4px; }
+.pip { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--tx3); }
+.pip.on { background: var(--accent); border-color: var(--accent); }
+.tree { list-style: none; margin: 8px 0 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); }
+.tree .node { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; }
+.tree .node::before { content: ""; position: absolute; left: -15px; top: 50%; width: 10px; border-top: 2px solid var(--line); }
+.tree .node.s3::before { border-color: var(--accent); }
+.tree .skill { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: none; border: 0; padding: 0; color: inherit; font: inherit; min-height: 44px; justify-content: center; flex: 1; min-width: 0; }
+.tree .done { color: var(--accent-text); font-size: 1.2rem; padding: 0 10px; }
+.ballrow { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.ball circle { fill: var(--s2); stroke: var(--line); stroke-width: 1.5; }
+.ball .shine { fill: #fff; opacity: .12; }
+.ball .stars { fill: var(--tx3); opacity: .6; }
+.ball.lit circle { fill: #f59a1c; stroke: #c9700a; }
+.ball.lit .shine { opacity: .55; }
+.ball.lit .stars { fill: #c4281c; opacity: 1; }
