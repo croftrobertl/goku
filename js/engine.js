@@ -11,6 +11,7 @@ import { loggedEntries, recovery, records, recordFor, progression, GROUPS, gutPa
 import { streakCard, recapCard, bindShared } from './homecards.js';
 import { trendCard } from './trend.js';
 import { homeLayout } from './homelayout.js';
+import { pickMove, showMove, howBtn, moveFor } from './movepicker.js';
 import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
 import { whyBtn } from './why.js';
@@ -30,7 +31,7 @@ const SEED = [
   ['DB goblet squat', 'legs', ['heavy', 'medium', 'bodyweight'], null, 'db'],
   ['Hanging leg raise', 'core', ['straight legs', 'bent knees'], null, 'bar'],
   ['DB push press', 'push', ['heavy', 'medium', 'light'], null, 'db'],
-  ['Playset pull-up', 'pull', ['strict', 'jumping', 'slow negatives'], null, 'bar'],
+  ['Playset pull-up', 'pull', ['strict', 'slow negatives', 'jumping'], null, 'bar'],
   ['TRX pistol', 'legs', ['low assist', 'high assist'], null, 'trx'],
   ['TRX knee tuck', 'core', ['pike', 'knee tuck'], null, 'trx'],
   ['TRX chest press', 'push', ['steep', 'mid', 'shallow'], null, 'trx'],
@@ -38,7 +39,7 @@ const SEED = [
   ['DB reverse lunge', 'legs', ['heavy', 'light', 'bodyweight'], null, 'db'],
   ['Pike pushup', 'push', ['feet raised', 'floor', 'kneeling'], null, 'bw'],
   ['Prone Y-T-W raise', 'pull', ['slow 3-second hold', 'standard'], null, 'bw'],
-  ['Bodyweight squat', 'legs', ['jump squat', 'tempo squat', 'squat'], null, 'bw'],
+  ['Bodyweight squat', 'legs', ['tempo squat', 'squat', 'chair squat'], null, 'bw'],
   ['Split squat', 'legs', ['rear foot raised', 'split squat', 'hand-assisted'], null, 'bw'],
   ['Dead bug', 'core', ['straight legs', 'bent knees'], null, 'bw'],
   ['Broad jump', 'power', ['quality reps only'], 'soccer', 'bw'],
@@ -443,15 +444,17 @@ export async function libraryView() {
   for (const e of lib) (groups[e.data.slot] ||= []).push(e);
   const pr = e => e.data.stages.map(st => [st.label, recordFor(best, e.id, st.label)]).filter(([, r]) => r);
   return {
-    cta: ['Add exercise', () => editExercise()],
-    html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group. ⚡ marks your power level record: the most reps in one set.</p>
+    cta: ['Add exercise', () => pickMove({ onCustom: () => editExercise(), have: lib.map(e => moveFor(e.data)?.id).filter(Boolean) })],
+    html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group. Tap ? to see how an exercise is done. ⚡ marks your power level record: the most reps in one set.</p>
       ${Object.entries(groups).map(([slot, list]) => `<section class="card" style="margin-top:12px">
         <p class="lbl">${esc(slot)}</p><ul class="list">${list.map(e => `<li><span>${esc(e.data.name)}<br>
         <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(weight(s.load, p))} ${weightUnit(p)})` : '')).join(' → ')}</span>
         ${pr(e).length ? `<br><span class="chain pr">⚡ ${pr(e).map(([l, r]) => `${esc(l)} ${r}`).join(' · ')}</span>` : ''}</span>
-        <button class="cta2" data-edit="${esc(e.id)}">Edit</button></li>`).join('')}</ul></section>`).join('')}`,
+        <span class="row" style="gap:6px">${moveFor(e.data) ? howBtn(moveFor(e.data).id, e.data.name) : ''}<button class="cta2" data-edit="${esc(e.id)}">Edit</button></span></li>`).join('')}</ul></section>`).join('')}`,
     bind(root) {
       root.addEventListener('click', e => {
+        const how = e.target.closest('[data-how]');
+        if (how) return showMove(how.dataset.how);
         const b = e.target.closest('[data-edit]');
         if (b) editExercise(lib.find(x => x.id === b.dataset.edit));
       });

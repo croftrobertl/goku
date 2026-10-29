@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Goku figures (dev preview)</title>
+<style>
+  body { font: 12px system-ui; background: #fff; color: #111; margin: 12px; }
+  .g { display: grid; grid-template-columns: repeat(auto-fill, 236px); gap: 6px; } .pair { display: flex; } .pair .fig { width: 112px; }
+  .c { border: 1px solid #ddd; border-radius: 8px; padding: 4px; text-align: center; }
+  .fig { width: 140px; height: auto; }
+  .fig .limb, .fig .torso { fill: none; stroke: #222; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+  .fig .far { stroke: #999; } .fig .arm { stroke: #d2691e; } .fig .arm.far { stroke: #f0b58a; }
+  .fig .torso { stroke-width: 6; }
+  .fig .headc { fill: #222; }
+  .fig .ground { stroke: #ccc; stroke-width: 1.5; }
+  .fig .prop { fill: none; stroke: #b07a2a; stroke-width: 2; } .fig rect.prop { fill: #e9d3ad; }
+  .fig .thick { stroke-width: 3; } .fig .band { stroke: #2a8a5a; stroke-width: 2; fill: none; }
+  .fig .wall { stroke-width: 3; } .fig .strap { stroke: #444; stroke-width: 1.5; } .fig .shadow { fill: #ddd; } .fig .soft { fill: #eee; stroke: none; } .fig .hub { fill: #fff; } .fig .dot { fill: #b07a2a; }
+  .fig .kit { fill: #3a6fd8; } .fig .kit.far { fill: #9db6ec; } .fig .plate { fill: #3a6fd8; } .fig .handle { fill: none; stroke: #3a6fd8; stroke-width: 2; }
+</style>
+<h1>Figures</h1>
+<div class="g" id="g"></div>
+<script type="module">
+  import { figureSVG } from '../js/figure.js';
+  import { MOVES } from '../js/moves.js';
+  const q = new URLSearchParams(location.search);
+  const from = +(q.get('from') || 0), n = +(q.get('n') || 24);
+  document.getElementById('g').innerHTML = MOVES.slice(from, from + n).map((m, i) => `<div class="c"><b>${from + i}. ${m.name}</b><div class="pair">${figureSVG(m.start)}${figureSVG(m.end)}</div></div>`).join('');
+</script>

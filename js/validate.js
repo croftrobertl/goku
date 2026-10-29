@@ -60,7 +60,7 @@ const ids = v => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'stri
 
 const DATA = {
   exercise: d => ({ name: str(d.name, 40), slot: str(d.slot, 12, 'push'), module: d.module === 'soccer' ? 'soccer' : null,
-    order: int(d.order, 0, 10000, 999), mode: d.mode === 'hold' ? 'hold' : 'reps',
+    order: int(d.order, 0, 10000, 999), mode: d.mode === 'hold' ? 'hold' : 'reps', ...(/^[a-z0-9-]{1,40}$/.test(d.moveId || '') ? { moveId: d.moveId } : {}),
     stages: stages(d.stages).map(({ label, load }) => ({ label, load })) }),
   session: d => ('kind' in d
     ? { kind: d.kind === 'vault' ? 'vault' : 'gym', minutes: int(d.minutes, 0, 1440, 0), effort: int(d.effort, 0, 10, 0) }

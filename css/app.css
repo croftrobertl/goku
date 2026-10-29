@@ -236,3 +236,25 @@ details.fold > summary { justify-content: center; }
 .list h1, .list h2, .list .lbl, .row > h1, .toggle .lbl { text-align: left; }
 h1 + p.sub, h2 + p.sub, h1 + .sub, h2 + .sub { text-align: center; } /* the short line under a title */
 .swatches { justify-content: center; }
+
+/* Exercise drawings and the "?" explanation (1.8) */
+.how { min-width: 44px; min-height: 44px; border-radius: 50%; border: 1.5px solid var(--accent-line); color: var(--accent-text); font-weight: 700; background: none; }
+.figs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.figs figure { margin: 0; background: var(--s2); border-radius: 12px; padding: 6px 6px 8px; text-align: center; }
+.figs figcaption { font-size: .8rem; color: var(--tx2); font-weight: 600; }
+.fig { width: 100%; height: auto; display: block; }
+.fig .limb, .fig .torso { fill: none; stroke: var(--tx); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.fig .torso { stroke-width: 6; }
+.fig .far { stroke: var(--tx3); opacity: .7; }
+.fig .arm { stroke: var(--accent-line); opacity: 1; } .fig .arm.far { opacity: .5; }
+.fig .headc { fill: var(--tx); }
+.fig .ground { stroke: var(--line); stroke-width: 1.5; }
+.fig .prop { fill: none; stroke: var(--tx2); stroke-width: 2; } .fig rect.prop { fill: var(--line); }
+.fig .thick { stroke-width: 3; } .fig .wall { stroke-width: 3; } .fig .strap { stroke-width: 1.5; }
+.fig .band { stroke: var(--ok); fill: none; stroke-width: 2; } .fig .dot { fill: var(--tx2); }
+.fig .soft { fill: var(--line); stroke: none; } .fig .shadow { fill: var(--line); }
+.fig .kit, .fig .kit rect, .fig .plate { fill: var(--tx2); } .fig .kit.far { opacity: .5; } .fig .hub { fill: var(--s2); }
+.fig .handle { fill: none; stroke: var(--tx2); stroke-width: 2; }
+.steps { margin: 4px 0 0; padding-left: 1.3em; } .steps li { margin: 6px 0; line-height: 1.4; }
+.tipline { margin-top: 10px; }
+details.grp { margin: 8px 0 0; } details.grp .list { margin-top: 4px; }

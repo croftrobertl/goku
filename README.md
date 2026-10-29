@@ -53,6 +53,12 @@ used to dictate.
 - *Dragon Ball milestones* (1.5.0): seven orbs for real achievements (first session or check-in, 7 and
   30 days in a row, a first record or skill moved up, a goal week, 25 sessions or a competition-ready
   skill, 100 days logged). Worked out from the log; History shows all seven, Home celebrates new ones.
+- *Exercise library* (1.8.0): 120 exercises (push, pull, legs, core, jumps, cardio, mobility,
+  gymnastics basics) with a search box, Group and Equipment drop-downs, and a **?** button that opens
+  two drawings (start and finish), numbered steps written for beginners, and one tip. The drawings
+  and text are original to Goku. Photos from free-exercise-db were considered and rejected: its text
+  matches Bodybuilding.com's pages word for word (typos included), so its photos can't be assumed
+  free to use. Adding an exercise sets its drop chain (for example push-up → incline → knee).
 - *Custom profile* (1.7.0): besides the two presets, setup offers Custom. It asks which sports you do
   and whether you like guided workouts, logging your practices, or both, then builds the profile on
   the matching engine (guided or both: circuits plus other training; practices: readiness, week plan
@@ -362,6 +368,10 @@ js/skills.js           gymnastics skill tree
 js/milestones.js       Dragon Ball milestones
 js/homelayout.js       Edit Home: card order and hiding
 js/duel.js             Duels between profiles
+js/figure.js           original exercise drawings (side-view figure from joint angles)
+js/moves.js            the 120-exercise catalog: steps, tips, drop chains
+js/movepicker.js       Library search, ? popups, adding exercises
+tools/figures.html     dev page: every exercise's two drawings (open at 127.0.0.1)
 js/health.js           Scouter link: Health file import
 js/perf-score.js       readiness score and sleep target
 js/crypto.js           passcode hashing and encrypted exports
