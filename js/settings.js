@@ -288,7 +288,7 @@ export async function settingsView() {
       <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="Color ${c}"></button>`).join('')}</div>
     </section>
     <section class="card"><p class="lbl">Theme</p>
-      <div class="themes">${Object.entries(THEMES).map(([id, t]) => `<button data-theme="${id}" aria-pressed="${(p.settings.theme || 'capsule') === id}">
+      <div class="themes">${Object.entries(THEMES).filter(([id, t]) => !t.locked || p.coach?.wish === 'theme').map(([id, t]) => `<button data-theme="${id}" aria-pressed="${(p.settings.theme || 'capsule') === id}">
         <span class="tsw" aria-hidden="true" style="background:${t.dark.s1};box-shadow:inset -18px 0 0 ${t.light.s1}"><i style="background:${t.accent}"></i></span>
         <span><b>${esc(t.name)}</b><br><span class="sub">${esc(t.desc)}</span></span></button>`).join('')}</div>
       <div class="seg" role="group" aria-label="Light or dark">${MODES.map(([v, l]) => `<button data-mode="${v}" aria-pressed="${(p.settings.mode || 'auto') === v}">${l}</button>`).join('')}</div>

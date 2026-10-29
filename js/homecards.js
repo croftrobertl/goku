@@ -18,8 +18,12 @@ export function restAllowance(p) {
   return !plan.length || off === 7 ? 2 : Math.max(1, off);
 }
 
+// The last streak seen per profile, so the header can show the aura stage on any tab.
+export const streakSeen = {};
+
 export function streakCard(p, all, today) {
   const s = streak(all, today, restAllowance(p));
+  streakSeen[p.id] = s.days;
   const plan = p.kind === 'perf' ? p.settings.weekPlan || [] : [];
   const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
   return `<section class="card streak"><div class="row"><p class="lbl" style="margin:0">Streak</p>${whyBtn('streak', JSON.stringify(s))}</div>

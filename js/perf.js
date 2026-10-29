@@ -10,10 +10,12 @@ import { fuelCard, timingCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
 import { trendCard } from './trend.js';
+import { scouterCard } from './scouter.js';
+import { sagaCard, bindSaga, arcsOf } from './saga.js';
 import { homeLayout } from './homelayout.js';
 import { duelCard } from './duel.js';
 import { skillSummary, skillList } from './skills.js';
-import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
+import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
 
 // Check-in has no tab of its own (the big button and Home's readiness card open it), so five tabs fit.
@@ -46,6 +48,13 @@ export async function careFlags() {
 }
 
 // ---------- Home ----------
+// The tab bar's center button on screens without their own action.
+export async function mainAction() {
+  const p = profile(), t = today();
+  const c = (await db.get('entries', p.id + ':checkin:' + t))?.data;
+  return c ? ['Log a session', () => logSession()] : ['Check in', () => openCheckin(t)];
+}
+
 export async function home() {
   const p = profile();
   const nm = sessionNames(p);
@@ -65,24 +74,19 @@ export async function home() {
   const all = await loggedEntries(p);
   const skills = on(p, 'skills') ? await skillList() : [];
   const duel = await duelCard(p, t);
+  const arcs = await arcsOf(p);
   const comp = p.about?.comp && p.about.comp >= t ? daysBetween(t, p.about.comp) : null;
 
   return {
     cta: c ? ['Log a session', () => logSession()] : ['Check in · 30 s', () => openCheckin(t)],
     html: homeLayout(p, [
-      ['ready', `<section class="card" aria-labelledby="h-ready">
-        <p class="lbl">Today's readiness</p>
-        ${c ? `<div class="ring" role="img" aria-label="Readiness ${r} out of 100, ${word(r)}">
-          <svg viewBox="0 0 170 170"><circle cx="85" cy="85" r="72" fill="none" stroke="var(--s2)" stroke-width="14"/>
-          <circle cx="85" cy="85" r="72" fill="none" stroke="var(--accent-line)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${len * r / 100} ${len}"/></svg>
-          <div style="text-align:center"><div class="big num" style="font-size:2.6rem">${r}</div><div class="sub">of 100</div></div></div>
-          <h1 id="h-ready" style="text-align:center">${word(r)}</h1>
-          <p style="text-align:center">${whyBtn('readiness', JSON.stringify(c))} <button class="link" data-ci="${t}">Edit check-in</button></p>
-          <p class="sub" style="text-align:center">From sleep, energy, stress, mood, fun and soreness.</p>`
-        : `<div class="empty"><h1 id="h-ready">Check in to see readiness</h1>
-          <p>Six quick questions about sleep, energy and how your body feels. It takes about 30 seconds.</p></div>`}
-      </section>`],
+      ['ready', scouterCard(p, all, t, { title: "Today's scouter", extra: c ? `<div class="scread">
+          <h2 id="h-ready">Readiness ${r} · ${word(r)}</h2>
+          <p>${whyBtn('readiness', JSON.stringify(c))} <button class="link" data-ci="${t}">Edit check-in</button></p></div>`
+        : `<div class="scread"><h2 id="h-ready">No reading yet today</h2><p class="sub">Six quick questions about sleep, energy and how your body feels, about 30 seconds.</p>
+          <button class="cta2" data-ci="${t}" style="margin-top:8px">Check in</button></div>` })],
       ['balls', `${newBallsCard(p, milestones(p, all, t, skills))}`],
+      ['wish', wishCard(p, milestones(p, all, t, skills))],
       ['recap', `${recapCard(p, all, t)}`],
       ['coach', `${coachCard(p, {})}`],
       ['comp', `${comp !== null ? `<section class="card"><p class="lbl">Competition</p><p class="big num">${comp === 0 ? 'Today' : comp + (comp === 1 ? ' day' : ' days')}</p>
@@ -117,12 +121,13 @@ export async function home() {
       ['trend', `${trendCard(p, all, t)}`],
       ['fuel', `${on(p, 'fuel') ? fuelCard(p, fuelMin, { title: fuelMin ? 'Fuel today' : 'Fuel · rest day' }) : ''}`],
       ['timing', `${on(p, 'fuel') ? timingCard(p, fuelMin) : ''}`],
+      ['saga', sagaCard(arcs, t)],
       ['longday', `${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
         <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}`]
     ]),
     bind(root) {
       bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
-      bindShared(root, p, t); bindBalls(root, p);
+      bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p);
       root.addEventListener('click', e => {
         if (e.target.closest('[data-ci]')) return openCheckin(e.target.closest('[data-ci]').dataset.ci);
         if (e.target.closest('[data-day]') && !e.target.closest('.coach')) window.goku.go('week');
@@ -233,36 +238,46 @@ export async function checkinView() {
 }
 
 // ---------- Week planner ----------
+let weekPick = null; // the day open in the Week editor (0 = Sunday)
 export async function weekView() {
   const p = profile();
   const nm = sessionNames(p);
   const plan = p.settings.weekPlan;
   const t = today(), ws = weekStart(t);
+  if (weekPick === null) weekPick = weekday(t);
   const sessions = (await db.byIndexRange('entries', 'profileDay', [p.id, ws], [p.id, addDays(ws, 6)])).filter(e => e.type === 'session');
   const weekLoad = sessions.reduce((a, s) => a + s.data.minutes * s.data.effort, 0);
   const h = m => round(m / 60, 2);
   const total = () => round(plan.reduce((a, d) => a + d.gym + d.vault, 0) / 60, 1);
+  const dayH = i => plan[i].gym + plan[i].vault ? h(plan[i].gym + plan[i].vault) + 'h' : '–';
+  // Week strip (2.2): tap a day, edit it below. Training days are filled, today is outlined.
+  const strip = () => `<div class="wstrip" role="group" aria-label="Pick a day">${DOW.map((d, i) => `<button data-wd="${i}" class="${plan[i].gym + plan[i].vault ? 'train' : ''}${addDays(ws, i) === t ? ' now' : ''}"
+      aria-pressed="${i === weekPick}" aria-label="${d}: ${plan[i].gym + plan[i].vault ? h(plan[i].gym + plan[i].vault) + ' hours' : 'rest day'}"><span>${d[0]}</span><b class="num">${dayH(i)}</b></button>`).join('')}</div>`;
+  const editor = i => `<section class="card" id="wedit"><div class="row"><h2 style="margin:0">${DOW[i]}${addDays(ws, i) === t ? ' · today' : ''}</h2><span class="sub" id="rest">${plan[i].gym + plan[i].vault ? '' : 'Rest day'}</span></div>
+      <div class="row" style="margin-top:8px"><span>${esc(nm[0])}</span>${stepper('gym:' + i, h(plan[i].gym), nm[0].toLowerCase() + ' on ' + DOW[i], ' h')}</div>
+      ${nm[1] || plan[i].vault ? `<div class="row" style="margin-top:6px"><span>${esc(nm[1] || 'Other')}</span>${stepper('vault:' + i, h(plan[i].vault), (nm[1] || 'other').toLowerCase() + ' on ' + DOW[i], ' h')}</div>` : ''}
+      <p class="note">15-minute steps. This is your usual week; it repeats.</p></section>`;
   return {
     cta: ['Log a session', () => logSession()],
-    html: `<h1>Week</h1><p class="sub">Your usual week. Change hours with + and −, in 15-minute steps.</p>
+    html: `<h1>Week</h1>
     <div class="grid" style="margin-top:12px">
-      <section class="card"><p class="lbl">Planned</p><p class="big num" id="wtot">${total()} h</p></section>
-      <section class="card"><p class="lbl">Load this week</p><p class="big num">${weekLoad}</p><p class="sub">minutes × effort</p></section>
+      <section class="card"><p class="lbl">Planned</p><p class="big num" id="wtot" style="text-align:center">${total()} h</p></section>
+      <section class="card"><p class="lbl">Load this week</p><p class="big num" style="text-align:center">${weekLoad}</p><p class="sub" style="text-align:center">minutes × effort</p></section>
     </div>
-    ${DOW.map((d, i) => `<section class="card" style="${addDays(ws, i) === t ? 'border-color:var(--accent-line)' : ''}">
-      <div class="row"><h2>${d}${addDays(ws, i) === t ? ' · today' : ''}</h2><span class="sub" id="rest${i}">${plan[i].gym + plan[i].vault ? '' : 'Rest day'}</span></div>
-      <div class="row" style="margin-top:6px"><span>${esc(nm[0])}</span>${stepper('gym:' + i, h(plan[i].gym), nm[0].toLowerCase() + ' on ' + d, ' h')}</div>
-      ${nm[1] || plan[i].vault ? `<div class="row" style="margin-top:6px"><span>${esc(nm[1] || 'Other')}</span>${stepper('vault:' + i, h(plan[i].vault), (nm[1] || 'other').toLowerCase() + ' on ' + d, ' h')}</div>` : ''}
-    </section>`).join('')}`,
+    <div id="wstrip">${strip()}</div>
+    <div id="weditor">${editor(weekPick)}</div>`,
     bind(root) {
       root.addEventListener('click', guard(async e => {
+        const pick = e.target.closest('[data-wd]');
+        if (pick) { weekPick = +pick.dataset.wd; root.querySelector('#wstrip').innerHTML = strip(); root.querySelector('#weditor').innerHTML = editor(weekPick); return; }
         const b = e.target.closest('button[data-d]'); if (!b) return;
         const [k, i] = b.closest('[data-step]').dataset.step.split(':');
         plan[+i][k] = Math.min(600, Math.max(0, plan[+i][k] + +b.dataset.d * 15));
         await saveProfile(p);
         b.closest('[data-step]').querySelector('.num').textContent = h(plan[+i][k]) + ' h';
         root.querySelector('#wtot').textContent = total() + ' h';
-        root.querySelector('#rest' + i).textContent = plan[+i].gym + plan[+i].vault ? '' : 'Rest day';
+        root.querySelector('#rest').textContent = plan[+i].gym + plan[+i].vault ? '' : 'Rest day';
+        root.querySelector('#wstrip').innerHTML = strip();
       }));
     },
   };

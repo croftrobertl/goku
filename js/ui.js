@@ -113,6 +113,7 @@ export function setAccent(accent) {
   root.setProperty('--accent-text', toHex(text));
   root.setProperty('--accent-line', toHex(line));
   root.setProperty('--ink', dark ? '#e6e1d3' : '#141414'); // comic-panel outlines: dark ink on light, light ink on dark
+  root.setProperty('--shade', dark ? toHex(line) : '#141414'); // hard shadows: ink in light mode, the theme color in dark mode
   root.setProperty('--on-accent', contrast(accent, '#06142e') >= contrast(accent, '#ffffff') ? '#06142e' : '#ffffff');
 }
 

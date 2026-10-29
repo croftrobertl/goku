@@ -14,6 +14,23 @@ function startGravity(a) {
   return 50;
 }
 
+// Capsule (2.2): Goku's guide through setup, an original character (a little capsule with a
+// face), never a Dragon Ball character. Each step gets its own bright page color.
+const STEP_COLORS = ['#ffd84d', '#ff9f5a', '#c9bdff', '#9be6c4', '#ffb59c', '#8fd3ff'];
+function capsule(step, total) {
+  const last = step === total - 1, first = step === 0;
+  const mouth = first ? 'M47 70q13 12 26 0' : last ? 'M45 68q15 16 30 0' : step % 3 === 1 ? 'M50 72h20' : 'M48 70q12 9 24 0';
+  const eyes = step % 3 === 1 && !last ? '<path d="M38 56h10M72 56h10" stroke="#141414" stroke-width="4" stroke-linecap="round"/>' : '<circle cx="44" cy="56" r="5" fill="#141414"/><circle cx="76" cy="56" r="5" fill="#141414"/>';
+  const arms = last ? '<path d="M14 62l-8-14M106 62l8-14" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : first ? '<path d="M106 58l10-12" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : '';
+  return `<div class="mascot" aria-hidden="true"><svg viewBox="0 0 120 110" width="104" height="96">${arms}
+    <defs><clipPath id="capR"><rect x="60" y="20" width="50" height="80"/></clipPath></defs>
+    <rect x="14" y="26" width="92" height="66" rx="33" fill="#fff"/>
+    <rect x="14" y="26" width="92" height="66" rx="33" fill="#ff8a3d" clip-path="url(#capR)"/>
+    <rect x="14" y="26" width="92" height="66" rx="33" fill="none" stroke="#141414" stroke-width="4"/>
+    ${eyes}<path d="${mouth}" fill="none" stroke="#141414" stroke-width="4" stroke-linecap="round"/>
+    <rect x="53" y="12" width="14" height="14" rx="4" fill="#ff8a3d" stroke="#141414" stroke-width="3"/></svg></div>`;
+}
+
 export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081'];
 
 // Resolves with the new profile, or null if cancelled (only possible when cancellable).
@@ -43,8 +60,8 @@ export function onboard({ cancellable = false } = {}) {
         Back up from Settings so a lost phone never means lost training history.</p>
         <h2 style="margin-top:20px">What do you train?</h2>
         ${Object.entries(KINDS).map(([k, v]) => `<button class="card pick" data-kind="${k}" aria-pressed="${d.pick === k}">
-          <h2>${v.label}</h2><p class="sub">${k === 'engine' ? 'Density circuits, drop sets, ghost races and a gut log.' :
-          'Readiness, week planner, training load and fueling.'}</p></button>`).join('')}
+          <h2>${v.label}</h2><p class="sub">${k === 'engine' ? 'Timed circuits, drop sets and ghost races, with an exercise library and a food log.' :
+          'Daily readiness, a week planner, training load, a skill tree and a food log.'}</p></button>`).join('')}
         <button class="card pick" data-kind="custom" aria-pressed="${d.pick === 'custom'}"><h2>Custom</h2>
           <p class="sub">Any sport or mix. A few questions build Goku around how you train.</p></button>`,
       ...(d.pick === 'custom' ? [
@@ -85,7 +102,9 @@ export function onboard({ cancellable = false } = {}) {
     steps = build();
 
     function draw() {
-      $('#ob').innerHTML = steps[step]();
+      $('#ob').innerHTML = capsule(step, steps.length) + steps[step]();
+      el.classList.add('capsule-setup');
+      el.style.setProperty('--step', STEP_COLORS[step % STEP_COLORS.length]);
       const st = step - (step >= 1 ? extra() : 0); // the step counting from the name screen
       const ready = step === 0 ? !!d.pick : extra() && step === 1 ? d.custom.sports.length > 0 : extra() && step === 2 ? !!d.custom.style
         : st === 1 ? d.name.trim().length > 0 : true;

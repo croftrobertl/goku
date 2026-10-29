@@ -19,5 +19,8 @@ export const THEMES = {
   chamber: { name: 'Time Chamber', desc: 'Quiet white and graphite', accent: '#8b93a7',
     dark: { bg: '#0d0e10', s1: '#17181b', s2: '#1f2125', line: '#2e3137', tx: '#f2f3f5', tx2: '#b4b8c1', tx3: '#9a9fa9', ok: '#6fd3a8', warn: '#f2c14e', care: '#ff8f8f' },
     light: { bg: '#f6f6f7', s1: '#ffffff', s2: '#ececef', line: '#d9dadf', tx: '#131418', tx2: '#4c4f58', tx3: '#5a5d66', ok: '#11795a', warn: '#8a5a00', care: '#b3261e' } },
+  eternal: { name: 'Eternal Dragon', desc: 'Emerald and wish gold · unlocked by a wish', accent: '#e9c13b', locked: true,
+    dark: { bg: '#04120c', s1: '#0a1f16', s2: '#102a1e', line: '#1b4231', tx: '#eafff3', tx2: '#a8d9be', tx3: '#8cc4a6', ok: '#6fe0b0', warn: '#f2c14e', care: '#ff8f8f' },
+    light: { bg: '#f1f9f2', s1: '#ffffff', s2: '#e1f2e5', line: '#c3e2cb', tx: '#0a2416', tx2: '#33604a', tx3: '#3f6a54', ok: '#0f7a52', warn: '#7d5200', care: '#b3261e' } },
 };
 export const MODES = [['auto', 'Match phone'], ['dark', 'Dark'], ['light', 'Light']];

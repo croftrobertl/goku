@@ -32,6 +32,15 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.2.0:* an icon tab bar with a big center action (Train, Check in, or the screen's own action)
+  and More for the rest; a week strip with one day editor; the Scouter, a green scouter gauge with a
+  power level (0 to 9,000: training days, fuel days and recovery over the last 7 days), clearly
+  labeled as a game score and not a health measure; the Saga map, 4-week arcs each with a boss goal
+  the person sets; Home grouped into Today, This week and Saga; full-color setup steps with Capsule,
+  an original mascot (no Dragon Ball characters or art); aura stages from the streak (gold at 7 days,
+  blue at 30); Shenron's wish once all seven Dragon Balls are gathered (the Eternal Dragon theme, an
+  eternal aura, or a title); and the Kamehameha finish: hold Finish to charge it before a workout
+  ends (keyboards finish straight away). Dark mode shadows now use the theme color.
 - *2.1.0:* forgiving search for foods and exercises (`js/fuzzy.js`: spelling fixes such as
   "bananna" → banana, plurals, shorthand such as pb, oats, pushup and abs, and word suggestions as
   you type, each checked to lead to a real result); 160 everyday foods with friendly names listed
@@ -402,6 +411,8 @@ js/moves.js            the 120-exercise catalog: steps, tips, drop chains
 js/movepicker.js       Library search, ? popups, adding exercises
 js/foods.js            the offline food list: loading, search, servings
 js/fuzzy.js            spelling fixes, synonyms and suggestions for food and exercise search
+js/scouter.js          the Scouter gauge and power level
+js/saga.js             the Saga map: arcs and bosses
 data/everyday.json     160 everyday foods (built by tools/build-everyday.py)
 js/nutrition.js        the Nutrition tab, adding foods, meals, labels, symptoms
 js/scan.js             barcode scanner

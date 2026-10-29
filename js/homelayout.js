@@ -5,14 +5,14 @@ import { esc, overlay, guard } from './ui.js';
 
 // [id, name, can hide?] in the default order.
 export const CARDS = {
-  engine: [['balls', 'Dragon Ball news', true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
-    ['nudge', 'Coach nudge', true], ['chamber', 'Gravity chamber', false], ['circuit', 'Circuit', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
+  engine: [['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
+    ['nudge', 'Coach nudge', true], ['scouter', 'Scouter', true], ['chamber', 'Gravity chamber', false], ['circuit', 'Circuit', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
     ['activity', 'Other training', true], ['senzu', 'Senzu map', true], ['trend', 'Training trend', true], ['stats', 'Last session and food', true],
-    ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['hardsets', 'Hard sets', true]],
-  perf: [['ready', 'Readiness', false], ['balls', 'Dragon Ball news', true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
+    ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['hardsets', 'Hard sets', true]],
+  perf: [['ready', 'Scouter and readiness', false], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
     ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
     ['today', 'Today', true], ['skills', 'Skill tree', true], ['trend', 'Training trend', true], ['fuel', 'Fuel ranges', true],
-    ['timing', 'Fuel timing', true], ['longday', 'Long day tip', true]],
+    ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['longday', 'Long day tip', true]],
 };
 
 const order = p => {
@@ -21,10 +21,17 @@ const order = p => {
 };
 const hidden = p => new Set((p.settings.homeHidden || []).filter(id => CARDS[p.kind].find(c => c[0] === id)?.[2]));
 
+// Home is grouped (2.2): Today, This week and Saga. Within each group, the person's order holds.
+const GROUPS = { saga: ['saga', 'skills', 'balls', 'wish'], week: ['week', 'recap', 'duel', 'streak', 'senzu', 'trend', 'hardsets'] };
+const groupOf = id => GROUPS.saga.includes(id) ? 'saga' : GROUPS.week.includes(id) ? 'week' : 'today';
+const TITLES = [['today', 'Today'], ['week', 'This week'], ['saga', 'Saga']];
+
 // cards: [[id, html]]. Returns the Home markup in the person's order, without hidden cards.
 export function homeLayout(p, cards) {
   const html = Object.fromEntries(cards), off = hidden(p);
-  return `<div class="homecards">${order(p).filter(id => !off.has(id) && html[id]?.trim()).map(id => html[id]).join('\n')}</div>`;
+  const shown = order(p).filter(id => !off.has(id) && html[id]?.trim());
+  return TITLES.map(([g, title]) => { const ids = shown.filter(id => groupOf(id) === g);
+    return ids.length ? `<section class="hgroup" aria-label="${title}"><h2 class="hg">${title}</h2><div class="homecards">${ids.map(id => html[id]).join('\n')}</div></section>` : ''; }).join('');
 }
 
 export function editHome(p, onDone = () => window.goku.render()) {

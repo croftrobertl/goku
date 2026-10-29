@@ -106,3 +106,22 @@ export function bindBalls(root, p) {
     await saveProfile(p); window.goku.render();
   });
 }
+
+// Shenron's wish (2.2): with all seven balls gathered, one wish, once. The wish is a reward
+// inside the app: a hidden theme, an eternal aura, or a title beside your name.
+export const WISHES = [['theme', 'A new theme', 'Unlock Eternal Dragon: emerald and wish gold.'], ['aura', 'An eternal aura', 'Your avatar keeps a shimmering aura every day.'],
+  ['title', 'A title', '"Dragon Ball master" beside your name.']];
+export function wishCard(p, list) {
+  if (p.coach?.wish || list.filter(m => m.earned).length < 7) return '';
+  return `<section class="card wish"><p class="lbl">All seven Dragon Balls!</p>
+    <div class="ballrow" style="justify-content:center">${list.map(m => ballSVG(m.stars, true, 32)).join('')}</div>
+    <p style="text-align:center;font-weight:700">Shenron appears. Make one wish.</p>
+    <div class="moregrid">${WISHES.map(([k, n, d]) => `<button class="card pick" data-wish="${k}"><span><b>${n}</b><br><span class="sub">${d}</span></span></button>`).join('')}</div></section>`;
+}
+export function bindWish(root, p) {
+  root.querySelectorAll('[data-wish]').forEach(b => b.addEventListener('click', async () => {
+    p.coach = { ...(p.coach || {}), wish: b.dataset.wish };
+    if (b.dataset.wish === 'theme') { p.settings.theme = 'eternal'; p.accent = '#e9c13b'; }
+    await saveProfile(p); window.goku.render();
+  }));
+}

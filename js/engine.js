@@ -11,10 +11,12 @@ import { loggedEntries, recovery, records, recordFor, progression, GROUPS } from
 import { openNutritionDay, nutritionDays, dayTotals } from './nutrition.js';
 import { streakCard, recapCard, bindShared } from './homecards.js';
 import { trendCard } from './trend.js';
+import { scouterCard } from './scouter.js';
+import { sagaCard, bindSaga, arcsOf } from './saga.js';
 import { homeLayout } from './homelayout.js';
 import { pickMove, showMove, howBtn, moveFor } from './movepicker.js';
 import { duelCard } from './duel.js';
-import { milestones, ballsCard, newBallsCard, bindBalls } from './milestones.js';
+import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
 
 export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings']];
@@ -94,6 +96,12 @@ async function recentSleep(p) {
 }
 
 // ---------- Home ----------
+// The tab bar's center button on screens without their own action: start today's circuit.
+export async function mainAction() {
+  const circuit = await todaysCircuit();
+  return circuit.length ? ['Train', () => startRun(circuit)] : null;
+}
+
 export async function home() {
   const p = profile();
   const g = p.settings.gravity || 50;
@@ -125,6 +133,7 @@ export async function home() {
   const todayActs = allActs.filter(e => e.day === t);
   // Minutes actually trained today: finished circuits plus other training.
   const duel = await duelCard(p, t);
+  const arcs = await arcsOf(p);
   const trainedToday = Math.round(sessions.filter(s => s.day === t).reduce((a, s) => a + minutes(s), 0) + minutesOf(todayActs));
   const map = recovery(sessions.filter(s => s.day >= addDays(t, -6)), allActs.filter(a => a.day >= addDays(t, -6)), t);
   const prog = progression(sessions, g);
@@ -135,6 +144,7 @@ export async function home() {
     cta: circuit.length ? ['Enter chamber', () => startRun(circuit)] : null,
     html: homeLayout(p, [
       ['balls', `${newBallsCard(p, milestones(p, all, t))}`],
+      ['wish', wishCard(p, milestones(p, all, t))],
       ['recap', `${recapCard(p, all, t)}`],
       ['coach', `${coachCard(p, ctx)}`],
       ['levelup', `${showProg ? `<section class="card coachnote"><div class="row"><p class="lbl" style="margin:0">Level up</p>${whyBtn('progress', JSON.stringify(prog.reps))}</div>
@@ -144,6 +154,7 @@ export async function home() {
       <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}`],
       ['nudge', `${nudge && !showProg ? `<section class="card coach"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}`],
+      ['scouter', scouterCard(p, all, t)],
       ['chamber', `<section class="card" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
@@ -188,6 +199,7 @@ export async function home() {
       <p class="note">Sleep: American Academy of Sleep Medicine ${sleepMin === 8 ? 'pediatric consensus, 2016' : 'and Sleep Research Society adult consensus, 2015'}.</p></section>` : ''}`],
       ['fuel', `${on(p, 'fuel') ? fuelCard(p, cap + minutesOf(todayActs)) : ''}`],
       ['timing', `${on(p, 'fuel') ? timingCard(p, trainedToday || cap, { open: trainedToday > 0 }) : ''}`],
+      ['saga', sagaCard(arcs, t)],
       ['hardsets', `${on(p, 'hypertrophy') ? `<section class="card">
       <p class="lbl">Hard sets this week</p>
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
@@ -196,7 +208,7 @@ export async function home() {
     ]),
     bind(root) {
       bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
-      bindShared(root, p, t); bindBalls(root, p);
+      bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p);
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
@@ -272,7 +284,7 @@ function openRunner(run) {
     <div class="row">
       <button class="cta2" id="undo" aria-label="Undo">Undo</button>
       <span class="num sub" id="clock">00:00</span>
-      <button class="cta2" id="end">Finish</button>
+      <button class="cta2 kame" id="end" aria-label="Finish: hold to charge"><span>Finish</span></button>
     </div>
     <p class="sub" id="where" style="text-align:center;margin-top:8px"></p>
     <p style="text-align:center"><button class="link" id="howEx" hidden></button></p>
@@ -429,11 +441,25 @@ function openRunner(run) {
       if (run.phase === 'rest') { run.phase = 'set'; cancelCue?.(); cancelCue = null; save(); draw(); return; }
       if (run.stage < run.cur.stages.length - 1) { run.stage++; save(); draw(); } else endSet();
     } else if (b.id === 'end') {
-      const r = await ask('Finish session?', 'Everything logged so far is saved.', [{ label: 'Finish and save', value: 'save' }, { label: 'Discard session', value: 'discard' }]);
-      if (r === 'save') finish();
-      else if (r === 'discard' && await ask('Discard this session?', 'The reps you logged in it will be deleted.', [{ label: 'Discard', value: true, danger: true }])) finish(true);
+      // Touch and mouse finish by holding (below); a tap only explains. Keyboards finish at once.
+      if (Date.now() - pressedAt < 1500) return;
+      await askFinish();
     }
   });
+  async function askFinish() {
+    const r = await ask('Finish session?', 'Everything logged so far is saved.', [{ label: 'Finish and save', value: 'save' }, { label: 'Discard session', value: 'discard' }]);
+    if (r === 'save') finish();
+    else if (r === 'discard' && await ask('Discard this session?', 'The reps you logged in it will be deleted.', [{ label: 'Discard', value: true, danger: true }])) finish(true);
+  }
+  // Kamehameha finish (2.2): hold Finish for a moment to charge it, so a stray tap can't end a workout.
+  let pressedAt = 0, chargeT = null;
+  const endBtn = $('#end');
+  const stopCharge = done => { clearTimeout(chargeT); chargeT = null; endBtn.classList.remove('charging'); if (!done && Date.now() - pressedAt < 900) toast('Hold Finish to charge it up'); };
+  endBtn.addEventListener('pointerdown', e => {
+    pressedAt = Date.now(); endBtn.classList.add('charging'); endBtn.setPointerCapture?.(e.pointerId);
+    chargeT = setTimeout(() => { chargeT = null; endBtn.classList.remove('charging'); beep(1046, 90, 1); askFinish(); }, 900);
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => endBtn.addEventListener(ev, () => { if (chargeT) stopCharge(false); }));
   const tick = setInterval(draw, 250);
   const onVisible = () => { if (document.visibilityState === 'visible') bookRestCue(); };
   document.addEventListener('visibilitychange', onVisible);

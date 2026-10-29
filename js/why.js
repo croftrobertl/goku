@@ -60,6 +60,11 @@ export const WHY = {
   : `<p>Each bar adds up a week's training minutes: circuits from start to finish, plus other training you log.</p>
     <p style="margin-top:8px">Circuits don't ask for an effort score, so Goku counts minutes rather than minutes × effort. The dashed line is the average of the 4 weeks before this one, and the short line on this week's bar is where an average week would be by today.</p>
     <p class="note">Goku shows the trend only. It doesn't judge it.</p>`],
+  power: p => ['How the power level works', `<p>It's a game score Goku made up to make a week of good habits feel like charging up. It isn't a health, fitness or body measure, and it doesn't compare you with anyone.</p>
+    <ul class="list" style="margin-top:8px"><li><span>Training: days you trained in the last 7, against your weekly goal</span><b>up to 4,000</b></li>
+    <li><span>Fuel: days you reached your protein goal (or logged food, if there's no goal)</span><b>up to 2,500</b></li>
+    <li><span>Recovery: ${p.kind === 'perf' ? 'your average readiness from check-ins' : 'days you logged anything at all'}</span><b>up to 2,500</b></li></ul>
+    <p class="note">The highest reading is 9,000. Rest days count toward showing up, so resting never lowers it.</p>`],
   weekgoal: p => ['Your weekly goal', `<p>You told the coach you can train <b>${esc(p.about?.days)}</b> days a week. Sessions from Sunday to Saturday count toward it.</p>
     <p class="note">Change it in Settings → About you.</p>`],
 };

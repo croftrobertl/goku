@@ -38,7 +38,8 @@ function cleanCoach(c) {
   const feel = c.feel && DAY.test(c.feel.day || '') && ['easy', 'right', 'hard'].includes(c.feel.v) ? { day: c.feel.day, v: c.feel.v, ...([10, 20, 50, 100].includes(c.feel.g) ? { g: c.feel.g } : {}) } : undefined;
   const seen = k => (k === 'recapSeen' ? DAY.test(c[k] || '') : ID.test(c[k] || '')) ? { [k]: c[k] } : {};
   const balls = Array.isArray(c.balls) ? [...new Set(c.balls.filter(n => Number.isInteger(n) && n >= 1 && n <= 7))].sort() : null;
-  return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen'), ...(balls ? { balls } : {}) };
+  const wish = ['theme', 'aura', 'title'].includes(c.wish) ? { wish: c.wish } : {};
+  return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen'), ...(balls ? { balls } : {}), ...wish };
 }
 function cleanCustom(c) {
   if (!c || typeof c !== 'object') return undefined;
@@ -90,6 +91,7 @@ const DATA = {
   activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'hike', 'sport', 'lift', 'other'].includes(d.kind) ? d.kind : 'other',
     minutes: int(d.minutes, 1, 1440, 30), effort: int(d.effort, 0, 10, 5), ...(d.source === 'health' ? { source: 'health' } : {}) }),
   rest: () => ({}),
+  arc: d => ({ name: str(d.name, 40).trim() || 'Arc', boss: str(d.boss, 80).trim() || 'My goal', start: DAY.test(d.start || '') ? d.start : '1970-01-01', weeks: int(d.weeks, 1, 52, 4), done: DAY.test(d.done || '') ? d.done : null }),
   skill: d => ({ name: str(d.name, 40).trim() || 'Skill', event: ['vault', 'floor', 'beam', 'bars', 'flex', 'other'].includes(d.event) ? d.event : 'other',
     stage: int(d.stage, 0, 3, 0), log: Array.isArray(d.log) ? d.log.slice(-40).filter(l => DAY.test(l?.day || '')).map(l => ({ stage: int(l.stage, 0, 3, 0), day: l.day })) : [] }),
   sleep: d => ({ hours: num(d.hours, 0, 24, 0), source: 'health' }),

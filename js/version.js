@@ -1,2 +1,2 @@
 // Bump this and CACHE_VERSION in sw.js together for every release.
-export const VERSION = '2.1.0';
+export const VERSION = '2.2.0';

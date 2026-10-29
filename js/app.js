@@ -6,7 +6,21 @@ import { onboard } from './onboarding.js';
 import { settingsView, backupAgeDays } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
-import { $, esc, toast, ask, setAccent, setTheme, setFeedback } from './ui.js';
+import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback } from './ui.js';
+
+// Tab icons: simple outline drawings in the panel style.
+const svg = d => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICON = {
+  home: svg('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'),
+  library: svg('<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>'),
+  week: svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  nutrition: svg('<path d="M12 7c-3-3-8-1-8 4 0 5 4 10 8 10s8-5 8-10c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-4"/>'),
+  history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  settings: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'),
+  skills: svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
+  more: svg('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
+  bolt: svg('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
+};
 import { prettyDay } from './time.js';
 import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
@@ -14,10 +28,11 @@ import { setupFlow } from './coach.js';
 import { skillsView } from './skills.js';
 import { nutritionView, forgetHistory, poweredUp } from './nutrition.js';
 import { loadFoods, foodVocab } from './foods.js';
+import { streakSeen } from './homecards.js';
 
 const SCREENS = {
-  engine: { tabs: engine.tabs, home: engine.home, library: engine.libraryView, nutrition: nutritionView, history: engine.historyView },
-  perf: { tabs: perf.tabs, home: perf.home, week: perf.weekView, skills: skillsView, checkin: perf.checkinView, nutrition: nutritionView, history: perf.historyView },
+  engine: { tabs: engine.tabs, mainAction: engine.mainAction, home: engine.home, library: engine.libraryView, nutrition: nutritionView, history: engine.historyView },
+  perf: { tabs: perf.tabs, mainAction: perf.mainAction, home: perf.home, week: perf.weekView, skills: skillsView, checkin: perf.checkinView, nutrition: nutritionView, history: perf.historyView },
 };
 const tabs = {}; // current tab per profile id
 let update = null; // { reg, dismissed }
@@ -57,6 +72,10 @@ async function draw() {
   setFeedback(p);
   const scr = SCREENS[p.kind];
   const charged = await poweredUp(p).catch(() => false);
+  // Transformation stages (2.2): the streak powers the aura up; a wish can make it eternal.
+  const days = streakSeen[p.id] || 0;
+  const [stage, stageName] = p.coach?.wish === 'aura' ? ['st-eternal', 'Eternal aura'] : days >= 30 ? ['st-blue', `Blue aura · ${days}-day streak`]
+    : days >= 7 ? ['st-gold', `Gold aura · ${days}-day streak`] : ['', days ? `${days}-day streak` : 'Base form'];
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';
   if (tab !== 'settings' && !list.some(([id]) => id === tab)) tab = tabs[p.id] = 'home';
@@ -69,20 +88,35 @@ async function draw() {
       <span class="row" style="gap:8px"><button class="cta2" id="updLater">Later</button><button class="cta" id="updNow" style="width:auto;min-height:44px;padding:0 16px">Update</button></span></div>` : ''}
     <header class="top">
       <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch profile' : 'Add a profile'}">
-        <span class="aura${charged ? ' charged' : ''}"${charged ? ' title="Protein goal reached today"' : ''}>${avatarHTML(p, 36)}</span><span class="chipname">${esc(p.name)}</span><span class="sub" aria-hidden="true">⇄</span></button>
+        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${avatarHTML(p, 36)}</span><span class="chipname">${esc(p.name)}${p.coach?.wish === 'title' ? '<small class="wtitle">Dragon Ball master</small>' : ''}</span><span class="sub" aria-hidden="true">⇄</span></button>
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}</main>`;
   view.bind?.($('#main'));
+  // Tab bar (2.2): three main tabs with icons, a big center action, and More for the rest.
+  // On desktop the same items line up in the sidebar, the action on top.
+  const all = [...list, ...(list.some(([id]) => id === 'settings') ? [] : [['settings', 'Settings']])].filter(x => !x[2]);
+  const main = all.filter(([id]) => !['history', 'settings', 'skills'].includes(id)).slice(0, 3);
+  const more = all.filter(x => !main.includes(x));
+  const action = view.cta || (scr.mainAction ? await scr.mainAction() : null);
+  const tabBtn = ([id, label], cls = '') => `<button data-tab="${id}" class="tb ${cls}" ${id === tab ? 'aria-current="page"' : ''}>${ICON[id] || ICON.more}<span>${label}</span></button>`;
+  const inMore = more.some(([id]) => id === tab);
   $('#dock').innerHTML = `<div class="dock-in">
     <div class="brand" aria-hidden="true"><img src="icons/favicon-48.png" alt="" width="28" height="28"><span>Goku</span></div>
-    ${view.cta ? `<button class="cta" id="cta">${esc(view.cta[0])}</button>` : ''}
-    <nav class="tabs" aria-label="Sections">${[...list, ...(list.some(([id]) => id === 'settings') ? [] : [['settings', 'Settings']])].filter(x => !x[2]).map(([id, label]) =>
-      `<button data-tab="${id}" ${id === tab ? 'aria-current="page"' : ''}>${label}</button>`).join('')}</nav></div>`;
-  if (view.cta) {
+    <nav class="tabs" aria-label="Sections">${main.slice(0, 2).map(t => tabBtn(t)).join('')}
+      ${action ? `<button class="tb center" id="cta" aria-label="${esc(action[0])}"><span class="ki-btn">${ICON.bolt}</span><span>${esc(action[0])}</span></button>` : '<span class="tb center" aria-hidden="true"></span>'}
+      ${main.slice(2).map(t => tabBtn(t)).join('')}
+      ${more.map(t => tabBtn(t, 'more-item')).join('')}
+      ${more.length ? `<button class="tb more-btn" id="moreTabs" ${inMore ? 'aria-current="page"' : ''} aria-label="More: ${esc(more.map(m => m[1]).join(', '))}">${ICON.more}<span>More</span></button>` : ''}</nav></div>`;
+  if (action) {
     let running = false;
-    $('#cta').onclick = async () => { if (running) return; running = true; try { await view.cta[1](); } finally { running = false; } };
+    $('#cta').onclick = async () => { if (running) return; running = true; try { await action[1](); } finally { running = false; } };
   }
+  if (more.length) $('#moreTabs').onclick = () => {
+    const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">More</h1><button class="cta2" id="x" data-close>Close</button></div>
+      <div class="moregrid">${more.map(([id, label]) => `<button class="card pick" data-go="${id}">${ICON[id] || ''}<b>${esc(label)}</b></button>`).join('')}</div>`, { label: 'More' });
+    el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; close(); if (b.dataset.go) go(b.dataset.go); });
+  };
   if (fk) document.querySelector(fk)?.focus({ preventScroll: true });
 }
 
