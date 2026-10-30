@@ -7,7 +7,7 @@ import { esc, overlay, guard } from './ui.js';
 export const CARDS = {
   engine: [['risk', 'Streak at risk', true], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
     ['nudge', 'Coach nudge', true], ['chamber', 'Gravity chamber', false], ['circuit', 'Circuit', true], ['fuelnow', 'Fuel now', true], ['scouter', 'Scouter', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
-    ['activity', 'Other training', true], ['senzu', 'Senzu map', true], ['trend', 'Training trend', true], ['stats', 'Last session and food', true],
+    ['activity', 'Other training', true], ['senzu', 'Body map', true], ['trend', 'Training trend', true], ['stats', 'Last session and food', true],
     ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['hardsets', 'Hard sets', true]],
   perf: [['risk', 'Streak at risk', true], ['ready', 'Scouter and readiness', false], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
     ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['fuelnow', 'Fuel now', true], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
@@ -25,17 +25,25 @@ const order = p => {
 };
 const hidden = p => new Set((p.settings.homeHidden || []).filter(id => CARDS[p.kind].find(c => c[0] === id)?.[2]));
 
-// Home is grouped (2.2): Today, This week and Saga. Within each group, the person's order holds.
-const GROUPS = { saga: ['saga', 'skills', 'balls', 'wish'], week: ['week', 'recap', 'duel', 'streak', 'senzu', 'trend', 'hardsets'] };
-const groupOf = id => GROUPS.saga.includes(id) ? 'saga' : GROUPS.week.includes(id) ? 'week' : 'today';
-const TITLES = [['today', 'Today'], ['week', 'This week'], ['saga', 'Saga']];
+// Home (2.5) starts simple: a Today / Stats switch, with the game cards on their own Saga screen.
+// Within each, the person's order holds. Cards not listed here are Today cards.
+const STATS = ['week', 'recap', 'streak', 'senzu', 'trend', 'hardsets', 'stats', 'skills', 'timing'];
+const SAGA = ['saga', 'balls', 'wish', 'duel', 'scouter'];
+const sectionOf = id => SAGA.includes(id) ? 'saga' : STATS.includes(id) ? 'stats' : 'today';
+let view = 'today'; // which Home section is on screen: today, stats, or saga (the Saga screen)
+export const setHomeView = v => { view = v; };
+export const homeView = () => view;
 
-// cards: [[id, html]]. Returns the Home markup in the person's order, without hidden cards.
-export function homeLayout(p, cards) {
+// cards: [[id, html]]; strip: the one-line status shown above Today.
+// Returns the markup for the current section, in the person's order, without hidden cards.
+export function homeLayout(p, cards, { strip = '' } = {}) {
   const html = Object.fromEntries(cards), off = hidden(p);
-  const shown = order(p).filter(id => !off.has(id) && html[id]?.trim());
-  return TITLES.map(([g, title]) => { const ids = shown.filter(id => groupOf(id) === g);
-    return ids.length ? `<section class="hgroup" aria-label="${title}"><h2 class="hg">${title}</h2><div class="homecards">${ids.map(id => html[id]).join('\n')}</div></section>` : ''; }).join('');
+  const ids = order(p).filter(id => !off.has(id) && html[id]?.trim() && sectionOf(id) === view);
+  const body = ids.length ? `<div class="homecards">${ids.map(id => html[id]).join('\n')}</div>`
+    : `<p class="sub" style="text-align:center;margin-top:16px">${view === 'stats' ? 'Your stats show up here once you log a few days.' : 'Nothing here yet.'}</p>`;
+  if (view === 'saga') return body;
+  return `<div class="seg hview" role="group" aria-label="Home view"><button data-hview="today" aria-pressed="${view === 'today'}">Today</button><button data-hview="stats" aria-pressed="${view === 'stats'}">Stats</button></div>
+    ${view === 'today' ? strip : ''}${body}`;
 }
 
 export function editHome(p, onDone = () => window.goku.render()) {

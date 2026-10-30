@@ -4,7 +4,7 @@
 // Symptom check-ins (the old Gut log) live in the same day's 'gut' entry.
 import * as db from './db.js';
 import { profile, saveProfile, entries, saveEntry, today, on } from './state.js';
-import { esc, toast, overlay, stepper, round, guard, ask, dayPicker } from './ui.js';
+import { esc, toast, overlay, stepper, round, guard, ask, dayPicker, sources } from './ui.js';
 import { addDays, prettyDay } from './time.js';
 import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from './units.js';
 import { fuelRanges } from './fuel.js';
@@ -12,6 +12,7 @@ import { whyBtn } from './why.js';
 import { gutPatterns, HIGH_BLOAT } from './insights.js';
 import { loadFoods, myFoods, search, suggestFoods, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
 import { scanBarcode } from './scan.js';
+import { suppCard, bindSupps, recentSupps } from './supplements.js';
 
 export const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']];
 // A small barcode picture, so the scan button is recognizable at a glance.
@@ -91,6 +92,7 @@ export async function nutritionView() {
   const allGut = symptomsOn ? hist.gut : [], allFood = symptomsOn ? hist.food : [];
   if (symptomsOn && !hist.pattern) hist.pattern = patternCard(gutPatterns(mergeForPatterns(allGut, allFood)));
   const water = waterOf(food, gut);
+  const recent = on(p, 'nutrition') ? await recentSupps(p) : [];
 
   const save = () => saveDay(p, day, food);
   const g = gut || { bloat: null, foods: [], supplements: [], fluidsOz: 0, protein: [], amWaist: null, pmWaist: null };
@@ -112,10 +114,9 @@ export async function nutritionView() {
     html: `<div class="row"><h1 style="margin:0">Nutrition</h1>${dayPicker(day, t, 'Nutrition day')}</div>
     <div class="cols"><div>
       <section class="card sum" style="margin-top:12px">
-        <p class="lbl">Calories</p>
-        <p class="big num" style="text-align:center;font-size:2.6rem;line-height:1.1">${Math.round(tot.kcal || 0)}${target ? `<span class="sub"> of ${target}</span>` : ''}</p>
-        ${target ? kiBar('Calories', tot.kcal || 0, target, '', tot.kcal > target ? `${Math.round(tot.kcal - target)} over` : `${Math.round(target - (tot.kcal || 0))} left`, false) : ''}
-        ${pGoal ? kiBar('Protein power', tot.p || 0, pGoal, ' g', tot.p >= pGoal ? 'Power level reached!' : `${Math.round(pGoal - (tot.p || 0))} g to go`, true) : ''}
+        <details class="ringd"><summary aria-label="Calories ${Math.round(tot.kcal || 0)}${target ? ' of ' + target : ''}. Show protein and nutrients">${calRing(tot.kcal || 0, target)}
+          <span class="sub ringhint">Protein and nutrients</span></summary>
+        ${pGoal ? kiBar('Protein', tot.p || 0, pGoal, ' g', tot.p >= pGoal ? 'Protein goal met' : `${Math.round(pGoal - (tot.p || 0))} g to go`, true) : ''}
         <div class="macros">
           <div class="mp"><b class="num">${pGoal ? `${Math.round(tot.p || 0)}<small>/${pGoal}</small>` : fmt(tot.p)}</b><span>Protein</span></div>
           <div class="mc"><b class="num">${fmt(tot.c)}</b><span>Carbs</span></div>
@@ -126,7 +127,7 @@ export async function nutritionView() {
           <p class="sub" style="text-align:center">Protein ${pct(tot.p * 4)}% · Carbs ${pct(tot.c * 4)}% · Fat ${pct(tot.f * 9)}% of calories</p>` : ''}
         ${range ? `<p class="sub" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
         <div class="row" style="justify-content:center;margin-top:8px;gap:8px"><button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>
-          <button class="link" id="dayDetail">All nutrients</button></div>
+          <button class="link" id="dayDetail">All nutrients</button></div></details>
       </section>
       <button class="cta addtop" id="addFood">+ Add food</button>
       ${MEALS.map(mealCard).join('')}
@@ -137,6 +138,7 @@ export async function nutritionView() {
       <section class="card"><div class="row"><p class="lbl" style="margin:0">Water</p><span class="num big">${esc(volume(water, p))} <span class="sub">${volumeUnit(p)}</span></span></div>
         ${glasses(water, p)}
         <div class="row" style="justify-content:center;gap:8px;margin-top:8px">${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join('')}</div></section>
+      ${suppCard(gut, recent, p.settings.meds || [])}
       ${symptomsOn ? `<details class="card fold feel" ${gut ? 'open' : ''}><summary class="lbl">How you feel today</summary>
         <p class="sub">Optional. It helps the pattern finder spot foods that line up with bad days.</p>
         <p class="lbl" style="margin-top:10px">Bloating (0 = none, 10 = worst)</p>${stepper('bloat', g.bloat ?? 'none', 'bloating')}
@@ -145,17 +147,14 @@ export async function nutritionView() {
           <div class="waist"><span>Morning</span>${stepper('amWaist', length(g.amWaist, p) ?? 'none', 'morning waist')}
           <span>Evening</span>${stepper('pmWaist', length(g.pmWaist, p) ?? 'none', 'evening waist')}</div>`
           : '<button class="link" id="trackWaist" style="margin-top:8px">Also track waist size</button>'}
-        <p class="lbl" style="margin-top:12px">Supplements</p>
-        <div class="pills">${[...new Set([...allGut.flatMap(e => e.data.supplements || []).slice(-8), ...(g.supplements || [])])].map(v =>
-          `<button data-supp="${esc(v)}" aria-pressed="${(g.supplements || []).includes(v)}">${esc(v)}</button>`).join('')}</div>
-        <div class="supp"><input id="newSupp" placeholder="Add a supplement" maxlength="40" aria-label="Add a supplement"><button class="cta2" id="addSupp">Add</button></div>
       </details>
       ${hist.pattern}` : ''}
-      <p class="note">${esc(SOURCE_NOTE)}</p>
+      ${sources([esc(SOURCE_NOTE)])}
     </div></div>`,
     bind(root) {
+      bindSupps(root, g, async () => { await saveGut(); window.goku.render(); }, recent);
       root.addEventListener('click', guard(async e => {
-        const b = e.target.closest('button'); if (!b || b.closest('.overlay')) return;
+        const b = e.target.closest('button'); if (!b || b.closest('.overlay') || b.closest('.supps')) return;
         if (b.dataset.dayshift) { navDay = addDays(day, +b.dataset.dayshift); if (navDay < addDays(t, -60)) navDay = addDays(t, -60); return window.goku.render(); }
         if (b.id === 'addFood') return addFood(nowMeal(), day);
         if (b.dataset.item !== undefined) {
@@ -176,14 +175,23 @@ export async function nutritionView() {
           await saveGut(); return window.goku.render();
         }
         if (b.dataset.sym) { g[b.dataset.sym] = !g[b.dataset.sym]; await saveGut(); return window.goku.render(); }
-        if (b.dataset.supp) { const v = b.dataset.supp; g.supplements = (g.supplements || []).includes(v) ? g.supplements.filter(x => x !== v) : [...(g.supplements || []), v]; await saveGut(); return window.goku.render(); }
-        if (b.id === 'addSupp') { const v = root.querySelector('#newSupp').value.trim().toLowerCase().slice(0, 40); if (!v) return; g.supplements = [...new Set([...(g.supplements || []), v])]; await saveGut(); return window.goku.render(); }
       }));
     },
   };
 }
 
 // The meal guess follows the profile's time zone, like the day itself does.
+// The calorie ring (2.5): calories left of a target, or just today's calories without one.
+function calRing(kcal, target) {
+  // Without a target a ring would have nothing to fill toward, so it shows the number alone.
+  if (!target) return `<span class="ring plain"><span class="rv"><b class="num">${Math.round(kcal).toLocaleString('en-US')}</b><span class="sub">calories today</span></span></span>`;
+  const R = 52, C = 2 * Math.PI * R, pct = Math.min(1, kcal / target), over = kcal > target;
+  const big = Math.abs(Math.round(target - kcal)).toLocaleString('en-US'), small = over ? 'over' : 'left';
+  return `<span class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" class="rt"/>
+    <circle cx="60" cy="60" r="${R}" class="rf${over ? ' over' : ''}" stroke-dasharray="${(C * pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/></svg>
+    <span class="rv"><b class="num">${big}</b><span class="sub">${small}</span><span class="sub">${Math.round(kcal).toLocaleString('en-US')} of ${target.toLocaleString('en-US')}</span></span></span>`;
+}
+
 // Ki charge bar: fills like a power level; the protein one bursts when it reaches the goal.
 // (Calories only fill: going past a calorie target isn't a win.)
 function kiBar(label, value, goal, unit, note, burst) {

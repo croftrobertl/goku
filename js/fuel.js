@@ -1,6 +1,6 @@
 // Fuel ranges. Every number comes from a published position statement and is shown with
 // its source in a footnote. No calorie numbers are shown.
-import { esc, round } from './ui.js';
+import { esc, round, sources } from './ui.js';
 import { kgOf } from './units.js';
 import { isMinor, proteinIdeas } from './coach.js';
 import { minutesNow, clockOf } from './time.js';
@@ -53,8 +53,7 @@ export function fuelCard(p, minutes, { title = 'Fuel today' } = {}) {
     <div class="row" style="margin-top:8px"><span>Carbohydrate<sup>2</sup> ${why('carbs', minutes)}</span><b class="num">${r.carbs[0]}–${r.carbs[1]} g</b></div>
     <p class="sub" style="text-align:right">${esc(r.tier)}</p>
     ${ideas.length ? `<p class="sub" style="margin-top:8px">Protein ideas: ${ideas.map(esc).join(' · ')}</p>` : ''}
-    <ol class="foot"><li>1.4–2.0 g per kg a day; about 0.25 g per kg per meal. ${esc(SOURCES.issn)}</li>
-      <li>3–12 g per kg a day by training load. ${esc(SOURCES.acsm)}</li></ol>
+    ${sources([`1.4–2.0 g per kg a day; about 0.25 g per kg per meal. ${esc(SOURCES.issn)}`, `3–12 g per kg a day by training load. ${esc(SOURCES.acsm)}`], { numbered: true })}
     ${minutes ? `<p class="note">Counting ${minutes} minutes of training today.</p>` : ''}
     <p class="note">${isMinor(p) ? 'These ranges come from studies of adults. For athletes under 18, a pediatrician or sports dietitian should confirm them.'
       : 'General ranges, not a prescription. A sports dietitian can fine-tune them.'}</p></section>`;
@@ -74,7 +73,7 @@ export function timingCard(p, minutes, { open = true } = {}) {
       : 'Carbohydrate about 1.2 g per kg of body weight an hour until the next session.'],
   ];
   const body = `<ul class="list">${rows.map(([k, v]) => `<li><span><b>${esc(k)}</b><br><span class="sub">${esc(v)}</span></span></li>`).join('')}</ul>
-    <p class="note">${esc(SOURCES.timing)}${isMinor(p) ? ' Studied in adults; for athletes under 18, a pediatrician or sports dietitian should confirm.' : ''}</p>`;
+    ${isMinor(p) ? '<p class="note">Studied in adults; for athletes under 18, a pediatrician or sports dietitian should confirm.</p>' : ''}${sources([esc(SOURCES.timing)])}`;
   // Before any training is logged, it stays folded so Home isn't crowded on days off.
   return open ? `<section class="card"><p class="lbl">Fuel timing</p>${body}</section>`
     : `<details class="card fold"><summary class="lbl">Fuel timing for when you train</summary>${body}</details>`;
@@ -91,7 +90,7 @@ export function fuelNowCard(p, { at = null, minutes = 0, lastEnd = 0 } = {}) {
   const minor = isMinor(p) ? ' Studied in adults; under 18, a pediatrician or sports dietitian should confirm.' : '';
   const card = (head, body, btns, src) => `<section class="card fuelnow"><p class="lbl">Fuel now</p><h2>${head}</h2><p>${body}</p>
     ${btns ? `<div class="qlog">${btns}<button class="cta2" data-qadd>Something else</button></div>` : ''}
-    <p class="note">${esc(src)}${minor}</p></section>`;
+    ${minor ? `<p class="note">${minor.trim()}</p>` : ''}${sources([esc(src)])}</section>`;
   const sinceLogged = lastEnd ? (Date.now() - lastEnd) / 60000 : Infinity;
   const end = at != null && minutes ? at + minutes : null;
   if (sinceLogged <= 120 || (end != null && now >= end && now - end <= 120)) {

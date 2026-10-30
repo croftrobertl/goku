@@ -30,7 +30,7 @@ export function powerLevel(p, all, today) {
   return { total: training + fuel + recovery, training, fuel, recovery, trained, goalDays, fedDays, goal, checks: checks.length };
 }
 
-const tier = n => n >= 8000 ? 'Over 8,000!' : n >= 6000 ? 'Elite' : n >= 4000 ? 'Strong' : n >= 2000 ? 'Rising' : 'Warming up';
+const tier = n => n >= 8000 ? 'Over 8,000' : n >= 6000 ? 'Elite' : n >= 4000 ? 'Strong' : n >= 2000 ? 'Rising' : 'Warming up';
 
 // The gauge card. extra = HTML shown inside (readiness for gymnastics).
 export function scouterCard(p, all, today, { extra = '', title = 'Scouter' } = {}) {

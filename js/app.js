@@ -40,8 +40,11 @@ async function kiMenu(p, action, scr) {
 function showKiHint() {
   const c = document.getElementById('cta'); if (!c || document.querySelector('.kihint')) return;
   const tip = document.createElement('div'); tip.className = 'kihint'; tip.setAttribute('role', 'status');
-  tip.textContent = 'Tap ⚡ for quick actions: train, food, water and more';
+  tip.textContent = 'The center button has quick actions: train, food, water and more';
   document.body.append(tip);
+  // Shown once (2.5): it counts as seen right away and fades after about 4 seconds.
+  db.setMeta('kiHint', true);
+  setTimeout(() => { tip.classList.add('out'); setTimeout(() => tip.remove(), 400); }, 4000);
 }
 
 // Tab icons: simple outline drawings in the panel style.
@@ -70,10 +73,17 @@ import { nutritionView, forgetHistory, poweredUp, addFood, nowMeal, quickWater }
 import { logActivity } from './activity.js';
 import { loadFoods, foodVocab } from './foods.js';
 import { streakSeen } from './homecards.js';
+import { setHomeView, homeView } from './homelayout.js';
 
+// The Saga screen (2.5) is Home's game cards on a page of their own, reached from the status strip.
+const sagaOf = home => async () => {
+  const was = homeView(); setHomeView('saga');
+  try { const v = await home(); return { ...v, cta: null, html: `<div class="row"><h1 style="margin:0">Saga</h1><button class="cta2" data-tab="home">Back to Home</button></div>${v.html}` }; }
+  finally { setHomeView(was === 'saga' ? 'today' : was); }
+};
 const SCREENS = {
-  engine: { tabs: engine.tabs, mainAction: engine.mainAction, home: engine.home, library: engine.libraryView, nutrition: nutritionView, history: engine.historyView },
-  perf: { tabs: perf.tabs, mainAction: perf.mainAction, home: perf.home, week: perf.weekView, skills: skillsView, checkin: perf.checkinView, nutrition: nutritionView, history: perf.historyView },
+  engine: { tabs: engine.tabs, mainAction: engine.mainAction, home: engine.home, saga: sagaOf(engine.home), library: engine.libraryView, nutrition: nutritionView, history: engine.historyView },
+  perf: { tabs: perf.tabs, mainAction: perf.mainAction, home: perf.home, saga: sagaOf(perf.home), week: perf.weekView, skills: skillsView, checkin: perf.checkinView, nutrition: nutritionView, history: perf.historyView },
 };
 const tabs = {}; // current tab per profile id
 let update = null; // { reg, dismissed }
@@ -187,6 +197,8 @@ async function chooseProfile() {
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.tab) go(b.dataset.tab);
+  else if (b.dataset.hview && !b.closest('.overlay')) { setHomeView(b.dataset.hview); tabs[S.current] = 'home'; render().then(() => window.scrollTo(0, 0)); }
+  else if (b.dataset.go && !b.closest('.overlay')) go(b.dataset.go);
   else if (b.id === 'switch') {
     if (goku.busy) return toast('Finish your session first');
     if (S.profiles.length > 1) chooseProfile();

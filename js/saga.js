@@ -43,10 +43,10 @@ export function sagaCard(arcs, t, ctx = {}) {
     return `<div class="arc now"><div class="row"><span class="pill">Arc ${n(a)} · ${over ? 'time is up' : `week ${wk} of ${a.data.weeks || WEEKS}`}</span><button class="link" data-arcedit="${esc(a.id)}">Edit</button></div>
       <h2>${esc(a.data.name)}</h2>
       <div class="poster${won ? ' won' : ''}"><span class="wanted">Boss</span><b>${esc(a.data.boss)}</b>
-        ${pr ? `<div class="hp" role="img" aria-label="Boss HP ${hp} percent"><i style="width:${hp}%"></i></div><span class="sub">${won ? 'Defeated! Claim it below.' : `Boss HP ${hp}% · ${esc(pr.label)}`}</span>`
+        ${pr ? `<div class="hp" role="img" aria-label="Boss HP ${hp} percent"><i style="width:${hp}%"></i></div><span class="sub">${won ? 'Target reached. Mark it beaten below.' : `Boss HP ${hp}% · ${esc(pr.label)}`}</span>`
           : '<span class="sub">Link it to an exercise or skill in Edit and its HP drops as you train.</span>'}</div>
       <div class="arcbar" role="img" aria-label="${Math.min(100, Math.round(day / len * 100))} percent of the arc done"><i style="width:${Math.min(100, day / len * 100)}%"></i></div>
-      <div class="row" style="gap:8px;margin-top:10px"><button class="${won ? 'cta' : 'cta2'}" data-arcwin="${esc(a.id)}" style="flex:1">${won ? 'Claim the win!' : 'Boss beaten!'}</button>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="${won ? 'cta' : 'cta2'}" data-arcwin="${esc(a.id)}" style="flex:1">${won ? 'Mark the boss beaten' : 'Boss beaten'}</button>
         ${over ? `<button class="cta2" data-arcmore="${esc(a.id)}" style="flex:1">2 more weeks</button>` : ''}</div></div>`;
   };
   return `<section class="card saga"><div class="row"><p class="lbl" style="margin:0">Your saga</p><span class="sub">${cleared.length} cleared</span></div>
@@ -64,7 +64,7 @@ export function bindSaga(root, arcs) {
     const a = arcs.find(x => x.id === (b.dataset.arcedit || b.dataset.arcwin || b.dataset.arcmore)); if (!a) return;
     if (b.dataset.arcedit) return editArc(a, arcs);
     if (b.dataset.arcmore) { await saveEntry('arc', { ...a.data, weeks: (a.data.weeks || WEEKS) + 2 }, { id: a.id, day: a.day, ts: a.ts }); return window.goku.render(); }
-    if (b.dataset.arcwin && await ask('Boss beaten?', `${esc(a.data.boss)}. Clear "${esc(a.data.name)}" and start the next arc when you're ready.`, [{ label: 'Yes, cleared!', value: true }])) {
+    if (b.dataset.arcwin && await ask('Boss beaten?', `${esc(a.data.boss)}. Clear "${esc(a.data.name)}" and start the next arc when you're ready.`, [{ label: 'Yes, clear it', value: true }])) {
       await saveEntry('arc', { ...a.data, done: today() }, { id: a.id, day: a.day, ts: a.ts });
       window.goku.render(); cleared(a, arcs);
     }

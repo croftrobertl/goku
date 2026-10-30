@@ -7,21 +7,22 @@ import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volum
 import { coachCard, bindCoach, isMinor } from './coach.js';
 import { fuelCard, fuelRanges, timingCard, fuelNowCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
-import { loggedEntries, recovery, records, recordFor, progression, GROUPS } from './insights.js';
+import { loggedEntries, records, recordFor, progression, GROUPS } from './insights.js';
 import { openNutritionDay, nutritionDays, dayTotals } from './nutrition.js';
-import { streakCard, recapCard, bindShared, riskCard } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard, statusStrip } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
 import { homeLayout } from './homelayout.js';
 import { pickMove, showMove, howBtn, moveFor } from './movepicker.js';
 import { figureSVG } from './figure.js';
+import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
 import { calendarCard, bindCalendar } from './calendar.js';
 import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
 
-export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings']];
+export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', 'Saga', 'hidden']];
 
 // gravity: [rounds, rest seconds, time cap minutes, drop stages used]
 export const GRAVITY = { 10: [3, 90, 14, 1], 20: [4, 75, 16, 2], 50: [4, 45, 20, 99], 100: [5, 30, 24, 99] };
@@ -142,6 +143,7 @@ export async function home() {
   const g = p.settings.gravity || 50;
   const [rounds, rest, cap, depth] = GRAVITY[g];
   const circuit = await todaysCircuit();
+  await musclesReady().catch(() => {}); // the circuit cards and body map draw from it; offline before first load, they fall back
   // One read of the log feeds every card below.
   const all = (await loggedEntries(p)).sort((a, b) => a.ts - b.ts);
   const sessions = all.filter(e => e.type === 'session').sort(byDay);
@@ -170,7 +172,8 @@ export async function home() {
   const duel = await duelCard(p, t);
   const arcs = await arcsOf(p);
   const trainedToday = Math.round(sessions.filter(s => s.day === t).reduce((a, s) => a + minutes(s), 0) + minutesOf(todayActs));
-  const map = recovery(sessions.filter(s => s.day >= addDays(t, -6)), allActs.filter(a => a.day >= addDays(t, -6)), t);
+  const libAll = await library(), exMove = Object.fromEntries(libAll.map(e => [e.id, moveFor(e.data)?.id || null]));
+  const body = bodyWork(sessions.filter(s => s.day >= addDays(t, -6)), allActs.filter(a => a.day >= addDays(t, -6)), id => exMove[id] || null, t, weekStart(t));
   const prog = progression(sessions, g);
   const showProg = prog && p.coach?.progSeen !== prog.latest.id && !(fresh && feel.v === 'hard');
   const nextG = levels[levels.indexOf(g) + 1];
@@ -211,7 +214,7 @@ export async function home() {
       ${circuit.length ? `<ol class="fan" aria-label="Today's circuit, ${circuit.length} exercises">${circuit.map((e, i) => { const m = moveFor(e.data);
         // Fanned cards (2.3): a hand of exercise cards, each with its drawing and a "?" for how-to.
         return `<li class="fcard" style="--i:${i};--n:${circuit.length}"><span class="fnum num">${i + 1}</span>
-          ${m ? `<span class="ffig" aria-hidden="true">${figureSVG(m.start)}</span>` : '<span class="ffig blank" aria-hidden="true"></span>'}
+          ${m ? `<span class="ffig${artOf(m.id) ? ' art' : ' mus'}" aria-hidden="true">${artOf(m.id) ? `<img src="${artOf(m.id).end}" alt="" loading="lazy">` : miniMap(m.id) || figureSVG(m.start)}</span>` : '<span class="ffig blank" aria-hidden="true"></span>'}
           <b>${esc(e.data.name)}</b><span class="chain">${e.data.stages.slice(0, depth).map(s => esc(s.label)).join(' → ')}</span>
           ${m ? howBtn(m.id, e.data.name) : ''}</li>`; }).join('')}</ol>`
         : '<div class="empty"><h2>Your library is empty</h2><p>Add exercises in the Library tab to build circuits.</p></div>'}
@@ -221,12 +224,8 @@ export async function home() {
       ['duel', duel],
       ['streak', `${streakCard(p, all, t)}`],
       ['activity', `<section class="card"><div class="row"><p class="lbl" style="margin:0">Other training today</p><button class="cta2" id="logAct">Log activity</button></div>
-      ${todayActs.length ? `<ul class="list">${activityRows(todayActs)}</ul>` : '<p class="sub">Soccer, runs, games or anything else. It feeds your fuel ranges and recovery map.</p>'}</section>`],
-      ['senzu', `<section class="card"><p class="lbl">Senzu map · recovery</p>
-      <div class="senzu">${map.map(m => `<div class="sz ${m.days === null ? 'never' : m.days <= 0 ? 'd0' : m.days === 1 ? 'd1' : m.days === 2 ? 'd2' : 'd3'}">
-        <span class="szdot" aria-hidden="true"></span><b>${esc(m.name)}</b><span class="sub">${m.days === null ? 'not this week' : m.days <= 0 ? 'trained today' : m.days === 1 ? '1 day ago' : m.days + ' days ago'}</span></div>`).join('')}</div>
-      <p class="szkey sub" aria-hidden="true"><span class="sz d0"><span class="szdot"></span></span>today <span class="sz d1"><span class="szdot"></span></span>1 day <span class="sz d2"><span class="szdot"></span></span>2 days <span class="sz d3"><span class="szdot"></span></span>3+ days rested</p>
-      <p class="note">From your circuits and other training in the last 7 days. If a group still feels sore, swap or skip it.</p></section>`],
+      ${todayActs.length ? `<ul class="list">${activityRows(todayActs)}</ul>` : '<p class="sub">Soccer, runs, games or anything else. It feeds your fuel ranges and body map.</p>'}</section>`],
+      ['senzu', bodyMapCard(body)],
       ['trend', `${trendCard(p, all, t)}`],
       ['stats', `<div class="grid">
       <section class="card"><p class="lbl">Last session</p>
@@ -246,10 +245,10 @@ export async function home() {
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
       <p class="note">Each set taken to failure counts once, drops included.</p>
     </section>` : ''}`]
-    ]),
+    ], { strip: statusStrip(p, all, t) }),
     bind(root) {
       bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
-      bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p);
+      bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p); bindBodyMap(root);
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
@@ -470,7 +469,7 @@ function openRunner(run) {
       remember(); ensureSet();
       run.cur.stages[run.stage].reps++;
       const key = run.cur.exId + '|' + run.cur.stages[run.stage].label, prev = run.best?.[key] || 0;
-      if (prev && run.cur.stages[run.stage].reps === prev + 1) { toast(`⚡ New power level record: ${run.cur.stages[run.stage].reps} reps`); beep(1320, 120, 1); }
+      if (prev && run.cur.stages[run.stage].reps === prev + 1) { toast(`New record: ${run.cur.stages[run.stage].reps} reps`); beep(1320, 120, 1); }
       if (run.best && run.cur.stages[run.stage].reps > prev) run.best[key] = run.cur.stages[run.stage].reps; // later rounds race the new record
       run.repTimes.push(Math.round((Date.now() - run.startedAt) / 100) / 10);
       b.classList.add('bump'); setTimeout(() => b.classList.remove('bump'), 120);
@@ -519,11 +518,11 @@ export async function libraryView() {
   const pr = e => e.data.stages.map(st => [st.label, recordFor(best, e.id, st.label)]).filter(([, r]) => r);
   return {
     cta: ['Add exercise', () => pickMove({ onCustom: () => editExercise(), have: lib.map(e => moveFor(e.data)?.id).filter(Boolean) })],
-    html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group. Tap ? to see how an exercise is done. ⚡ marks your power level record: the most reps in one set.</p>
+    html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group. Tap ? to see how an exercise is done. Best is the most reps you’ve done in one set.</p>
       ${Object.entries(groups).map(([slot, list]) => `<section class="card" style="margin-top:12px">
         <p class="lbl">${esc(slot)}</p><ul class="list">${list.map(e => `<li><span>${esc(e.data.name)}<br>
         <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(weight(s.load, p))} ${weightUnit(p)})` : '')).join(' → ')}</span>
-        ${pr(e).length ? `<br><span class="chain pr">⚡ ${pr(e).map(([l, r]) => `${esc(l)} ${r}`).join(' · ')}</span>` : ''}</span>
+        ${pr(e).length ? `<br><span class="chain pr">Best: ${pr(e).map(([l, r]) => `${esc(l)} ${r}`).join(' · ')}</span>` : ''}</span>
         <span class="row" style="gap:6px">${moveFor(e.data) ? howBtn(moveFor(e.data).id, e.data.name) : ''}<button class="cta2" data-edit="${esc(e.id)}">Edit</button></span></li>`).join('')}</ul></section>`).join('')}`,
     bind(root) {
       root.addEventListener('click', e => {

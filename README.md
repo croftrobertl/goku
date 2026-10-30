@@ -32,6 +32,24 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.5.0 (includes 2.4):* simpler screens. Home opens on Today (the workout and what's timed for
+  today) with a one-line strip for the streak and power level; a Stats switch holds the week, trend,
+  Senzu map, recap and hard sets; the game cards (Dragon Balls, wish, saga, duel, Scouter) moved to
+  one Saga screen opened from the strip. Nutrition starts with one calorie ring; tap it for protein
+  and nutrients. No emoji in the interface, plainer wording, source notes folded behind one
+  "Sources" link per card, and the quick-action hint shows once and fades. Also: a body map on Stats
+  (Recovery: muscles colored by days since trained; This week: sets per muscle), mini muscle maps on
+  circuit cards without a drawing, supplement stacks (save today's supplements, log them with one
+  tap), and a stronger interaction check (below).
+- *2.4.0:* real exercise drawings and a muscle map. 34 exercises show Everkinetic's start and
+  finish drawings (CC BY-SA 4.0), each pair checked by eye against Goku's steps, with a note when the
+  drawing uses different equipment; the rest keep Goku's own figures. Every exercise's "?" shows a
+  front and back muscle map (OpenStax, T. Kebert and umimeto.org, CC BY-SA 4.0) with the main muscles
+  in red and the supporting ones lighter. Credits are in each "?" and in img/CREDITS.md.
+  Supplements got their own Nutrition card: a forgiving search of 47 supplements, then how many
+  and the dose from the label (Goku never suggests a dose). An interaction check compares the last
+  30 days of supplements with medicines you list, using NIH Office of Dietary Supplements fact
+  sheets quoted word for word (see "Supplement interactions" below).
 - *2.3.0:* Train by feel (pick how much ki you have and the coach suggests a gravity, or choose any
   level); a radial Ki menu behind the center button (log food, water, activity or a rest day from
   anywhere) with short center labels; the workout first on Home with a compact Scouter; Fuel now, a
@@ -298,6 +316,28 @@ Shown on Home when a weight is saved, with the sources as footnotes.
 - Sleep notes: AASM pediatric consensus (2016) 8–10 h for ages 13–18; AASM/SRS adult consensus (2015)
   7 or more hours.
 
+## Supplement interactions
+
+- **Source (2.5):** the plain-language "Does X interact with medications or other dietary supplements?"
+  sections of 31 NIH Office of Dietary Supplements consumer fact sheets (copied 2026-10-29,
+  checksum-locked in `tools/build-interactions.py`). Black cohosh, valerian and ashwagandha have no
+  consumer section, so they keep the health professional text from 2.4 (32 sheets, plus one
+  paragraph from the Ashwagandha sheet). ODS's site policy says most of its information is public domain and
+  may be reproduced unchanged. The text was copied on 2026-10-29 and checked against the live pages
+  by checksum; `tools/build-interactions.py` refuses to build if a word changes.
+- **What Goku adds:** a label for the three sections that have no NIH heading (shown as "heading
+  added by Goku"), and the medicine names each section matches on: the names NIH writes, plus
+  common members of the drug classes it names (for example lisinopril for "ACE inhibitors").
+- **What the check does:** medicines you list against supplements logged in the last 30 days, plus
+  any you type in as "thinking of starting"; supplements against each other where NIH says so
+  (iron and calcium, magnesium and zinc, valerian and melatonin); NIH's own spacing sentence shown
+  first when a paragraph has one; and a plain "Goku doesn't recognize X" for a medicine it can't
+  match. Common US brand names are matched too (Eliquis, Crestor, Protonix, Ozempic and others).
+- **Limits, said in the app:** it only knows the medicines NIH names; it can miss other names for a
+  medicine; no match is never shown as "safe"; and it tells people to ask a pharmacist or doctor.
+  Medicines are saved on the phone and in backups. No NIH text exists in Goku for creatine, protein powder, melatonin
+  and the other supplements without a fact sheet section, and the app says so.
+
 ## Readiness score
 
 Out of 100: sleep hours 30 (full marks at 9 h under 18, the middle of the AASM's 8–10 h for ages
@@ -427,6 +467,10 @@ js/fuzzy.js            spelling fixes, synonyms and suggestions for food and exe
 js/scouter.js          the Scouter gauge and power level
 js/saga.js             the Saga map: arcs, poster bosses and the Arc cleared screen
 js/calendar.js         the History training calendar
+js/muscles.js          muscles each exercise works, the muscle map, and which drawing goes with which exercise
+js/supplements.js      the supplement list, dose and amount, and the interaction check
+data/interactions.json NIH interaction text (tools/build-interactions.py)
+img/                   exercise drawings and the muscle map (credits in img/CREDITS.md)
 data/everyday.json     160 everyday foods (built by tools/build-everyday.py)
 js/nutrition.js        the Nutrition tab, adding foods, meals, labels, symptoms
 js/scan.js             barcode scanner

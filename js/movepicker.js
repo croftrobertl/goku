@@ -2,8 +2,9 @@
 // adds catalog exercises to the person's circuit library.
 import { MOVES, GROUPS, EQUIP, LEVELS, moveById, searchMoves, suggestMoves } from './moves.js';
 import { figureSVG } from './figure.js';
+import { artOf, muscleMap, muscleLine } from './muscles.js';
 import { profile, saveEntry } from './state.js';
-import { esc, overlay, guard, toast } from './ui.js';
+import { esc, overlay, guard, toast, sources } from './ui.js';
 
 // Circuit groups for each catalog group.
 const SLOT = { push: 'push', pull: 'pull', legs: 'legs', core: 'core', power: 'power', cardio: 'power', mobility: 'joints' };
@@ -19,21 +20,29 @@ const equipName = k => EQUIP.find(e => e[0] === k)?.[1] || k;
 const groupName = k => GROUPS.find(g => g[0] === k)?.[1] || k;
 export const howBtn = (id, name) => `<button class="how" data-how="${esc(id)}" aria-label="How to do ${esc(name)}">?</button>`;
 
-// The "?" popup: two drawings, numbered steps and one tip.
+// The "?" popup (2.4): the drawings first, then the muscles it works, then the steps.
+// Details (level, equipment, the drawings' credits) sit last, in small print.
 export function showMove(id, { onAdd = null, added = false } = {}) {
   const m = moveById(id); if (!m) return;
+  const art = artOf(m.id);
+  const pic = (src, alt) => `<img src="${src}" alt="${esc(alt)}" loading="lazy">`;
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${esc(m.name)}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll">
-      <p class="sub" style="text-align:center">${esc(m.muscles)} · ${esc(LEVELS[m.level])} · ${esc(equipName(m.equip))}</p>
-      <div class="figs" role="img" aria-label="Drawing of ${esc(m.name)}: start position, then finish position">
-        <figure>${figureSVG(m.start)}<figcaption>1 · Start</figcaption></figure>
-        <figure>${figureSVG(m.end)}<figcaption>2 · Finish</figcaption></figure></div>
+      <div class="figs${art ? ' art' : ''}">
+        <figure>${art ? pic(art.start, `${m.name}: start position`) : figureSVG(m.start)}<figcaption>1 · Start</figcaption></figure>
+        <figure>${art ? pic(art.end, `${m.name}: finish position`) : figureSVG(m.end)}<figcaption>2 · Finish</figcaption></figure></div>
+      ${art?.note ? `<p class="note" style="text-align:center">${esc(art.note)}</p>` : ''}
+      <div class="musmap" id="musmap"></div>
+      ${muscleLine(m.id)}
       <ol class="steps">${m.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
       <p class="tipline"><b>Tip:</b> ${esc(m.tip)}</p>
-      ${m.mode === 'hold' ? '<p class="note">This one is held for time rather than counted in reps.</p>' : ''}
-      <p class="note">New to an exercise? Start light and slow, and stop if anything hurts (sore muscles are normal; sharp pain is not).</p>
+      ${m.mode === 'hold' ? '<p class="note">Held for time, not counted in reps.</p>' : ''}
+      <p class="note">${esc(LEVELS[m.level])} · ${esc(equipName(m.equip))}. Start light and slow. Sore muscles are normal; sharp pain means stop.</p>
+      ${sources([...(art ? ['Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, CC BY-SA 4.0.'] : []),
+        'Muscle map: OpenStax, T. Kebert and umimeto.org, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, recolored.'])}
     </div>
     ${onAdd ? `<button class="cta" id="addMove" ${added ? 'disabled' : ''}>${added ? 'In your library' : 'Add to my library'}</button>` : ''}`, { label: m.name });
+  muscleMap(m.id).then(svg => { const box = el.querySelector('#musmap'); if (box) box.innerHTML = svg; });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') close();

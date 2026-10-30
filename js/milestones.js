@@ -113,7 +113,7 @@ export const WISHES = [['theme', 'A new theme', 'Unlock Eternal Dragon: emerald 
   ['title', 'A title', '"Dragon Ball master" beside your name.']];
 export function wishCard(p, list) {
   if (p.coach?.wish || list.filter(m => m.earned).length < 7) return '';
-  return `<section class="card wish"><p class="lbl">All seven Dragon Balls!</p>
+  return `<section class="card wish"><p class="lbl">All seven Dragon Balls</p>
     <div class="ballrow" style="justify-content:center">${list.map(m => ballSVG(m.stars, true, 32)).join('')}</div>
     <p style="text-align:center;font-weight:700">Shenron appears. Make one wish.</p>
     <div class="moregrid">${WISHES.map(([k, n, d]) => `<button class="card pick" data-wish="${k}"><span><b>${n}</b><br><span class="sub">${d}</span></span></button>`).join('')}</div></section>`;

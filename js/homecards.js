@@ -9,6 +9,10 @@ import { sumN } from './foods.js';
 import { volume, volumeUnit } from './units.js';
 import { fuelRanges } from './fuel.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
+import { powerLevel } from './scouter.js';
+
+// A Senzu bean, drawn small (2.5: no emoji in the interface).
+const BEAN = '<svg class="bean" viewBox="0 0 20 14" aria-hidden="true"><path d="M3 8c0-4 4-6 8-6s6 2 6 4-2 3-4 3-3 3-6 3-4-1-4-4z"/></svg>';
 
 // Rest days that count each week: the days you don't plan to train (at least 1; 2 with no plan).
 const offDay = d => d.gym + d.vault === 0;
@@ -28,7 +32,7 @@ export function streakCard(p, all, today) {
   const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
   return `<section class="card streak"><div class="row"><p class="lbl" style="margin:0">Streak</p>${whyBtn('streak', JSON.stringify(s))}</div>
     <div class="row" style="margin-top:4px"><span class="big num">${s.days}<span class="sub"> day${s.days === 1 ? '' : 's'}</span></span>
-    ${s.beans ? `<span aria-label="${s.beans} Senzu bean${s.beans === 1 ? '' : 's'}" title="Senzu beans">${'🫘'.repeat(s.beans)}</span>` : '<span class="sub">no beans yet</span>'}</div>
+    ${s.beans ? `<span aria-label="${s.beans} Senzu bean${s.beans === 1 ? '' : 's'}" title="Senzu beans">${BEAN.repeat(s.beans)}</span>` : '<span class="sub">no beans yet</span>'}</div>
     ${s.todayDone ? '<p class="sub">Today counts. ✓</p>' : s.restLeft ? `<p class="sub">${plannedRest ? 'Today is a planned rest day.' : 'Log anything today to keep it going.'}</p>
       <button class="cta2" data-restday style="margin-top:8px;width:100%">${plannedRest ? 'Count today\'s rest' : 'Log a planned rest day'}</button>`
       : `<p class="sub">This week's ${s.restPerWeek} rest day${s.restPerWeek === 1 ? ' is' : 's are'} used. Log training to keep it going.</p>`}</section>`;
@@ -45,6 +49,14 @@ export function riskCard(p, all, today) {
     <h2>Your ${s.days}-day streak needs one log by ${ends}</h2>
     <p class="sub">${s.beans ? `A Senzu bean would save it, but logging anything keeps your ${s.beans === 1 ? 'bean' : 'beans'}.` : 'No Senzu beans left to save it.'} Anything counts: food, water, training${s.restLeft ? ' or a rest day' : ''}.</p>
     <div class="qlog"><button class="cta2" data-qadd>Log food</button><button class="cta2" data-qwater>Log water</button>${s.restLeft ? '<button class="cta2" data-restday>Rest day</button>' : ''}</div></section>`;
+}
+
+// The status strip (2.5): streak and power level on one line above Today. Each opens more.
+export function statusStrip(p, all, today) {
+  const s = streak(all, today, restAllowance(p)); streakSeen[p.id] = s.days;
+  const pl = powerLevel(p, all, today).total;
+  return `<div class="strip"><button data-hview="stats"><b class="num">${s.days}</b> day streak${s.todayDone ? '' : ' · log today'}</button>
+    <button data-go="saga"><b class="num">${pl.toLocaleString('en-US')}</b> power level · Saga</button></div>`;
 }
 
 // Shown in a new week until dismissed, if anything was logged last week.

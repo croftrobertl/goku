@@ -23,6 +23,6 @@ export async function duelCard(p, today) {
   const lastWinners = rows.filter(r => r.last === lastTop && lastTop > 0).map(r => r.o.id === p.id ? 'you' : esc(r.o.name));
   return `<section class="card duel"><p class="lbl">Duel · training days this week</p>
     <ul class="list">${rows.map(r => `<li><span class="row" style="gap:10px;justify-content:flex-start">${avatarHTML(r.o, 28)}<span>${r.o.id === p.id ? 'You' : esc(r.o.name)}</span></span>
-      <b class="num">${r.now}${r.now === top && top > 0 ? ' ⚡' : ''}</b></li>`).join('')}</ul>
+      <b class="num">${r.now}${r.now === top && top > 0 && rows.filter(x => x.now === top).length === 1 ? ' <span class="sub">leading</span>' : ''}</b></li>`).join('')}</ul>
     <p class="note">${lastWinners.length ? `Last week: ${lastWinners.join(' and ')} ${lastWinners.length > 1 ? 'tied' : 'won'} with ${lastTop}. ` : ''}A day counts when a session or other training is logged.</p></section>`;
 }

@@ -5,7 +5,7 @@ import { esc, overlay, round, toast } from './ui.js';
 import { weight, weightUnit, toLb, length, lengthUnit, toIn } from './units.js';
 import { dayKey, deviceTZ, validTZ, daysBetween } from './time.js';
 
-const VOICE = '<p class="voice">🎤 Tap the mic on your keyboard to say it instead of typing.</p>';
+const VOICE = '<p class="voice">You can tap the mic on your keyboard to talk instead of typing.</p>';
 const yearNow = () => new Date().getFullYear();
 const todayOf = p => dayKey(Date.now(), p.dayEndsAt ?? 3, p.tz);
 export const ageOf = p => p.about?.birthYear ? yearNow() - p.about.birthYear : null;
@@ -270,7 +270,7 @@ export function bindCoach(root, p, ctx, save) {
       markAsked(q, p); countAnswerToday(p);
       await save(p);
       if (changed) window.goku.go('week');
-      else toast('Saved. Thanks!');
+      else toast('Saved');
       return;
     }
     if (questionClick(q, draft, b) === 'redraw') {

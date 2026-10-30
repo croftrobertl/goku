@@ -83,6 +83,9 @@ const DATA = {
       repTimes: nums(d.repTimes, 20000, 0, 1e6) }),
   gut: d => ({ amWaist: num(d.amWaist, 10, 100), pmWaist: num(d.pmWaist, 10, 100), bloat: int(d.bloat, 0, 10), foods: strs(d.foods, 100, 40),
     fluidsOz: num(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500),
+    ...(Array.isArray(d.supps) ? { supps: d.supps.slice(0, 50).filter(x => x && typeof x === 'object' && str(x.name, 40).trim()).map(x => ({ name: str(x.name, 40).trim(), dose: num(x.dose, 0, 100000),
+      unit: ['mg', 'mcg', 'g', 'IU', 'mL'].includes(x.unit) ? x.unit : 'mg', form: ['capsule', 'tablet', 'softgel', 'gummy', 'scoop', 'packet', 'drop', 'serving'].includes(x.form) ? x.form : 'serving',
+      qty: int(x.qty, 1, 20, 1) })) } : {}),
     ...Object.fromEntries(['heartburn', 'cramps', 'gas', 'nausea', 'lowEnergy'].filter(k => d[k] === true).map(k => [k, true])) }),
   food: d => ({ items: Array.isArray(d.items) ? d.items.slice(0, 200).map(foodItem).filter(Boolean) : [], water: num(d.water, 0, 1000) }),
   myfood: d => ({ name: str(d.name, 60).trim() || 'Food', brand: str(d.brand, 40), upc: String(d.upc || '').replace(/\D/g, '').slice(0, 14), unit: d.unit === 'ml' ? 'ml' : 'g',
@@ -119,7 +122,10 @@ export function cleanBackup(prof, entries) {
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
     settings: { sound: prof.settings?.sound !== false, duel: false, kcalTarget: int(prof.settings?.kcalTarget, 800, 6000), trackWaist: prof.settings?.trackWaist === true, // sharing is chosen again on each phone
-      homeOrder: ids(prof.settings?.homeOrder), homeHidden: ids(prof.settings?.homeHidden),
+      homeOrder: ids(prof.settings?.homeOrder), homeHidden: ids(prof.settings?.homeHidden), meds: strs(prof.settings?.meds, 30, 60).map(m => m.trim()).filter(Boolean),
+      stacks: Array.isArray(prof.settings?.stacks) ? prof.settings.stacks.slice(0, 10).filter(s => s && str(s.name, 30).trim() && Array.isArray(s.items)).map(s => ({ name: str(s.name, 30).trim(),
+        items: s.items.slice(0, 20).filter(x => x && str(x.name, 40).trim()).map(x => ({ name: str(x.name, 40).trim(), dose: num(x.dose, 0, 100000), unit: ['mg', 'mcg', 'g', 'IU', 'mL'].includes(x.unit) ? x.unit : 'mg',
+          form: ['capsule', 'tablet', 'softgel', 'gummy', 'scoop', 'packet', 'drop', 'serving'].includes(x.form) ? x.form : 'serving', qty: int(x.qty, 1, 20, 1) })) })).filter(s => s.items.length) : [],
       theme: THEMES[prof.settings?.theme] ? prof.settings.theme : 'capsule', mode: ['auto', 'dark', 'light'].includes(prof.settings?.mode) ? prof.settings.mode : 'auto', ...(prof.kind === 'engine'
       ? { gravity: [10, 20, 50, 100].includes(prof.settings?.gravity) ? prof.settings.gravity : 50, shuffleSeed: int(prof.settings?.shuffleSeed, 0, 1e6, 0),
         proteinTarget: int(prof.settings?.proteinTarget, 1, 1000), proteinPer: prof.settings?.proteinPer === 'meal' ? 'meal' : 'day',

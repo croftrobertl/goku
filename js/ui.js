@@ -81,6 +81,10 @@ export function stepper(key, value, label, unit = '') {
     <button type="button" data-d="1" aria-label="More ${esc(label)}">+</button></div>`;
 }
 
+// Fine print (2.5): a card's sources fold behind one small "Sources" link. items: HTML strings.
+export const sources = (items, { numbered = false } = {}) => items.length ? `<details class="srcs"><summary>Sources</summary>${numbered
+  ? `<ol class="foot">${items.map(i => `<li>${i}</li>`).join('')}</ol>` : items.map(i => `<p class="note">${i}</p>`).join('')}</details>` : '';
+
 export const round = (n, d = 0) => { const f = 10 ** d; return Math.round(n * f) / f; };
 
 // ---------- Color: any accent stays readable as a fill and as text ----------

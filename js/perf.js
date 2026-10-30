@@ -8,7 +8,7 @@ import { AREAS } from './validate.js';
 import { coachCard, bindCoach, ageOf } from './coach.js';
 import { fuelCard, timingCard, fuelNowCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
-import { streakCard, recapCard, bindShared, riskCard } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard, statusStrip } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
@@ -23,7 +23,7 @@ import { calendarCard, bindCalendar } from './calendar.js';
 // Session names come from the profile: Gymnastics and Vaulting, or a Custom profile's sports.
 const kindName = (p, s) => { const n = sessionNames(p); return s.data.kind === 'vault' ? n[1] || 'Other' : n[0]; };
 
-export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings']];
+export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', 'Saga', 'hidden']];
 
 export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
 import { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
@@ -127,7 +127,7 @@ export async function home() {
       ['saga', sagaCard(arcs, t, { skills })],
       ['longday', `${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
         <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}`]
-    ]),
+    ], { strip: statusStrip(p, all, t) }),
     bind(root) {
       bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
       bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p);

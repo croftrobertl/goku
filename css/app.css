@@ -364,7 +364,7 @@ nav.tabs button[aria-current="page"] { color: var(--tx); font-weight: 800; text-
 .card.coach, .card.coachnote { position: relative; border-radius: 22px 22px 22px 8px; margin-bottom: 30px; }
 .card.coach::after, .card.coachnote::after { content: ""; position: absolute; left: 26px; bottom: -13px; width: 22px; height: 22px; background: inherit;
   border-right: 2.5px solid var(--ink); border-bottom: 2.5px solid var(--ink); transform: rotate(45deg) skew(12deg, 12deg); border-bottom-right-radius: 4px; }
-.card.coach > .lbl:first-child::before, .card.coachnote > .lbl:first-child::before, .card.coachnote > .row:first-child .lbl::before { content: "💬 "; }
+
 .say { position: relative; margin-top: 12px; background: var(--s2); border: 2px solid var(--ink); border-radius: 16px 16px 16px 6px; padding: 10px 12px; }
 .say::after { content: ""; position: absolute; left: 18px; bottom: -9px; width: 14px; height: 14px; background: var(--s2); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); }
 /* Workout tap area in the panel look (2.1) */
@@ -571,3 +571,72 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .giant .gn b { font-size: 76px; line-height: 1; color: var(--accent-text); }
 .cheer { text-align: center; font-weight: 700; min-height: 1.4em; margin: 6px 0 4px; }
 .q .giant ~ .pills { justify-content: center; }
+
+/* 2.4 Exercise drawings and the muscle map. Drawings sit on white paper in every theme, like a gym placard. */
+.figs.art figure { background: #fff; }
+.figs.art figcaption { color: #333; }
+.figs.art img { display: block; width: 100%; height: 170px; object-fit: contain; }
+:root { --mus-main: #c8412b; --mus-also: #eba08f; }
+.musmap { max-width: 340px; margin: 6px auto 0; min-height: 120px; }
+.musmap svg { display: block; width: 100%; height: auto; }
+.musline { text-align: center; margin: 6px 0 10px; line-height: 1.6; }
+.musline .key { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin: 0 5px 0 2px; vertical-align: -1px; }
+.musline .key.main { background: var(--mus-main); } .musline .key.also { background: var(--mus-also); margin-left: 10px; }
+.credit a { color: inherit; }
+
+/* 2.4 Supplements: the amount sheet and interaction results */
+.amt { display: flex; gap: 10px; align-items: center; }
+.amt > input { flex: 1; min-width: 0; }
+.amt > select { flex: 1; min-width: 0; }
+.amt > select.unit { flex: 0 0 96px; }
+.hit { border-left: 4px solid var(--warn); padding: 4px 0 4px 10px; margin: 10px 0; }
+.hit details summary { cursor: pointer; color: var(--accent-text); font-weight: 600; margin-top: 2px; }
+.hit details p { margin: 8px 0; line-height: 1.45; }
+
+/* 2.5 Home: Today / Stats switch and the status strip */
+.hview { max-width: 360px; margin: 12px auto 12px; }
+.strip { display: flex; gap: 8px; margin: 0 0 14px; }
+.strip button { flex: 1; min-height: 44px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--s1); color: var(--tx2); font: inherit; font-size: .9rem; padding: 6px 10px; }
+.strip button b { color: var(--tx); font-size: 1.05rem; margin-right: 2px; }
+
+/* 2.5 Nutrition: one calorie ring; tap it for protein and nutrients */
+.ringd > summary { list-style: none; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+.ringd > summary::-webkit-details-marker { display: none; }
+.ring { position: relative; display: block; width: 168px; height: 168px; }
+.ring svg { width: 100%; height: 100%; }
+.ring .rt { fill: none; stroke: var(--line); stroke-width: 10; }
+.ring .rf { fill: none; stroke: var(--accent-line); stroke-width: 10; stroke-linecap: round; }
+.ring .rf.over { stroke: var(--warn); }
+.ring .rv { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring .rv b { font-size: 2.2rem; line-height: 1.05; }
+.ringhint { margin-top: 4px; text-decoration: underline; text-underline-offset: 3px; }
+.ringd[open] .ringhint { display: none; }
+.ringd[open] > summary { margin-bottom: 10px; }
+.bean { width: 18px; height: 13px; fill: var(--ok); margin-left: 2px; vertical-align: -1px; }
+
+/* 2.5 Fine print behind one link */
+.srcs { margin-top: 8px; }
+.srcs > summary { cursor: pointer; font-size: .8rem; color: var(--tx2); text-decoration: underline; text-underline-offset: 3px; list-style: none; display: inline-block; min-height: 44px; line-height: 44px; padding: 0 6px; }
+.srcs > summary::-webkit-details-marker { display: none; }
+.srcs[open] > summary { color: var(--tx); }
+.srcs a { color: inherit; }
+.kihint { transition: opacity .4s ease; pointer-events: none; } .kihint.out { opacity: 0; }
+.fcard .ffig.art { background: #fff; border-radius: 8px; padding: 4px; }
+.fcard .ffig.art img { display: block; width: 100%; height: 90px; object-fit: contain; }
+
+/* 2.5 Shared muscle map: full size in "?", mini on circuit cards, body map on Stats */
+.mmap { display: block; width: 100%; height: auto; }
+.fcard .ffig.mus { background: var(--s1); border-radius: 8px; padding: 4px 2px; }
+.fcard .ffig.mus .mmap { height: 90px; }
+:root { --mus-faint: #f3cfc5; }
+.bodymap .mmap { max-width: 360px; margin: 10px auto 0; }
+.seg.mini { margin: 0; } .seg.mini button { min-height: 36px; padding: 0 10px; font-size: .85rem; }
+.mkey { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 10px; margin-top: 6px; }
+.mkey i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 3px; vertical-align: -1px; }
+.seg.mini button { white-space: nowrap; }
+.hit .space { font-weight: 700; margin: 4px 0; }
+.warnline { color: var(--warn); }
+.pill small { font-weight: 400; opacity: .8; }
+
+.ring.plain { height: auto; padding: 14px 0 4px; } .ring.plain .rv { position: static; }
+#ib .pills > .pill { display: inline-block; border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 12px; margin: 3px; }
