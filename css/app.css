@@ -319,7 +319,6 @@ nav.tabs button[aria-current="page"] { color: var(--tx); font-weight: 800; text-
 .split { border: 2px solid #141414; height: 14px; border-radius: 8px; background: #fff; }
 .split .sp { background: #8f7bff; } .split .sc { background: #2fbf82; } .split .sf { background: #ff7a52; }
 .sum .split + .sub { color: var(--on-accent); }
-.addtop { margin: 0 4px 18px 0; background: var(--ink); color: var(--bg); }
 .macros small { font-size: .7em; font-weight: 700; }
 .feel, .feel .pills, .feel .row { text-align: center; justify-content: center; }
 .feel .step { justify-content: center; }
@@ -527,17 +526,21 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 10px auto 0; max-width: 360px; }
 .cal > .row { max-width: 360px; margin: 0 auto; }
 .calgrid .cw { text-align: center; font-size: 12px; color: var(--tx2); font-weight: 700; }
-.cd { position: relative; aspect-ratio: 1; min-height: 38px; border-radius: 10px; border: 1.5px solid var(--line); background: none; color: var(--tx); font: inherit; font-size: 13px; padding: 0; }
-.cd.tr { background: var(--accent); color: var(--on-accent); border-color: var(--accent-line); font-weight: 800; }
-.cd.rs { border-style: dashed; border-color: var(--accent-line); }
-.cd.lg { background: color-mix(in srgb, var(--accent) 22%, var(--s1)); }
+/* 2.7: Dragon Ball days. A trained day is a lit ball, a rest day a dashed ring, a logged day a small dot. */
+.cd { position: relative; aspect-ratio: 1; min-height: 38px; border-radius: 50%; border: 2px solid transparent; background: none; color: var(--tx); font: inherit; font-size: 13px; padding: 0; }
+.cd.tr { background: #f59a1c; color: #141414; border-color: #141414; font-weight: 800; box-shadow: inset 3px 3px 0 rgba(255, 255, 255, .45); }
+.cd.rs { border: 2px dashed var(--tx2); }
+.cd.lg::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--tx2); }
+.cd.tr .rec { color: #c4281c; }
+.cd.lg.bn::after { display: none; } /* the bean marks the day already */
 .cd.now { outline: 2.5px solid var(--ink, var(--tx)); outline-offset: 1px; }
 .cd.out, .cd.fut { opacity: .35; }
 .cd .rec, .calkey .reck { font-style: normal; font-size: 12px; line-height: 1; color: var(--ink, var(--tx)); }
 .cd .rec { position: absolute; top: 2px; right: 3px; }
 .cd .bean { position: absolute; bottom: 3px; left: 50%; width: 9px; height: 6px; margin-left: -4.5px; border-radius: 50%; background: var(--ok); }
 .calkey { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; margin-top: 10px; }
-.calkey .cd { display: inline-block; width: 14px; height: 14px; min-height: 0; aspect-ratio: auto; border-radius: 4px; }
+.calkey .cd { display: inline-block; width: 14px; height: 14px; min-height: 0; aspect-ratio: auto; }
+.calkey .cd.lg::after { bottom: 3.5px; }
 .calkey .cd .bean { bottom: 3px; width: 8px; height: 5px; margin-left: -4px; }
 
 /* 2.3 Poster boss and the Arc cleared screen */
@@ -642,10 +645,13 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .ki { margin: 0 0 14px; }
 .kibtn { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 72px; background: none; border: 0; padding: 0; color: var(--tx); font: inherit; text-align: left; cursor: pointer; }
 .kibtn > span { display: flex; flex-direction: column; } .kibtn b { font-size: 1.05rem; font-weight: 800; }
-.kiring { width: 68px; height: 68px; flex: none; }
-.kiring .rt { fill: none; stroke: var(--line); stroke-width: 8; }
-.kiring .rf { fill: none; stroke: var(--accent-line); stroke-width: 8; stroke-linecap: round; }
-.kiring text { fill: var(--tx); font-size: 15px; font-weight: 800; font-family: inherit; }
+.kiring { width: 84px; height: 84px; flex: none; overflow: visible; }
+.kiring .a1, .kiring .a2 { fill: var(--accent); }
+.kiring .core { fill: var(--accent); stroke: var(--ink, var(--accent-line)); stroke-width: 2.5; }
+.kiring .core.ember { fill: var(--s2); stroke-width: 1.8; stroke-dasharray: 2.5 3; }
+.kiring .rays path { stroke: var(--ink, var(--accent-line)); stroke-width: 2.5; stroke-linecap: round; }
+.kiring text { fill: var(--on-accent); font-size: 12px; font-weight: 800; font-family: inherit; }
+.kiring .ember + text { fill: var(--tx); }
 .kirows { display: none; margin-top: 8px; }
 .ki.open .kirows { display: block; }
 .kirows .link { min-height: 36px; padding: 0; text-align: left; }
@@ -673,3 +679,24 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
   .tside .kirows { display: block; }
   .tside .kitap { display: none; }
 }
+
+/* 2.7 Library: picture rows; the whole row opens the how-to (Edit inside) */
+.list li:has(> .librow) { padding: 0; }
+.librow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px 0; background: none; border: 0; color: var(--tx); font: inherit; text-align: left; cursor: pointer; }
+.librow::after { content: '›'; margin-left: auto; padding-left: 6px; font-size: 1.3rem; color: var(--tx2); }
+.lthumb { flex: none; width: 56px; height: 56px; border: 2px solid var(--ink, var(--line)); border-radius: 10px; background: var(--s2); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.lthumb.art { background: #fff; }
+.lthumb img { width: 100%; height: 100%; object-fit: contain; }
+.lthumb .mmap { height: 52px; }
+.ltext { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ltext b { font-weight: 700; }
+.lbl .sub { font-weight: 400; font-size: .9rem; }
+
+/* 2.7 Nutrition: one panel with the three ways to log */
+.qadd { display: flex; gap: 8px; margin-top: 12px; }
+.qadd .cta2 { flex: 1; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; color: var(--tx); }
+.qadd svg { width: 26px; height: 17px; fill: currentColor; }
+
+/* 2.7 Settings: the accent color lives inside the theme */
+.tcustom { margin-top: 12px; }
+.tcustom > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent-text); font-weight: 600; }

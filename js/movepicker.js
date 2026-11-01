@@ -22,7 +22,7 @@ export const howBtn = (id, name) => `<button class="how" data-how="${esc(id)}" a
 
 // The "?" popup (2.4): the drawings first, then the muscles it works, then the steps.
 // Details (level, equipment, the drawings' credits) sit last, in small print.
-export function showMove(id, { onAdd = null, added = false } = {}) {
+export function showMove(id, { onAdd = null, added = false, onEdit = null } = {}) {
   const m = moveById(id); if (!m) return;
   const art = artOf(m.id);
   const pic = (src, alt) => `<img src="${src}" alt="${esc(alt)}" loading="lazy">`;
@@ -41,12 +41,14 @@ export function showMove(id, { onAdd = null, added = false } = {}) {
       ${sources([...(art ? ['Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, CC BY-SA 4.0.'] : []),
         'Muscle map: OpenStax, T. Kebert and umimeto.org, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, recolored.'])}
     </div>
-    ${onAdd ? `<button class="cta" id="addMove" ${added ? 'disabled' : ''}>${added ? 'In your library' : 'Add to my library'}</button>` : ''}`, { label: m.name });
+    ${onAdd ? `<button class="cta" id="addMove" ${added ? 'disabled' : ''}>${added ? 'In your library' : 'Add to my library'}</button>` : ''}
+    ${onEdit ? '<button class="cta2" id="editMove" style="width:100%">Edit loads and drop chain</button>' : ''}`, { label: m.name });
   muscleMap(m.id).then(svg => { const box = el.querySelector('#musmap'); if (box) box.innerHTML = svg; });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') close();
     if (b.id === 'addMove') { await onAdd(m); close(); }
+    if (b.id === 'editMove') { close(); onEdit(); }
   }));
 }
 

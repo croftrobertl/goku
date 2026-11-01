@@ -128,11 +128,12 @@ export async function nutritionView() {
         ${range ? `<p class="sub" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
         <div class="row" style="justify-content:center;margin-top:8px;gap:8px"><button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>
           <button class="link" id="dayDetail">All nutrients</button></div></details>
+        <div class="qadd"><button class="cta2" id="addFood">+ Food</button><button class="cta2" data-fl="${volumeSteps(p)[1][1]}">+ Water</button>
+          <button class="cta2" id="scanFood">${BARCODE}<span>Scan</span></button></div>
       </section>
-      <button class="cta addtop" id="addFood">+ Add food</button>
       ${MEALS.map(mealCard).join('')}
       ${(() => { const empty = MEALS.filter(([k]) => !items.some(it => (it.meal || 'snacks') === k)).map(m => m[1]);
-        return empty.length === 4 ? '<p class="sub" style="text-align:center;margin:-6px 0 18px">Nothing logged yet. Tap Add food to start the day.</p>'
+        return empty.length === 4 ? '<p class="sub" style="text-align:center;margin:-6px 0 18px">Nothing logged yet. Tap + Food to start the day.</p>'
           : empty.length ? `<p class="sub" style="text-align:center;margin:-6px 0 18px">Not logged yet: ${empty.join(' · ')}</p>` : ''; })()}
     </div><div>
       <section class="card"><div class="row"><p class="lbl" style="margin:0">Water</p><span class="num big">${esc(volume(water, p))} <span class="sub">${volumeUnit(p)}</span></span></div>
@@ -157,6 +158,7 @@ export async function nutritionView() {
         const b = e.target.closest('button'); if (!b || b.closest('.overlay') || b.closest('.supps')) return;
         if (b.dataset.dayshift) { navDay = addDays(day, +b.dataset.dayshift); if (navDay < addDays(t, -60)) navDay = addDays(t, -60); return window.goku.render(); }
         if (b.id === 'addFood') return addFood(nowMeal(), day);
+        if (b.id === 'scanFood') return addFood(nowMeal(), day, { scan: true });
         if (b.dataset.item !== undefined) {
           const it = items[+b.dataset.item];
           if (it.legacy !== undefined) { if (await ask('Remove this quick protein entry?', esc(it.n.p + ' g'), [{ label: 'Remove', value: true, danger: true }])) { g.protein.splice(it.legacy, 1); await saveGut(); window.goku.render(); } return; }
@@ -240,7 +242,7 @@ async function addItems(day, list) {
   await saveEntry('food', food, { id: foodId(p, day), day });
 }
 
-export function addFood(meal, day) {
+export function addFood(meal, day, { scan = false } = {}) {
   const p = profile();
   let tab = 'recent', q = '', all = null, mine = [], recent = [], meals = [], failed = false;
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add food</h1><button class="cta2" id="x" data-close>Close</button></div>
@@ -312,6 +314,7 @@ export function addFood(meal, day) {
     }
   }));
   Promise.all([myFoods(), recentItems(p), entries('meal')]).then(([m, r, ml]) => { mine = m; recent = r; meals = ml; draw(); });
+  if (scan) el.querySelector('#scan').click(); // Scan on the Nutrition panel goes straight to the camera
   loadFoods().then(list => { all = list; if (q) draw(); }).catch(() => { failed = true; draw(); });
   draw();
   setTimeout(() => $('#fq')?.focus(), 50);

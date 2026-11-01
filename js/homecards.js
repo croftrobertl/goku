@@ -72,13 +72,20 @@ export function kiGauge(p, all, today) {
     rows.push(['Protein', target ? `${prot} of ${target} g` : `${prot} g`]);
     rows.push(['Water', `${volume(food?.water ?? gut?.fluidsOz ?? 0, p)} ${volumeUnit(p)}`]);
   }
-  const pct = Math.round(parts.reduce((a, b) => a + b, 0) / parts.length * 100), len = 2 * Math.PI * 26;
+  const pct = Math.round(parts.reduce((a, b) => a + b, 0) / parts.length * 100);
+  // The aura (2.7): the core is always lit; the inner aura fills to 50%, the outer from 50 to 100,
+  // and at 100% the rays come out. At 0% it's a quiet ember.
+  const inner = Math.min(1, pct / 50), outer = Math.max(0, (pct - 50) / 50);
+  const rays = [0, 45, 90, 135, 180, 225, 270, 315].map(a => `<path d="M32 -3.5v3.5" transform="rotate(${a} 32 32)"/>`).join('');
   const what = parts.length > 1 ? 'Training and protein' : 'Training';
   return `<section class="ki${kiOpen ? ' open' : ''}" aria-label="Today's ki">
     <button class="kibtn" data-ki aria-expanded="${kiOpen}" aria-controls="kirows">
-      <svg class="kiring" viewBox="0 0 64 64" aria-hidden="true"><circle class="rt" cx="32" cy="32" r="26"/>
-      ${pct ? `<circle class="rf" cx="32" cy="32" r="26" stroke-dasharray="${len * pct / 100} ${len}" transform="rotate(-90 32 32)"/>` : ''}
-      <text x="32" y="37" text-anchor="middle">${pct}%</text></svg>
+      <svg class="kiring" viewBox="0 0 64 64" aria-hidden="true">
+      ${outer ? `<circle class="a2" cx="32" cy="32" r="${25 + 6 * outer}" opacity="${(.3 * outer).toFixed(2)}"/>` : ''}
+      ${inner ? `<circle class="a1" cx="32" cy="32" r="${20 + 5 * inner}" opacity="${(.2 + .3 * inner).toFixed(2)}"/>` : ''}
+      ${pct >= 100 ? `<g class="rays">${rays}</g>` : ''}
+      <circle class="core${pct ? '' : ' ember'}" cx="32" cy="32" r="19"/>
+      <text x="32" y="36.5" text-anchor="middle"${pct >= 100 ? ' style="font-size:10.5px"' : ''}>${pct}%</text></svg>
       <span><b>Today's ki</b><span class="sub">${what} today<span class="kitap"> · tap for details</span></span></span></button>
     <ul class="list kirows" id="kirows">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b class="num">${esc(v)}</b></li>`).join('')}
       <li><button class="link" data-hview="stats">Streak</button><b class="num">${s.days} day${s.days === 1 ? '' : 's'}${s.todayDone ? '' : ' · log today'}</b></li>

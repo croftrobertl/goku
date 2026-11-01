@@ -14,21 +14,23 @@ function startGravity(a) {
   return 50;
 }
 
-// Capsule (2.2): Goku's guide through setup, an original character (a little capsule with a
-// face), never a Dragon Ball character. Each step gets its own bright page color.
+// The setup guide (2.7, replacing 2.2's Capsule): a star ball buddy, an orange ball with star
+// eyes, drawn for Goku in the style of the splash icon; never a Dragon Ball character.
+// Each step gets its own bright page color.
 const STEP_COLORS = ['#ffd84d', '#ff9f5a', '#c9bdff', '#9be6c4', '#ffb59c', '#8fd3ff'];
+const STAR = 'l2 4.5 5 .5-3.8 3.3 1.1 4.9-4.3-2.5-4.3 2.5 1.1-4.9-3.8-3.3 5-.5z';
 function capsule(step, total) {
   const last = step === total - 1, first = step === 0;
-  const mouth = first ? 'M47 70q13 12 26 0' : last ? 'M45 68q15 16 30 0' : step % 3 === 1 ? 'M50 72h20' : 'M48 70q12 9 24 0';
-  const eyes = step % 3 === 1 && !last ? '<path d="M38 56h10M72 56h10" stroke="#141414" stroke-width="4" stroke-linecap="round"/>' : '<circle cx="44" cy="56" r="5" fill="#141414"/><circle cx="76" cy="56" r="5" fill="#141414"/>';
-  const arms = last ? '<path d="M14 62l-8-14M106 62l8-14" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : first ? '<path d="M106 58l10-12" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : '';
+  const mouth = first ? 'M47 72q13 12 26 0' : last ? 'M44 70q16 17 32 0' : step % 3 === 1 ? 'M51 75h18' : 'M48 72q12 9 24 0';
+  // Star eyes, or a calm squint on some steps (never on the last).
+  const eyes = step % 3 === 1 && !last ? '<path d="M39 56h11M70 56h11" stroke="#141414" stroke-width="4" stroke-linecap="round"/>'
+    : `<path d="M44 46${STAR}M76 46${STAR}" fill="#c4281c" stroke="#141414" stroke-width="1.6" stroke-linejoin="round"/>`;
+  const arms = last ? '<path d="M18 60l-10-14M102 60l10-14" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : first ? '<path d="M103 56l11-12" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : '';
   return `<div class="mascot" aria-hidden="true"><svg viewBox="0 0 120 110" width="104" height="96">${arms}
-    <defs><clipPath id="capR"><rect x="60" y="20" width="50" height="80"/></clipPath></defs>
-    <rect x="14" y="26" width="92" height="66" rx="33" fill="#fff"/>
-    <rect x="14" y="26" width="92" height="66" rx="33" fill="#ff8a3d" clip-path="url(#capR)"/>
-    <rect x="14" y="26" width="92" height="66" rx="33" fill="none" stroke="#141414" stroke-width="4"/>
-    ${eyes}<path d="${mouth}" fill="none" stroke="#141414" stroke-width="4" stroke-linecap="round"/>
-    <rect x="53" y="12" width="14" height="14" rx="4" fill="#ff8a3d" stroke="#141414" stroke-width="3"/></svg></div>`;
+    <ellipse cx="60" cy="104" rx="26" ry="4" fill="#141414" opacity=".15"/>
+    <circle cx="60" cy="58" r="42" fill="#f59a1c" stroke="#141414" stroke-width="4"/>
+    <path d="M36 34q10-11 24-12" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".75"/>
+    ${eyes}<path d="${mouth}" fill="none" stroke="#141414" stroke-width="4" stroke-linecap="round"/></svg></div>`;
 }
 
 export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081'];

@@ -284,15 +284,15 @@ export async function settingsView() {
       <div class="row" style="justify-content:flex-start;gap:12px">${avatarHTML(p, 56)}<span><b>${esc(avatarName(p))}</b><br>
         <button class="link" id="avatar" style="padding:0">Change avatar</button></span></div>
       <label class="f"><span>Name</span><input id="nm" value="${esc(p.name)}" maxlength="24"></label>
-      <p class="lbl" style="margin-top:14px">Color</p>
-      <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="Color ${c}"></button>`).join('')}</div>
     </section>
     <section class="card"><p class="lbl">Theme</p>
       <div class="themes">${Object.entries(THEMES).filter(([id, t]) => !t.locked || p.coach?.wish === 'theme').map(([id, t]) => `<button data-theme="${id}" aria-pressed="${(p.settings.theme || 'capsule') === id}">
         <span class="tsw" aria-hidden="true" style="background:${t.dark.s1};box-shadow:inset -18px 0 0 ${t.light.s1}"><i style="background:${t.accent}"></i></span>
         <span><b>${esc(t.name)}</b><br><span class="sub">${esc(t.desc)}</span></span></button>`).join('')}</div>
       <div class="seg" role="group" aria-label="Light or dark">${MODES.map(([v, l]) => `<button data-mode="${v}" aria-pressed="${(p.settings.mode || 'auto') === v}">${l}</button>`).join('')}</div>
-      <p class="note">Picking a theme also sets its matching color. You can still change the color above.</p>
+      <details class="tcustom"${p.accent !== THEMES[p.settings.theme || 'capsule']?.accent ? ' open' : ''}><summary>Customize this theme</summary>
+        <p class="sub">Accent color for buttons and highlights. Picking a theme again resets it.</p>
+        <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="Color ${c}"></button>`).join('')}</div></details>
     </section>
     <section class="card"><p class="lbl">What the app shows</p>
       ${liveModules(p.kind).map(([k, n, d]) => `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span>

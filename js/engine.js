@@ -521,24 +521,29 @@ function openRunner(run) {
 export async function libraryView() {
   const p = profile();
   const lib = await library();
+  await musclesReady().catch(() => {}); // the muscle maps on rows without a drawing
   const best = records(await sessionsInOrder());
   const groups = {};
   for (const e of lib) (groups[e.data.slot] ||= []).push(e);
   const pr = e => e.data.stages.map(st => [st.label, recordFor(best, e.id, st.label)]).filter(([, r]) => r);
   return {
     cta: ['Add exercise', () => pickMove({ onCustom: () => editExercise(), have: lib.map(e => moveFor(e.data)?.id).filter(Boolean) })],
-    html: `<h1>Library</h1><p class="sub">Each exercise has a drop chain, hardest first. Circuits pick one per group. Tap ? to see how an exercise is done. Best is the most reps you’ve done in one set.</p>
+    html: `<h1>Library</h1><p class="sub">Circuits pick one exercise per group. Tap one to see how it's done or to edit it.</p>
       ${Object.entries(groups).map(([slot, list]) => `<section class="card" style="margin-top:12px">
-        <p class="lbl">${esc(slot)}</p><ul class="list">${list.map(e => `<li><span>${esc(e.data.name)}<br>
-        <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(weight(s.load, p))} ${weightUnit(p)})` : '')).join(' → ')}</span>
-        ${pr(e).length ? `<br><span class="chain pr">Best: ${pr(e).map(([l, r]) => `${esc(l)} ${r}`).join(' · ')}</span>` : ''}</span>
-        <span class="row" style="gap:6px">${moveFor(e.data) ? howBtn(moveFor(e.data).id, e.data.name) : ''}<button class="cta2" data-edit="${esc(e.id)}">Edit</button></span></li>`).join('')}</ul></section>`).join('')}`,
+        <p class="lbl">${esc(slot.slice(0, 1).toUpperCase() + slot.slice(1))} <span class="sub">· ${list.length} move${list.length === 1 ? '' : 's'}</span></p>
+        <ul class="list librows">${list.map(e => { const m = moveFor(e.data), art = m && artOf(m.id);
+          // Picture rows (2.7): the exercise drawing, else its muscle map; the whole row opens it.
+          const pic = art ? `<img src="${art.end}" alt="" loading="lazy">` : m ? miniMap(m.id) : '';
+          return `<li><button class="librow" data-open="${esc(e.id)}"><span class="lthumb${art ? ' art' : ''}" aria-hidden="true">${pic}</span>
+          <span class="ltext"><b>${esc(e.data.name)}</b>
+          <span class="chain">${e.data.stages.map(s => esc(s.label) + (s.load ? ` (${esc(weight(s.load, p))} ${weightUnit(p)})` : '')).join(' → ')}</span>
+          ${pr(e).length ? `<span class="chain pr">Best: ${pr(e).map(([l, r]) => `${esc(l)} ${r}`).join(' · ')}</span>` : ''}</span></button></li>`; }).join('')}</ul></section>`).join('')}`,
     bind(root) {
       root.addEventListener('click', e => {
-        const how = e.target.closest('[data-how]');
-        if (how) return showMove(how.dataset.how);
-        const b = e.target.closest('[data-edit]');
-        if (b) editExercise(lib.find(x => x.id === b.dataset.edit));
+        const b = e.target.closest('[data-open]'); if (!b) return;
+        const ex = lib.find(x => x.id === b.dataset.open), m = moveFor(ex.data);
+        // Moves from the built-in list open their how-to (with Edit inside); your own exercises open the editor.
+        if (m) showMove(m.id, { onEdit: () => editExercise(ex) }); else editExercise(ex);
       });
     },
   };

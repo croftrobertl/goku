@@ -32,6 +32,11 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.7.0:* the Ki gauge is an aura orb (an ember at 0%, aura rings fill to 100%, rays at 100%).
+  Library rows show each exercise's drawing (or muscle map); tap one for how-to with Edit inside.
+  History marks training days as Dragon Balls, rest days as rings. Nutrition's calorie panel holds
+  + Food, + Water and Scan. Theme is the one color choice; the accent lives under Customize this
+  theme. Setup's guide is a star ball buddy instead of Capsule.
 - *2.6.0:* Home is one panel and the rest rows. Only the workout keeps its panel, with Enter the
   chamber inside (gravity moved behind Change gravity); coach, circuit, other training and fuel are
   one-line rows that open in place. One Ki gauge replaces the strip: a ring for training and
@@ -69,7 +74,7 @@ used to dictate.
   and More for the rest; a week strip with one day editor; the Scouter, a green scouter gauge with a
   power level (0 to 9,000: training days, fuel days and recovery over the last 7 days), clearly
   labeled as a game score and not a health measure; the Saga map, 4-week arcs each with a boss goal
-  the person sets; Home grouped into Today, This week and Saga; full-color setup steps with Capsule,
+  the person sets; Home grouped into Today, This week and Saga; full-color setup steps with a guide character,
   an original mascot (no Dragon Ball characters or art); aura stages from the streak (gold at 7 days,
   blue at 30); Shenron's wish once all seven Dragon Balls are gathered (the Eternal Dragon theme, an
   eternal aura, or a title); and the Kamehameha finish: hold Finish to charge it before a workout
