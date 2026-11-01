@@ -72,7 +72,7 @@ import { skillsView } from './skills.js';
 import { nutritionView, forgetHistory, poweredUp, addFood, nowMeal, quickWater } from './nutrition.js';
 import { logActivity } from './activity.js';
 import { loadFoods, foodVocab } from './foods.js';
-import { streakSeen } from './homecards.js';
+import { streakSeen, toggleKi } from './homecards.js';
 import { setHomeView, homeView } from './homelayout.js';
 
 // The Saga screen (2.5) is Home's game cards on a page of their own, reached from the status strip.
@@ -199,6 +199,7 @@ document.addEventListener('click', e => {
   if (b.dataset.tab) go(b.dataset.tab);
   else if (b.dataset.hview && !b.closest('.overlay')) { setHomeView(b.dataset.hview); tabs[S.current] = 'home'; render().then(() => window.scrollTo(0, 0)); }
   else if (b.dataset.go && !b.closest('.overlay')) go(b.dataset.go);
+  else if (b.dataset.ki !== undefined) { const v = toggleKi(); b.closest('.ki').classList.toggle('open', v); b.setAttribute('aria-expanded', v); }
   else if (b.id === 'switch') {
     if (goku.busy) return toast('Finish your session first');
     if (S.profiles.length > 1) chooseProfile();

@@ -34,16 +34,30 @@ let view = 'today'; // which Home section is on screen: today, stats, or saga (t
 export const setHomeView = v => { view = v; };
 export const homeView = () => view;
 
-// cards: [[id, html]]; strip: the one-line status shown above Today.
+// Today rows (2.6): every Today card but the workout folds into a one-line row that opens
+// in place. Which rows are open survives a redraw, so logging inside one doesn't close it.
+const openRows = new Set();
+const text = html => (html.match(/<h2[^>]*>([\s\S]*?)<\/h2>/)?.[1] || '').replace(/<[^>]+>/g, '').trim();
+const row = (id, html, [label, summary]) => `<details class="hrow" data-row="${id}"${openRows.has(id) ? ' open' : ''}>
+  <summary><b>${esc(label)}</b><span>${esc(summary ?? text(html))}</span></summary><div class="hrowbody">${html}</div></details>`;
+export function bindRows(root) {
+  root.querySelectorAll('details.hrow').forEach(d => d.addEventListener('toggle', () => { if (d.open) openRows.add(d.dataset.row); else openRows.delete(d.dataset.row); }));
+}
+
+// cards: [[id, html]]; strip: the Ki gauge; rows: {id: [label, summary?]} for the cards shown
+// as one-line rows on Today (summary defaults to the card's heading).
 // Returns the markup for the current section, in the person's order, without hidden cards.
-export function homeLayout(p, cards, { strip = '' } = {}) {
+// On desktop, Today is the panel and rows on the left and the Ki gauge as a scouter column.
+export function homeLayout(p, cards, { strip = '', rows = {} } = {}) {
   const html = Object.fromEntries(cards), off = hidden(p);
-  const ids = order(p).filter(id => !off.has(id) && html[id]?.trim() && sectionOf(id) === view);
-  const body = ids.length ? `<div class="homecards">${ids.map(id => html[id]).join('\n')}</div>`
+  let ids = order(p).filter(id => !off.has(id) && html[id]?.trim() && sectionOf(id) === view);
+  if (view === 'today') ids = [...ids.filter(id => !rows[id]), ...ids.filter(id => rows[id])]; // panels first, then the rows
+  const item = id => view === 'today' && rows[id] ? row(id, html[id], rows[id]) : html[id];
+  const body = ids.length ? `<div class="homecards">${ids.map(item).join('\n')}</div>`
     : `<p class="sub" style="text-align:center;margin-top:16px">${view === 'stats' ? 'Your stats show up here once you log a few days.' : 'Nothing here yet.'}</p>`;
   if (view === 'saga') return body;
   return `<div class="seg hview" role="group" aria-label="Home view"><button data-hview="today" aria-pressed="${view === 'today'}">Today</button><button data-hview="stats" aria-pressed="${view === 'stats'}">Stats</button></div>
-    ${view === 'today' ? strip : ''}${body}`;
+    ${view === 'today' ? `<div class="today"><aside class="tside">${strip}</aside><div class="tmain">${body}</div></div>` : body}`;
 }
 
 export function editHome(p, onDone = () => window.goku.render()) {

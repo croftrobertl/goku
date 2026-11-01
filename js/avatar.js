@@ -1,21 +1,18 @@
-// Avatars. No official artwork is used or shipped: a character avatar is an original glossy
-// orb in that character's signature colors with their initial, labeled with their name.
+// Avatars. No official artwork is used or shipped: a character avatar is an original inked
+// emblem in that character's signature color with a kanji that fits them, labeled with their
+// name. A fighter is only the avatar; the app's colors come from the theme.
 // A photo the person picks is resized here and stored only on this phone.
-import { esc, contrast } from './ui.js';
+import { esc } from './ui.js';
 
-// [id, name, orb color, ring color, accent the app switches to]
+// [id, name, emblem color, kanji]
 export const CHARACTERS = [
-  ['goku', 'Goku', '#ff8a2a', '#1d4fa8', '#ff8a3d'], ['vegeta', 'Vegeta', '#2c5fd6', '#e9edf5', '#5ea4ff'],
-  ['gohan', 'Gohan', '#7b3fb5', '#d9332b', '#b18cff'], ['piccolo', 'Piccolo', '#3fae49', '#6a2c91', '#7ee081'],
-  ['krillin', 'Krillin', '#f07c22', '#ffd166', '#ff8a3d'], ['trunks', 'Trunks', '#6f5bd6', '#2b2f3a', '#b18cff'],
-  ['roshi', 'Master Roshi', '#e8742a', '#f2c14e', '#f2c14e'], ['bulma', 'Bulma', '#2bb3b3', '#e84d8a', '#4fd1c5'],
-  ['tien', 'Tien', '#2a9d8f', '#f2c14e', '#4fd1c5'], ['yamcha', 'Yamcha', '#e8742a', '#2a9d8f', '#ff8a3d'],
-  ['frieza', 'Frieza', '#ece6f5', '#8a3fb5', '#b18cff'], ['cell', 'Cell', '#3d8f3d', '#1f1f1f', '#7ee081'],
-  ['buu', 'Majin Buu', '#ff7ab8', '#f5f5f5', '#ff7ab8'], ['android18', 'Android 18', '#2c5fd6', '#f5d76e', '#5ea4ff'],
-  ['broly', 'Broly', '#3fae49', '#f2c14e', '#7ee081'], ['beerus', 'Beerus', '#8a5bd6', '#d4a017', '#b18cff'],
-  ['whis', 'Whis', '#6fa8dc', '#2b2f6b', '#5ea4ff'], ['jiren', 'Jiren', '#d9332b', '#1f1f1f', '#ff7ab8'],
+  ['goku', 'Goku', '#ff8a2a', '悟'], ['vegeta', 'Vegeta', '#2c5fd6', '王'], ['gohan', 'Gohan', '#7b3fb5', '学'],
+  ['piccolo', 'Piccolo', '#3fae49', '魔'], ['krillin', 'Krillin', '#f07c22', '友'], ['trunks', 'Trunks', '#6f5bd6', '未'],
+  ['roshi', 'Master Roshi', '#e8742a', '亀'], ['bulma', 'Bulma', '#2bb3b3', '才'], ['tien', 'Tien', '#2a9d8f', '天'],
+  ['yamcha', 'Yamcha', '#e8742a', '狼'], ['frieza', 'Frieza', '#ece6f5', '冷'], ['cell', 'Cell', '#3d8f3d', '完'],
+  ['buu', 'Majin Buu', '#ff7ab8', '甘'], ['android18', 'Android 18', '#2c5fd6', '機'], ['broly', 'Broly', '#3fae49', '伝'],
+  ['beerus', 'Beerus', '#8a5bd6', '破'], ['whis', 'Whis', '#6fa8dc', '使'], ['jiren', 'Jiren', '#d9332b', '力'],
 ];
-const initialOf = name => /\d/.test(name) ? name.replace(/\D/g, '').slice(0, 2) : name.slice(0, 1).toUpperCase();
 
 // [id, name, aura color]: the person's own initial wrapped in a power-up glow.
 export const AURAS = [
@@ -23,23 +20,17 @@ export const AURAS = [
   ['majin', 'Majin pink', '#ff6fb0'], ['destroyer', 'Destroyer purple', '#a86bff'], ['kaio', 'Crimson', '#ff5a4a'],
 ];
 
-let gid = 0;
-function orb(fill, ring, text, px) {
-  const id = 'og' + (++gid);
-  const ink = contrast(fill, '#111111') >= contrast(fill, '#ffffff') ? '#111111' : '#ffffff';
-  return `<svg viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
-    <defs><radialGradient id="${id}" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#fff" stop-opacity=".85"/>
-    <stop offset=".22" stop-color="${fill}"/><stop offset="1" stop-color="${fill}" stop-opacity=".78"/></radialGradient></defs>
-    <circle cx="20" cy="20" r="18" fill="url(#${id})" stroke="${ring}" stroke-width="2.5"/>
-    <text x="20" y="${text.length > 1 ? 25 : 26.5}" text-anchor="middle" font-size="${text.length > 1 ? 13 : 17}" font-weight="700"
-      font-family="-apple-system, system-ui, sans-serif" fill="${ink}">${esc(text)}</text></svg>`;
-}
+// An inked emblem: a colored ring, a white center and the kanji.
+const emblem = (fill, kanji, px) => `<svg viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
+    <circle cx="20" cy="20" r="18" fill="${fill}" stroke="#141414" stroke-width="2.5"/><circle cx="20" cy="20" r="11.5" fill="#fff" stroke="#141414" stroke-width="1.5"/>
+    <text x="20" y="24.6" text-anchor="middle" font-size="13" font-weight="700" fill="#141414"
+      font-family="'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', system-ui, sans-serif">${esc(kanji)}</text></svg>`;
 
 // The avatar for a profile, sized in pixels. Falls back to the plain initial in the accent color.
 export function avatarHTML(p, px = 36) {
   const a = p.avatar || {};
   const c = a.type === 'char' && CHARACTERS.find(x => x[0] === a.id);
-  if (c) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(c[1])}">${orb(c[2], c[3], initialOf(c[1]), px)}</span>`;
+  if (c) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(c[1])}">${emblem(c[2], c[3], px)}</span>`;
   if (a.type === 'photo' && /^data:image\/(jpeg|png|webp);base64,/.test(a.img || ''))
     return `<span class="av av-art" style="width:${px}px;height:${px}px"><img src="${a.img}" alt="" width="${px}" height="${px}"></span>`;
   const aura = a.type === 'aura' && AURAS.find(x => x[0] === a.id);
@@ -60,7 +51,7 @@ export function avatarPicker(p) {
   const cur = p.avatar || { type: 'initial' };
   const on = (t, id) => cur.type === t && (id === undefined || cur.id === id);
   const self = { ...p, avatar: null };
-  return `<p class="sub">Pick a fighter, a power-up aura, or your own photo. Character names are used as labels only; the orbs are original art.</p>
+  return `<p class="sub">Pick a fighter, a power-up aura, or your own photo. Character names are labels only; the emblems are original drawings, not official art. Your colors stay with your theme.</p>
     <p class="lbl" style="margin-top:12px">Fighters</p>
     <div class="avgrid">${CHARACTERS.map(([id, name]) => `<button data-avatar="char:${id}" aria-pressed="${on('char', id)}">
       ${avatarHTML({ ...p, avatar: { type: 'char', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>
@@ -79,8 +70,7 @@ export function avatarPicker(p) {
 // Applies a picker tap to a profile. Returns true if something changed.
 export function pickAvatar(p, value) {
   const [type, id] = value.split(':');
-  if (type === 'char') { if (p.avatar?.type !== 'char') p.ownAccent = p.accent; p.accent = CHARACTERS.find(x => x[0] === id)?.[4] || p.accent; }
-  else if (p.avatar?.type === 'char' && p.ownAccent) { p.accent = p.ownAccent; delete p.ownAccent; }
+  delete p.ownAccent; // before 2.6 a fighter also changed the colors; it no longer does
   p.avatar = type === 'initial' ? null : { type, id };
   return true;
 }

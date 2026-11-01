@@ -32,6 +32,12 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.6.0:* Home is one panel and the rest rows. Only the workout keeps its panel, with Enter the
+  chamber inside (gravity moved behind Change gravity); coach, circuit, other training and fuel are
+  one-line rows that open in place. One Ki gauge replaces the strip: a ring for training and
+  protein today, with training, protein, water, streak and power level (to Saga) on tap. On
+  desktop, Today is the panel and rows beside a scouter column with the gauge open. Fighters are
+  kanji emblems, and picking one no longer changes the app's colors; the theme does.
 - *2.5.0 (includes 2.4):* simpler screens. Home opens on Today (the workout and what's timed for
   today) with a one-line strip for the streak and power level; a Stats switch holds the week, trend,
   Senzu map, recap and hard sets; the game cards (Dragon Balls, wish, saga, duel, Scouter) moved to
@@ -151,8 +157,9 @@ used to dictate.
   Settings → Import from Health reads it (Settings shows the steps). Importing the same file twice
   adds nothing. **The shortcut recipe hasn't been run on a real iPhone yet.**
 
-**Avatars.** Pick a fighter (an original orb in a Dragon Ball character's colors with their initial,
-labeled with their name; no official artwork is included), a power-up aura around your own initial,
+**Avatars.** Pick a fighter (an original inked emblem in a Dragon Ball character's colors with a
+kanji that fits them, labeled with their name; no official artwork is included; a fighter is only
+the avatar, the theme sets the colors), a power-up aura around your own initial,
 or a photo from your phone (resized to 192 px, kept on the phone and in backups only).
 
 Before relying on it for workouts, run **Settings → Test my phone**. It checks saving, offline use,
@@ -448,7 +455,7 @@ js/themes.js           the six themes (light and dark palettes)
 js/devcheck.js         Settings → Test my phone
 js/coach.js            coach questions, setup and daily follow-ups
 js/fuel.js             protein and carbohydrate ranges with sources
-js/avatar.js           fighter orbs, auras and photo avatars
+js/avatar.js           fighter emblems, auras and photo avatars
 js/units.js            US and metric units
 js/activity.js         other training log
 js/insights.js         streak, recovery map, records, progression, recap numbers

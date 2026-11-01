@@ -8,11 +8,11 @@ import { AREAS } from './validate.js';
 import { coachCard, bindCoach, ageOf } from './coach.js';
 import { fuelCard, timingCard, fuelNowCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
-import { streakCard, recapCard, bindShared, riskCard, statusStrip } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard, kiGauge } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
-import { homeLayout } from './homelayout.js';
+import { homeLayout, bindRows } from './homelayout.js';
 import { duelCard } from './duel.js';
 import { skillSummary, skillList } from './skills.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
@@ -77,6 +77,7 @@ export async function home() {
   const duel = await duelCard(p, t);
   const arcs = await arcsOf(p);
   const comp = p.about?.comp && p.about.comp >= t ? daysBetween(t, p.about.comp) : null;
+  const coachHTML = coachCard(p, {});
 
   return {
     cta: c ? ['Log a session', () => logSession()] : ['Check in · 30 s', () => openCheckin(t)],
@@ -91,7 +92,7 @@ export async function home() {
       ['balls', `${newBallsCard(p, milestones(p, all, t, skills))}`],
       ['wish', wishCard(p, milestones(p, all, t, skills))],
       ['recap', `${recapCard(p, all, t)}`],
-      ['coach', `${coachCard(p, {})}`],
+      ['coach', coachHTML],
       ['comp', `${comp !== null ? `<section class="card"><p class="lbl">Competition</p><p class="big num">${comp === 0 ? 'Today' : comp + (comp === 1 ? ' day' : ' days')}</p>
         <p class="sub">${comp === 0 ? 'Good luck. Trust your training.' : 'until your next competition.'}</p></section>` : ''}`],
       ['care', `${flags.length ? `<section class="card flag"><p class="lbl">Care check</p>
@@ -127,8 +128,11 @@ export async function home() {
       ['saga', sagaCard(arcs, t, { skills })],
       ['longday', `${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
         <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}`]
-    ], { strip: statusStrip(p, all, t) }),
+    ], { strip: kiGauge(p, all, t), rows: {
+      coach: ['Coach', /coachSetup/.test(coachHTML) ? 'Make Goku yours · about 3 minutes' : 'One quick question'],
+      fuelnow: ['Fuel now'], fuel: ['Fuel', 'Ranges for today'], longday: ['Long day', 'A tip for today'] } }),
     bind(root) {
+      bindRows(root);
       bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
       bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p);
       root.addEventListener('click', e => {

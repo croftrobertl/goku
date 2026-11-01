@@ -9,11 +9,11 @@ import { fuelCard, fuelRanges, timingCard, fuelNowCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
 import { loggedEntries, records, recordFor, progression, GROUPS } from './insights.js';
 import { openNutritionDay, nutritionDays, dayTotals } from './nutrition.js';
-import { streakCard, recapCard, bindShared, riskCard, statusStrip } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard, kiGauge } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
-import { homeLayout } from './homelayout.js';
+import { homeLayout, bindRows } from './homelayout.js';
 import { pickMove, showMove, howBtn, moveFor } from './movepicker.js';
 import { figureSVG } from './figure.js';
 import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
@@ -177,6 +177,7 @@ export async function home() {
   const prog = progression(sessions, g);
   const showProg = prog && p.coach?.progSeen !== prog.latest.id && !(fresh && feel.v === 'hard');
   const nextG = levels[levels.indexOf(g) + 1];
+  const coachHTML = coachCard(p, ctx);
 
   return {
     cta: circuit.length ? ['Enter chamber', () => trainByFeel(circuit)] : null,
@@ -184,7 +185,7 @@ export async function home() {
       ['balls', `${newBallsCard(p, milestones(p, all, t))}`],
       ['wish', wishCard(p, milestones(p, all, t))],
       ['recap', `${recapCard(p, all, t)}`],
-      ['coach', `${coachCard(p, ctx)}`],
+      ['coach', coachHTML],
       ['levelup', `${showProg ? `<section class="card coachnote"><div class="row"><p class="lbl" style="margin:0">Level up</p>${whyBtn('progress', JSON.stringify(prog.reps))}</div>
       <p>You beat your ghost twice in a row at ×${g}: ${prog.reps.join(' → ')} reps.</p>
       <div class="row" style="margin-top:8px;justify-content:flex-start;gap:8px">${nextG ? `<button class="cta2" data-g="${nextG}" data-prog="${esc(prog.latest.id)}">Move to ×${nextG}</button>` : ''}
@@ -192,11 +193,15 @@ export async function home() {
       <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}`],
       ['nudge', `${nudge && !showProg ? `<section class="card coach"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ×${nudge} gravity${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ×${nudge}</button></section>` : ''}`],
-      ['chamber', `<section class="card" aria-labelledby="h-today">
+      ['chamber', `<section class="card chamber" aria-labelledby="h-today">
       <p class="lbl">Gravity chamber · today</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
-      <p class="sub">${rounds} rounds · ${rest}s rest · ${cap}-min cap · ${depth === 1 ? 'one stage per set' : depth === 2 ? 'to failure, one drop' : 'to failure, then drop'}</p>
+      <p class="sub">×${g} gravity · ${circuit.length} move${circuit.length === 1 ? '' : 's'} · ${rounds} rounds · ${rest}s rest · ${cap}-min cap</p>
       ${p.about?.days ? `<p class="sub">This week: <b class="num">${weekCount}</b> of ${esc(p.about.days)} sessions${weekCount >= +p.about.days ? ' · goal met' : ''} ${whyBtn('weekgoal')}</p>` : ''}
+      ${circuit.length ? '<button class="cta" id="enterChamber" style="margin-top:12px">Enter the chamber</button>' : ''}
+      ${ghost ? `<div class="ghost">Ghost: your last ×${g} session (${prettyDay(ghost.day)}) · <b class="num">${sessionTotal(ghost)}</b> reps in ${round(minutes(ghost))} min. Beat it.</div>`
+        : `<div class="ghost">Your first ×${g} session becomes your ghost. Next time at ×${g}, you race it live.</div>`}
+      <details class="gravd"><summary>Change gravity · ${depth === 1 ? 'one stage per set' : depth === 2 ? 'to failure, one drop' : 'to failure, then drop'}</summary>
       <div class="dial" aria-hidden="true">
         <svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="80" fill="none" stroke="var(--s2)" stroke-width="14"/>
         <circle cx="95" cy="95" r="80" fill="none" stroke="var(--accent-line)" stroke-width="14" stroke-linecap="round"
@@ -205,9 +210,7 @@ export async function home() {
       </div>
       <div class="seg grav" role="group" aria-label="Gravity level">
         ${Object.keys(GRAVITY).map(x => `<button data-g="${x}" aria-pressed="${+x === g}">×${x}</button>`).join('')}
-      </div>
-      ${ghost ? `<div class="ghost">Ghost: your last ×${g} session (${prettyDay(ghost.day)}) · <b class="num">${sessionTotal(ghost)}</b> reps in ${round(minutes(ghost))} min. Beat it.</div>`
-        : `<div class="ghost">Your first ×${g} session becomes your ghost. Next time at ×${g}, you race it live.</div>`}
+      </div></details>
     </section>`],
       ['circuit', `<section class="card">
       <div class="row"><h2>Circuit</h2>${on(p, 'shuffle') ? '<button class="cta2" id="shuffle">Shuffle</button>' : ''}</div>
@@ -245,14 +248,20 @@ export async function home() {
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
       <p class="note">Each set taken to failure counts once, drops included.</p>
     </section>` : ''}`]
-    ], { strip: statusStrip(p, all, t) }),
+    ], { strip: kiGauge(p, all, t), rows: {
+      coach: ['Coach', /coachSetup/.test(coachHTML) ? 'Make Goku yours · about 3 minutes' : 'One quick question'],
+      circuit: ['Circuit', circuit.length ? circuit.map(e => e.data.name).join(' · ') : 'Your library is empty'],
+      activity: ['Also today', todayActs.length ? `${Math.round(minutesOf(todayActs))} min logged` : 'Soccer, runs, games'],
+      fuelnow: ['Fuel now'], fuel: ['Fuel', 'Ranges for today'] } }),
     bind(root) {
+      bindRows(root);
       bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
       bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p); bindBodyMap(root);
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
         if (b.dataset.how) return showMove(b.dataset.how);
+        if (b.id === 'enterChamber') return trainByFeel(circuit);
         if (b.id === 'addLoad') return window.goku.go('library');
         if (b.id === 'progLater') return window.goku.render();
         if (b.id === 'logAct') return logActivity();

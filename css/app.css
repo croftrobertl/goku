@@ -593,11 +593,8 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .hit details summary { cursor: pointer; color: var(--accent-text); font-weight: 600; margin-top: 2px; }
 .hit details p { margin: 8px 0; line-height: 1.45; }
 
-/* 2.5 Home: Today / Stats switch and the status strip */
+/* 2.5 Home: Today / Stats switch */
 .hview { max-width: 360px; margin: 12px auto 12px; }
-.strip { display: flex; gap: 8px; margin: 0 0 14px; }
-.strip button { flex: 1; min-height: 44px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--s1); color: var(--tx2); font: inherit; font-size: .9rem; padding: 6px 10px; }
-.strip button b { color: var(--tx); font-size: 1.05rem; margin-right: 2px; }
 
 /* 2.5 Nutrition: one calorie ring; tap it for protein and nutrients */
 .ringd > summary { list-style: none; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
@@ -640,3 +637,39 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 
 .ring.plain { height: auto; padding: 14px 0 4px; } .ring.plain .rv { position: static; }
 #ib .pills > .pill { display: inline-block; border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 12px; margin: 3px; }
+
+/* 2.6 Home: the Ki gauge, one panel and the rest rows; on desktop, a scouter column */
+.ki { margin: 0 0 14px; }
+.kibtn { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 72px; background: none; border: 0; padding: 0; color: var(--tx); font: inherit; text-align: left; cursor: pointer; }
+.kibtn > span { display: flex; flex-direction: column; } .kibtn b { font-size: 1.05rem; font-weight: 800; }
+.kiring { width: 68px; height: 68px; flex: none; }
+.kiring .rt { fill: none; stroke: var(--line); stroke-width: 8; }
+.kiring .rf { fill: none; stroke: var(--accent-line); stroke-width: 8; stroke-linecap: round; }
+.kiring text { fill: var(--tx); font-size: 15px; font-weight: 800; font-family: inherit; }
+.kirows { display: none; margin-top: 8px; }
+.ki.open .kirows { display: block; }
+.kirows .link { min-height: 36px; padding: 0; text-align: left; }
+.hrow { border-bottom: 2px solid var(--line); }
+.hrow > summary { list-style: none; display: flex; align-items: center; gap: 12px; min-height: 52px; cursor: pointer; padding: 4px 2px; }
+.hrow > summary::-webkit-details-marker { display: none; }
+.hrow > summary b { flex: none; font-weight: 800; }
+.hrow > summary span { flex: 1; min-width: 0; color: var(--tx2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hrow > summary::after { content: '›'; display: inline-block; flex: none; font-size: 1.3rem; color: var(--tx2); transition: transform .15s ease; }
+.hrow[open] > summary::after { transform: rotate(90deg); }
+.hrowbody > .card { border: 0; box-shadow: none; margin: 0; padding: 0 2px 14px; background: none; }
+.hrowbody > .card > .lbl:first-child, .hrowbody > .card > .row:first-child > :is(h2, .lbl) { display: none; }
+.hrowbody > .card > .row:first-child { justify-content: flex-end; }
+.chamber .ghost { margin-top: 12px; }
+.gravd { margin-top: 10px; }
+.gravd > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--tx2); text-decoration: underline; text-underline-offset: 3px; }
+@media (min-width: 900px) {
+  .today { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 0 24px; align-items: start; }
+  .today .tside { grid-column: 2; grid-row: 1; position: sticky; top: 16px; }
+  .today .tmain { grid-column: 1; grid-row: 1; }
+  .today .homecards { columns: 1; }
+  .tside .ki { background: var(--s1); border: 2.5px solid var(--ink, var(--line)); border-radius: 18px; box-shadow: var(--pop, 0) var(--pop, 0) 0 var(--shade, transparent); padding: 18px; }
+  .tside .kibtn { flex-direction: column; text-align: center; cursor: default; pointer-events: none; }
+  .tside .kiring { width: 132px; height: 132px; }
+  .tside .kirows { display: block; }
+  .tside .kitap { display: none; }
+}

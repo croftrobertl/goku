@@ -51,12 +51,38 @@ export function riskCard(p, all, today) {
     <div class="qlog"><button class="cta2" data-qadd>Log food</button><button class="cta2" data-qwater>Log water</button>${s.restLeft ? '<button class="cta2" data-restday>Rest day</button>' : ''}</div></section>`;
 }
 
-// The status strip (2.5): streak and power level on one line above Today. Each opens more.
-export function statusStrip(p, all, today) {
+// The Ki gauge (2.6): one ring for the day in place of the 2.5 status strip. The ring is
+// training plus protein (when there's a target); tap it for the rows. On desktop the rows
+// stay open in the scouter column.
+let kiOpen = false;
+export const toggleKi = () => { kiOpen = !kiOpen; return kiOpen; };
+export function kiGauge(p, all, today) {
   const s = streak(all, today, restAllowance(p)); streakSeen[p.id] = s.days;
   const pl = powerLevel(p, all, today).total;
-  return `<div class="strip"><button data-hview="stats"><b class="num">${s.days}</b> day streak${s.todayDone ? '' : ' · log today'}</button>
-    <button data-go="saga"><b class="num">${pl.toLocaleString('en-US')}</b> power level · Saga</button></div>`;
+  const day = all.filter(e => e.day === today), of = t => day.find(e => e.type === t)?.data;
+  const plan = p.kind === 'perf' ? p.settings.weekPlan || [] : [];
+  const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]); // a rest day on the plan counts
+  const trained = day.some(e => e.type === 'session' || e.type === 'activity'), rested = !trained && (plannedRest || day.some(e => e.type === 'rest'));
+  const parts = [trained || rested ? 1 : 0], rows = [['Training', trained ? 'Done' : rested ? 'Rest day' : 'Not yet']];
+  if (p.modules?.nutrition !== false) {
+    const food = of('food'), gut = of('gut'), prot = dayProtein(food, gut);
+    // The same protein number the recap uses: your own daily target, else the bottom of the range.
+    const target = (p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget) || fuelRanges(p, 0)?.protein[0];
+    if (target) parts.push(Math.min(1, prot / target));
+    rows.push(['Protein', target ? `${prot} of ${target} g` : `${prot} g`]);
+    rows.push(['Water', `${volume(food?.water ?? gut?.fluidsOz ?? 0, p)} ${volumeUnit(p)}`]);
+  }
+  const pct = Math.round(parts.reduce((a, b) => a + b, 0) / parts.length * 100), len = 2 * Math.PI * 26;
+  const what = parts.length > 1 ? 'Training and protein' : 'Training';
+  return `<section class="ki${kiOpen ? ' open' : ''}" aria-label="Today's ki">
+    <button class="kibtn" data-ki aria-expanded="${kiOpen}" aria-controls="kirows">
+      <svg class="kiring" viewBox="0 0 64 64" aria-hidden="true"><circle class="rt" cx="32" cy="32" r="26"/>
+      ${pct ? `<circle class="rf" cx="32" cy="32" r="26" stroke-dasharray="${len * pct / 100} ${len}" transform="rotate(-90 32 32)"/>` : ''}
+      <text x="32" y="37" text-anchor="middle">${pct}%</text></svg>
+      <span><b>Today's ki</b><span class="sub">${what} today<span class="kitap"> · tap for details</span></span></span></button>
+    <ul class="list kirows" id="kirows">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b class="num">${esc(v)}</b></li>`).join('')}
+      <li><button class="link" data-hview="stats">Streak</button><b class="num">${s.days} day${s.days === 1 ? '' : 's'}${s.todayDone ? '' : ' · log today'}</b></li>
+      <li><button class="link" data-go="saga">Power level · Saga</button><b class="num">${pl.toLocaleString('en-US')}</b></li></ul></section>`;
 }
 
 // Shown in a new week until dismissed, if anything was logged last week.
