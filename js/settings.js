@@ -12,7 +12,7 @@ import { phoneCheck } from './devcheck.js';
 import { THEMES, MODES } from './themes.js';
 import { w, W, SKINS, skinOf } from './skins.js';
 import { avatarHTML, avatarName, avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
-import { QUESTIONS, essentials, setupFlow, GOALS, EQUIPMENT, ALLERGIES } from './coach.js';
+import { QUESTIONS, essentials, setupFlow, GOALS, EQUIPMENT, ALLERGIES, TZS } from './coach.js';
 import { editHome } from './homelayout.js';
 import { weight, weightUnit, length, lengthUnit } from './units.js';
 import { deviceTZ, TZ } from './time.js';
@@ -323,7 +323,7 @@ export async function settingsView() {
     <section class="card"><p class="lbl">Units and time</p>
       <div class="seg" role="group" aria-label="Units"><button data-units="imperial" aria-pressed="${p.units !== 'metric'}">lb · in · oz</button>
         <button data-units="metric" aria-pressed="${p.units === 'metric'}">kg · cm · ml</button></div>
-      <label class="f"><span>Time zone</span><select id="tz">${[...new Set([p.tz || TZ, deviceTZ(), 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Europe/London'])]
+      <label class="f"><span>Time zone</span><select id="tz">${[...new Set([p.tz || TZ, deviceTZ(), ...TZS])]
         .map(z => `<option ${z === (p.tz || TZ) ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label>
       <label class="f"><span>Day ends at</span>
       <select id="de">${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}" ${h === p.dayEndsAt ? 'selected' : ''}>${h === 0 ? 'Midnight' : h + ':00 AM'}</option>`).join('')}</select></label>

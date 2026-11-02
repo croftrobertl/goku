@@ -32,6 +32,15 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.8.1:* changes picked in the first phone review. Setup has a "Pick a look" step for the skin,
+  one page color throughout, a "24 / 24" counter on the name, 7 training days a week, and the
+  Soccer pack off for Strength profiles. The center button is "Quick add". "Hold to finish" sits
+  under Finish instead of popping up. Edit session can add a round or an exercise. New exercise
+  uses the move picker's seven groups, and Dumbbell math shows only for dumbbell exercises. Goal
+  ideas fit the profile type, and the goal editor uses the skin's words. Fueling ratios read per lb
+  for pound users. Settings lists the same 15 time zones as setup. A practice-log profile's power
+  level counts against at least 3 sessions, a rest day fills Ki once it's marked, the keyboard-mic
+  hint shows only on touch screens, and Android's Back closes the open sheet first.
 - *2.8.0:* skins. Each profile picks a skin in Settings: Dragon Ball, Encore (an original pop-tour
   look: Spotlight, Tour, rain checks, Take the stage, bead-bracelet avatars, a mic buddy in setup and
   the Pastel tour theme) or Plain. Features are the same in every skin. Search finds exactly what

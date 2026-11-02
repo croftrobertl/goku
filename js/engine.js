@@ -15,7 +15,8 @@ import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
 import { homeLayout, bindRows } from './homelayout.js';
-import { pickMove, showMove, howBtn, moveFor } from './movepicker.js';
+import { pickMove, showMove, howBtn, moveFor, addMove } from './movepicker.js';
+import { GROUPS as MOVE_GROUPS } from './moves.js';
 import { figureSVG } from './figure.js';
 import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
 import { calendarCard, bindCalendar } from './calendar.js';
@@ -343,7 +344,7 @@ function openRunner(run) {
     <div class="row">
       <button class="cta2" id="undo" aria-label="Undo">Undo</button>
       <span class="num sub" id="clock">00:00</span>
-      <button class="cta2 kame" id="end" aria-label="Finish: hold to charge"><span>Finish</span></button>
+      <span class="endwrap"><button class="cta2 kame" id="end" aria-label="Finish: hold to charge"><span>Finish</span></button><small class="endhint" aria-hidden="true">Hold to finish</small></span>
     </div>
     <p class="sub" id="where" style="text-align:center;margin-top:8px"></p>
     <p style="text-align:center"><button class="link" id="howEx" hidden></button></p>
@@ -532,7 +533,8 @@ function openRunner(run) {
   // Kamehameha finish (2.2): hold Finish for a moment to charge it, so a stray tap can't end a workout.
   let pressedAt = 0, chargeT = null;
   const endBtn = $('#end');
-  const stopCharge = done => { clearTimeout(chargeT); chargeT = null; endBtn.classList.remove('charging'); if (!done && Date.now() - pressedAt < 900) toast('Hold Finish to charge it up'); };
+  // "Hold to finish" sits under the button (2.8.1) in place of a pop-up over the workout.
+  const stopCharge = () => { clearTimeout(chargeT); chargeT = null; endBtn.classList.remove('charging'); };
   endBtn.addEventListener('pointerdown', e => {
     pressedAt = Date.now(); endBtn.classList.add('charging'); endBtn.setPointerCapture?.(e.pointerId);
     chargeT = setTimeout(() => { chargeT = null; endBtn.classList.remove('charging'); beep(1046, 90, 1); askFinish(); }, 900);
@@ -581,6 +583,12 @@ export async function libraryView() {
 const stepOptions = p => weightUnit(p) === 'kg' ? [1, 2, 2.5, 5] : [2.5, 5, 10];
 const stepShown = p => { const v = weight(p.settings.dbStep || 5, p); return stepOptions(p).reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a); };
 
+// The editor's groups are the move picker's seven (2.8.1); circuits still draw from the slot each maps to.
+const SLOT_OF = { push: 'push', pull: 'pull', legs: 'legs', core: 'core', power: 'power', cardio: 'power', mobility: 'joints' };
+const groupOf = d => d.group || moveFor(d)?.group || { joints: 'mobility' }[d.slot] || d.slot;
+// Dumbbell math (2.8.1) only for dumbbell exercises: the built-in list's equipment, else a "DB" or "dumbbell" name.
+const isDumbbell = d => { const eq = moveFor(d)?.equip || SEED.find(x => x[0] === d.name)?.[4]; return eq ? eq === 'db' : /\b(db|dumbbells?)\b/i.test(d.name); };
+
 function editExercise(ex) {
   const p = profile();
   const d = ex ? structuredClone(ex.data) : { name: '', slot: 'push', module: null, order: 999, stages: [{ label: '', load: null }] };
@@ -592,14 +600,14 @@ function editExercise(ex) {
   const $ = s => el.querySelector(s);
   function draw() {
     $('#f').innerHTML = `<label class="f"><span>Name</span><input id="nm" value="${esc(d.name)}" maxlength="40"></label>
-      <label class="f"><span>Group</span><select id="slot">${[...SLOTS, 'power', 'joints'].map(s => `<option ${s === d.slot ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+      <label class="f"><span>Group</span><select id="slot">${MOVE_GROUPS.map(([g, n]) => `<option value="${g}" ${g === groupOf(d) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
       <p class="lbl" style="margin-top:16px">Drop chain, hardest first</p>
       ${d.stages.map((s, i) => `<div class="row" style="margin-top:8px">
         <input data-i="${i}" data-k="label" value="${esc(s.label)}" placeholder="Stage ${i + 1}" aria-label="Stage ${i + 1} name">
         <input data-i="${i}" data-k="load" value="${esc(weight(s.load, p))}" inputmode="decimal" placeholder="${weightUnit(p)}" aria-label="Stage ${i + 1} load in ${weightUnit(p) === 'kg' ? 'kilograms' : 'pounds'}" style="width:80px">
         <button class="cta2" data-rm="${i}" aria-label="Remove stage ${i + 1}">−</button></div>`).join('')}
       <button class="cta2" id="add" style="margin-top:8px">Add stage</button>
-      ${d.stages.some(s => s.load) ? `<div class="card" style="margin-top:14px"><p class="lbl">Dumbbell math</p>
+      ${d.stages.some(s => s.load) && isDumbbell(d) ? `<div class="card" style="margin-top:14px"><p class="lbl">Dumbbell math</p>
         <p class="sub">Loads are per dumbbell. A pair of ${esc(weight(d.stages.find(s => s.load).load, p))} ${weightUnit(p)} is ${esc(weight(d.stages.find(s => s.load).load * 2, p))} ${weightUnit(p)} in total.</p>
         <label class="f"><span>Your dumbbells go up in steps of</span><select id="dbstep">${stepOptions(p).map(v =>
           `<option value="${v}" ${v === stepShown(p) ? 'selected' : ''}>${v} ${weightUnit(p)}</option>`).join('')}</select></label>
@@ -613,7 +621,7 @@ function editExercise(ex) {
     if (t.dataset.k === 'load') d.stages[+t.dataset.i].load = toLb(t.value, p);
   });
   el.addEventListener('change', async e => {
-    if (e.target.id === 'slot') d.slot = e.target.value;
+    if (e.target.id === 'slot') { d.group = e.target.value; d.slot = SLOT_OF[d.group]; }
     if (e.target.id === 'dbstep') { p.settings.dbStep = toLb(e.target.value, p); await saveProfile(p); }
   });
   el.addEventListener('click', guard(async e => {
@@ -686,7 +694,17 @@ function editSession(s) {
         <button class="cta2" data-rmset="${i}" aria-label="Remove this set">Remove</button></div>
         ${set.stages.map((st, j) => `<div class="row" style="margin-top:6px"><span>${esc(st.label)}</span>${stepper(i + ':' + j, st.reps, 'reps for ' + st.label)}</div>
         <div class="row" style="margin-top:4px"><span class="sub">weight</span><span class="row" style="gap:6px"><input data-wl="${i}:${j}" value="${st.load ? esc(weight(st.load, p)) : ''}" inputmode="decimal" placeholder="none" aria-label="Weight for ${esc(st.label)} in ${weightUnit(p) === 'kg' ? 'kilograms' : 'pounds'}" style="width:80px"><span class="sub">${weightUnit(p)}</span></span></div>`).join('')}</section>`).join('')
-        || '<p class="sub">No sets left. Save to keep an empty session, or delete it.</p>'}`;
+        || '<p class="sub">No sets left. Save to keep an empty session, or delete it.</p>'}
+      ${d.sets.length ? `<button class="addrow" id="addRound">+ Add a round${names().length === 1 ? ' of ' + esc(names()[0]) : ''}</button>` : ''}
+      <button class="addrow" id="addEx">+ Add an exercise</button>`;
+  };
+  // Adding (2.8.1): another round of an exercise already in the session, or a new exercise from the picker.
+  const names = () => [...new Set(d.sets.map(x => x.name))];
+  const addRound = name => {
+    const last = d.sets.filter(x => x.name === name).at(-1);
+    d.sets.push({ ...structuredClone(last), round: Math.max(...d.sets.filter(x => x.name === name).map(x => x.round)) + 1,
+      stages: last.stages.map(st => ({ label: st.label, reps: 0, load: st.load ?? null })) });
+    draw();
   };
   el.addEventListener('input', e => {
     if (!e.target.dataset.wl) return;
@@ -698,6 +716,17 @@ function editSession(s) {
     if (b.id === 'x') return close();
     if (b.dataset.dayshift) { const nd = addDays(day, +b.dataset.dayshift); if (nd <= today()) day = nd; return draw(); }
     if (b.dataset.rmset) { d.sets.splice(+b.dataset.rmset, 1); return draw(); }
+    if (b.id === 'addRound') {
+      const name = names().length === 1 ? names()[0] : await ask('Add a round of…', '', names().map(n => ({ label: n, value: n })));
+      if (name) addRound(name);
+      return;
+    }
+    if (b.id === 'addEx') return pickMove({ onPick: async m => {
+      const lib = await library();
+      const ex = lib.find(x => x.data.moveId === m.id || x.data.name === m.name) || await addMove(m);
+      d.sets.push({ exId: ex.id, name: ex.data.name, slot: ex.data.slot, round: 1, stages: ex.data.stages.map(st => ({ label: st.label, reps: 0, load: st.load ?? null })) });
+      draw();
+    } });
     if (b.dataset.d) {
       const [i, j] = b.closest('[data-step]').dataset.step.split(':').map(Number);
       d.sets[i].stages[j].reps = Math.max(0, d.sets[i].stages[j].reps + +b.dataset.d);

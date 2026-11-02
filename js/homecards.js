@@ -62,9 +62,10 @@ export function kiGauge(p, all, today) {
   const pl = powerLevel(p, all, today).total;
   const day = all.filter(e => e.day === today), of = t => day.find(e => e.type === t)?.data;
   const plan = p.kind === 'perf' ? p.settings.weekPlan || [] : [];
-  const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]); // a rest day on the plan counts
-  const trained = day.some(e => e.type === 'session' || e.type === 'activity'), rested = !trained && (plannedRest || day.some(e => e.type === 'rest'));
-  const parts = [trained || rested ? 1 : 0], rows = [['Training', trained ? 'Done' : rested ? 'Rest day' : 'Not yet']];
+  const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
+  // A rest day counts once it's marked with "Rest day" (2.8.1); a planned one alone used to fill half the ring.
+  const trained = day.some(e => e.type === 'session' || e.type === 'activity'), rested = !trained && day.some(e => e.type === 'rest');
+  const parts = [trained || rested ? 1 : 0], rows = [['Training', trained ? 'Done' : rested ? 'Rest day' : plannedRest ? 'Rest day planned · mark it in the quick menu' : 'Not yet']];
   if (p.modules?.nutrition !== false) {
     const food = of('food'), gut = of('gut'), prot = dayProtein(food, gut);
     // The same protein number the recap uses: your own daily target, else the bottom of the range.

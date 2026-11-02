@@ -1,7 +1,7 @@
 // Fuel ranges. Every number comes from a published position statement and is shown with
 // its source in a footnote. No calorie numbers are shown.
 import { esc, round, sources } from './ui.js';
-import { kgOf } from './units.js';
+import { kgOf, weightUnit } from './units.js';
 import { isMinor, proteinIdeas } from './coach.js';
 import { minutesNow, clockOf } from './time.js';
 
@@ -10,6 +10,10 @@ export const SOURCES = {
   timing: 'Kerksick CM, et al. International Society of Sports Nutrition position stand: nutrient timing. J Int Soc Sports Nutr. 2017;14:33.',
   acsm: 'Thomas DT, Erdman KA, Burke LM. Nutrition and Athletic Performance (Academy of Nutrition and Dietetics, Dietitians of Canada, American College of Sports Medicine). Med Sci Sports Exerc. 2016;48(3):543–568.',
 };
+
+// Ratios in the person's own units (2.8.1): the sources give g per kg, so pound users see g per lb.
+const perLb = x => { const v = x / 2.20462; return String(v < 2 ? Math.round(v * 100) / 100 : Math.round(v * 10) / 10); };
+export const ratio = (p, a, b) => weightUnit(p) === 'kg' ? `${a}${b != null ? '–' + b : ''} g per kg` : `${perLb(a)}${b != null ? '–' + perLb(b) : ''} g per lb`;
 
 // Carbohydrate tiers from the 2016 joint position statement (g/kg/day). The minutes that
 // pick a tier are Goku's reading of "about 1 h a day", "1–3 h" and "4–5 h or more".
@@ -53,7 +57,7 @@ export function fuelCard(p, minutes, { title = 'Fuel today', planned = 0 } = {})
     <div class="row" style="margin-top:8px"><span>Carbohydrate<sup>2</sup> ${why('carbs', minutes)}</span><b class="num">${r.carbs[0]}–${r.carbs[1]} g</b></div>
     <p class="sub" style="text-align:right">${esc(r.tier)}</p>
     ${ideas.length ? `<p class="sub" style="margin-top:8px">Protein ideas: ${ideas.map(esc).join(' · ')}</p>` : ''}
-    ${sources([`1.4–2.0 g per kg a day; about 0.25 g per kg per meal. ${esc(SOURCES.issn)}`, `3–12 g per kg a day by training load. ${esc(SOURCES.acsm)}`], { numbered: true })}
+    ${sources([`${ratio(p, 1.4, '2.0')} a day; about ${ratio(p, 0.25)} per meal. ${esc(SOURCES.issn)}`, `${ratio(p, 3, 12)} a day by training load. ${esc(SOURCES.acsm)}`], { numbered: true })}
     ${minutes ? `<p class="note">Counting ${minutes} minutes of training today${planned ? `, including your planned ${planned}-minute circuit` : ''}.</p>` : ''}
     <p class="note">${isMinor(p) ? 'These ranges come from studies of adults. For athletes under 18, a pediatrician or sports dietitian should confirm them.'
       : 'General ranges, not a prescription. A sports dietitian can fine-tune them.'}</p></section>`;
@@ -64,13 +68,13 @@ export function fuelCard(p, minutes, { title = 'Fuel today', planned = 0 } = {})
 export function timingCard(p, minutes, { open = true } = {}) {
   if (!(minutes > 0)) return '';
   const kg = kgOf(p);
-  const dose = kg ? `about ${Math.round(kg * 0.25)}–${Math.round(kg * 0.4)} g (0.25–0.40 g per kg)` : '20–40 g';
+  const dose = kg ? `about ${Math.round(kg * 0.25)}–${Math.round(kg * 0.4)} g (${ratio(p, 0.25, '0.40')})` : '20–40 g';
   const rows = [
     ['Through the day', `Protein ${dose} every 3 to 4 hours, so the daily total is spread out.`],
     ['After training', `High-quality protein, ${dose}, within 2 hours of finishing.`],
     ...(minutes > 60 ? [['During long, hard sessions', 'Past about an hour of hard work, 30–60 g of carbohydrate an hour, as sips of a sports drink every 10–15 minutes.']] : []),
-    ['Training again within 4 hours', kg ? `Carbohydrate about ${Math.round(kg * 1.2)} g an hour (1.2 g per kg) until the next session, or ${Math.round(kg * 0.8)} g an hour with ${Math.round(kg * 0.2)}–${Math.round(kg * 0.4)} g of protein an hour.`
-      : 'Carbohydrate about 1.2 g per kg of body weight an hour until the next session.'],
+    ['Training again within 4 hours', kg ? `Carbohydrate about ${Math.round(kg * 1.2)} g an hour (${ratio(p, 1.2)}) until the next session, or ${Math.round(kg * 0.8)} g an hour with ${Math.round(kg * 0.2)}–${Math.round(kg * 0.4)} g of protein an hour.`
+      : `Carbohydrate about ${ratio(p, 1.2)} of body weight an hour until the next session.`],
   ];
   const body = `<ul class="list">${rows.map(([k, v]) => `<li><span><b>${esc(k)}</b><br><span class="sub">${esc(v)}</span></span></li>`).join('')}</ul>
     ${isMinor(p) ? '<p class="note">Studied in adults; for athletes under 18, a pediatrician or sports dietitian should confirm.</p>' : ''}${sources([esc(SOURCES.timing)])}`;
@@ -105,8 +109,8 @@ export function fuelNowCard(p, { at = null, minutes = 0, lastEnd = 0 } = {}) {
   if (h < 1) return `<section class="card fuelnow"><p class="lbl">Fuel now</p><h2>Practice at ${clockOf(at)}</h2>
     <p>Starts in ${until} minutes. Fill your water bottle.</p><div class="qlog"><button class="cta2" data-qwater>Log a glass of water</button></div></section>`;
   const gpk = Math.min(4, Math.max(1, Math.round(h)));
-  const carbs = kg ? `about ${Math.round(kg * gpk)} g of carbohydrate (${gpk} g per kg)` : `about ${gpk} g of carbohydrate per kg of body weight`;
+  const carbs = kg ? `about ${Math.round(kg * gpk)} g of carbohydrate (${ratio(p, gpk)})` : `about ${ratio(p, gpk)} of body weight of carbohydrate`;
   return card(`Practice at ${clockOf(at)}`, `In ${h >= 1.25 ? `about ${(hh => hh % 1 ? Math.floor(hh) + '½' : hh)(Math.round(h * 2) / 2)} hours` : 'about an hour'}. A meal or snack now with ${carbs} tops up your energy.`,
     qbtn('Banana', 'Banana') + qbtn('Bagel, plain', 'Bagel') + qbtn('Oatmeal, cooked', 'Oatmeal'),
-    `1–4 g per kg in the 1–4 hours before; Goku uses about 1 g per kg per hour. ${SOURCES.acsm}`);
+    `${ratio(p, 1, 4)} in the 1–4 hours before; Goku uses about ${ratio(p, 1)} per hour. ${SOURCES.acsm}`);
 }

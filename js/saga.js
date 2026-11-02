@@ -8,8 +8,12 @@ import { addDays, daysBetween, prettyDay } from './time.js';
 
 const WEEKS = 4;
 const NAMES = ['Foundations', 'Gravity training', 'Speed and power', 'Iron core', 'Endurance', 'Skill saga', 'Comeback'];
-const BOSSES = ['20 strict push-ups in one set', 'A 60-second plank', '5 pull-ups', 'Squat my bodyweight', 'Protein goal 5 days a week',
-  'Train 4 days every week', 'Land my round-off back handspring', 'Full splits'];
+// Goal ideas for each kind of profile (2.8.1); Custom profiles see both lists.
+const BOSSES = {
+  engine: ['20 strict push-ups in one set', 'A 60-second plank', '5 pull-ups', 'Squat my bodyweight', 'Protein goal 5 days a week', 'Train 4 days every week'],
+  perf: ['Land my round-off back handspring', 'Full splits', 'A 60-second plank', 'Protein goal 5 days a week', 'Train 4 days every week'],
+};
+const bossIdeas = p => p.custom ? [...new Set([...BOSSES.engine, ...BOSSES.perf])] : BOSSES[p.kind];
 
 // Poster boss (2.3): an arc can link its boss to an exercise (best reps at one stage, from
 // sessions inside the arc) or to a skill (reaching a stage), so the boss's HP drops on its own.
@@ -51,7 +55,7 @@ export function sagaCard(arcs, t, ctx = {}) {
         ${over ? `<button class="cta2" data-arcmore="${esc(a.id)}" style="flex:1">2 more weeks</button>` : ''}</div></div>`;
   };
   return `<section class="card saga"><div class="row"><p class="lbl" style="margin:0">Your saga</p><span class="sub">${cleared.length} cleared</span></div>
-    ${cur ? arcHTML(cur) : `<p class="sub" style="text-align:center">${next ? `Next arc starts ${esc(prettyDay(next.data.start))}.` : 'No arc running.'}</p>`}
+    ${cur ? arcHTML(cur) : `<p class="sub" style="text-align:center">${next ? `Next ${esc(w('arc').toLowerCase())} starts ${esc(prettyDay(next.data.start))}.` : `No ${esc(w('arc').toLowerCase())} running.`}</p>`}
     ${next && cur ? `<div class="arc next"><span class="pill">${esc(W('arc'))} ${n(next)} · next</span><h2>${esc(next.data.name)}</h2><p><b>${esc(W('boss'))}:</b> ${esc(next.data.boss)}</p></div>` : ''}
     ${!next ? `<button class="cta2" id="arcNew" style="width:100%;margin-top:10px">Plan the next ${esc(w('arc').toLowerCase())}</button>` : ''}
     ${cleared.length ? `<details class="fold"><summary class="sub">Cleared ${esc(w('arc').toLowerCase())}s</summary><ul class="list">${cleared.slice().reverse().map(a => `<li><span><b>${esc(a.data.name)}</b><br><span class="chain">Beat: ${esc(a.data.boss)}</span></span><span class="sub">${esc(prettyDay(a.data.done))}</span></li>`).join('')}</ul></details>` : ''}
@@ -90,12 +94,12 @@ async function editArc(a, arcs) {
   const t = today();
   const last = arcs.filter(x => !x.data.done).map(x => addDays(x.data.start, (x.data.weeks || WEEKS) * 7)).sort().pop();
   const d = a ? { ...a.data } : { name: NAMES[arcs.length % NAMES.length], boss: '', start: last && last > t ? last : t, weeks: WEEKS, done: null };
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${a ? 'Edit arc' : 'New arc'}</h1><button class="cta2" id="x" data-close>Close</button></div>
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${a ? 'Edit ' + esc(w('arc').toLowerCase()) : 'New ' + esc(w('arc').toLowerCase())}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll">
-      <label class="f"><span>Arc name</span><input id="an" maxlength="40" value="${esc(d.name)}"></label>
+      <label class="f"><span>${esc(W('arc'))} name</span><input id="an" maxlength="40" value="${esc(d.name)}"></label>
       <div class="pills sugg">${NAMES.map(x => `<button data-an="${esc(x)}">${esc(x)}</button>`).join('')}</div>
-      <label class="f"><span>The boss: one goal to beat in ${WEEKS} weeks</span><input id="ab" maxlength="80" value="${esc(d.boss)}" placeholder="e.g. 20 strict push-ups in one set"></label>
-      <div class="pills sugg">${BOSSES.map(x => `<button data-ab="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+      <label class="f"><span>The ${esc(w('boss').toLowerCase())}: one goal to beat in ${WEEKS} weeks</span><input id="ab" maxlength="80" value="${esc(d.boss)}" placeholder="e.g. 20 strict push-ups in one set"></label>
+      <div class="pills sugg">${bossIdeas(p).map(x => `<button data-ab="${esc(x)}">${esc(x)}</button>`).join('')}</div>
       ${exs.length || sks.length ? `<label class="f"><span>Track the boss automatically (optional)</span><select id="lk"><option value="">Don't track, I'll say when</option>
         ${exs.map(e => e.data.stages.map(st => `<option value="ex|${esc(e.id)}|${esc(st.label)}"${d.link?.type === 'ex' && d.link.id === e.id && d.link.stage === st.label ? ' selected' : ''}>${esc(e.data.name)} · ${esc(st.label)}</option>`).join('')).join('')}
         ${sks.map(k => `<option value="skill|${esc(k.id)}"${d.link?.id === k.id ? ' selected' : ''}>${esc(k.data.name)}</option>`).join('')}</select></label>
@@ -104,8 +108,8 @@ async function editArc(a, arcs) {
       <p class="note">Pick a goal that's a stretch but doable. A coach or the Library's easier versions can help you choose.</p>
     </div>
     <p class="msg" id="am" role="status"></p>
-    <button class="cta" id="ok">${a ? 'Save arc' : 'Start arc'}</button>
-    ${a ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete arc</button>' : ''}`, { label: a ? 'Edit arc' : 'New arc' });
+    <button class="cta" id="ok">${a ? 'Save' : 'Start'} ${esc(w('arc').toLowerCase())}</button>
+    ${a ? `<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete ${esc(w('arc').toLowerCase())}</button>` : ''}`, { label: a ? 'Edit ' + w('arc').toLowerCase() : 'New ' + w('arc').toLowerCase() });
   const $ = s => el.querySelector(s);
   const target = () => { const v = $('#lk')?.value || '', [type, id] = v.split('|');
     if (!type) return $('#lkt') && ($('#lkt').innerHTML = '');
@@ -128,6 +132,6 @@ async function editArc(a, arcs) {
     if (lt && !(n >= 1)) { $('#am').textContent = 'Set a number for the boss.'; return; }
     const link = lt === 'ex' ? { type: 'ex', id: lid, stage: lst, target: n } : lt === 'skill' ? { type: 'skill', id: lid, target: n } : null;
     await saveEntry('arc', { ...d, name, boss, start, link }, a ? { id: a.id, day: a.day, ts: a.ts } : { day: start });
-    close(); toast(a ? 'Arc saved' : `Arc started: ${name}`); window.goku.render();
+    close(); toast(a ? `${W('arc')} saved` : `${W('arc')} started: ${name}`); window.goku.render();
   }));
 }

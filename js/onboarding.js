@@ -1,6 +1,7 @@
 // First-launch (and "Add profile") setup. Every personal value is entered here
 // and stored only on this device.
-import { skin } from './skins.js';
+import { skin, skinId, setSkin, SKINS, w } from './skins.js';
+import { THEMES } from './themes.js';
 import { KINDS, newProfile, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames } from './state.js';
 import { showLock } from './lock.js';
 import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
@@ -18,8 +19,8 @@ function startGravity(a) {
 
 // The setup guide (2.7, replacing 2.2's Capsule): a star ball buddy, an orange ball with star
 // eyes, drawn for Goku in the style of the splash icon; never a Dragon Ball character.
-// Each step gets its own bright page color.
-const STEP_COLORS = ['#ffd84d', '#ff9f5a', '#c9bdff', '#9be6c4', '#ffb59c', '#8fd3ff'];
+// One bright page color for all of setup (2.8.1; it changed on every step before).
+const STEP_COLOR = '#ffd84d';
 const STAR = 'l2 4.5 5 .5-3.8 3.3 1.1 4.9-4.3-2.5-4.3 2.5 1.1-4.9-3.8-3.3 5-.5z';
 function capsule(step, total) {
   const last = step === total - 1, first = step === 0;
@@ -54,12 +55,16 @@ const GEAR_OPTIONS = GEAR.map(k => [k, EQUIPMENT.find(e => e[0] === k)?.[1] || E
 const withGear = list => list.map(([title, qs]) => [title, qs.map(q => q.id === 'equipment' ? { ...q, options: GEAR_OPTIONS } : q)]);
 const fullGym = d => GEAR.every(k => (d.about.equipment || []).includes(k));
 
+// The name box's counter (2.8.1) shows only near the 24-character limit.
+const nameCount = name => name.length >= 20 ? `${name.length} / 24` : '';
+
 export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081'];
 
 // Resolves with the new profile, or null if cancelled (only possible when cancellable).
 export function onboard({ cancellable = false } = {}) {
   return new Promise(resolve => {
-    const d = { pick: null, custom: null, kind: null, name: '', accent: null, modules: {}, protein: '', proteinPer: 'day', week: Array.from({ length: 7 }, () => ({ gym: 0, vault: 0 })),
+    const was = skinId(); // the open profile's skin, put back if setup is cancelled
+    const d = { pick: null, custom: null, kind: null, skin: was, name: '', accent: null, modules: {}, protein: '', proteinPer: 'day', week: Array.from({ length: 7 }, () => ({ gym: 0, vault: 0 })),
       avatar: null, units: 'imperial', tz: deviceTZ(), about: {}, coach: { asked: {} } };
     let step = 0;
     const { el, close } = overlay(`${cancellable ? '<div class="row" style="justify-content:flex-end"><button class="cta2" id="cancel" data-close>Cancel</button></div>' : ''}
@@ -70,7 +75,7 @@ export function onboard({ cancellable = false } = {}) {
     // One coach question per screen, about 3 minutes in all.
     const screens = () => withGear(setupScreens(d.kind ? d : { kind: 'engine' }));
     const extra = () => d.pick === 'custom' ? 2 : 0; // Custom adds "What do you do?" and "How do you train?"
-    const firstQ = () => 3 + extra();
+    const firstQ = () => 4 + extra();
     const qAt = i => d.kind && i >= firstQ() && i < firstQ() + screens().length ? screens()[i - firstQ()][1] : null;
     const qSteps = () => screens().map(([title], i) => () => `<div class="lbl">${label()}</div><h1>${esc(title)}</h1>${screenHTML(screens()[i][1], d)}`);
     const label = () => progress(step, steps.length, step >= firstQ() && qAt(step) ? 'Your coach' : '');
@@ -93,14 +98,20 @@ export function onboard({ cancellable = false } = {}) {
         () => `<div class="lbl">${label()}</div><h1>How do you like to train?</h1>
           ${STYLES.map(([k, n, desc]) => `<button class="card pick" data-style="${k}" aria-pressed="${d.custom.style === k}"><h2>${esc(n)}</h2><p class="sub">${esc(desc)}</p></button>`).join('')}`,
       ] : []),
+      // Pick a look (2.8.1): the skin, so a new profile doesn't have to find Settings → Skin afterwards.
+      () => `<div class="lbl">${label()}</div><h1>Pick a look</h1>
+        <p class="sub">It changes the words, colors and pictures. Everything else stays the same. You can switch any time in Settings.</p>
+        ${Object.entries(SKINS).map(([id, k]) => `<button class="card pick" data-skin="${id}" aria-pressed="${d.skin === id}">
+          <h2>${esc(k.name)}</h2><p class="sub">${esc(k.desc)}</p>
+          <span class="skin-dots" aria-hidden="true">${k.dots.map(c => `<i style="background:${c}"></i>`).join('')}</span></button>`).join('')}`,
       () => `<div class="lbl">${label()}</div><h1>What should we call you?</h1>
         <label class="f"><span>First name or nickname</span>
         <input id="nm" autocomplete="off" autocapitalize="words" maxlength="24" value="${esc(d.name)}"></label>
-        <p class="note">Only shown inside the app on this phone.</p>
+        <p class="note">Only shown inside the app on this phone.<span class="count" id="nmc">${nameCount(d.name)}</span></p>
         <h2 style="margin-top:20px">Pick your color</h2>
         <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}"
           aria-pressed="${c === (d.accent || KINDS[d.kind].accent)}" aria-label="Color ${c}"></button>`).join('')}</div>`,
-      () => `<div class="lbl">${label()}</div><h1>Choose your fighter</h1>${avatarPicker({ ...d, name: d.name || '?' })}`,
+      () => `<div class="lbl">${label()}</div><h1>${esc(w('pickAvatar'))}</h1>${avatarPicker({ ...d, name: d.name || '?' })}`,
       ...qSteps(),
       () => `<div class="lbl">${label()}</div><h1>What should the app show?</h1>
         <p class="sub">Turn on what helps. You can change this any time in Settings.</p>
@@ -128,10 +139,10 @@ export function onboard({ cancellable = false } = {}) {
       $('#ob').innerHTML = capsule(step, steps.length) + steps[step]();
       $('.q[data-qid="equipment"] .pills')?.insertAdjacentHTML('afterbegin', `<button data-fullgym aria-pressed="${fullGym(d)}">Full gym</button>`);
       el.classList.add('capsule-setup');
-      el.style.setProperty('--step', STEP_COLORS[step % STEP_COLORS.length]);
+      el.style.setProperty('--step', STEP_COLOR);
       const st = step - (step >= 1 ? extra() : 0); // the step counting from the name screen
       const ready = step === 0 ? !!d.pick : extra() && step === 1 ? d.custom.sports.length > 0 : extra() && step === 2 ? !!d.custom.style
-        : st === 1 ? d.name.trim().length > 0 : true;
+        : st === 2 ? d.name.trim().length > 0 : true;
       $('#obnav').innerHTML = `<p class="msg" id="obm" role="status"></p>
         <button class="cta" id="next">${step === steps.length - 1 ? 'Set passcode' : 'Continue'}</button>
         ${step > 0 ? '<button class="cta2" id="back" style="width:100%;margin-top:8px">Back</button>' : ''}`;
@@ -142,7 +153,7 @@ export function onboard({ cancellable = false } = {}) {
 
     el.addEventListener('input', e => {
       el.querySelectorAll('.msg').forEach(m => { m.textContent = ''; }); // an old error goes once the answer is being fixed
-      if (e.target.id === 'nm') { d.name = e.target.value; $('#next').dataset.ready = d.name.trim().length > 0; $('#obm').textContent = ''; }
+      if (e.target.id === 'nm') { d.name = e.target.value; $('#next').dataset.ready = d.name.trim().length > 0; $('#obm').textContent = ''; $('#nmc').textContent = nameCount(d.name); }
       if (e.target.id === 'pt') d.protein = e.target.value.replace(/\D/g, '');
     });
     el.addEventListener('change', async e => {
@@ -153,18 +164,19 @@ export function onboard({ cancellable = false } = {}) {
     });
     el.addEventListener('click', async e => {
       const b = e.target.closest('button'); if (!b) return;
-      if (b.id === 'cancel') { close(); resolve(null); return; }
+      if (b.id === 'cancel') { setSkin(was); close(); resolve(null); return; }
       const qs = qAt(step);
       if (b.dataset.fullgym !== undefined) { d.about.equipment = fullGym(d) ? [] : [...GEAR]; draw(); return; }
       if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }
       if (b.dataset.avatar) { pickAvatar(d, b.dataset.avatar); draw(); return; }
+      if (b.dataset.skin) { d.skin = b.dataset.skin; setSkin(d.skin); draw(); return; } // the guide changes with it
       if (b.dataset.kind) {
         d.pick = b.dataset.kind; d.accent = null;
         if (d.pick === 'custom') {
           d.custom ||= { sports: [], style: null }; // coming back keeps earlier answers, and the kind they chose
           d.kind = d.custom.style ? (d.custom.style === 'sessions' ? 'perf' : 'engine') : null;
           d.modules = d.kind ? presetModules(d.kind, d.custom.sports) : {};
-        } else { d.kind = d.pick; d.modules = {}; }
+        } else { d.kind = d.pick; d.modules = d.kind === 'engine' ? { soccer: false } : {}; } // Soccer pack only when soccer is picked (Custom)
         steps = build(); draw();
       }
       else if (b.dataset.sport) { const s = d.custom.sports, k = b.dataset.sport; s.includes(k) ? s.splice(s.indexOf(k), 1) : s.push(k); d.modules = d.kind ? presetModules(d.kind, s) : {}; draw(); }
@@ -190,6 +202,10 @@ export function onboard({ cancellable = false } = {}) {
         const p = newProfile(d.kind, d.name.trim(), d.accent);
         for (const [k, v] of Object.entries(d.modules)) p.modules[k] = v;
         Object.assign(p, { avatar: d.avatar, units: d.units, tz: d.tz, about: d.about, coach: d.coach });
+        // The skin, and its theme when it has one (Encore → Pastel tour); a color picked in setup stays.
+        p.settings.skin = d.skin;
+        const theme = SKINS[d.skin].theme;
+        if (theme) { p.settings.theme = theme; if (!d.accent) p.accent = THEMES[theme].accent; }
         if (d.pick === 'custom') p.custom = { sports: [...d.custom.sports], style: d.custom.style };
         if (d.kind === 'engine') p.settings.gravity = startGravity(d.about);
         if (d.kind === 'engine') { p.settings.proteinTarget = d.protein ? +d.protein : null; p.settings.proteinPer = d.proteinPer; }

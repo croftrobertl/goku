@@ -53,19 +53,22 @@ export function showMove(id, { onAdd = null, added = false, onEdit = null } = {}
 }
 
 export async function addMove(m) {
-  await saveEntry('exercise', { name: m.name.slice(0, 40), slot: SLOT[m.group] || 'core', module: null, order: 999, mode: m.mode,
+  const e = await saveEntry('exercise', { name: m.name.slice(0, 40), slot: SLOT[m.group] || 'core', module: null, order: 999, mode: m.mode,
     moveId: m.id, stages: m.chain.map(label => ({ label, load: null })) }, { day: '1970-01-01' });
   // Circuits draw from push, pull, legs and core; the rest are warm-up and cool-down moves.
   toast(['push', 'pull', 'legs', 'core'].includes(m.group) ? `${m.name} added to your library` : `${m.name} added. Circuits use push, pull, legs and core, so use it to warm up or cool down.`, 4000);
+  return e;
 }
 
 // The picker: a search box, group and equipment drop-downs, and results grouped into
 // collapsible sections until you type.
-export function pickMove({ onCustom, have = [] } = {}) {
+// With onPick (2.8.1, Edit session's "Add an exercise"), Add hands the move back instead of only saving it to the library.
+export function pickMove({ onCustom, have = [], onPick = null } = {}) {
   const p = profile();
   const owned = ['bw', 'wall', 'bench', ...(p.about?.equipment || [])];
   const f = { q: '', group: '', equip: '' };
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add exercise</h1><button class="cta2" id="x" data-close>Close</button></div>
+  if (onPick) have = [];
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${onPick ? 'Add to this session' : 'Add exercise'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <label class="f"><span>Search</span><input id="q" type="search" placeholder="e.g. squat, chest, band" autocomplete="off" enterkeyhint="search"></label>
     <div class="pills sugg" id="sugg" aria-label="Suggestions"></div>
     <div class="row" style="gap:8px;margin-top:8px">
@@ -74,7 +77,7 @@ export function pickMove({ onCustom, have = [] } = {}) {
     </div>
     <p class="sub" id="count" role="status" style="margin-top:8px"></p>
     <div class="scroll" id="res"></div>
-    <button class="cta2" id="custom" style="width:100%;margin-top:8px">Create your own exercise</button>`, { label: 'Add exercise' });
+    ${onPick ? '' : '<button class="cta2" id="custom" style="width:100%;margin-top:8px">Create your own exercise</button>'}`, { label: 'Add exercise' });
   const row = m => `<li><span><b>${esc(m.name)}</b><br><span class="chain">${esc(LEVELS[m.level])} · ${esc(equipName(m.equip))}${have.includes(m.id) ? ' · in your library' : ''}</span></span>
     <span class="row" style="gap:6px">${howBtn(m.id, m.name)}<button class="cta2" data-add="${m.id}" ${have.includes(m.id) ? 'disabled' : ''} aria-label="Add ${esc(m.name)}">${have.includes(m.id) ? 'Added' : 'Add'}</button></span></li>`;
   const draw = () => {
@@ -91,7 +94,8 @@ export function pickMove({ onCustom, have = [] } = {}) {
   el.addEventListener('change', e => { if (e.target.id === 'grp') f.group = e.target.value; if (e.target.id === 'eq') f.equip = e.target.value; draw(); });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.id === 'x') { close(); return window.goku.render(); }
+    if (b.id === 'x') { close(); return onPick ? null : window.goku.render(); }
+    if (onPick && b.dataset.add) { close(); return onPick(moveById(b.dataset.add)); }
     if (b.id === 'custom') { close(); return onCustom?.(); }
     if (b.dataset.sugg) { f.q = b.dataset.sugg + ' '; const i = el.querySelector('#q'); i.value = f.q; i.focus(); return draw(); }
     if (b.dataset.how) return showMove(b.dataset.how, { added: have.includes(b.dataset.how), onAdd: async m => { await addMove(m); have.push(m.id); draw(); el.querySelector(`[data-how="${m.id}"]`)?.focus(); } });

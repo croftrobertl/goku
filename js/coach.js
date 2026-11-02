@@ -6,7 +6,8 @@ import { weight, weightUnit, toLb, length, lengthUnit, toIn } from './units.js';
 import { dayKey, deviceTZ, validTZ, daysBetween } from './time.js';
 import { EQUIP, GEAR } from './moves.js';
 
-const VOICE = '<p class="voice">You can tap the mic on your keyboard to talk instead of typing.</p>';
+// The keyboard-mic hint shows only on touch screens (2.8.1); a computer keyboard has no mic.
+const VOICE = () => matchMedia('(pointer: coarse)').matches ? '<p class="voice">You can tap the mic on your keyboard to talk instead of typing.</p>' : '';
 const yearNow = () => new Date().getFullYear();
 const todayOf = p => dayKey(Date.now(), p.dayEndsAt ?? 3, p.tz);
 export const ageOf = p => p.about?.birthYear ? yearNow() - p.about.birthYear : null;
@@ -22,7 +23,8 @@ export const GOALS = {
 const OWN = { bar: 'Pull-up bar, rings or playset' };
 export const EQUIPMENT = GEAR.map(k => [k, OWN[k] || EQUIP.find(e => e[0] === k)[1]]);
 export const ALLERGIES = [['dairy', 'Dairy'], ['gluten', 'Gluten'], ['peanuts', 'Peanuts'], ['nuts', 'Tree nuts'], ['eggs', 'Eggs'], ['soy', 'Soy'], ['fish', 'Fish'], ['shellfish', 'Shellfish']];
-const TZS = ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Phoenix', 'America/Los_Angeles', 'America/Anchorage',
+// Setup and Settings offer the same time zones (2.8.1).
+export const TZS = ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Phoenix', 'America/Los_Angeles', 'America/Anchorage',
   'Pacific/Honolulu', 'America/Toronto', 'America/Vancouver', 'America/Mexico_City', 'Europe/London', 'Europe/Paris', 'Europe/Berlin',
   'Asia/Tokyo', 'Australia/Sydney'];
 
@@ -61,9 +63,9 @@ export const QUESTIONS = [
   { id: 'equipment', essential: true, kinds: ['engine'], title: 'What equipment do you have?', type: 'multi', key: 'equipment', options: EQUIPMENT,
     help: 'Your exercise library is built from this. Pick none for bodyweight only.' },
   { id: 'days', essential: true, kinds: ['engine'], title: 'How many days a week can you train?', type: 'choice', key: 'days',
-    options: [['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']], help: 'Home tracks your sessions against this each week.', big: 'days a week',
+    options: [['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7']], help: 'Home tracks your sessions against this each week.', big: 'days a week',
     cheer: { 2: 'Two days you keep beats five you skip.', 3: 'Three days: a classic training rhythm.', 4: 'Four days: plenty of training, room to recover.',
-      5: 'Five days: a serious schedule.', 6: 'Six days. Rest days still keep your streak alive.' } },
+      5: 'Five days: a serious schedule.', 6: 'Six days. Rest days still keep your streak alive.', 7: 'Every day. Easy days count too.' } },
   { id: 'diet', essential: true, title: 'How do you eat?', type: 'choice', key: 'diet',
     options: [['any', 'I eat everything'], ['pescatarian', 'Pescatarian'], ['vegetarian', 'Vegetarian'], ['vegan', 'Vegan']],
     help: 'Protein ideas only suggest foods that fit.' },
@@ -160,11 +162,11 @@ export function questionHTML(q, p) {
   } else if (q.type === 'multi') {
     const sel = a[q.key] || [];
     body = `<div class="pills" style="margin-top:8px">${val(q.options, p).map(([v, l]) => `<button data-qm="${esc(v)}" aria-pressed="${sel.includes(v)}">${esc(l)}</button>`).join('')}</div>
-      ${q.other ? `<label class="f"><span>Anything else</span><input id="q-other" value="${esc(a[q.other] || '')}" maxlength="80" autocapitalize="sentences"></label>${VOICE}` : ''}`;
+      ${q.other ? `<label class="f"><span>Anything else</span><input id="q-other" value="${esc(a[q.other] || '')}" maxlength="80" autocapitalize="sentences"></label>${VOICE()}` : ''}`;
   } else if (q.type === 'number') {
     body = `<input id="q-n" type="number" inputmode="decimal" step="${q.step || 1}" min="${q.min}" max="${val(q.max, p)}" value="${esc(a[q.key] ?? '')}" aria-label="${esc(q.title)}" style="margin-top:8px">`;
   } else if (q.type === 'text') {
-    body = `<textarea id="q-t" maxlength="300" autocapitalize="sentences" aria-label="${esc(q.title)}" style="margin-top:8px">${esc(a[q.key] || '')}</textarea>${VOICE}`;
+    body = `<textarea id="q-t" maxlength="300" autocapitalize="sentences" aria-label="${esc(q.title)}" style="margin-top:8px">${esc(a[q.key] || '')}</textarea>${VOICE()}`;
   } else if (q.type === 'date') {
     body = `<input id="q-d" type="date" min="${dayKey()}" value="${esc(a[q.key] || '')}" aria-label="${esc(q.title)}" style="margin-top:8px">`;
   }

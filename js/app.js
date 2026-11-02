@@ -61,6 +61,7 @@ const ICON = {
   skills: svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
   more: svg('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
   bolt: svg('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
+  plus: svg('<path d="M12 5v14M5 12h14"/>'),
   water: svg('<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>'),
   run: svg('<circle cx="15" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v5M6 12l3-4 4 1 3 4 3 1"/>'),
   moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
@@ -158,11 +159,11 @@ async function draw() {
   $('#dock').innerHTML = `<div class="dock-in">
     <div class="brand" aria-hidden="true"><img src="icons/favicon-48.png" alt="" width="28" height="28"><span>Goku</span></div>
     <nav class="tabs" aria-label="Sections">${main.slice(0, 2).map(t => tabBtn(t)).join('')}
-      <button class="tb center" id="cta" aria-label="Quick actions${action ? ': ' + esc(action[0]) + ' and more' : ''}" aria-haspopup="dialog"><span class="ki-btn">${ICON.bolt}</span><span>${esc(shortLabel(action?.[0]) || w('ki'))}</span></button>
+      <button class="tb center" id="cta" aria-label="Quick add${action ? ': ' + esc(action[0]) + ' and more' : ''}" aria-haspopup="dialog"><span class="ki-btn">${ICON.plus}</span><span>Quick add</span></button>
       ${main.slice(2).map(t => tabBtn(t)).join('')}
       ${more.map(t => tabBtn(t, 'more-item')).join('')}
       ${more.length ? `<button class="tb more-btn" id="moreTabs" ${inMore ? 'aria-current="page"' : ''} aria-label="More: ${esc(more.map(m => m[1]).join(', '))}">${ICON.more}<span>More</span></button>` : ''}</nav></div>`;
-  // The center button opens the Ki menu (2.3): this screen's action first, then quick logs.
+  // The center button, "Quick add" since 2.8.1 (it was labelled with the first action), opens the Ki menu (2.3): this screen's action first, then quick logs.
   $('#cta').onclick = () => kiMenu(p, action, scr);
   if (!(await db.getMeta('kiHint'))) showKiHint();
   if (more.length) $('#moreTabs').onclick = () => {
@@ -265,8 +266,33 @@ async function registerSW() {
   } catch { /* offline first load or file:// — the app still runs */ }
 }
 
+// Android's Back button (2.8.1): one spare history entry sits on top, so Back closes the open sheet
+// first, asks before leaving a workout, and otherwise leaves the app as before.
+function watchBack() {
+  history.replaceState({ goku: 'base' }, '');
+  history.pushState({ goku: 'guard' }, '');
+  let leaving = false;
+  // Still here after Back (an installed app can't be closed from the page): the next tap puts the spare entry back.
+  addEventListener('click', () => { if (leaving) { leaving = false; history.pushState({ goku: 'guard' }, ''); } }, true);
+  addEventListener('popstate', async () => {
+    if (leaving) return; // back on the bottom entry: the next Back leaves
+    const top = [...document.querySelectorAll('.overlay')].pop();
+    if (top && top.id !== 'runner') {
+      const x = top.querySelector('[data-close]');
+      if (x) { history.pushState({ goku: 'guard' }, ''); x.click(); return; }
+    }
+    if (document.getElementById('runner')) {
+      history.pushState({ goku: 'guard' }, '');
+      if (await ask('Leave the workout?', 'It stays saved and picks up where you left off.', [{ label: 'Leave Goku', value: 'leave' }]) === 'leave') { leaving = true; history.go(-2); }
+      return;
+    }
+    leaving = true; history.back(); // nothing to close: leave the app
+  });
+}
+
 async function boot() {
   registerSW();
+  watchBack();
   if (isIOS && !standalone) await installGate();
   await loadProfiles();
   if (!S.profiles.length) {

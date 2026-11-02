@@ -3,7 +3,7 @@
 import { w, W } from './skins.js';
 import { esc, round } from './ui.js';
 import { kgOf, weight, weightUnit } from './units.js';
-import { SOURCES, carbTier, fuelRanges } from './fuel.js';
+import { SOURCES, carbTier, fuelRanges, ratio } from './fuel.js';
 import { isMinor } from './coach.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
 
@@ -23,7 +23,7 @@ export const WHY = {
   carbs: (p, minutes) => {
     const kg = kgOf(p), t = carbTier(+minutes || 0), r = fuelRanges(p, +minutes || 0);
     return ['Your carbohydrate range', `<p>Training counted today: <b>${esc(+minutes || 0)} minutes</b> (${esc(t[1].toLowerCase())}).</p>
-      <p style="margin-top:8px">That tier is ${t[2]}–${t[3]} g per kg: ${round(kg, 1)} kg × ${t[2]} = <b>${r.carbs[0]} g</b> to × ${t[3]} = <b>${r.carbs[1]} g</b>.</p>
+      <p style="margin-top:8px">That tier is ${t[2]}–${t[3]} g per kg${weightUnit(p) === 'kg' ? '' : ` (${ratio(p, t[2], t[3])})`}: ${round(kg, 1)} kg × ${t[2]} = <b>${r.carbs[0]} g</b> to × ${t[3]} = <b>${r.carbs[1]} g</b>.</p>
       <p style="margin-top:8px">Tiers: under 45 min, light 3–5; under 90 min, moderate 5–7; under 4 h, high 6–10; 4 h or more, very high 8–12. The minute cut-offs are Goku's reading of the statement's wording.</p>
       <p class="note">${esc(SOURCES.acsm)}</p>`];
   },

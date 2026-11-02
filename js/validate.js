@@ -24,7 +24,7 @@ function cleanAbout(a) {
     birthYear: int(a.birthYear, 1900, 2100) ?? undefined, heightIn: num(a.heightIn, 20, 110) ?? undefined,
     weightLb: num(a.weightLb, 30, 800) ?? undefined, weightAt: num(a.weightAt, 0, 1e14) ?? undefined,
     experience: oneOf(a.experience, ['0', '1', '3', '5', '10']), goal: typeof a.goal === 'string' && /^\w{1,20}$/.test(a.goal) ? a.goal : undefined,
-    equipment: pick(a.equipment, GEAR), days: oneOf(a.days, ['2', '3', '4', '5', '6']),
+    equipment: pick(a.equipment, GEAR), days: oneOf(a.days, ['2', '3', '4', '5', '6', '7']),
     diet: oneOf(a.diet, ['any', 'pescatarian', 'vegetarian', 'vegan']),
     allergies: pick(a.allergies, ['dairy', 'gluten', 'peanuts', 'nuts', 'eggs', 'soy', 'fish', 'shellfish']),
     allergyOther: typeof a.allergyOther === 'string' ? str(a.allergyOther, 80) : undefined,
@@ -74,7 +74,7 @@ function foodItem(it) {
 }
 
 const DATA = {
-  exercise: d => ({ name: str(d.name, 40), slot: str(d.slot, 12, 'push'), module: d.module === 'soccer' ? 'soccer' : null,
+  exercise: d => ({ name: str(d.name, 40), slot: str(d.slot, 12, 'push'), ...(/^[a-z]{1,12}$/.test(d.group || '') ? { group: d.group } : {}), module: d.module === 'soccer' ? 'soccer' : null,
     order: int(d.order, 0, 10000, 999), mode: d.mode === 'hold' ? 'hold' : 'reps', ...(/^[a-z0-9-]{1,40}$/.test(d.moveId || '') ? { moveId: d.moveId } : {}),
     stages: stages(d.stages).map(({ label, load }) => ({ label, load })) }),
   session: d => ('kind' in d

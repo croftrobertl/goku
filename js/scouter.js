@@ -16,7 +16,8 @@ export function powerLevel(p, all, today) {
   const from = addDays(today, -6), week = all.filter(e => e.day >= from && e.day <= today);
   const days = type => new Set(week.filter(e => type.includes(e.type)).map(e => e.day));
   const plan = p.settings.weekPlan;
-  const goalDays = p.kind === 'engine' ? +(p.about?.days || 3) : Math.max(1, plan?.filter(d => d.gym + d.vault).length || 4);
+  // Practice-log profiles count against at least 3 sessions (2.8.1), so one session can't jump the level by 4,000.
+  const goalDays = p.kind === 'engine' ? +(p.about?.days || 3) : Math.max(3, plan?.filter(d => d.gym + d.vault).length || 4);
   const trained = days(['session', 'activity']).size;
   const training = Math.round(Math.min(1, trained / goalDays) * 4000);
   const goal = proteinGoal(p);
