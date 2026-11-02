@@ -1,20 +1,21 @@
 // The offline food database (data/foods.json, built by tools/build-foods.py from USDA
 // FoodData Central) plus the person's own foods. Loaded once, searched in memory.
 import { entries } from './state.js';
-import { vocabulary, expand, complete } from './fuzzy.js';
+import { vocabulary, exactFirst, complete } from './fuzzy.js';
 
 const K = ['kcal', 'p', 'c', 'f', 'fib', 'sug', 'na', 'sat'];
 export const NUTRIENTS = [['kcal', 'Calories', ''], ['p', 'Protein', 'g'], ['c', 'Carbohydrate', 'g'], ['f', 'Fat', 'g'],
   ['sat', 'Saturated fat', 'g'], ['fib', 'Fiber', 'g'], ['sug', 'Sugars', 'g'], ['na', 'Sodium', 'mg']];
-export const SOURCE_NOTE = 'Food data: USDA FoodData Central (public domain). Brand items come from the makers’ labels as of October 2026, so check the package if a recipe has changed.';
+export const SOURCE_NOTE = 'Food data: USDA FoodData Central (public domain). Brand items come from the makers’ labels as of October 2026, and restaurant items from each chain’s own nutrition page, so check the package or the chain if a recipe has changed.';
 
 let db = null, loading = null;
 export function loadFoods() {
   if (db) return Promise.resolve(db);
   const get = path => fetch(path).then(r => { if (!r.ok) throw new Error('food list'); return r.json(); });
-  return loading ||= Promise.all([get('data/foods.json'), get('data/everyday.json').catch(() => [])]).then(([j, every]) => {
-    db = [...every, ...j.foods].map((a, i) => ({ i, name: tidyName(a[0], a[12]), brand: a[1], per: Object.fromEntries(K.map((k, j) => [k, a[2 + j]])),
-      portions: tidyServing(a[10]), upc: a[11], src: a[12], unit: a[13], key: (a[0] + ' ' + a[1]).toLowerCase() }));
+  // Restaurant items (2.8, data/restaurants.json) carry the chain's own page and date as a[14] and a[15].
+  return loading ||= Promise.all([get('data/foods.json'), get('data/everyday.json').catch(() => []), get('data/restaurants.json').catch(() => [])]).then(([j, every, chains]) => {
+    db = [...every, ...chains, ...j.foods].map((a, i) => ({ i, name: tidyName(a[0], a[12]), brand: a[1], per: Object.fromEntries(K.map((k, j) => [k, a[2 + j]])),
+      portions: tidyServing(a[10]), upc: a[11], src: a[12], unit: a[13], ...(a[14] ? { from: a[14], url: a[15] } : {}), key: (a[0] + ' ' + a[1]).toLowerCase() }));
     return db;
   }).catch(e => { loading = null; throw e; });
 }
@@ -34,6 +35,8 @@ export const foodAt = i => db?.[i] || null;
 // Serving choices: the food's own portions, then standard weights or volumes.
 export function portionsOf(f) {
   const own = String(f.portions || '').split(';').filter(Boolean).map(s => { const [label, g] = s.split('|'); return { label, g: +g }; }).filter(x => x.g > 0);
+  // A restaurant item with no published weight is stored per serving ("srv"), so it has no gram or ounce choices.
+  if (f.unit === 'srv') return own;
   const std = f.unit === 'ml' ? [{ label: 'fl oz (29.6 ml)', g: 29.57 }, { label: '100 ml', g: 100 }, { label: 'ml', g: 1 }]
     : [{ label: 'oz (28.35 g)', g: 28.35 }, { label: '100 g', g: 100 }, { label: 'g', g: 1 }];
   return [...own, ...std];
@@ -65,11 +68,12 @@ export const foodVocab = () => vocab ||= vocabulary((db || []).map(f => f.key));
 // Completions that actually lead somewhere: each suggested phrase must match at least one food.
 export const suggestFoods = q => !db ? [] : complete(foodVocab(), q, 20).filter(s => { const ws = s.split(' '); return db.some(f => ws.every(w => f.key.includes(w))); }).slice(0, 5);
 
-// Ranked, forgiving search: every typed word (or its synonym, plural or spelling fix) must
-// match; whole words, name starts and plain everyday foods rank first. The result array
-// carries .fixed, the corrected query, when a spelling fix was used.
-export function search(list, q, limit = 60) {
-  const { groups, fixed } = expand(db ? foodVocab() : new Map(), q);
+// Ranked search: every typed word (or its synonym or plural) must match; whole words, name
+// starts and plain everyday foods rank first. When nothing matches, the empty result carries
+// .suggest, a spelling fix to offer ("Did you mean…?"), never one applied on its own.
+export const search = (list, q, limit = 60) => exactFirst(db ? foodVocab() : new Map(), q, groups => ranked(list, groups, limit));
+
+function ranked(list, groups, limit) {
   if (!groups.length) return [];
   const res = [], rx = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const starts = groups.map(g => g.map(w => new RegExp('(^|[^\\p{L}])' + rx(w), 'u'))), whole = groups.map(g => g.map(w => new RegExp('(^|[^\\p{L}])' + rx(w) + '($|[^\\p{L}])', 'u')));
@@ -85,16 +89,16 @@ export function search(list, q, limit = 60) {
     if (/, nfs\b/.test(name)) s += 6; // the USDA's plain "not further specified" version
     groups.forEach((g, i) => { if (whole[i].some(r => r.test(f.key))) s += 14; else if (starts[i].some(r => r.test(f.key))) s += 6; });
     if (f.brand && groups.some(g => g.some(w => f.brand.toLowerCase().includes(w)))) s += 16; // "premier protein" means the brand
+    if (f.brand && groups.some(g => g.some(w => f.brand.toLowerCase() === w))) s += 20; // "gu gel" means the brand GU, not gummies
     if (f.src === 'mine') s += 40;
-    if (f.src === 'common') s += 45; // the everyday list: "Apple, medium", "Eggs, scrambled"
+    if (f.src === 'common') s += 45;
+    if (f.src === 'chain') s += 8; // "big mac" means McDonald's, not a store-brand sauce // the everyday list: "Apple, medium", "Eggs, scrambled"
     if (f.src === 'fndds') s += 10; // foods as people eat them: cooked rice, a glass of milk
     if (f.src === 'sr') s += 6;
     s -= name.length / 12;
     res.push([s, f]);
   }
-  const out = res.sort((a, b) => b[0] - a[0]).slice(0, limit).map(x => x[1]);
-  out.fixed = fixed;
-  return out;
+  return res.sort((a, b) => b[0] - a[0]).slice(0, limit).map(x => x[1]);
 }
 
 // Barcodes: UPC-A and EAN-13 differ by a leading zero; the database drops leading zeros.

@@ -6,10 +6,16 @@ export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const esc = v => String(v ?? '').replace(/[&<>"']/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-export function toast(text, ms = 2400) {
+// action: [label, fn] adds one button (2.8: Undo after Remove); the toast then stays a little longer.
+export function toast(text, ms = 2400, action = null) {
   document.querySelector('.toast')?.remove();
   const t = document.createElement('div');
   t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = text;
+  if (action) {
+    const b = document.createElement('button'); b.textContent = action[0];
+    b.onclick = () => { t.remove(); action[1](); };
+    t.append(' ', b); ms = Math.max(ms, 6000);
+  }
   document.body.append(t);
   setTimeout(() => t.remove(), ms);
 }
@@ -27,6 +33,14 @@ export function announce(text) {
 }
 
 // Runs an async handler at most once at a time, so double-taps can't double-save.
+// A quick second tap on a sheet's button would land on whatever sits under it once the sheet
+// closes (a double-tapped "Add" opened the camera), so real taps are ignored for a moment after.
+function swallowTaps(ms = 350) {
+  const stop = e => { if (e.isTrusted) { e.stopPropagation(); e.preventDefault(); } };
+  document.addEventListener('click', stop, true);
+  setTimeout(() => document.removeEventListener('click', stop, true), ms);
+}
+
 export function guard(fn) {
   let running = false;
   return async (...a) => {
@@ -46,7 +60,8 @@ export function overlay(content, { label = 'Dialog', id } = {}) {
   if (id) el.id = id;
   el.innerHTML = `<div class="inner">${content}</div>`;
   document.body.append(el);
-  el.querySelector('button, input, select, textarea')?.focus({ preventScroll: true });
+  // A search sheet starts in its search box, so typing and Enter search instead of pressing Close.
+  (el.querySelector('input[type=search]') || el.querySelector('button, input, select, textarea'))?.focus({ preventScroll: true });
   el.addEventListener('keydown', e => {
     if (e.key === 'Escape') { el.querySelector('[data-close]')?.click(); return; }
     if (e.key !== 'Tab') return;
@@ -55,7 +70,7 @@ export function overlay(content, { label = 'Dialog', id } = {}) {
     if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
     else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
   });
-  return { el, close: () => { el.remove(); if (before?.isConnected) before.focus({ preventScroll: true }); } };
+  return { el, close: () => { el.remove(); swallowTaps(); if (before?.isConnected) before.focus({ preventScroll: true }); } };
 }
 
 // Ask a question with buttons; resolves with the chosen value (or null on Cancel).
@@ -116,8 +131,8 @@ export function setAccent(accent) {
   root.setProperty('--accent', accent);
   root.setProperty('--accent-text', toHex(text));
   root.setProperty('--accent-line', toHex(line));
-  root.setProperty('--ink', dark ? '#e6e1d3' : '#141414'); // comic-panel outlines: dark ink on light, light ink on dark
-  root.setProperty('--shade', dark ? toHex(line) : '#141414'); // hard shadows: ink in light mode, the theme color in dark mode
+  root.setProperty('--ink-manga', dark ? '#e6e1d3' : '#141414'); // comic-panel outlines: dark ink on light, light ink on dark
+  root.setProperty('--shade-manga', dark ? toHex(line) : '#141414'); // hard shadows: ink in light mode, the theme color in dark mode
   root.setProperty('--on-accent', contrast(accent, '#06142e') >= contrast(accent, '#ffffff') ? '#06142e' : '#ffffff');
 }
 

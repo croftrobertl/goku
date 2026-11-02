@@ -6,7 +6,7 @@ Usage: python3 -I tools/build-foods.py <folder with the unzipped FDC CSV release
 Sources (download from https://fdc.nal.usda.gov/download-datasets):
   SR Legacy (2018-04)        generic foods with household portions
   FNDDS survey (2024-10-31)  foods as eaten (smoothies, sandwiches, cereals with milk) with portions
-  Branded (2026-10-29)       label data; only a list of well-known US brands is kept
+  Branded (2026-10-29)       label data; the hand-picked brands plus the 1,700 biggest US brands (2.8)
 
 Writes data/foods.json: {v, built, sources, n: [fields], foods: [[...], ...]}
 Each food: [name, brand, kcal, protein, carbs, fat, fiber, sugar, sodium_mg, satfat, portions, upc, src, unit]
@@ -87,21 +87,38 @@ generic('sr_legacy', 'sr')
 generic('survey', 'fndds')
 print('generic', len(foods), file=sys.stderr)
 
-# ---------- Branded: well-known US brands only ----------
+# ---------- Branded: well-known US brands plus the biggest brands in the data ----------
+# 2.8: tools/food-brands.txt is the hand-picked list (matched on brand name or owner, as before).
+# On top of it, the AUTO brands with the most current US products in USDA's data are kept, which
+# brings in store brands and the long tail people actually buy (about 2,000 brands in all).
 BRANDS = [l.strip().lower() for l in open(os.path.join(os.path.dirname(__file__), 'food-brands.txt'), encoding='utf-8')
           if l.strip() and not l.startswith('#')]
-PER_BRAND, TOTAL = 260, 20000
+AUTO, PER_BRAND, PER_AUTO, TOTAL = 1700, 260, 60, 130000
+SKIP = {'', 'not a branded item', 'none', 'n/a', 'unbranded', 'generic'}
+first_word = {}
+for b in BRANDS: first_word.setdefault(b.split(' ')[0].rstrip(','), []).append(b)
+def listed(text):
+    """The hand-picked brand a name or owner belongs to: exactly, or as its first words."""
+    for b in first_word.get(text.split(' ')[0].rstrip(','), []):
+        if text == b or text.startswith(b + ' ') or text.startswith(b + ','): return b
+    return None
+def us_current(r): return r.get('market_country') in ('United States', '') and not r.get('discontinued_date')
+def label(r): return re.sub(r'\s+', ' ', (r['brand_name'] or r['brand_owner'] or '')).strip().lower()
+
+counts = {}
+for r in table('branded', 'branded_food.csv'):
+    if us_current(r): counts[label(r)] = counts.get(label(r), 0) + 1
+auto = set(sorted((b for b in counts if b not in SKIP and not listed(b)), key=lambda b: -counts[b])[:AUTO])
 def brand_of(row):
     owner, name = (row['brand_owner'] or '').lower(), (row['brand_name'] or '').lower()
-    for b in BRANDS:
-        if name == b or name.startswith(b + ' ') or owner == b or owner.startswith(b + ' ') or owner.startswith(b + ','):
-            return b
-    return None
+    b = listed(name) or listed(owner)
+    if b: return b
+    return label(row) if label(row) in auto else None
 
 desc = {r['fdc_id']: r['description'] for r in table('branded', 'food.csv')}
 picked = {}
 for r in table('branded', 'branded_food.csv'):
-    if r.get('market_country') not in ('United States', '') or r.get('discontinued_date'): continue
+    if not us_current(r): continue
     b = brand_of(r)
     if not b: continue
     size, unit = num(r['serving_size']), (r['serving_size_unit'] or '').lower()
@@ -114,7 +131,7 @@ for r in table('branded', 'branded_food.csv'):
 by_brand = {}
 for r in sorted(picked.values(), key=lambda r: r['modified_date'], reverse=True):
     lst = by_brand.setdefault(r['_b'], [])
-    if len(lst) < PER_BRAND: lst.append(r)
+    if len(lst) < (PER_AUTO if r['_b'] in auto else PER_BRAND): lst.append(r)
 chosen = [r for lst in by_brand.values() for r in lst]
 chosen.sort(key=lambda r: r['modified_date'], reverse=True)
 chosen = chosen[:TOTAL]
@@ -135,7 +152,7 @@ for r in chosen:
 print('branded', nb, 'brands', len(by_brand), file=sys.stderr)
 
 os.makedirs(OUT, exist_ok=True)
-out = {'v': 1, 'built': '2026-10-29',
+out = {'v': 1, 'built': '2026-11-01',
        'sources': ['USDA FoodData Central: SR Legacy (April 2018)', 'USDA FoodData Central: FNDDS survey foods (October 2024)',
                    'USDA FoodData Central: Branded Foods (October 2026), label data supplied by manufacturers'],
        'n': ['name', 'brand', 'kcal', 'protein', 'carbs', 'fat', 'fiber', 'sugar', 'sodium', 'satfat', 'portions', 'upc', 'src', 'unit'],

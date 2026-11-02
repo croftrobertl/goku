@@ -19,9 +19,14 @@
 <h1>Figures</h1>
 <div class="g" id="g"></div>
 <script type="module">
-  import { figureSVG } from '../js/figure.js';
-  import { MOVES } from '../js/moves.js';
+  // ?from=&n= pick a slice; ?id=a,b shows just those moves; ?big=1 draws them larger. The query on the imports skips stale caches.
+  const v = Date.now();
+  const { figureSVG } = await import('../js/figure.js?v=' + v);
+  const { MOVES } = await import('../js/moves.js?v=' + v);
   const q = new URLSearchParams(location.search);
   const from = +(q.get('from') || 0), n = +(q.get('n') || 24);
-  document.getElementById('g').innerHTML = MOVES.slice(from, from + n).map((m, i) => `<div class="c"><b>${from + i}. ${m.name}</b><div class="pair">${figureSVG(m.start)}${figureSVG(m.end)}</div></div>`).join('');
+  const ids = q.get('id')?.split(',');
+  if (q.get('big')) document.head.insertAdjacentHTML('beforeend', '<style>.g{grid-template-columns:repeat(auto-fill,390px)} .pair .fig{width:190px}</style>');
+  const list = MOVES.map((m, i) => [m, i]).filter(([m, i]) => ids ? ids.includes(m.id) : i >= from && i < from + n);
+  document.getElementById('g').innerHTML = list.map(([m, i]) => `<div class="c"><b>${i}. ${m.name}</b><div class="pair">${figureSVG(m.start)}${figureSVG(m.end)}</div></div>`).join('');
 </script>

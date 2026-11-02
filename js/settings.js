@@ -10,6 +10,7 @@ import { VERSION } from './version.js';
 import { dayKey } from './time.js';
 import { phoneCheck } from './devcheck.js';
 import { THEMES, MODES } from './themes.js';
+import { w, W, SKINS, skinOf } from './skins.js';
 import { avatarHTML, avatarName, avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
 import { QUESTIONS, essentials, setupFlow, GOALS, EQUIPMENT, ALLERGIES } from './coach.js';
 import { editHome } from './homelayout.js';
@@ -285,6 +286,11 @@ export async function settingsView() {
         <button class="link" id="avatar" style="padding:0">Change avatar</button></span></div>
       <label class="f"><span>Name</span><input id="nm" value="${esc(p.name)}" maxlength="24"></label>
     </section>
+    <section class="card"><p class="lbl">Skin</p>
+      <p class="sub">Changes the words, avatars and look for you only. Everything works the same.</p>
+      <div class="themes">${Object.entries(SKINS).map(([id, k]) => `<button data-skin="${id}" aria-pressed="${skinOf(p) === id}">
+        <span><b>${esc(k.name)}</b><br><span class="sub">${esc(k.desc)}</span></span></button>`).join('')}</div>
+    </section>
     <section class="card"><p class="lbl">Theme</p>
       <div class="themes">${Object.entries(THEMES).filter(([id, t]) => !t.locked || p.coach?.wish === 'theme').map(([id, t]) => `<button data-theme="${id}" aria-pressed="${(p.settings.theme || 'capsule') === id}">
         <span class="tsw" aria-hidden="true" style="background:${t.dark.s1};box-shadow:inset -18px 0 0 ${t.light.s1}"><i style="background:${t.accent}"></i></span>
@@ -337,7 +343,7 @@ export async function settingsView() {
       <button class="cta2" id="expEnc" style="width:100%;margin-top:8px">Export encrypted backup</button>
       <button class="cta2" id="imp" style="width:100%;margin-top:8px">Import a backup</button>
     </section>
-    <section class="card"><p class="lbl">Scouter link · Apple Health</p>
+    <section class="card"><p class="lbl">${esc(W('scouter'))} link · Apple Health</p>
       <p class="sub">Bring sleep and workouts from the Health app into Goku with an Apple Shortcut. Everything stays on this phone.</p>
       <button class="cta2" id="health" style="width:100%;margin-top:8px">Import from Health</button>
       <button class="link" id="healthHow" style="width:100%">How to set up the shortcut</button>
@@ -366,7 +372,9 @@ export async function settingsView() {
         if ('duel' in t.dataset) { p.settings.duel = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.fb) { p.settings[t.dataset.fb] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); window.goku.render(); }
-        if (t.id === 'pt') { p.settings.proteinTarget = t.value ? +t.value.replace(/\D/g, '') || null : null; await saveProfile(p); }
+        if (t.id === 'pt') { const v = +t.value.replace(/\D/g, '') || null, most = p.settings.proteinPer === 'meal' ? 150 : 500;
+          if (v && !(v >= 10 && v <= most)) return toast(`Protein target: 10 to ${most} grams`); // a typo like 1985 isn't saved
+          p.settings.proteinTarget = v; await saveProfile(p); }
         if (t.id === 'de') { p.dayEndsAt = +t.value; await saveProfile(p); }
         if (t.id === 'tz') { p.tz = t.value; await saveProfile(p); window.goku.render(); }
         if (t.matches('[data-avatar-photo]')) {
@@ -377,6 +385,12 @@ export async function settingsView() {
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.acc) { p.accent = b.dataset.acc; await saveProfile(p); window.goku.render(); }
+        else if (b.dataset.skin) {
+          // A skin brings its own theme (Encore → Pastel tour); leaving it goes back to the default theme.
+          const was = SKINS[skinOf(p)], next = SKINS[b.dataset.skin]; p.settings.skin = b.dataset.skin;
+          const theme = next.theme || (was.theme && p.settings.theme === was.theme ? 'capsule' : null);
+          if (theme) { p.settings.theme = theme; p.accent = THEMES[theme].accent; }
+          await saveProfile(p); window.goku.render(); }
         else if (b.dataset.theme) { p.settings.theme = b.dataset.theme; p.accent = THEMES[b.dataset.theme].accent; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.units) { p.units = b.dataset.units; await saveProfile(p); window.goku.render(); }
         else if (b.id === 'avatar') avatarSheet(p);
@@ -394,7 +408,7 @@ export async function settingsView() {
         else if (b.id === 'expEnc') await exportNow(true);
         else if (b.id === 'imp') importFlow();
         else if (b.id === 'health') healthImport();
-        else if (b.id === 'healthHow') ask('Set up the Scouter link', `<ol style="padding-left:20px;line-height:1.6">${RECIPE.map(x => `<li style="margin-top:6px">${esc(x)}</li>`).join('')}</ol>
+        else if (b.id === 'healthHow') ask(`Set up the ${esc(W('scouter'))} link`, `<ol style="padding-left:20px;line-height:1.6">${RECIPE.map(x => `<li style="margin-top:6px">${esc(x)}</li>`).join('')}</ol>
           <p class="note">Shortcuts differ a little between iOS versions. If an import shows nothing, check the file has lines like: sleep, 2026-10-28T23:10:00, 2026-10-29T06:40:00.</p>`, []);
         else if (b.id === 'chg') { if (await showLock(p, { mode: 'create', cancellable: true })) toast('Passcode changed'); window.goku.render(); }
         else if (b.id === 'lockNow') { lockNow(p); await saveProfile(p); window.goku.open(p.id); }

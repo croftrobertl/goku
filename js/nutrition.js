@@ -23,9 +23,9 @@ const ARROW_DOWN = ARROW_UP.replace('M4 13l6-6 6 6', 'M4 7l6 6 6-6');
 const mealName = k => MEALS.find(m => m[0] === k)?.[1] || 'Snacks';
 const SYMPTOMS = [['heartburn', 'Heartburn'], ['cramps', 'Cramps'], ['gas', 'Gas'], ['nausea', 'Nausea'], ['lowEnergy', 'Low energy']];
 
-let navDay = null, hist = null;
+let navDay = null, navFor = null, hist = null; // navFor: the profile the chosen day belongs to
 export const forgetHistory = () => { hist = null; };
-export const openNutritionDay = day => { navDay = day; window.goku.go('nutrition'); };
+export const openNutritionDay = day => { navDay = day; navFor = profile().id; window.goku.go('nutrition'); };
 
 const foodId = (p, day) => p.id + ':food:' + day;
 // An empty day is removed rather than saved, so it never counts as a logged day.
@@ -74,7 +74,7 @@ async function movePantry(p) {
 export async function nutritionView() {
   const p = profile();
   const t = today();
-  if (!navDay || navDay > t) navDay = t;
+  if (!navDay || navDay > t || navFor !== p.id) { navDay = t; navFor = p.id; } // another profile's day never carries over
   const day = navDay;
   await movePantry(p);
   const { food, gut } = await readDay(p, day);
@@ -154,8 +154,15 @@ export async function nutritionView() {
     </div></div>`,
     bind(root) {
       bindSupps(root, g, async () => { await saveGut(); window.goku.render(); }, recent);
+      // Water taps skip the busy guard and save once the tapping stops, so eight quick taps add eight glasses.
+      let waterT = null;
+      root.addEventListener('click', e => {
+        const b = e.target.closest('button[data-fl]'); if (!b || b.closest('.overlay')) return;
+        food.water = Math.max(0, round((food.water ?? water) + +b.dataset.fl, 2));
+        clearTimeout(waterT); waterT = setTimeout(async () => { await saveDay(p, day, food, true); window.goku.render(); }, 250);
+      });
       root.addEventListener('click', guard(async e => {
-        const b = e.target.closest('button'); if (!b || b.closest('.overlay') || b.closest('.supps')) return;
+        const b = e.target.closest('button'); if (!b || b.closest('.overlay') || b.closest('.supps') || b.dataset.fl) return;
         if (b.dataset.dayshift) { navDay = addDays(day, +b.dataset.dayshift); if (navDay < addDays(t, -60)) navDay = addDays(t, -60); return window.goku.render(); }
         if (b.id === 'addFood') return addFood(nowMeal(), day);
         if (b.id === 'scanFood') return addFood(nowMeal(), day, { scan: true });
@@ -167,7 +174,6 @@ export async function nutritionView() {
         if (b.dataset.savemeal) return saveMeal(food.items.filter(it => it.meal === b.dataset.savemeal));
         if (b.id === 'kcalTarget') return setTarget(p);
         if (b.id === 'dayDetail') return dayDetail(items, day);
-        if (b.dataset.fl) { food.water = Math.max(0, round(water + +b.dataset.fl, 2)); await saveDay(p, day, food, true); return window.goku.render(); }
         if (b.id === 'trackWaist') { p.settings.trackWaist = true; await saveProfile(p); return window.goku.render(); }
         const st = b.closest('[data-step]');
         if (st && b.dataset.d) {
@@ -264,11 +270,14 @@ export function addFood(meal, day, { scan = false } = {}) {
     $('#tabs').innerHTML = q ? '' : [['recent', 'Recent'], ['mine', 'My foods'], ['meals', 'Meals']].map(([k, n]) => `<button data-ftab="${k}" aria-pressed="${tab === k}">${n}</button>`).join('');
     if (q) {
       if (!all) { $('#fstat').textContent = failed ? "The food list couldn't load. Check your connection once, then it works offline." : 'Loading the food list…'; if (failed) { failed = false; loadFoods().then(list => { all = list; draw(); }).catch(() => { failed = true; draw(); }); } return; }
+      if (q.length < 2) { $('#fstat').textContent = 'Keep typing…'; $('#fsugg').innerHTML = ''; $('#fres').innerHTML = ''; return; } // one letter matches nearly all 125,000 foods
       shown = search([...mine, ...all], q, 60);
-      $('#fsugg').innerHTML = suggestFoods(q).map(s => `<button data-fsugg="${esc(s)}">${esc(s)}</button>`).join('');
-      $('#fstat').textContent = (shown.fixed ? `Showing results for “${shown.fixed}” · ` : '') + (shown.length ? `${shown.length >= 60 ? 'Top 60' : shown.length} matches` : '');
+      // A spelling fix is only ever offered as a suggestion; what you typed is what's searched.
+      $('#fsugg').innerHTML = [...(shown.suggest ? [[`Did you mean ${shown.suggest}?`, shown.suggest]] : []), ...suggestFoods(q).map(s => [s, s])]
+        .map(([label, s]) => `<button data-fsugg="${esc(s)}">${esc(label)}</button>`).join('');
+      $('#fstat').textContent = shown.length ? `${shown.length >= 60 ? 'Top 60' : shown.length} match${shown.length === 1 ? '' : 'es'}` : `No “${q}” in the food list yet.`;
       $('#fres').innerHTML = shown.length ? `<ul class="list">${shown.map((f, i) => row(f, 's:' + i, (f.src === 'brand' ? '' : f.src === 'mine' ? 'My food · ' : '') + sub(f))).join('')}</ul>`
-        : '<div class="empty"><p>No match. Try fewer words, or add it from its label.</p></div>';
+        : '<div class="empty"><p>Try fewer words, or add it from its label below.</p></div>';
       return;
     }
     $('#fstat').textContent = ''; $('#fsugg').innerHTML = '';
@@ -321,7 +330,8 @@ export function addFood(meal, day, { scan = false } = {}) {
 }
 
 // Amount and serving for one food, with its nutrition for that amount.
-function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = null }) {
+// When editing a logged food (move: { day }), its meal and day can change too (2.8); onDone then gets (item, { meal, day }).
+function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = null, move = null }) {
   const ps = portionsOf(f);
   let pi = portionLabel ? Math.max(0, ps.findIndex(x => x.label === portionLabel)) : defaultPortion(ps);
   if (portionLabel && ps.findIndex(x => x.label === portionLabel) < 0) ps.unshift({ label: portionLabel, g: f.pg || 100 }), pi = 0;
@@ -333,8 +343,11 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
           <div class="amt"><button class="cta2" data-qd="-1" aria-label="Less">${ARROW_DOWN}</button><input id="qty" inputmode="decimal" value="${round(qty, 2)}" aria-label="Amount"><button class="cta2" data-qd="1" aria-label="More">${ARROW_UP}</button></div></div>
         <label class="f" style="flex:1;margin:0"><span>Serving</span><select id="por">${ps.map((x, i) => `<option value="${i}" ${i === pi ? 'selected' : ''}>${esc(x.label)}</option>`).join('')}</select></label></div>
       <div class="seg" style="margin-top:8px">${[0.5, 1, 1.5, 2].map(v => `<button data-q="${v}">${v === 0.5 ? '½' : v === 1.5 ? '1½' : v}</button>`).join('')}</div>
+      ${move ? `<div class="seg meals" role="group" aria-label="Meal" style="margin-top:12px">${MEALS.map(([k, n]) => `<button data-mmeal="${k}" aria-pressed="${k === meal}">${n}</button>`).join('')}</div>
+      <div class="row" style="margin-top:8px"><span class="lbl" style="margin:0">Day</span><span id="mday">${dayPicker(move.day, today(), 'Day this food was eaten')}</span></div>` : ''}
       <div id="nt"></div>
-      <p class="note">${f.src === 'brand' ? 'From the maker’s label (USDA Branded Foods).' : f.src === 'mine' ? 'Your own food, from its label.' : 'USDA FoodData Central.'}</p>
+      <p class="note">${f.src === 'brand' ? 'From the maker’s label (USDA Branded Foods).' : f.src === 'mine' ? 'Your own food, from its label.'
+        : f.src === 'chain' ? `From ${esc(f.from)}. <a href="${esc(f.url)}" target="_blank" rel="noopener">See the chain's page</a>` : 'USDA FoodData Central.'}</p>
     </div>
     <button class="cta" id="ok">${onRemove ? 'Save' : 'Add to ' + esc(mealName(meal))}</button>
     ${onRemove ? '<button class="cta2 danger" id="rm" style="width:100%;margin-top:8px">Remove</button>' : ''}`, { label: f.name });
@@ -352,8 +365,10 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
     if (b.dataset.q) { $('#qty').value = b.dataset.q; return draw(); }
+    if (b.dataset.mmeal) { meal = b.dataset.mmeal; el.querySelectorAll('[data-mmeal]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mmeal === meal)); return; }
+    if (b.dataset.dayshift && move) { const nd = addDays(move.day, +b.dataset.dayshift); if (nd <= today() && nd >= addDays(today(), -60)) move.day = nd; $('#mday').innerHTML = dayPicker(move.day, today(), 'Day this food was eaten'); return; }
     if (b.dataset.qd) { const stepBy = ps[pi].g <= 1 ? 10 : ps[pi].g >= 100 && /^100 /.test(ps[pi].label) ? 0.25 : 0.5; $('#qty').value = round(Math.max(0, amount() + +b.dataset.qd * stepBy), 2); return draw(); }
-    if (b.id === 'ok') { if (!(amount() > 0)) return toast('Enter an amount'); close(); await onDone(itemFrom(f, amount(), ps[pi], meal)); }
+    if (b.id === 'ok') { if (!(amount() > 0)) return toast('Enter an amount'); close(); await onDone(itemFrom(f, amount(), ps[pi], meal), { meal, day: move?.day }); }
     if (b.id === 'rm') { close(); await onRemove(); }
   }));
   draw();
@@ -364,8 +379,19 @@ function editItem(food, idx, day) {
   const p = profile();
   const store = async () => { await saveDay(p, day, food); window.goku.render(); };
   if (it.quick) return quickAdd(it.meal, async nx => { food.items[idx] = nx; await store(); }, it, async () => { food.items.splice(idx, 1); await store(); });
-  serving({ ...it }, { meal: it.meal, qty: it.qty, portionLabel: it.pl, onDone: async nx => { food.items[idx] = { ...nx, meal: it.meal }; await store(); },
-    onRemove: async () => { food.items.splice(idx, 1); await store(); toast('Removed'); } });
+  serving({ ...it }, { meal: it.meal, qty: it.qty, portionLabel: it.pl, move: { day },
+    onDone: async (nx, to) => {
+      const moved = { ...it, ...nx, meal: to.meal };
+      if (to.day === day) { food.items[idx] = moved; return store(); }
+      // Moved to another day: off this one, onto that one.
+      food.items.splice(idx, 1); await saveDay(p, day, food);
+      const there = (await readDay(p, to.day)).food; there.items = [...(there.items || []), moved]; await saveDay(p, to.day, there);
+      window.goku.render(); toast(`Moved to ${prettyDay(to.day)}`);
+    },
+    onRemove: async () => {
+      const [gone] = food.items.splice(idx, 1); await store();
+      toast(`${gone.name} removed`, 2400, ['Undo', async () => { food.items.splice(idx, 0, gone); await store(); }]);
+    } });
 }
 
 function quickAdd(meal, onDone, existing = null, onRemove = null) {
@@ -376,6 +402,7 @@ function quickAdd(meal, onDone, existing = null, onRemove = null) {
       <label class="f"><span>Name (optional)</span><input id="qn" maxlength="40" value="${esc(existing?.name && existing.name !== 'Quick add' ? existing.name : '')}"></label>
       ${[['kcal', 'Calories'], ['p', 'Protein (g)'], ['c', 'Carbohydrate (g)'], ['f', 'Fat (g)']].map(([k, n]) => `<label class="f"><span>${n}</span><input data-k="${k}" inputmode="decimal" value="${v[k] ?? ''}"></label>`).join('')}
     </div>
+    <p class="msg" id="qm" role="status"></p>
     <button class="cta" id="ok">${existing ? 'Save' : 'Add to ' + esc(mealName(meal))}</button>
     ${onRemove ? '<button class="cta2 danger" id="rm" style="width:100%;margin-top:8px">Remove</button>' : ''}`, { label: 'Quick add' });
   el.addEventListener('click', guard(async e => {
@@ -383,9 +410,13 @@ function quickAdd(meal, onDone, existing = null, onRemove = null) {
     if (b.id === 'x') return close();
     if (b.id === 'rm') { close(); return onRemove(); }
     if (b.id !== 'ok') return;
-    const n = {};
-    el.querySelectorAll('[data-k]').forEach(i => { const x = +String(i.value).replace(',', '.'); n[i.dataset.k] = i.value.trim() && x >= 0 && x < 20000 ? round(x, 1) : null; });
-    if (Object.values(n).every(x => x == null)) return toast('Enter at least one number');
+    const n = {}, bad = [];
+    el.querySelectorAll('[data-k]').forEach(i => { const x = +String(i.value).replace(',', '.'), ok = x >= 0 && x < 20000;
+      if (i.value.trim() && !ok) bad.push(i.closest('label').querySelector('span').textContent);
+      n[i.dataset.k] = i.value.trim() && ok ? round(x, 1) : null; });
+    const msg = el.querySelector('#qm');
+    if (bad.length) { msg.textContent = `${bad.join(', ')}: enter a number from 0 to 19,999.`; return; }
+    if (Object.values(n).every(x => x == null)) { msg.textContent = 'Enter at least one number.'; return; }
     close();
     await onDone({ meal, name: el.querySelector('#qn').value.trim().slice(0, 40) || 'Quick add', brand: '', quick: true, n });
   }));
@@ -415,8 +446,11 @@ export function labelFood(pre = {}, onSaved = () => {}) {
     if (b.id !== 'ok') return;
     const name = $('#ln').value.trim().slice(0, 60), g = +String($('#lg').value).replace(',', '.');
     if (!name || !(g > 0 && g <= 5000)) { $('#lm').textContent = 'Add the food name and the serving weight from the label (the number in g or ml).'; return; }
-    const per = {};
-    el.querySelectorAll('[data-k]').forEach(i => { const x = +String(i.value).replace(',', '.'); per[i.dataset.k] = i.value.trim() && x >= 0 && x < 100000 ? round(x * 100 / g, 2) : null; });
+    const per = {}, bad = [];
+    el.querySelectorAll('[data-k]').forEach(i => { const x = +String(i.value).replace(',', '.'), ok = x >= 0 && x <= (i.dataset.k === 'na' ? 20000 : 5000);
+      if (i.value.trim() && !ok) bad.push(i.closest('label').querySelector('span').textContent);
+      per[i.dataset.k] = i.value.trim() && ok ? round(x * 100 / g, 2) : null; });
+    if (bad.length) { $('#lm').textContent = `${bad.join(', ')}: that number is too big or below zero. Check the label.`; return; }
     if (per.kcal == null) { $('#lm').textContent = 'Add the calories from the label.'; return; }
     const unit = $('#lu').value === 'ml' ? 'ml' : 'g';
     const serving = (($('#ls').value.trim().replace(/\|/g, '/').replace(/;/g, ',') || '1 serving') + ` (${round(g, 1)} ${unit})`).slice(0, 48);

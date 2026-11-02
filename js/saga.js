@@ -1,5 +1,6 @@
 // Saga map (2.2): training as story arcs. Each arc lasts 4 weeks and has a "boss": a goal
 // the person sets themselves (Goku never prescribes one). Beat it, and the arc is cleared.
+import { w, W, skinOf } from './skins.js';
 import { entries, saveEntry, deleteEntry, today, profile } from './state.js';
 import { stagesFor } from './skills.js';
 import { esc, overlay, guard, toast, ask } from './ui.js';
@@ -33,27 +34,27 @@ export function sagaCard(arcs, t, ctx = {}) {
   const cur = open.find(a => a.data.start <= t) || null, next = open.find(a => a !== cur) || null;
   const cleared = arcs.filter(a => a.data.done);
   const n = a => arcs.indexOf(a) + 1;
-  if (!arcs.length) return `<section class="card saga"><p class="lbl">Your saga</p>
-    <p class="sub" style="text-align:center">Turn your next 4 weeks into an arc with a boss to beat: a goal you pick, like 20 push-ups or a 60-second plank.</p>
-    <button class="cta2" id="arcNew" style="width:100%;margin-top:10px">Start your first arc</button></section>`;
+  if (!arcs.length) return `<section class="card saga"><p class="lbl">Your ${esc(w('saga').toLowerCase())}</p>
+    <p class="sub" style="text-align:center">Turn your next 4 weeks into ${skinOf(profile()) === 'plain' ? 'a' : 'an'} ${esc(w('arc').toLowerCase())} with a ${esc(w('boss').toLowerCase())} to beat: a goal you pick, like 20 push-ups or a 60-second plank.</p>
+    <button class="cta2" id="arcNew" style="width:100%;margin-top:10px">Start your first ${esc(w('arc').toLowerCase())}</button></section>`;
   const arcHTML = a => {
     const day = Math.max(0, daysBetween(a.data.start, t)), len = (a.data.weeks || WEEKS) * 7, wk = Math.min(a.data.weeks || WEEKS, Math.floor(day / 7) + 1);
     const over = day >= len, pr = arcProgress(a, ctx), won = pr && pr.have >= pr.need;
     const hp = pr ? Math.round((1 - pr.pct) * 100) : null;
-    return `<div class="arc now"><div class="row"><span class="pill">Arc ${n(a)} · ${over ? 'time is up' : `week ${wk} of ${a.data.weeks || WEEKS}`}</span><button class="link" data-arcedit="${esc(a.id)}">Edit</button></div>
+    return `<div class="arc now"><div class="row"><span class="pill">${esc(W('arc'))} ${n(a)} · ${over ? 'time is up' : `week ${wk} of ${a.data.weeks || WEEKS}`}</span><button class="link" data-arcedit="${esc(a.id)}">Edit</button></div>
       <h2>${esc(a.data.name)}</h2>
-      <div class="poster${won ? ' won' : ''}"><span class="wanted">Boss</span><b>${esc(a.data.boss)}</b>
-        ${pr ? `<div class="hp" role="img" aria-label="Boss HP ${hp} percent"><i style="width:${hp}%"></i></div><span class="sub">${won ? 'Target reached. Mark it beaten below.' : `Boss HP ${hp}% · ${esc(pr.label)}`}</span>`
+      <div class="poster${won ? ' won' : ''}"><span class="wanted">${esc(W('boss'))}</span><b>${esc(a.data.boss)}</b>
+        ${pr ? `<div class="hp" role="img" aria-label="${esc(W('boss'))} HP ${hp} percent"><i style="width:${hp}%"></i></div><span class="sub">${won ? 'Target reached. Mark it beaten below.' : `${esc(W('boss'))} HP ${hp}% · ${esc(pr.label)}`}</span>`
           : '<span class="sub">Link it to an exercise or skill in Edit and its HP drops as you train.</span>'}</div>
       <div class="arcbar" role="img" aria-label="${Math.min(100, Math.round(day / len * 100))} percent of the arc done"><i style="width:${Math.min(100, day / len * 100)}%"></i></div>
-      <div class="row" style="gap:8px;margin-top:10px"><button class="${won ? 'cta' : 'cta2'}" data-arcwin="${esc(a.id)}" style="flex:1">${won ? 'Mark the boss beaten' : 'Boss beaten'}</button>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="${won ? 'cta' : 'cta2'}" data-arcwin="${esc(a.id)}" style="flex:1">${won ? `Mark the ${esc(w('boss').toLowerCase())} beaten` : `${esc(W('boss'))} beaten`}</button>
         ${over ? `<button class="cta2" data-arcmore="${esc(a.id)}" style="flex:1">2 more weeks</button>` : ''}</div></div>`;
   };
   return `<section class="card saga"><div class="row"><p class="lbl" style="margin:0">Your saga</p><span class="sub">${cleared.length} cleared</span></div>
     ${cur ? arcHTML(cur) : `<p class="sub" style="text-align:center">${next ? `Next arc starts ${esc(prettyDay(next.data.start))}.` : 'No arc running.'}</p>`}
-    ${next && cur ? `<div class="arc next"><span class="pill">Arc ${n(next)} · next</span><h2>${esc(next.data.name)}</h2><p><b>Boss:</b> ${esc(next.data.boss)}</p></div>` : ''}
-    ${!next ? '<button class="cta2" id="arcNew" style="width:100%;margin-top:10px">Plan the next arc</button>' : ''}
-    ${cleared.length ? `<details class="fold"><summary class="sub">Cleared arcs</summary><ul class="list">${cleared.slice().reverse().map(a => `<li><span><b>${esc(a.data.name)}</b><br><span class="chain">Beat: ${esc(a.data.boss)}</span></span><span class="sub">${esc(prettyDay(a.data.done))}</span></li>`).join('')}</ul></details>` : ''}
+    ${next && cur ? `<div class="arc next"><span class="pill">${esc(W('arc'))} ${n(next)} · next</span><h2>${esc(next.data.name)}</h2><p><b>${esc(W('boss'))}:</b> ${esc(next.data.boss)}</p></div>` : ''}
+    ${!next ? `<button class="cta2" id="arcNew" style="width:100%;margin-top:10px">Plan the next ${esc(w('arc').toLowerCase())}</button>` : ''}
+    ${cleared.length ? `<details class="fold"><summary class="sub">Cleared ${esc(w('arc').toLowerCase())}s</summary><ul class="list">${cleared.slice().reverse().map(a => `<li><span><b>${esc(a.data.name)}</b><br><span class="chain">Beat: ${esc(a.data.boss)}</span></span><span class="sub">${esc(prettyDay(a.data.done))}</span></li>`).join('')}</ul></details>` : ''}
   </section>`;
 }
 
@@ -64,7 +65,7 @@ export function bindSaga(root, arcs) {
     const a = arcs.find(x => x.id === (b.dataset.arcedit || b.dataset.arcwin || b.dataset.arcmore)); if (!a) return;
     if (b.dataset.arcedit) return editArc(a, arcs);
     if (b.dataset.arcmore) { await saveEntry('arc', { ...a.data, weeks: (a.data.weeks || WEEKS) + 2 }, { id: a.id, day: a.day, ts: a.ts }); return window.goku.render(); }
-    if (b.dataset.arcwin && await ask('Boss beaten?', `${esc(a.data.boss)}. Clear "${esc(a.data.name)}" and start the next arc when you're ready.`, [{ label: 'Yes, clear it', value: true }])) {
+    if (b.dataset.arcwin && await ask(`${esc(W('boss'))} beaten?`, `${esc(a.data.boss)}. Clear "${esc(a.data.name)}" and start the next ${esc(w('arc').toLowerCase())} when you're ready.`, [{ label: 'Yes, clear it', value: true }])) {
       await saveEntry('arc', { ...a.data, done: today() }, { id: a.id, day: a.day, ts: a.ts });
       window.goku.render(); cleared(a, arcs);
     }

@@ -1,5 +1,6 @@
 // "Performance" profile: readiness, check-in, week planner, session load.
 // Shows no weight, calorie-deficit or body-shape content.
+import { w, W } from './skins.js';
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on, sessionNames } from './state.js';
 import * as db from './db.js';
 import { esc, ask, overlay, stepper, round, guard, toast, dayPicker } from './ui.js';
@@ -23,7 +24,7 @@ import { calendarCard, bindCalendar } from './calendar.js';
 // Session names come from the profile: Gymnastics and Vaulting, or a Custom profile's sports.
 const kindName = (p, s) => { const n = sessionNames(p); return s.data.kind === 'vault' ? n[1] || 'Other' : n[0]; };
 
-export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', 'Saga', 'hidden']];
+export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills') ? [['skills', 'Skills']] : []), ['checkin', 'Check-in', 'hidden'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', W('saga'), 'hidden']];
 
 export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
 import { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
@@ -115,7 +116,7 @@ export async function home() {
       ['duel', duel],
       ['streak', `${streakCard(p, all, t)}`],
       ['today', `<section class="card"><p class="lbl">Today</p>
-        ${planned.gym + planned.vault === 0 ? `<p>${weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
+        ${planned.gym + planned.vault === 0 ? `<p>${todays.length ? 'Planned rest day, and you trained anyway.' : weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
           `<p>${planned.gym ? `${esc(nm[0])} ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `${esc(nm[1] || 'Other')} ${round(planned.vault / 60, 1)} h` : ''}</p>`}
         ${todays.length ? `<ul class="list" style="margin-top:8px">${todays.map(s => `<li><span>${esc(kindName(p, s))} · ${esc(s.data.minutes)} min</span>
           <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}

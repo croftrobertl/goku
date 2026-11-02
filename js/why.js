@@ -1,5 +1,6 @@
 // "Why this number?": every range or suggestion can explain its own math in plain words.
 // Buttons carry data-why="key" (and data-arg when needed); app.js opens the explanation.
+import { w, W } from './skins.js';
 import { esc, round } from './ui.js';
 import { kgOf, weight, weightUnit } from './units.js';
 import { SOURCES, carbTier, fuelRanges } from './fuel.js';
@@ -43,13 +44,13 @@ export const WHY = {
     const s = JSON.parse(json || '{}');
     return ['How the streak works', `<p>Any day you log something counts: a session, an activity, a check-in, a gut log, or a planned rest day.</p>
       <p style="margin-top:8px">Rest days count up to <b>${esc(s.restPerWeek)}</b> a week, the days your plan leaves free, so the streak still needs training.</p>
-      <p style="margin-top:8px">Every 7 days in a row earns a Senzu bean (you can hold 3). Miss a day and a bean is spent instead of losing the streak.</p>
-      <p style="margin-top:8px">Right now: <b>${esc(s.days)}</b> days, <b>${esc(s.beans)}</b> bean${s.beans === 1 ? '' : 's'}${s.saved ? `, ${esc(s.saved)} day${s.saved === 1 ? '' : 's'} saved so far` : ''}.</p>
+      <p style="margin-top:8px">Every 7 days in a row earns a ${esc(w('bean'))} (you can hold 3). Miss a day and one is spent instead of losing the streak.</p>
+      <p style="margin-top:8px">Right now: <b>${esc(s.days)}</b> days, <b>${esc(s.beans)}</b> ${esc(s.beans === 1 ? w('bean') : w('beans'))}${s.saved ? `, ${esc(s.saved)} day${s.saved === 1 ? '' : 's'} saved so far` : ''}.</p>
       <p class="note">Rest is part of training, so logging a rest day keeps the streak too.</p>`];
   },
   progress: (p, json) => {
     const r = JSON.parse(json || '[]');
-    return ['Why the coach says level up', `<p>Your last three sessions at this gravity: <b>${r.map(esc).join(' → ')}</b> reps.</p>
+    return ['Why the coach says level up', `<p>Your last three sessions at this ${esc(w('gravity'))}: <b>${r.map(esc).join(' → ')}</b> reps.</p>
       <p style="margin-top:8px">You beat your ghost twice in a row, which means the current level is getting easier. A small step up keeps you progressing.</p>
       <p class="note">Progressive overload: gradually raising load or volume as you adapt (ACSM position stand on resistance training progression, 2009).</p>`];
   },
@@ -60,7 +61,7 @@ export const WHY = {
   : `<p>Each bar adds up a week's training minutes: circuits from start to finish, plus other training you log.</p>
     <p style="margin-top:8px">Circuits don't ask for an effort score, so Goku counts minutes rather than minutes × effort. The dashed line is the average of the 4 weeks before this one, and the short line on this week's bar is where an average week would be by today.</p>
     <p class="note">Goku shows the trend only. It doesn't judge it.</p>`],
-  power: p => ['How the power level works', `<p>It's a game score Goku made up to make a week of good habits feel like charging up. It isn't a health, fitness or body measure, and it doesn't compare you with anyone.</p>
+  power: p => [`How the ${w('power').toLowerCase()} works`, `<p>It's a game score Goku made up to make a week of good habits feel like charging up. It isn't a health, fitness or body measure, and it doesn't compare you with anyone.</p>
     <ul class="list" style="margin-top:8px"><li><span>Training: days you trained in the last 7, against your weekly goal</span><b>up to 4,000</b></li>
     <li><span>Fuel: days you reached your protein goal (or logged food, if there's no goal)</span><b>up to 2,500</b></li>
     <li><span>Recovery: ${p.kind === 'perf' ? 'your average readiness from check-ins' : 'days you logged anything at all'}</span><b>up to 2,500</b></li></ul>

@@ -1,10 +1,12 @@
 // First-launch (and "Add profile") setup. Every personal value is entered here
 // and stored only on this device.
+import { skin } from './skins.js';
 import { KINDS, newProfile, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames } from './state.js';
 import { showLock } from './lock.js';
 import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
 import { DOW, deviceTZ } from './time.js';
-import { setupScreens, screenHTML, screenClick, screenRead, progress } from './coach.js';
+import { setupScreens, screenHTML, screenClick, screenRead, progress, EQUIPMENT } from './coach.js';
+import { EQUIP, GEAR } from './moves.js';
 import { avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
 
 // Starting gravity from the coach answers: newer lifters start lighter, conditioning goals faster.
@@ -26,12 +28,31 @@ function capsule(step, total) {
   const eyes = step % 3 === 1 && !last ? '<path d="M39 56h11M70 56h11" stroke="#141414" stroke-width="4" stroke-linecap="round"/>'
     : `<path d="M44 46${STAR}M76 46${STAR}" fill="#c4281c" stroke="#141414" stroke-width="1.6" stroke-linejoin="round"/>`;
   const arms = last ? '<path d="M18 60l-10-14M102 60l10-14" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : first ? '<path d="M103 56l11-12" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : '';
+  // The skin picks the guide (2.8): Encore's is a mic buddy, Plain has none.
+  if (skin().mascot === 'none') return '';
+  if (skin().mascot === 'mic') {
+    const micEyes = step % 3 === 1 && !last ? '<path d="M44 40h9M67 40h9" stroke="#3a2a5c" stroke-width="4" stroke-linecap="round"/>'
+      : '<circle cx="48" cy="40" r="4.5" fill="#3a2a5c"/><circle cx="72" cy="40" r="4.5" fill="#3a2a5c"/><circle cx="49.5" cy="38.5" r="1.4" fill="#fff"/><circle cx="73.5" cy="38.5" r="1.4" fill="#fff"/>';
+    return `<div class="mascot" aria-hidden="true"><svg viewBox="0 0 120 110" width="104" height="96">${arms.replaceAll('#141414', '#3a2a5c').replaceAll('M18 60', 'M30 44').replaceAll('M102 60', 'M90 44').replaceAll('M103 56', 'M91 44')}
+      <ellipse cx="60" cy="106" rx="20" ry="3.5" fill="#3a2a5c" opacity=".15"/>
+      <path d="M46 68h28l-5 34h-18z" fill="#ffb3c7" stroke="#3a2a5c" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="60" cy="40" r="30" fill="#c9b3ff" stroke="#3a2a5c" stroke-width="4"/>
+      <path d="M38 30h44M34 42h52M38 54h44" stroke="#3a2a5c" stroke-width="1.6" opacity=".35"/>
+      <path d="M42 22q8-8 18-9" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+      ${micEyes}<path d="${mouth.replace(/M(\d+) (\d+)/, (m, x, y) => `M${x} ${+y - 20}`)}" fill="none" stroke="#3a2a5c" stroke-width="4" stroke-linecap="round"/></svg></div>`;
+  }
   return `<div class="mascot" aria-hidden="true"><svg viewBox="0 0 120 110" width="104" height="96">${arms}
     <ellipse cx="60" cy="104" rx="26" ry="4" fill="#141414" opacity=".15"/>
     <circle cx="60" cy="58" r="42" fill="#f59a1c" stroke="#141414" stroke-width="4"/>
     <path d="M36 34q10-11 24-12" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".75"/>
     ${eyes}<path d="${mouth}" fill="none" stroke="#141414" stroke-width="4" stroke-linecap="round"/></svg></div>`;
 }
+
+// The equipment question (2.8): every kind of gear in the exercise catalog, plus a "Full gym"
+// shortcut that picks them all. The picker's "What I have" filter and the starter library use the answer.
+const GEAR_OPTIONS = GEAR.map(k => [k, EQUIPMENT.find(e => e[0] === k)?.[1] || EQUIP.find(e => e[0] === k)[1]]);
+const withGear = list => list.map(([title, qs]) => [title, qs.map(q => q.id === 'equipment' ? { ...q, options: GEAR_OPTIONS } : q)]);
+const fullGym = d => GEAR.every(k => (d.about.equipment || []).includes(k));
 
 export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081'];
 
@@ -47,7 +68,7 @@ export function onboard({ cancellable = false } = {}) {
     const h = m => round(m / 60, 2);
 
     // One coach question per screen, about 3 minutes in all.
-    const screens = () => setupScreens(d.kind ? d : { kind: 'engine' });
+    const screens = () => withGear(setupScreens(d.kind ? d : { kind: 'engine' }));
     const extra = () => d.pick === 'custom' ? 2 : 0; // Custom adds "What do you do?" and "How do you train?"
     const firstQ = () => 3 + extra();
     const qAt = i => d.kind && i >= firstQ() && i < firstQ() + screens().length ? screens()[i - firstQ()][1] : null;
@@ -105,6 +126,7 @@ export function onboard({ cancellable = false } = {}) {
 
     function draw() {
       $('#ob').innerHTML = capsule(step, steps.length) + steps[step]();
+      $('.q[data-qid="equipment"] .pills')?.insertAdjacentHTML('afterbegin', `<button data-fullgym aria-pressed="${fullGym(d)}">Full gym</button>`);
       el.classList.add('capsule-setup');
       el.style.setProperty('--step', STEP_COLORS[step % STEP_COLORS.length]);
       const st = step - (step >= 1 ? extra() : 0); // the step counting from the name screen
@@ -119,6 +141,7 @@ export function onboard({ cancellable = false } = {}) {
     }
 
     el.addEventListener('input', e => {
+      el.querySelectorAll('.msg').forEach(m => { m.textContent = ''; }); // an old error goes once the answer is being fixed
       if (e.target.id === 'nm') { d.name = e.target.value; $('#next').dataset.ready = d.name.trim().length > 0; $('#obm').textContent = ''; }
       if (e.target.id === 'pt') d.protein = e.target.value.replace(/\D/g, '');
     });
@@ -132,6 +155,7 @@ export function onboard({ cancellable = false } = {}) {
       const b = e.target.closest('button'); if (!b) return;
       if (b.id === 'cancel') { close(); resolve(null); return; }
       const qs = qAt(step);
+      if (b.dataset.fullgym !== undefined) { d.about.equipment = fullGym(d) ? [] : [...GEAR]; draw(); return; }
       if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }
       if (b.dataset.avatar) { pickAvatar(d, b.dataset.avatar); draw(); return; }
       if (b.dataset.kind) {
@@ -161,6 +185,8 @@ export function onboard({ cancellable = false } = {}) {
         if (b.dataset.ready !== 'true') { $('#obm').textContent = step === 0 || (extra() && step <= 2) ? 'Pick one to continue.' : 'Enter a name to continue.'; return; }
         if (qs && !screenRead(qs, d, el)) return;
         if (step < steps.length - 1) { step++; draw(); $('#ob').scrollTop = 0; return; }
+        const most = d.proteinPer === 'meal' ? 150 : 500;
+        if (d.kind === 'engine' && d.protein && !(+d.protein >= 10 && +d.protein <= most)) { $('#obm').textContent = `Protein target: enter 10 to ${most} grams, or leave it blank.`; return; }
         const p = newProfile(d.kind, d.name.trim(), d.accent);
         for (const [k, v] of Object.entries(d.modules)) p.modules[k] = v;
         Object.assign(p, { avatar: d.avatar, units: d.units, tz: d.tz, about: d.about, coach: d.coach });

@@ -37,7 +37,7 @@ export function fuelRanges(p, minutes) {
 
 const why = (k, m) => `<button class="why" data-why="${k}" data-arg="${+m || 0}">Why?</button>`;
 
-export function fuelCard(p, minutes, { title = 'Fuel today' } = {}) {
+export function fuelCard(p, minutes, { title = 'Fuel today', planned = 0 } = {}) {
   const r = fuelRanges(p, minutes);
   if (!r) return `<section class="card"><p class="lbl">${esc(title)}</p>
     <p class="sub">Add your weight and Goku sizes protein and carbohydrate ranges for you.</p>
@@ -54,7 +54,7 @@ export function fuelCard(p, minutes, { title = 'Fuel today' } = {}) {
     <p class="sub" style="text-align:right">${esc(r.tier)}</p>
     ${ideas.length ? `<p class="sub" style="margin-top:8px">Protein ideas: ${ideas.map(esc).join(' · ')}</p>` : ''}
     ${sources([`1.4–2.0 g per kg a day; about 0.25 g per kg per meal. ${esc(SOURCES.issn)}`, `3–12 g per kg a day by training load. ${esc(SOURCES.acsm)}`], { numbered: true })}
-    ${minutes ? `<p class="note">Counting ${minutes} minutes of training today.</p>` : ''}
+    ${minutes ? `<p class="note">Counting ${minutes} minutes of training today${planned ? `, including your planned ${planned}-minute circuit` : ''}.</p>` : ''}
     <p class="note">${isMinor(p) ? 'These ranges come from studies of adults. For athletes under 18, a pediatrician or sports dietitian should confirm them.'
       : 'General ranges, not a prescription. A sports dietitian can fine-tune them.'}</p></section>`;
 }

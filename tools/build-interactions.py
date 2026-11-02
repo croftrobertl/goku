@@ -10,8 +10,10 @@ names, so "lisinopril" finds a paragraph about ACE inhibitors).
 2.5: the text shown is from the CONSUMER fact sheets ("Does X interact with medications or other dietary
 supplements?"), in tools/src/ods-consumer.json, checked the same way. The health professional text
 is used only where NIH has no consumer section (black cohosh, valerian, ashwagandha).
+2.8: St. John's wort from the NIH NCCIH page (tools/src/nccih.json), public domain, checked the same way.
 Usage: python3 -I tools/build-interactions.py (from the goku folder)."""
 import json, re, hashlib
+NCCIH_SUM = 'f8bc00f99585e6866c83726015a36e986982bf2f5a7c0dcd4acef3e5eeb563c0'
 
 raw_text = open('tools/src/ods-interactions.json', encoding='utf-8').read()
 raw = json.loads(raw_text)
@@ -206,6 +208,31 @@ out['Valerian'] = {'d': raw['Valerian']['d'], 'slug': 'Valerian', 'src': 'Health
   'x': [item('Valerian', 'Sedatives, benzodiazepines and barbiturates', raw['Valerian']['i'][:5], own=True)]}
 d, slug, head, h, text = EXTRA['Ashwagandha']
 out['Ashwagandha'] = {'d': d, 'slug': slug, 'src': 'HealthProfessional', 'i': [], 'x': [item('Ashwagandha', head, [text], own=True)]}
+# 2.8: St. John's wort from NIH's National Center for Complementary and Integrative Health, which
+# says the page "is not copyrighted and is in the public domain". tools/src/nccih.json is the
+# safety text exactly as published (checked like the ODS text). Each bullet is matched on the
+# medicines it names, their US brand names, and for the serotonin bullet, the drugs that affect serotonin.
+nccih_text = json.dumps(json.load(open('tools/src/nccih.json', encoding='utf-8')), ensure_ascii=False, separators=(',', ':'))
+assert hashlib.sha256(nccih_text.encode()).hexdigest() == NCCIH_SUM, 'NCCIH text changed'
+sjw = json.loads(nccih_text)['StJohnsWort']; ps = sjw['p']
+SJW_TAGS = [
+  ['amitriptyline', 'elavil', 'bupropion', 'wellbutrin', 'zyban'],
+  ['birth control', 'birth control pill', 'oral contraceptive', 'contraceptive', 'the pill', 'ethinyl estradiol', 'levonorgestrel', 'norethindrone', 'norgestimate', 'drospirenone', 'yaz', 'yasmin', 'loestrin', 'sprintec', 'junel', 'lo loestrin'],
+  ['cyclosporine', 'neoral', 'sandimmune', 'gengraf'],
+  ['phenytoin', 'dilantin', 'carbamazepine', 'tegretol'],
+  ['digoxin', 'lanoxin', 'ivabradine', 'corlanor'],
+  ['indinavir', 'crixivan', 'nevirapine', 'viramune'],
+  ['irinotecan', 'camptosar', 'imatinib', 'gleevec', 'docetaxel', 'taxotere'],
+  cls('coumarin') + ['blood thinner', 'anticoagulant'],
+  ['simvastatin', 'zocor'],
+  ['antidepressant', 'ssri', 'snri', 'sertraline', 'zoloft', 'fluoxetine', 'prozac', 'citalopram', 'celexa', 'escitalopram', 'lexapro', 'paroxetine', 'paxil',
+   'fluvoxamine', 'luvox', 'venlafaxine', 'effexor', 'duloxetine', 'cymbalta', 'desvenlafaxine', 'pristiq', 'vilazodone', 'viibryd', 'vortioxetine', 'trintellix',
+   'trazodone', 'mirtazapine', 'remeron', 'amitriptyline', 'nortriptyline', 'phenelzine', 'nardil', 'tranylcypromine', 'parnate', 'selegiline', 'emsam',
+   'sumatriptan', 'imitrex', 'rizatriptan', 'maxalt', 'zolmitriptan', 'tramadol', 'ultram', 'dextromethorphan', 'linezolid'],
+]
+assert len(ps) == 12 and ps[2].startswith('• Some antidepressants') and ps[11].startswith('• In addition')
+out['StJohnsWort'] = {'d': sjw['d'], 'slug': 'st-johns-wort', 'src': 'NCCIH', 'url': sjw['url'], 'i': ps[:2],
+  'x': [{'t': [x], 'm': sorted(set(tags))} for x, tags in zip(ps[2:], SJW_TAGS)]}
 json.dump(out, open('data/interactions.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 for k, v in out.items():
     for it in v['x']: print(f"{k:16} {(it.get('h') or it['t'][0])[:40]:40} {('SUP ' + str(it['s']) + ' ') if it.get('s') else ''}{', '.join(it['m'])[:120]}")

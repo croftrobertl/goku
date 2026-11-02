@@ -293,3 +293,35 @@ good & gather
 trader joe's
 market pantry
 signature select
+# 2.8: snacks people searched for and didn't find
+lotus
+lotus biscoff
+biscoff
+uncrustables
+jack link's
+takis
+barcel
+krispy kreme
+beyond meat
+impossible
+ghost
+alani nu
+c4
+cellucor
+bang
+prime
+# 2.8: sports fuel (gels, chews, waffles, drink mixes)
+honey stinger
+gu
+gu energy labs
+skratch labs
+tailwind
+spring energy
+huma
+untapped
+science in sport
+precision fuel
+precision fuel & hydration
+maurten
+lmnt
+clif bloks

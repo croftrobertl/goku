@@ -36,7 +36,7 @@ export function showMove(id, { onAdd = null, added = false, onEdit = null } = {}
       ${muscleLine(m.id)}
       <ol class="steps">${m.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
       <p class="tipline"><b>Tip:</b> ${esc(m.tip)}</p>
-      ${m.mode === 'hold' ? '<p class="note">Held for time, not counted in reps.</p>' : ''}
+      ${m.mode === 'hold' ? `<p class="note">${['cardio', 'power'].includes(m.group) ? 'Done for time' : 'Held for time'}, not counted in reps.</p>` : ''}
       <p class="note">${esc(LEVELS[m.level])} · ${esc(equipName(m.equip))}. Start light and slow. Sore muscles are normal; sharp pain means stop.</p>
       ${sources([...(art ? ['Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, CC BY-SA 4.0.'] : []),
         'Muscle map: OpenStax, T. Kebert and umimeto.org, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, recolored.'])}
@@ -80,8 +80,9 @@ export function pickMove({ onCustom, have = [] } = {}) {
   const draw = () => {
     const list = searchMoves({ q: f.q, group: f.group, equip: f.equip === 'have' ? '' : f.equip, have: f.equip === 'have' ? owned : null });
     if (!f.q.trim()) list.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name)); // typed searches keep best-match order
-    el.querySelector('#sugg').innerHTML = suggestMoves(f.q).map(s => `<button data-sugg="${esc(s)}">${esc(s)}</button>`).join('');
-    el.querySelector('#count').textContent = (list.fixed ? `Showing results for “${list.fixed}” · ` : '') + `${list.length} of ${MOVES.length} exercises`;
+    el.querySelector('#sugg').innerHTML = [...(list.suggest ? [[`Did you mean ${list.suggest}?`, list.suggest]] : []), ...suggestMoves(f.q).map(s => [s, s])]
+      .map(([label, s]) => `<button data-sugg="${esc(s)}">${esc(label)}</button>`).join('');
+    el.querySelector('#count').textContent = `${list.length} of ${MOVES.length} exercises`;
     el.querySelector('#res').innerHTML = !list.length ? '<div class="empty"><p>Nothing matches. Try another word or set Equipment to Any.</p></div>'
       : f.q || f.group ? `<ul class="list">${list.map(row).join('')}</ul>`
       : GROUPS.map(([k, n]) => { const g = list.filter(m => m.group === k); return g.length ? `<details class="card fold grp"><summary class="lbl">${esc(n)} · ${g.length}</summary><ul class="list">${g.map(row).join('')}</ul></details>` : ''; }).join('');

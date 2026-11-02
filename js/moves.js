@@ -1,4 +1,4 @@
-import { vocabulary, expand, complete } from './fuzzy.js';
+import { vocabulary, exactFirst, complete } from './fuzzy.js';
 // The exercise catalog (1.8): original drawings (js/figure.js) and original instructions
 // written for someone new to training. Each entry:
 // [id, name, group, equipment, level 1–3, muscles, start pose, finish pose, steps, tip, drop chain, mode]
@@ -7,7 +7,10 @@ import { vocabulary, expand, complete } from './fuzzy.js';
 export const GROUPS = [['push', 'Push (chest, shoulders, triceps)'], ['pull', 'Pull (back, biceps)'], ['legs', 'Legs and glutes'],
   ['core', 'Core'], ['power', 'Jumps and power'], ['cardio', 'Cardio'], ['mobility', 'Mobility and stretching']];
 export const EQUIP = [['bw', 'No equipment'], ['db', 'Dumbbells'], ['kb', 'Kettlebell'], ['band', 'Resistance band'], ['bb', 'Barbell'],
-  ['bench', 'Bench, chair or step'], ['bar', 'Pull-up bar'], ['trx', 'Suspension trainer (TRX)'], ['ball', 'Medicine ball'], ['wall', 'Wall']];
+  ['bench', 'Bench, chair or step'], ['bar', 'Pull-up bar'], ['trx', 'Suspension trainer (TRX)'], ['ball', 'Medicine ball'], ['wall', 'Wall'],
+  ['machine', 'Weight machines'], ['cable', 'Cable machine'], ['cardio', 'Cardio machines'], ['sled', 'Sled or battle ropes'], ['rope', 'Jump rope'], ['wheel', 'Ab wheel']];
+// What setup asks about (2.8): everything except what every home has. "Full gym" picks all of these.
+export const GEAR = ['db', 'kb', 'bb', 'bench', 'band', 'bar', 'trx', 'ball', 'machine', 'cable', 'cardio', 'sled', 'rope', 'wheel'];
 export const LEVELS = ['', 'Beginner', 'Intermediate', 'Advanced'];
 
 const M = (id, name, group, equip, level, muscles, start, end, steps, tip, chain, mode = 'reps') =>
@@ -391,25 +394,228 @@ export const MOVES = [
   M('bridge-pose', 'Bridge (back bend)', 'mobility', 'bw', 3, 'Shoulders, spine, hip flexors', ['supineKnees', 'behindHead', ['mat']], ['wheel', 'wheelArms', ['mat']],
     ['Lie on your back with your feet flat and hands by your ears, fingers toward your shoulders.', 'Push up through your hands and feet to lift into an arch.', 'Lower carefully, chin tucked.'],
     'Warm up first, never rest your weight on your head or neck, and stop if your back hurts.', ['full bridge', 'glute bridge'], 'hold'),
+
+  // ---------- Gym: machines and cables (2.8) ----------
+  M('machine-chest-press', 'Machine chest press', 'push', 'machine', 1, 'Chest, shoulders, triceps', ['seatTall', 'chest', ['stack', 'grip']], ['seatTall', 'front', ['stack', 'grip']],
+    ['Set the seat so the handles line up with the middle of your chest, then sit with your back against the pad.', 'Hold the handles and press them forward until your arms are almost straight.', 'Let them come back slowly until you feel a light stretch across your chest.'],
+    'Keep your shoulder blades on the pad the whole time.', ['heavy', 'medium', 'light']),
+  M('machine-shoulder-press', 'Machine shoulder press', 'push', 'machine', 1, 'Shoulders, triceps', ['seatTall', 'rack', ['stack', 'grip']], ['seatTall', 'pressTop', ['stack', 'grip']],
+    ['Set the seat so the handles start just above your shoulders, and sit with your back flat on the pad.', 'Press the handles up until your arms are straight overhead.', 'Lower them slowly back to shoulder height.'],
+    'Keep your lower back touching the pad; don\'t arch to finish the rep.', ['heavy', 'medium', 'light']),
+  M('pec-deck', 'Pec deck (machine fly)', 'push', 'machine', 1, 'Chest, front shoulders', ['seatTall', 'deckOpen', ['stack', 'grip']], ['seatTall', 'deckClosed', ['stack', 'grip']],
+    ['Sit tall with your back on the pad and hold the handles out to your sides with a slight bend in your elbows.', 'Squeeze your chest to bring the handles together in front of you.', 'Open your arms slowly until they are in line with your body again.'],
+    'Don\'t let your hands drift behind your shoulders at the start.', ['heavy', 'medium', 'light']),
+  M('cable-crossover', 'Cable crossover (cable fly)', 'push', 'cable', 2, 'Chest, front shoulders', ['split', 'cxOpen', ['cableX']], ['split', 'cxClose', ['cableX']],
+    ['Set both pulleys high, hold a handle in each hand and step forward between the towers with one foot in front.', 'With a soft bend in your elbows, sweep your hands down and together in front of your hips.', 'Let your arms open back up slowly, under control.'],
+    'Think of hugging a big tree; your elbows stay slightly bent.', ['heavy', 'medium', 'light']),
+  M('tricep-pushdown', 'Triceps pushdown', 'push', 'cable', 1, 'Triceps', ['stand', 'pushdownTop', ['cableHi']], ['stand', 'pushdownLow', ['cableHi']],
+    ['Face a high pulley with a bar or rope attached and hold it at chest height, elbows tucked by your sides.', 'Push the handle down until your arms are straight.', 'Let it rise back to chest height without moving your elbows.'],
+    'Only your forearms move; your elbows stay pinned to your sides.', ['heavy', 'medium', 'light']),
+  M('cable-lateral-raise', 'Cable lateral raise', 'push', 'cable', 2, 'Side shoulders', ['stand', 'side', ['cableLo']], ['stand', 'raiseSide', ['cableLo']],
+    ['Stand side-on to a low pulley and hold the handle in the hand farther from the machine.', 'With a slight bend in your elbow, lift your arm out to the side up to shoulder height.', 'Lower slowly. Finish one side, then switch.'],
+    'Use a light weight; the cable keeps tension on the whole way.', ['medium', 'light']),
+  M('ez-skull-crusher', 'Skull crusher (EZ bar)', 'push', 'bb', 2, 'Triceps', ['benchLie', 'skullLow', ['bb']], ['benchLie', 'benchUp', ['bb']],
+    ['Lie on a bench holding an EZ bar or barbell straight up over your chest, hands about shoulder-width apart.', 'Keep your upper arms still and bend your elbows to lower the bar toward your forehead.', 'Straighten your arms to lift it back up.'],
+    'Go light at first, and lower the bar slowly; it\'s close to your face.', ['heavy', 'medium', 'light']),
+  M('db-skull-crusher', 'Dumbbell skull crusher', 'push', 'db', 1, 'Triceps', ['benchLie', 'skullLow', ['db']], ['benchLie', 'benchUp', ['db']],
+    ['Lie on a bench or the floor holding dumbbells straight up, palms facing each other.', 'Keep your upper arms still and bend your elbows to lower the weights beside your head.', 'Straighten your arms to lift them back up.'],
+    'Your elbows point at the ceiling the whole time.', ['heavy', 'medium', 'light']),
+  M('incline-db-press', 'Incline dumbbell press', 'push', 'db', 2, 'Upper chest, shoulders, triceps', ['benchIncline', 'benchDown', ['db']], ['benchIncline', 'benchUp', ['db']],
+    ['Set a bench to a low incline and lie back with a dumbbell in each hand at your shoulders.', 'Press the weights up over your upper chest until your arms are straight.', 'Lower them slowly back to your shoulders.'],
+    'A low angle works the chest best; too steep turns it into a shoulder press.', ['heavy', 'medium', 'light']),
+  M('arnold-press', 'Arnold press', 'push', 'db', 2, 'Shoulders, triceps', ['stand', 'arnoldIn', ['db']], ['stand', 'pressTop', ['db']],
+    ['Hold dumbbells in front of your shoulders with your palms facing you.', 'As you press up, turn your palms to face forward so they finish facing away overhead.', 'Reverse the turn as you lower back to the start.'],
+    'Move smoothly; the turn and the press happen together.', ['heavy', 'medium', 'light']),
+  M('db-kickback', 'Triceps kickback', 'push', 'db', 1, 'Triceps', ['hinge', 'kickIn', ['db1']], ['hinge', 'kickOut', ['db1']],
+    ['Lean forward with a flat back, one hand on a bench, holding a dumbbell with your elbow up by your ribs.', 'Straighten your arm behind you until it is in line with your body.', 'Bend it back slowly. Finish one side, then switch.'],
+    'Keep your upper arm still; only the forearm moves.', ['medium', 'light']),
+  M('kb-press', 'Kettlebell overhead press', 'push', 'kb', 2, 'Shoulders, triceps, core', ['stand', 'rack', ['kb']], ['stand', 'pressTop', ['kb']],
+    ['Hold a kettlebell at your shoulder with the bell resting on the back of your forearm.', 'Squeeze your glutes and belly, then press it straight overhead.', 'Lower it back to your shoulder. Finish one side, then switch.'],
+    'Keep your wrist straight, not bent back.', ['heavy', 'light']),
+  M('handstand-pushup', 'Handstand push-up', 'push', 'wall', 3, 'Shoulders, triceps, core', ['handstand', 'hsArms', ['wallFeet']], ['handstand', 'hsBent', ['wallFeet']],
+    ['Get into a wall handstand with your hands a little wider than your shoulders.', 'Bend your elbows to lower the top of your head toward the floor, slowly.', 'Push back up to straight arms.'],
+    'Master the wall handstand hold and pike push-ups first, and put a folded mat under your head.', ['full', 'partial range', 'pike push-up']),
+
+  M('lat-pulldown', 'Lat pulldown', 'pull', 'cable', 1, 'Lats, upper back, biceps', ['stoolSit', 'hangBar', ['latBar', 'kneePad']], ['stoolSit', 'pulldownLow', ['latBar', 'kneePad']],
+    ['Sit with your thighs snug under the pad and hold the bar a little wider than your shoulders.', 'Lean back slightly and pull the bar down to your upper chest, driving your elbows down.', 'Let the bar rise slowly until your arms are straight.'],
+    'Pull with your elbows, not your hands, and don\'t swing your body.', ['heavy', 'medium', 'light']),
+  M('seated-cable-row', 'Seated cable row', 'pull', 'cable', 1, 'Upper back, lats, biceps', ['sitLong', 'front', ['cableMid']], ['sitLong', 'rowSitTop', ['cableMid']],
+    ['Sit with your feet on the foot plate, knees soft, holding the handle with straight arms.', 'Sit tall and pull the handle to your belly, squeezing your shoulder blades together.', 'Let your arms straighten slowly without rounding your back.'],
+    'Stay upright; your body shouldn\'t rock back and forth.', ['heavy', 'medium', 'light']),
+  M('cable-face-pull', 'Cable face pull', 'pull', 'cable', 2, 'Rear shoulders, upper back', ['stand', 'front', ['cableMid']], ['stand', 'facePull', ['cableMid']],
+    ['Set a rope on a pulley at face height and hold the ends with your palms facing down.', 'Pull the rope toward your forehead, elbows high and wide, hands finishing beside your ears.', 'Return slowly.'],
+    'Use a light weight and pause at your face.', ['heavy', 'medium', 'light']),
+  M('cable-curl', 'Cable curl', 'pull', 'cable', 1, 'Biceps', ['stand', 'down', ['cableLo']], ['stand', 'curlTop', ['cableLo']],
+    ['Face a low pulley and hold a bar or handle with your palms facing up.', 'Keep your elbows by your sides and curl the handle up to your shoulders.', 'Lower slowly.'],
+    'Step back a little so the cable pulls from in front of you.', ['heavy', 'medium', 'light']),
+  M('straight-arm-pulldown', 'Straight-arm pulldown', 'pull', 'cable', 2, 'Lats, core', ['leanHinge', 'sapUp', ['cableHi']], ['leanHinge', 'sapDown', ['cableHi']],
+    ['Face a high pulley holding a bar or rope with straight arms in front of you, leaning forward a little.', 'Keeping your arms straight, sweep the handle down to your thighs.', 'Let it rise slowly back to eye level.'],
+    'A small bend in the elbows is fine; keep it the same the whole rep.', ['heavy', 'medium', 'light']),
+  M('machine-row', 'Chest-supported row', 'pull', 'machine', 1, 'Upper back, lats, biceps', ['stoolSit', 'front', ['stack', 'chestPad', 'grip']], ['stoolSit', 'rowSitTop', ['stack', 'chestPad', 'grip']],
+    ['Sit on the row machine with your chest against the pad and hold the handles with straight arms.', 'Pull the handles toward you, squeezing your shoulder blades together.', 'Straighten your arms slowly.'],
+    'Keep your chest on the pad so your back does the work, not your momentum.', ['heavy', 'medium', 'light']),
+  M('reverse-pec-deck', 'Reverse pec deck', 'pull', 'machine', 1, 'Rear shoulders, upper back', ['stoolSit', 'front', ['stack', 'chestPad', 'grip']], ['stoolSit', 'raiseSide', ['stack', 'chestPad', 'grip']],
+    ['Sit facing the pec deck pad and hold the handles in front of you at shoulder height.', 'With a slight bend in your elbows, open your arms out to the sides.', 'Bring them back together slowly.'],
+    'Light and controlled; these are small muscles.', ['medium', 'light']),
+  M('assisted-pullup', 'Assisted pull-up machine', 'pull', 'machine', 1, 'Lats, biceps, upper back', ['kneelTall', 'hangBar', ['assist']], ['kneelTall', 'pullTop', ['assist']],
+    ['Pick the assist weight, kneel on the pad and hold the handles above you.', 'Pull yourself up until your chin is over your hands.', 'Lower slowly to straight arms.'],
+    'More assist weight makes it easier. Use a little less each week.', ['light assist', 'medium assist', 'heavy assist']),
+  M('preacher-curl', 'Preacher curl', 'pull', 'machine', 2, 'Biceps', ['stoolLean', 'preacherLow', ['preacher', 'bb']], ['stoolLean', 'preacherTop', ['preacher', 'bb']],
+    ['Sit at a preacher bench with the backs of your arms flat on the pad, holding an EZ bar or the machine handles.', 'Curl the weight up toward your shoulders.', 'Lower slowly until your arms are almost straight.'],
+    'Don\'t drop fast at the bottom; that\'s where elbows get strained.', ['heavy', 'medium', 'light']),
+  M('db-pullover', 'Dumbbell pullover', 'pull', 'db', 2, 'Lats, chest', ['benchLie', 'pullover', ['db1']], ['benchLie', 'benchUp', ['db1']],
+    ['Lie on a bench holding one dumbbell with both hands straight over your chest.', 'With a slight bend in your elbows, lower the weight back behind your head until you feel a stretch.', 'Pull it back over your chest.'],
+    'Only go as far back as your shoulders feel comfortable.', ['heavy', 'medium', 'light']),
+  M('muscle-up', 'Muscle-up', 'pull', 'bar', 3, 'Lats, chest, triceps, core', ['hang', 'hangBar', ['bar']], ['hang', 'down', ['barTop']],
+    ['Hang from a bar with a firm grip.', 'Pull hard and fast toward your hips, then lean your chest over the bar.', 'Press down until your arms are straight above the bar, then lower slowly.'],
+    'You need strong pull-ups and dips first. Learn the transition with a band or a low bar.', ['strict', 'band-assisted', 'jumping']),
+
+  M('leg-press', 'Leg press', 'legs', 'machine', 1, 'Quads, glutes, hamstrings', ['legPressIn', 'hips', ['footplate']], ['legPressOut', 'hips', ['footplate']],
+    ['Sit with your back flat on the pad and your feet shoulder-width apart on the plate.', 'Release the safety handles and lower the plate until your knees are bent about 90°.', 'Push the plate away until your legs are almost straight.'],
+    'Never lock your knees at the top, and keep your lower back on the pad.', ['heavy', 'medium', 'light']),
+  M('hack-squat', 'Hack squat', 'legs', 'machine', 2, 'Quads, glutes', ['hackTop', 'rack', ['hackPad', 'yoke']], ['hackLow', 'rack', ['hackPad', 'yoke']],
+    ['Stand on the plate with your back against the pad and your shoulders under the pads.', 'Release the safety and bend your knees to lower until your thighs are about level with the plate.', 'Drive through your whole foot to stand back up.'],
+    'Keep your heels down and your knees pointing the same way as your toes.', ['heavy', 'medium', 'light']),
+  M('smith-squat', 'Smith machine squat', 'legs', 'machine', 2, 'Quads, glutes', ['stand', 'behindHead', ['smith', 'bb']], ['squat', 'behindHead', ['smith', 'bb']],
+    ['Set the bar on your upper back, feet slightly in front of you, and twist the bar to unhook it.', 'Squat down until your thighs are about level with the floor.', 'Stand back up, then twist the bar to hook it when you finish.'],
+    'Set the safety stops just below your lowest point.', ['heavy', 'medium', 'light']),
+  M('leg-extension', 'Leg extension', 'legs', 'machine', 1, 'Quads', ['seatTall', 'down', ['stack', 'roller']], ['seatLegOut', 'down', ['stack', 'roller']],
+    ['Sit with your back on the pad and the roller resting on the front of your lower shins.', 'Straighten your knees to lift the roller until your legs are straight.', 'Lower slowly.'],
+    'Line your knees up with the machine\'s pivot point.', ['heavy', 'medium', 'light']),
+  M('seated-leg-curl', 'Seated leg curl', 'legs', 'machine', 1, 'Hamstrings', ['seatLegOut', 'down', ['stack', 'roller']], ['seatCurl', 'down', ['stack', 'roller']],
+    ['Sit with your legs straight, the roller under your lower calves and the thigh pad snug.', 'Bend your knees to pull the roller down and under you.', 'Let your legs straighten slowly.'],
+    'Control the way back up; don\'t let the weight yank your legs.', ['heavy', 'medium', 'light']),
+  M('lying-leg-curl', 'Lying leg curl', 'legs', 'machine', 1, 'Hamstrings', ['proneLong', 'floor', ['roller']], ['proneCurl', 'floor', ['roller']],
+    ['Lie face down with your knees just off the end of the pad and the roller above your heels.', 'Curl your heels up toward your glutes.', 'Lower slowly until your legs are straight.'],
+    'Keep your hips pressed into the pad.', ['heavy', 'medium', 'light']),
+  M('hip-abduction', 'Hip abduction machine', 'legs', 'machine', 1, 'Outer hips, glutes', ['seatTall', 'down', ['stack', 'kneeRoll']], ['seatSpread', 'down', ['stack', 'kneeRoll']],
+    ['Sit with your back on the pad and the pads on the outside of your knees.', 'Push your knees out to the sides as far as is comfortable.', 'Bring them back together slowly.'],
+    'Pause for a second with your knees wide.', ['heavy', 'medium', 'light']),
+  M('hip-adduction', 'Hip adduction machine', 'legs', 'machine', 1, 'Inner thighs', ['seatSpread', 'down', ['stack', 'kneeRoll']], ['seatTall', 'down', ['stack', 'kneeRoll']],
+    ['Sit with your back on the pad and the pads on the inside of your knees, legs apart.', 'Squeeze your knees together.', 'Let them open slowly.'],
+    'Start with a gentle opening; the stretch at the start grows over time.', ['heavy', 'medium', 'light']),
+  M('machine-calf-raise', 'Calf raise machine', 'legs', 'machine', 1, 'Calves', ['stand', 'hips', ['stack', 'yoke']], ['toes', 'hips', ['stack', 'yoke']],
+    ['Stand with your shoulders under the pads and the balls of your feet on the edge of the step.', 'Rise up onto your toes as high as you can.', 'Lower slowly until you feel a stretch in your calves.'],
+    'Pause at the top and the bottom; don\'t bounce.', ['heavy', 'medium', 'light']),
+  M('back-extension', 'Back extension', 'legs', 'machine', 2, 'Lower back, glutes, hamstrings', ['hyperDown', 'hyperArms', ['hyper']], ['hyperUp', 'hyperArmsUp', ['hyper']],
+    ['Set the pad so it sits just below your hip bones and hook your heels under the rollers.', 'Cross your arms over your chest and lower your upper body toward the floor.', 'Lift back up until your body is in a straight line, no higher.'],
+    'Squeeze your glutes at the top; don\'t arch past straight.', ['holding a plate', 'arms crossed', 'hands by sides']),
+  M('cable-pull-through', 'Cable pull-through', 'legs', 'cable', 2, 'Glutes, hamstrings', ['hinge', 'throughBack', ['cableLoBack']], ['stand', 'throughFront', ['cableLoBack']],
+    ['Stand facing away from a low pulley with a rope between your legs, holding the ends.', 'Push your hips back with soft knees, letting your hands go back between your legs.', 'Snap your hips forward to stand tall, squeezing your glutes.'],
+    'It\'s a hip hinge, not a squat; your arms just hold on.', ['heavy', 'medium', 'light']),
+  M('bb-front-squat', 'Barbell front squat', 'legs', 'bb', 3, 'Quads, glutes, core', ['stand', 'rack', ['bb']], ['squat', 'rack', ['bb']],
+    ['Rest the bar across the front of your shoulders, elbows high, in a rack, then step back.', 'Squat down with your chest tall until your thighs are about level with the floor.', 'Drive up to standing.'],
+    'Keep your elbows up so the bar doesn\'t roll forward. Use safety bars.', ['heavy', 'medium', 'light']),
+  M('bb-hip-thrust', 'Barbell hip thrust', 'legs', 'bb', 2, 'Glutes, hamstrings', ['thrustLow', 'thrustHold', ['bb']], ['thrustTop', 'thrustHold', ['bb']],
+    ['Sit with your upper back against a bench and roll a padded barbell over your hips.', 'Drive through your heels to lift your hips until your body is flat like a table.', 'Lower your hips back down.'],
+    'Use a bar pad or a folded towel to protect your hips.', ['heavy', 'medium', 'light']),
+  M('bb-lunge', 'Barbell lunge', 'legs', 'bb', 3, 'Quads, glutes, balance', ['stand', 'behindHead', ['bb']], ['lunge', 'behindHead', ['bb']],
+    ['Set a barbell across your upper back in a rack and step back.', 'Step one foot back and lower your back knee toward the floor.', 'Push through the front foot to stand, then switch legs.'],
+    'Learn it with dumbbells first; balance is the hard part.', ['heavy', 'medium', 'light']),
+  M('bb-rdl', 'Barbell Romanian deadlift', 'legs', 'bb', 2, 'Hamstrings, glutes, back', ['stand', 'down', ['bb']], ['hinge', 'down', ['bb']],
+    ['Stand holding a barbell in front of your thighs, hands just outside your legs.', 'With soft knees, push your hips back and slide the bar down your legs.', 'Stop when you feel a stretch, then stand up by squeezing your glutes.'],
+    'Keep the bar touching your legs the whole way.', ['heavy', 'medium', 'light']),
+  M('pistol-squat', 'Pistol squat', 'legs', 'bw', 3, 'Quads, glutes, balance', ['pistolTop', 'front'], ['pistolLow', 'front'],
+    ['Stand on one leg with the other leg held out in front of you.', 'Sit down slowly on the standing leg, keeping the free leg off the floor.', 'Push back up to standing. Finish one side, then switch.'],
+    'Hold a doorframe or squat to a box to learn it.', ['full', 'to a box', 'holding on']),
+
+  M('ab-wheel', 'Ab wheel rollout', 'core', 'wheel', 2, 'Abs, core, shoulders', ['abWheelIn', 'floor', ['mat', 'wheel']], ['abWheelOut', 'forward', ['mat', 'wheel']],
+    ['Kneel on a mat holding the ab wheel under your shoulders.', 'Brace your belly and roll the wheel forward, keeping your back flat.', 'Go only as far as you can hold that shape, then pull back to the start.'],
+    'Roll toward a wall to stop yourself at a safe distance.', ['full rollout', 'half rollout', 'to a wall']),
+  M('cable-crunch', 'Cable crunch', 'core', 'cable', 2, 'Abs', ['cableKneel', 'crunchHold', ['cableHi', 'mat']], ['cableCrunch', 'crunchHoldDown', ['cableHi', 'mat']],
+    ['Kneel facing a high pulley and hold a rope beside your head.', 'Curl your chest down toward your knees using your belly.', 'Rise back up slowly.'],
+    'Your hips stay still; curl your spine, don\'t just bend at the hips.', ['heavy', 'medium', 'light']),
+  M('cable-woodchop', 'Cable woodchop', 'core', 'cable', 2, 'Obliques, core, shoulders', ['standWide', 'chopHigh', ['cableHiBack']], ['quarter', 'chopLow', ['cableHiBack']],
+    ['Stand side-on to a high pulley with your feet wide, holding the handle with both hands.', 'Pull it down and across your body toward the opposite knee, turning your chest and pivoting your back foot.', 'Return slowly. Finish one side, then switch.'],
+    'Turn from your middle and keep your arms long.', ['heavy', 'medium', 'light']),
+  M('suitcase-carry', 'Suitcase carry', 'core', 'db', 1, 'Obliques, grip, core', ['carry', 'carry', ['db1']], ['carry', 'carry', ['db1']],
+    ['Pick up one heavy dumbbell or kettlebell in one hand.', 'Stand tall and walk with short, steady steps without leaning toward the weight.', 'Set it down carefully, switch hands and walk back.'],
+    'Pretend you\'re carrying a full suitcase and don\'t want anyone to notice.', ['heavy', 'medium']),
+  M('renegade-row', 'Renegade row', 'core', 'db', 2, 'Core, upper back, shoulders', ['plankHigh', 'floor', ['db']], ['plankHigh', 'renegade', ['db']],
+    ['Start in a high plank with your hands on two dumbbells, feet a little wider than your hips.', 'Row one dumbbell up to your ribs without letting your hips turn.', 'Set it down and row the other side.'],
+    'Widen your feet to make it easier to stay still.', ['heavy', 'light', 'no weight']),
+
+  M('kb-clean', 'Kettlebell clean', 'power', 'kb', 2, 'Glutes, hamstrings, grip, shoulders', ['hinge', 'swingBack', ['kb']], ['stand', 'rack', ['kb']],
+    ['Hinge with a kettlebell between your feet and hike it back between your legs.', 'Snap your hips forward and keep the bell close as you pull it up.', 'Let it roll softly onto the back of your forearm at your shoulder. Finish one side, then switch.'],
+    'Keep the bell close so it doesn\'t flip and bang your wrist.', ['heavy', 'light']),
+  M('kb-snatch', 'Kettlebell snatch', 'power', 'kb', 3, 'Glutes, shoulders, full body', ['hinge', 'swingBack', ['kb']], ['stand', 'pressTop', ['kb']],
+    ['Hike a kettlebell back between your legs with one hand.', 'Snap your hips forward and let the bell float up close to your body.', 'Punch your hand up so the bell lands softly overhead, then bring it back down the same way.'],
+    'Learn the swing and the clean first.', ['heavy', 'light']),
+  M('db-thruster', 'Dumbbell thruster', 'power', 'db', 2, 'Legs, shoulders, full body', ['squat', 'rack', ['db']], ['stand', 'pressTop', ['db']],
+    ['Hold dumbbells at your shoulders and squat down.', 'Drive up out of the squat and use that push to press the weights overhead in one move.', 'Lower the weights to your shoulders as you squat into the next rep.'],
+    'It should be one smooth move, not a squat and then a press.', ['heavy', 'medium', 'light']),
+  M('db-snatch', 'Dumbbell snatch', 'power', 'db', 2, 'Glutes, legs, shoulders', ['hingeBent', 'down', ['db1']], ['stand', 'snatchTop', ['db1']],
+    ['Squat down and hold one dumbbell between your feet with a flat back.', 'Stand up fast, pulling the weight up close to your body.', 'Punch it straight overhead, then lower it under control. Switch hands each set.'],
+    'Your legs and hips move the weight; your arm guides it.', ['heavy', 'medium', 'light']),
+  M('sled-push', 'Sled push', 'power', 'sled', 2, 'Legs, glutes, cardio', ['sledA', 'sledArms', ['sled']], ['sledB', 'sledArms', ['sled']],
+    ['Hold the sled\'s poles with your arms nearly straight and lean in at a low angle.', 'Drive your legs and push the sled forward with short, powerful steps.', 'Keep pushing for the time you chose, then rest.'],
+    'Push through the balls of your feet and keep your back flat.', ['heavy', 'medium', 'empty sled'], 'hold'),
+
+  M('kb-halo', 'Kettlebell halo', 'mobility', 'kb', 1, 'Shoulders, upper back', ['stand', 'goblet', ['kb']], ['stand', 'behindHead', ['kb']],
+    ['Hold a light kettlebell upside down by the horns at your chest.', 'Circle it slowly around your head, close to your neck.', 'Change direction each time around.'],
+    'Keep your belly tight so your back doesn\'t arch.', ['medium', 'light']),
+
+  // ---------- Cardio machines and gear (2.8): done for time ----------
+  M('treadmill-run', 'Treadmill run', 'cardio', 'cardio', 1, 'Legs, cardio', ['runA', 'runArms', ['treadmill']], ['runB', 'runArmsB', ['treadmill']],
+    ['Start the belt slowly and walk for a minute to warm up.', 'Raise the speed to a run you can hold, landing softly under your hips.', 'Slow back to a walk for the last minute before stopping.'],
+    'Clip the safety key to your clothes, and don\'t hold the rails while running.', ['fast', 'steady', 'easy'], 'hold'),
+  M('treadmill-walk', 'Treadmill walk', 'cardio', 'cardio', 1, 'Legs, cardio', ['walkA', 'walkArms', ['treadmill']], ['walkB', 'walkArmsB', ['treadmill']],
+    ['Step on, start the belt slowly and walk tall.', 'Raise the speed or the incline until you\'re breathing harder but can still talk.', 'Slow down for the last minute before stopping.'],
+    'An uphill walk is a great low-impact workout.', ['steep incline', 'small incline', 'flat'], 'hold'),
+  M('rowing-machine', 'Rowing machine', 'cardio', 'cardio', 1, 'Legs, back, arms, cardio', ['rowCatch', 'rowReach', ['rower']], ['rowFinish', 'rowPull', ['rower']],
+    ['Strap your feet in, sit tall and hold the handle with straight arms, knees bent.', 'Push with your legs first, then lean back slightly and pull the handle to your lower ribs.', 'Reverse it: arms out, lean forward, then bend your knees to slide back.'],
+    'Legs, body, arms on the way out; arms, body, legs on the way back.', ['hard pace', 'steady', 'easy'], 'hold'),
+  M('stationary-bike', 'Stationary bike', 'cardio', 'cardio', 1, 'Legs, cardio', ['bikeA', 'bikeArms', ['bike']], ['bikeB', 'bikeArms', ['bike']],
+    ['Set the seat so your knee is only slightly bent at the bottom of each pedal stroke.', 'Pedal at a steady pace, adding resistance until it feels like work.', 'Ease off for the last couple of minutes.'],
+    'Gentle on the knees and a good way to warm up.', ['hard', 'steady', 'easy'], 'hold'),
+  M('air-bike', 'Air bike (fan bike)', 'cardio', 'cardio', 2, 'Full body, cardio', ['bikeA', 'airArmsA', ['airBike']], ['bikeB', 'airArmsB', ['airBike']],
+    ['Set the seat like a normal bike and hold the moving handles.', 'Pedal and push and pull the handles together; the harder you go, the harder the fan pushes back.', 'Go hard for short bursts, then ease off to recover.'],
+    'Short bursts of 10 to 30 seconds are plenty at first.', ['sprint', 'steady', 'easy'], 'hold'),
+  M('stair-climber', 'Stair climber', 'cardio', 'cardio', 1, 'Glutes, quads, cardio', ['climbA', 'railHold', ['rail']], ['climbB', 'railHold', ['rail']],
+    ['Step on and hold the rails lightly while the stairs start slowly.', 'Climb with your whole foot on each step, standing tall.', 'Pick a speed you can keep going, and slow down before stepping off.'],
+    'Lean on the rails as little as you can; your legs should do the work.', ['fast', 'steady', 'slow'], 'hold'),
+  M('elliptical', 'Elliptical', 'cardio', 'cardio', 1, 'Legs, arms, cardio', ['ellA', 'ellArms', ['elliptical']], ['ellB', 'ellArmsB', ['elliptical']],
+    ['Step onto the pedals and hold the moving handles.', 'Push and pull the handles as your legs stride in smooth ovals.', 'Add resistance until you\'re breathing harder but can still talk.'],
+    'Keep your heels down and stand tall.', ['hard', 'steady', 'easy'], 'hold'),
+  M('jump-rope', 'Jump rope', 'cardio', 'rope', 1, 'Calves, cardio', ['toes', 'ropeArms', ['ropeOver']], ['hop', 'ropeArms', ['ropeUnder']],
+    ['Hold the handles by your hips with the rope behind your heels.', 'Turn the rope with your wrists and make small hops on the balls of your feet as it passes under.', 'Keep a steady rhythm for the time you chose.'],
+    'Small hops, just high enough to clear the rope.', ['fast', 'steady', 'easy bounce'], 'hold'),
+  M('battle-ropes', 'Battle ropes', 'cardio', 'sled', 2, 'Shoulders, arms, core, cardio', ['ropeStance', 'wavesUp', ['wavesA']], ['ropeStance', 'wavesDown', ['wavesB']],
+    ['Hold one rope end in each hand and stand in a half squat with your chest up.', 'Move your arms up and down fast, one after the other, to make waves.', 'Keep going for the time you chose, then rest.'],
+    'Stay low and keep the waves reaching the anchor.', ['fast', 'steady'], 'hold'),
 ];
 
 export const moveById = id => MOVES.find(m => m.id === id) || null;
 
 // Forgiving search over name, muscles and group: typos, plurals and shorthand
-// ("pushup", "abs", "bicep") all work. Results carry .fixed when a spelling fix was used.
+// ("pushup", "abs", "bicep") all work. An empty result carries .suggest, a spelling fix to offer.
 const norm = s => String(s).toLowerCase().replace(/[-–]/g, ' ');
-const text = m => norm(`${m.name} ${m.muscles} ${m.group} ${m.equip === 'db' ? 'dumbbell' : m.equip === 'kb' ? 'kettlebell' : m.equip === 'bb' ? 'barbell' : ''}`);
+// Words for each kind of equipment, and other names people search for (2.8). Searched, never shown.
+const GEAR_WORDS = { db: 'dumbbell', kb: 'kettlebell', bb: 'barbell', machine: 'machine', cable: 'cable machine', cardio: 'machine', sled: 'sled', rope: 'rope', wheel: 'ab wheel' };
+const AKA = {
+  'tricep-pushdown': 'pushdown pressdown', 'ez-skull-crusher': 'skullcrusher lying triceps extension', 'db-skull-crusher': 'skullcrusher lying triceps extension',
+  'cable-crossover': 'chest fly', 'pec-deck': 'chest fly', 'lat-pulldown': 'pull down', 'straight-arm-pulldown': 'pull down',
+  'machine-row': 'machine row seated row', 'seated-cable-row': 'low row', 'assisted-pullup': 'assisted chin-up', 'muscle-up': 'muscleup',
+  'handstand-pushup': 'hspu', 'back-extension': 'hyperextension roman chair', 'ab-wheel': 'rollout roller', 'bb-hip-thrust': 'glute bridge',
+  'leg-press': 'sled', 'hip-abduction': 'outer thigh', 'hip-adduction': 'inner thigh', 'machine-calf-raise': 'standing calf',
+  'rowing-machine': 'rower erg ergometer row', 'air-bike': 'assault airdyne', 'stationary-bike': 'exercise bike spin cycling cycle',
+  'treadmill-run': 'running jogging jog', 'treadmill-walk': 'walking incline', 'stair-climber': 'stairmaster stepmill stairs steps',
+  'elliptical': 'cross trainer', 'sled-push': 'prowler', 'jump-rope': 'skipping skip', 'battle-ropes': 'battle rope', 'kb-press': 'shoulder press',
+};
+const text = m => norm(`${m.name} ${m.muscles} ${m.group} ${GEAR_WORDS[m.equip] || ''} ${AKA[m.id] || ''}`);
 let vocab = null;
 const moveVocab = () => vocab ||= vocabulary(MOVES.map(text));
 export function searchMoves({ q = '', group = '', equip = '', have = null } = {}) {
-  const { groups, fixed } = expand(moveVocab(), q);
-  const out = MOVES.filter(m => (!group || m.group === group) && (!equip || m.equip === equip)
-    && (!have || have.includes(m.equip))
-    && groups.every(g => g.some(w => text(m).includes(norm(w)))));
-  // Name matches first, then the group ("abs" → the core group), then muscle mentions.
-  const rank = m => groups.reduce((a, g) => a + (g.some(w => norm(m.name).includes(norm(w))) ? 4 : g.some(w => m.group === w) ? 2 : 0), 0);
-  if (q.trim()) out.sort((a, b) => rank(b) - rank(a));
-  out.fixed = fixed;
-  return out;
+  const run = groups => {
+    const out = MOVES.filter(m => (!group || m.group === group) && (!equip || m.equip === equip)
+      && (!have || have.includes(m.equip))
+      && groups.every(g => g.some(w => text(m).includes(norm(w)))));
+    // Name matches first, then the group ("abs" → the core group), then muscle mentions.
+    const rank = m => groups.reduce((a, g) => a + (g.some(w => norm(m.name).includes(norm(w))) ? 4 : g.some(w => m.group === w) ? 2 : 0), 0);
+    if (q.trim()) out.sort((a, b) => rank(b) - rank(a));
+    return out;
+  };
+  // An empty search lists everything; otherwise what was typed is searched, and a fix is only offered (.suggest).
+  return q.trim() ? exactFirst(moveVocab(), q, run) : run([]);
 }
 export const suggestMoves = q => complete(moveVocab(), q, 20).filter(s => MOVES.some(m => s.split(' ').every(w => text(m).includes(w)))).slice(0, 5);

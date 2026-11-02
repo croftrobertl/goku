@@ -4,28 +4,34 @@ import { entries, saveEntry, deleteEntry, today, profile } from './state.js';
 import { esc, ask, overlay, guard, toast, dayPicker } from './ui.js';
 import { addDays, prettyDay } from './time.js';
 import { forgetHealthWorkout } from './health.js';
+import { metric } from './units.js';
 
 // [id, label, muscle groups it loads]
 export const ACTIVITIES = [
   ['soccer', 'Soccer', ['legs', 'core', 'power']], ['run', 'Running', ['legs']], ['bike', 'Cycling', ['legs']],
-  ['swim', 'Swimming', ['pull', 'push']], ['hike', 'Hiking or walking', ['legs']], ['sport', 'Other sport', ['legs', 'core']],
-  ['lift', 'Other strength work', ['push', 'pull', 'legs', 'core']], ['other', 'Something else', []],
+  ['swim', 'Swimming', ['pull', 'push']], ['row', 'Rowing', ['pull', 'legs', 'core']], ['gym', 'Gymnastics', ['push', 'pull', 'core', 'power']],
+  ['lift', 'Lifting', ['push', 'pull', 'legs', 'core']], ['hike', 'Walk or hike', ['legs']], ['sport', 'Other sport', ['legs', 'core']],
+  ['other', 'Something else', []],
 ];
-export const activityName = k => ACTIVITIES.find(a => a[0] === k)?.[1] || 'Activity';
+export const activityName = (k, name) => name || ACTIVITIES.find(a => a[0] === k)?.[1] || 'Activity';
+// Distance (2.8) is asked only where it means something; swims are in yards or meters, rows in meters.
+const DISTANCE = ['run', 'bike', 'swim', 'row'];
+const distUnits = (kind, p) => kind === 'row' ? 'm' : kind === 'swim' ? (metric(p) ? 'm' : 'yd') : metric(p) ? 'km' : 'mi'; // rowing machines count meters everywhere
+const distText = d => d.dist ? ` · ${d.dist} ${d.distUnit}` : '';
 export const activityGroups = k => ACTIVITIES.find(a => a[0] === k)?.[2] || [];
 
 export async function activitiesOn(day) { return (await entries('activity')).filter(e => e.day === day); }
 export const minutesOf = list => list.reduce((a, e) => a + (e.data.minutes || 0), 0);
 
 export function activityRows(list, { edit = true } = {}) {
-  return list.map(e => `<li><span>${esc(activityName(e.data.kind))} · ${esc(e.data.minutes)} min<br>
+  return list.map(e => `<li><span>${esc(activityName(e.data.kind, e.data.name))} · ${esc(e.data.minutes)} min${esc(distText(e.data))}<br>
     <span class="chain">${prettyDay(e.day)} · effort ${esc(e.data.effort)}</span></span>
-    ${edit ? `<button class="cta2" data-act="${esc(e.id)}" aria-label="Edit ${esc(activityName(e.data.kind))} on ${prettyDay(e.day)}">Edit</button>` : ''}</li>`).join('');
+    ${edit ? `<button class="cta2" data-act="${esc(e.id)}" aria-label="Edit ${esc(activityName(e.data.kind, e.data.name))} on ${prettyDay(e.day)}">Edit</button>` : ''}</li>`).join('');
 }
 
 export function logActivity(existing = null, onDone = () => window.goku.render()) {
   // A Custom profile starts on its own sport; everyone else on soccer, the original pack.
-  const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'sport', martial: 'sport', gymnastics: 'sport', yoga: 'other' };
+  const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'sport', martial: 'sport', gymnastics: 'gym', yoga: 'other' };
   const first = profile().custom?.sports?.map(x => own[x]).find(Boolean);
   const d = existing ? structuredClone(existing.data) : { kind: first || 'soccer', minutes: 60, effort: 6 };
   let day = existing?.day || today();
@@ -40,10 +46,16 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
       <p class="lbl" style="margin-top:16px">Minutes</p>
       <div class="seg">${[30, 45, 60, 90, 120].map(m => `<button data-min="${m}" aria-pressed="${d.minutes === m}">${m}</button>`).join('')}</div>
       <input id="mins" type="number" inputmode="numeric" min="1" max="600" value="${d.minutes ? esc(d.minutes) : ''}" aria-label="Minutes" style="margin-top:8px">
-      <p class="lbl" style="margin-top:16px">Effort (0 easy, 10 all-out)</p>
-      <div class="seg">${[2, 4, 6, 8, 10].map(v => `<button data-eff="${v}" aria-pressed="${d.effort === v}">${v}</button>`).join('')}</div>`;
+      ${d.kind === 'sport' ? `<label class="f" style="margin-top:12px"><span>Which sport (optional)</span><input id="aname" maxlength="40" value="${esc(d.name || '')}" placeholder="e.g. Basketball"></label>` : ''}
+      ${DISTANCE.includes(d.kind) ? `<label class="f" style="margin-top:12px"><span>Distance (optional, ${distUnits(d.kind, profile())})</span><input id="adist" inputmode="decimal" value="${d.dist && d.distUnit === distUnits(d.kind, profile()) ? esc(d.dist) : ''}"></label>` : ''}
+      <p class="lbl" style="margin-top:16px">Effort (1 easy, 10 all-out)</p>
+      <div class="pills">${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<button data-eff="${v}" aria-pressed="${d.effort === v}">${v}</button>`).join('')}</div>`;
   };
-  el.addEventListener('input', e => { if (e.target.id === 'mins') d.minutes = e.target.value === '' ? 0 : Math.max(1, Math.min(600, Math.round(+e.target.value || 0))); });
+  el.addEventListener('input', e => {
+    if (e.target.id === 'mins') d.minutes = e.target.value === '' ? 0 : Math.round(+e.target.value || 0); // checked on Save, not silently clamped
+    if (e.target.id === 'aname') d.name = e.target.value.slice(0, 40);
+    if (e.target.id === 'adist') d.distTyped = e.target.value;
+  });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
@@ -52,7 +64,12 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
     if (b.dataset.min) { d.minutes = +b.dataset.min; return draw(); }
     if (b.dataset.eff) { d.effort = +b.dataset.eff; return draw(); }
     if (b.id === 'save') {
-      if (!(d.minutes > 0)) return toast('Enter the minutes');
+      if (!(d.minutes >= 1 && d.minutes <= 600)) return toast(d.minutes > 600 ? 'Up to 600 minutes. Log a longer day as two activities.' : 'Enter the minutes, 1 or more');
+      // Only the sport gets a name, and only distance kinds keep a distance.
+      if (d.kind !== 'sport' || !d.name?.trim()) delete d.name; else d.name = d.name.trim();
+      if (d.distTyped !== undefined) { const v = +String(d.distTyped).replace(',', '.'); if (d.distTyped.trim() && !(v > 0 && v < 100000)) return toast('Enter the distance as a number'); d.dist = d.distTyped.trim() ? Math.round(v * 100) / 100 : null; }
+      delete d.distTyped;
+      if (DISTANCE.includes(d.kind) && d.dist) d.distUnit = distUnits(d.kind, profile()); else { delete d.dist; delete d.distUnit; }
       await saveEntry('activity', d, existing ? { id: existing.id, day, ts: existing.ts } : { day }); // an edited import keeps its id, so re-imports skip it
       close(); toast(existing ? 'Activity updated' : 'Activity logged'); onDone();
     }

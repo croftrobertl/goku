@@ -2,6 +2,7 @@
 // Cards that only appear when relevant (a recap, a level-up) keep their place in the order.
 import { saveProfile } from './state.js';
 import { esc, overlay, guard } from './ui.js';
+import { W, skinOf } from './skins.js';
 
 // [id, name, can hide?] in the default order.
 export const CARDS = {
@@ -66,7 +67,10 @@ export function editHome(p, onDone = () => window.goku.render()) {
     <p class="sub">Move cards up or down, or hide the ones you don't use. Some only show when there's something to say.</p>
     <div class="scroll" id="f"></div>
     <button class="cta2" id="reset" style="width:100%;margin-top:8px">Back to the default order</button>`, { label: 'Home cards' });
-  const name = id => CARDS[p.kind].find(c => c[0] === id);
+  // Card names follow the skin (2.8): "Saga map" is "Tour map" under Encore.
+  const SKINNED = { balls: () => `${W('ball')} news`, wish: () => `${W('wisher')}${skinOf(p) === 'dbz' ? "'s" : ''} wish`, chamber: () => W('chamber'),
+    scouter: () => W('scouter'), ready: () => W('readiness'), saga: () => W('sagaMap'), recap: () => `${W('arc')} recap` };
+  const name = id => { const c = CARDS[p.kind].find(x => x[0] === id); return SKINNED[id] ? [c[0], SKINNED[id](), c[2]] : c; };
   const draw = () => {
     el.querySelector('#f').innerHTML = `<ul class="list editlist">${ids.map((id, i) => `<li>
       <label class="toggle"><input type="checkbox" data-show="${id}" ${off.has(id) ? '' : 'checked'} ${name(id)[2] ? '' : 'disabled'}

@@ -1,4 +1,5 @@
 // Home cards both profile types share: the streak with Senzu saves and the weekly arc recap.
+import { w, W } from './skins.js';
 import { saveEntry, saveProfile } from './state.js';
 import { esc, round, toast } from './ui.js';
 import { prettyDay, weekday, minutesNow, clockOf } from './time.js';
@@ -32,7 +33,7 @@ export function streakCard(p, all, today) {
   const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
   return `<section class="card streak"><div class="row"><p class="lbl" style="margin:0">Streak</p>${whyBtn('streak', JSON.stringify(s))}</div>
     <div class="row" style="margin-top:4px"><span class="big num">${s.days}<span class="sub"> day${s.days === 1 ? '' : 's'}</span></span>
-    ${s.beans ? `<span aria-label="${s.beans} Senzu bean${s.beans === 1 ? '' : 's'}" title="Senzu beans">${BEAN.repeat(s.beans)}</span>` : '<span class="sub">no beans yet</span>'}</div>
+    ${s.beans ? `<span aria-label="${s.beans} ${s.beans === 1 ? w('bean') : w('beans')}" title="${esc(W('beans'))}">${BEAN.repeat(s.beans)}</span>` : `<span class="sub">no ${esc(w('beans'))} yet</span>`}</div>
     ${s.todayDone ? '<p class="sub">Today counts. ✓</p>' : s.restLeft ? `<p class="sub">${plannedRest ? 'Today is a planned rest day.' : 'Log anything today to keep it going.'}</p>
       <button class="cta2" data-restday style="margin-top:8px;width:100%">${plannedRest ? 'Count today\'s rest' : 'Log a planned rest day'}</button>`
       : `<p class="sub">This week's ${s.restPerWeek} rest day${s.restPerWeek === 1 ? ' is' : 's are'} used. Log training to keep it going.</p>`}</section>`;
@@ -47,7 +48,7 @@ export function riskCard(p, all, today) {
   const ends = clockOf((p.dayEndsAt ?? 3) * 60);
   return `<section class="card risk" role="status"><p class="lbl">Streak at risk</p>
     <h2>Your ${s.days}-day streak needs one log by ${ends}</h2>
-    <p class="sub">${s.beans ? `A Senzu bean would save it, but logging anything keeps your ${s.beans === 1 ? 'bean' : 'beans'}.` : 'No Senzu beans left to save it.'} Anything counts: food, water, training${s.restLeft ? ' or a rest day' : ''}.</p>
+    <p class="sub">${s.beans ? `A ${w('bean')} would save it, but logging anything keeps your ${s.beans === 1 ? w('bean') : w('beans')}.` : `No ${w('beans')} left to save it.`} Anything counts: food, water, training${s.restLeft ? ' or a rest day' : ''}.</p>
     <div class="qlog"><button class="cta2" data-qadd>Log food</button><button class="cta2" data-qwater>Log water</button>${s.restLeft ? '<button class="cta2" data-restday>Rest day</button>' : ''}</div></section>`;
 }
 
@@ -78,7 +79,7 @@ export function kiGauge(p, all, today) {
   const inner = Math.min(1, pct / 50), outer = Math.max(0, (pct - 50) / 50);
   const rays = [0, 45, 90, 135, 180, 225, 270, 315].map(a => `<path d="M32 -3.5v3.5" transform="rotate(${a} 32 32)"/>`).join('');
   const what = parts.length > 1 ? 'Training and protein' : 'Training';
-  return `<section class="ki${kiOpen ? ' open' : ''}" aria-label="Today's ki">
+  return `<section class="ki${kiOpen ? ' open' : ''}" aria-label="Today's ${esc(w('ki').toLowerCase())}">
     <button class="kibtn" data-ki aria-expanded="${kiOpen}" aria-controls="kirows">
       <svg class="kiring" viewBox="0 0 64 64" aria-hidden="true">
       ${outer ? `<circle class="a2" cx="32" cy="32" r="${25 + 6 * outer}" opacity="${(.3 * outer).toFixed(2)}"/>` : ''}
@@ -86,10 +87,10 @@ export function kiGauge(p, all, today) {
       ${pct >= 100 ? `<g class="rays">${rays}</g>` : ''}
       <circle class="core${pct ? '' : ' ember'}" cx="32" cy="32" r="19"/>
       <text x="32" y="36.5" text-anchor="middle"${pct >= 100 ? ' style="font-size:10.5px"' : ''}>${pct}%</text></svg>
-      <span><b>Today's ki</b><span class="sub">${what} today<span class="kitap"> · tap for details</span></span></span></button>
+      <span><b>Today's ${esc(w('ki').toLowerCase())}</b><span class="sub">${what} today<span class="kitap"> · tap for details</span></span></span></button>
     <ul class="list kirows" id="kirows">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b class="num">${esc(v)}</b></li>`).join('')}
       <li><button class="link" data-hview="stats">Streak</button><b class="num">${s.days} day${s.days === 1 ? '' : 's'}${s.todayDone ? '' : ' · log today'}</b></li>
-      <li><button class="link" data-go="saga">Power level · Saga</button><b class="num">${pl.toLocaleString('en-US')}</b></li></ul></section>`;
+      <li><button class="link" data-go="saga">${esc(W('power'))} · ${esc(W('saga'))}</button><b class="num">${pl.toLocaleString('en-US')}</b></li></ul></section>`;
 }
 
 // Shown in a new week until dismissed, if anything was logged last week.
@@ -118,7 +119,7 @@ export function recapCard(p, all, today) {
       if (hit < Math.ceil(days.length / 2)) focus.push(`Reach ${target} g of protein on more days. Saved meals in Nutrition make it one tap.`);
     }
     if (goal && n.sessions.length < goal) focus.push(`Fit in ${goal} sessions. Short ×10 or ×20 days still count.`);
-    if (!focus.length) focus.push('Strong week. Try one gravity level higher, or beat your ghost by a few reps.');
+    if (!focus.length) focus.push(`Strong week. Try one ${w('gravity')} level higher, or beat your ghost by a few reps.`);
   } else {
     const scores = n.checkins.map(c => readiness(c.data, sleepTargetFor(p)));
     const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;

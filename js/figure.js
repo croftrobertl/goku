@@ -106,6 +106,46 @@ export const BODY = {
   tuckHold: { t: -90, a: [-20, 100], b: [-20, 100] },
   slamTop: { t: -92, a: [90, 90], b: [90, 90], toes: true },
   burpeeSquat: { t: -40, a: [-10, 120], b: [-10, 120] },
+  // Gym machines (2.8). bench: machine (seat with a backrest), stool (no backrest), incline,
+  // recline (leg press) and long (lying leg curl) put a seat or pad under the body.
+  seatTall: { t: -90, a: [0, 90], b: [0, 90], bench: 'machine' },
+  seatLegOut: { t: -90, a: [0, 0], b: [0, 0], bench: 'machine' },
+  seatCurl: { t: -90, a: [0, 110], b: [0, 110], bench: 'machine' },
+  seatSpread: { t: -90, a: [14, 90], b: [-14, 90], bench: 'machine' },
+  stoolSit: { t: -90, a: [0, 90], b: [0, 90], bench: 'stool' },
+  stoolLean: { t: -72, a: [0, 90], b: [0, 90], bench: 'stool' },
+  benchIncline: { t: -35, a: [180, 90], b: [180, 90], bench: 'incline' },
+  legPressIn: { t: -135, a: [-98, 8], b: [-98, 8], bench: 'recline' },
+  legPressOut: { t: -135, a: [-45, -45], b: [-45, -45], bench: 'recline' },
+  leanHinge: { t: -62, a: [96, 92], b: [96, 92] },
+  hackTop: { t: -100, a: [82, 92], b: [82, 92] },
+  hackLow: { t: -108, a: [0, 100], b: [0, 100] },
+  proneLong: { t: 0, a: [180, 180], b: [180, 180], bench: 'long' },
+  proneCurl: { t: 0, a: [180, -70], b: [180, -70], bench: 'long' },
+  hyperDown: { t: 45, a: [135, 135], b: [135, 135] },
+  hyperUp: { t: -45, a: [135, 135], b: [135, 135] },
+  abWheelIn: { t: -30, a: [80, 180], b: [80, 180] },
+  abWheelOut: { t: -6, a: [165, 180], b: [165, 180] },
+  cableKneel: { t: -80, a: [90, 180], b: [90, 180] },
+  cableCrunch: { t: 20, a: [90, 180], b: [90, 180], bow: -1 },
+  pistolTop: { t: -90, a: [90, 90], b: [20, 20] },
+  pistolLow: { t: -50, a: [5, 112], b: [-8, -8] },
+  sledA: { t: -35, a: [40, 110], b: [150, 130] },
+  sledB: { t: -35, a: [150, 130], b: [40, 110] },
+  runA: { t: -80, a: [50, 105], b: [125, 165] },
+  runB: { t: -80, a: [125, 165], b: [50, 105] },
+  walkA: { t: -88, a: [70, 95], b: [108, 100] },
+  walkB: { t: -88, a: [108, 100], b: [70, 95] },
+  rowCatch: { t: -60, a: [-50, 50], b: [-50, 50] },
+  rowFinish: { t: -110, a: [-2, 2], b: [-2, 2] },
+  bikeA: { t: -62, a: [-15, 85], b: [30, 100] },
+  bikeB: { t: -62, a: [30, 100], b: [-15, 85] },
+  ellA: { t: -86, a: [75, 100], b: [110, 95] },
+  ellB: { t: -86, a: [110, 95], b: [75, 100] },
+  climbA: { t: -80, a: [20, 100], b: [95, 95], box: 'a' },
+  climbB: { t: -80, a: [95, 95], b: [20, 100], box: 'b' },
+  hop: { t: -90, a: [88, 92], b: [92, 88], toes: true, air: 5 },
+  ropeStance: { t: -65, a: [45, 100], b: [110, 95] },
 };
 
 // Arm poses: near and far arm [upper arm, forearm].
@@ -181,6 +221,51 @@ export const ARMS = {
   wheelArms: { a: [70, 70], b: [70, 70] },
   hsArms: { a: [90, 90], b: [90, 90] },
   lsitArms: { a: [90, 90], b: [90, 90] },
+  // Gym machines (2.8)
+  pushdownTop: { a: [95, -45], b: [95, -45] },
+  pushdownLow: { a: [95, 88], b: [95, 88] },
+  sapUp: { a: [-35, -35], b: [-35, -35] },
+  sapDown: { a: [95, 95], b: [95, 95] },
+  rowSitTop: { a: [150, -5], b: [150, -5] },
+  rowPull: { a: [100, 0], b: [100, 0] },
+  pulldownLow: { a: [110, -80], b: [110, -80] },
+  deckOpen: { a: [170, -90], b: [10, -90] },
+  deckClosed: { a: [0, -90], b: [0, -90] },
+  cxOpen: { a: [-25, -25], b: [-155, -155] },
+  cxClose: { a: [45, 45], b: [55, 55] },
+  skullLow: { a: [-80, -5], b: [-80, -5] },
+  pullover: { a: [45, 45], b: [45, 45] },
+  kickIn: { a: [170, 90], b: [170, 90] },
+  kickOut: { a: [170, 170], b: [170, 170] },
+  arnoldIn: { a: [60, -90], b: [60, -90] },
+  snatchTop: { a: [-88, -88], b: [90, 90] },
+  renegade: { a: [-150, 90], b: [90, 90] },
+  hsBent: { a: [20, 100], b: [20, 100] },
+  chopHigh: { a: [-140, -140], b: [-140, -140] },
+  chopLow: { a: [55, 55], b: [55, 55] },
+  throughBack: { a: [105, 105], b: [105, 105] },
+  throughFront: { a: [80, 80], b: [80, 80] },
+  crunchHold: { a: [-50, 150], b: [-50, 150] },
+  crunchHoldDown: { a: [-10, 110], b: [-10, 110] },
+  preacherLow: { a: [35, 50], b: [35, 50] },
+  preacherTop: { a: [35, -70], b: [35, -70] },
+  sledArms: { a: [20, 10], b: [20, 10] },
+  runArmsB: { a: [125, 60], b: [60, -60] },
+  walkArms: { a: [70, 60], b: [110, 100] },
+  walkArmsB: { a: [110, 100], b: [70, 60] },
+  rowReach: { a: [5, 5], b: [5, 5] },
+  bikeArms: { a: [50, 50], b: [50, 50] },
+  airArmsA: { a: [30, 30], b: [75, 55] },
+  airArmsB: { a: [75, 55], b: [30, 30] },
+  ellArms: { a: [60, -20], b: [80, -10] },
+  ellArmsB: { a: [80, -10], b: [60, -20] },
+  railHold: { a: [55, 30], b: [55, 30] },
+  ropeArms: { a: [80, 20], b: [100, 160] },
+  wavesUp: { a: [20, -10], b: [30, 0] },
+  wavesDown: { a: [50, 60], b: [40, 50] },
+  thrustHold: { a: [183, 183], b: [183, 183] },
+  hyperArms: { a: [100, -40], b: [100, -40] },
+  hyperArmsUp: { a: [150, 10], b: [150, 10] },
 };
 
 function solve(body, arms) {
@@ -222,9 +307,20 @@ export function figureSVG([bodyKey, armsKey, props = []], { w = 120, h = 112 } =
   if (body.bench === 'torso') low = Math.max(low, Math.max(f.hip[1], f.shoulder[1]) + BENCH);
   if (body.bench === 'feet') low = Math.max(...[f.hip, f.shoulder, ...f.armA, ...f.armB].map(p => p[1]), Math.max(f.legA[1][1], f.legB[1][1]) + BENCH);
   if (body.bench === 'hands') low = Math.max(Math.max(f.legA[1][1], f.legB[1][1], f.legA[2][1]), Math.max(f.armA[1][1], f.armB[1][1]) + BENCH + 4);
+  // Gym machines: seats, pads and frames that hold part of the body up off the floor.
+  const SEAT = { machine: 24, stool: 23, incline: 22, recline: 14 };
+  if (SEAT[body.bench]) low = Math.max(low, f.hip[1] + SEAT[body.bench]);
+  if (body.bench === 'long') low = Math.max(low, Math.max(f.hip[1], f.shoulder[1]) + BENCH);
+  const handLow = Math.max(f.armA[1][1], f.armB[1][1]), ankleLow = Math.max(f.legA[1][1], f.legB[1][1]);
+  if (has('wheel')) low = Math.max(low, handLow + 8);
+  if (has('rower')) low = Math.max(low, f.hip[1] + 13);
+  if (has('bike') || has('airBike')) low = Math.max(low, ankleLow + 10);
+  const lift = has('treadmill') ? 5 : has('elliptical') ? 7 : has('hyper') ? 6 : 0;
   const ground = h - 8;
-  let dy = ground - low - (body.air || 0);
+  let dy = ground - low - (body.air || 0) - lift;
   if (has('bar')) dy = 10 - Math.min(f.armA[1][1], f.armB[1][1]); // hanging: hands on the bar, feet off the floor
+  if (has('assist')) dy = 12 - Math.min(f.armA[1][1], f.armB[1][1]); // assisted pull-up: knees on a pad
+  if (has('barTop')) dy = 50 - Math.min(f.armA[1][1], f.armB[1][1]); // muscle-up: leaning on top of the bar
   const all = [...floorPts, ...f.legA, ...f.legB];
   const minX = Math.min(...all.map(p => p[0])), maxX = Math.max(...all.map(p => p[0]));
   const dx = w / 2 - (minX + maxX) / 2;
@@ -249,7 +345,8 @@ export function figureSVG([bodyKey, armsKey, props = []], { w = 120, h = 112 } =
   if (has('band')) out.push(`<path d="M${fix(F.armA[1][0])},${fix(F.armA[1][1])} Q${fix(F.armA[1][0] + 8)},${fix((F.armA[1][1] + F.legA[1][1]) / 2)} ${fix(F.legA[1][0] + 2)},${fix(F.legA[1][1])}" class="prop band"/>`);
   if (has('bandAnchor')) { const hd = F.armA[1]; out.push(line(hd, [w - 8, hd[1]], 'prop band'), `<circle cx="${w - 7}" cy="${fix(hd[1])}" r="2.2" class="prop dot"/>`); }
   if (has('bandKnees')) out.push(line(F.legA[0], F.legB[0], 'prop band'));
-  if (!has('bar')) out.push(line([4, ground], [w - 4, ground], 'ground'));
+  out.push(...gym(F, body, has, props, { w, ground, minX: minX + dx, maxX: maxX + dx, bench }));
+  if (!has('bar') && !has('barTop')) out.push(line([4, ground], [w - 4, ground], 'ground'));
   if (body.air) out.push(`<ellipse cx="${fix((F.legA[1][0] + F.legB[1][0]) / 2)}" cy="${ground}" rx="10" ry="1.6" class="shadow"/>`);
   // Far limbs, body, head, near limbs.
   out.push(poly([F.hip, ...F.legB], 'limb far'), poly([F.shoulder, ...F.armB], 'limb arm far'));
@@ -263,5 +360,123 @@ export function figureSVG([bodyKey, armsKey, props = []], { w = 120, h = 112 } =
   if (has('bb')) { const p = F.armA[1]; out.push(`<g class="kit"><circle cx="${fix(p[0])}" cy="${fix(p[1])}" r="8" class="plate"/><circle cx="${fix(p[0])}" cy="${fix(p[1])}" r="1.6" class="hub"/></g>`); }
   if (has('ball')) { const p = [(F.armA[1][0] + F.armB[1][0]) / 2, (F.armA[1][1] + F.armB[1][1]) / 2 - 3]; out.push(`<circle cx="${fix(p[0])}" cy="${fix(p[1])}" r="6.5" class="kit"/>`); }
   if (has('ballFloor')) out.push(`<circle cx="${fix(F.armA[1][0] + 4)}" cy="${ground - 6.5}" r="6.5" class="kit"/>`);
+  if (has('yoke')) out.push(line([F.shoulder[0] - 6, F.shoulder[1] - 2], [F.shoulder[0] + 6, F.shoulder[1] - 2], 'prop thick'));
+  if (has('wheel')) { const p = [(F.armA[1][0] + F.armB[1][0]) / 2, Math.max(F.armA[1][1], F.armB[1][1]) + 4]; out.push(`<circle cx="${fix(p[0])}" cy="${fix(p[1])}" r="4" class="prop"/>`, `<circle cx="${fix(p[0])}" cy="${fix(p[1])}" r="1.4" class="prop dot"/>`); }
   return `<svg viewBox="0 0 ${w} ${h}" class="fig" aria-hidden="true">${out.join('')}</svg>`;
+}
+
+const dot = (p, r = 2.2) => `<circle cx="${fix(p[0])}" cy="${fix(p[1])}" r="${r}" class="prop dot"/>`;
+const ring = (p, r) => `<circle cx="${fix(p[0])}" cy="${fix(p[1])}" r="${r}" class="prop"/>`;
+const off = (p, a, d) => step(p, a, d);
+
+// Gym machines and cardio kit (2.8), drawn behind the figure. Parts are placed from the
+// figure's joints, so one prop fits every pose that uses it.
+function gym(F, body, has, props, { w, ground, minX, maxX, bench }) {
+  const out = [], hA = F.armA[1], hB = F.armB[1], H = F.hip, S = F.shoulder;
+  const toGround = (p, cls = 'prop thick') => out.push(line(p, [p[0], ground], cls));
+  // Seats and pads
+  if (body.bench === 'machine') { bench(H[0] - 12, H[0] + 8, H[1] + 3); out.push(line([H[0] - 7, H[1] + 3], [H[0] - 7, S[1] - 2], 'prop thick')); }
+  if (body.bench === 'stool') bench(H[0] - 9, H[0] + 7, H[1] + 3);
+  if (body.bench === 'incline' || body.bench === 'recline') {
+    const side = body.bench === 'incline' ? body.t + 90 : body.t - 90;
+    const p0 = off(off(H, body.t, -3), side, 5), p1 = off(off(S, body.t, 4), side, 5);
+    out.push(line(p0, p1, 'prop thick'));
+    if (body.bench === 'incline') bench(H[0] - 12, H[0] + 4, H[1] + 3);
+    toGround(p0); toGround(off(p0, body.t, 14));
+  }
+  if (body.bench === 'long') bench(F.legA[0][0] + 3, S[0] + 4, Math.max(H[1], S[1]) + 3);
+  if (has('stack')) { const top = 22, hgt = ground - top; out.push(rect(5, top, 9, hgt), ...[1, 2, 3, 4].map(i => line([5, top + i * hgt / 5], [14, top + i * hgt / 5], 'prop'))); }
+  if (has('chestPad')) { const x = S[0] + 6; out.push(line([x, S[1] + 3], [x, H[1] - 8], 'prop thick'), line([x, H[1] - 8], [x + 6, H[1] - 8], 'prop'), line([x + 6, H[1] - 8], [x + 6, ground], 'prop')); }
+  if (has('grip')) [hB, hA].forEach(p => out.push(line([p[0], p[1] - 4], [p[0], p[1] + 4], 'prop thick')));
+  if (has('roller')) out.push(dot(F.legA[1], 3.2));
+  if (has('kneeRoll')) out.push(dot(off(F.legB[0], 0, 0), 3), dot(F.legA[0], 3.2));
+  if (has('kneePad')) { const k = F.legA[0]; out.push(rect(k[0] - 9, k[1] - 7, 11, 3)); }
+  if (has('yoke')) { const x = S[0] - 9; out.push(line([x, S[1] - 2], [x, ground], 'prop')); }
+  // Cable machines: a tower with a pulley, high, at hand height or low; in front, or behind (Back).
+  const cab = props.find(p => /^cable(Hi|Mid|Lo)(Back)?$/.test(p));
+  const tower = (x, py, to) => { const px = x + (x < w / 2 ? 3 : -3); out.push(rect(x - 2, 4, 4, ground - 4), dot([px, py]), line([px, py], to, 'prop strap')); };
+  if (cab) tower(cab.endsWith('Back') ? 6 : w - 6, cab.includes('Hi') ? 8 : cab.includes('Lo') ? ground - 5 : hA[1], hA);
+  if (has('cableX')) { tower(6, 8, hB); tower(w - 6, 8, hA); }
+  if (has('latBar')) {
+    const y = Math.min(hA[1], hB[1]), post = hA[0] - 24;
+    out.push(line([post, 5], [hA[0] + 6, 5], 'prop thick'), line([post, 5], [post, ground], 'prop thick'), line([hA[0], y], [hA[0], 5], 'prop strap'),
+      dot([hA[0], 5]), line([hA[0] - 12, y], [hA[0] + 12, y], 'prop thick'));
+  }
+  if (has('smith')) { const x = hA[0]; out.push(line([x, 4], [x, ground], 'prop thick')); }
+  // Leg press: the foot plate square to the legs, on a sloped rail.
+  if (has('footplate')) {
+    const an = F.legA[1], len = Math.hypot(an[0] - H[0], an[1] - H[1]), d = [(an[0] - H[0]) / len, (an[1] - H[1]) / len], n = [-d[1], d[0]];
+    const c = [an[0] + d[0] * 3, an[1] + d[1] * 3];
+    out.push(line([c[0] + n[0] * 11, c[1] + n[1] * 11], [c[0] - n[0] * 11, c[1] - n[1] * 11], 'prop thick'));
+    const r0 = [c[0] + n[0] * 9 + d[0] * 6, c[1] + n[1] * 9 + d[1] * 6], t = (ground - r0[1]) / d[1];
+    out.push(line(r0, [r0[0] + d[0] * t, ground], 'prop'));
+  }
+  // Hack squat: a back pad that slides on a sloped rail.
+  if (has('hackPad')) {
+    const side = body.t - 90, p0 = off(off(H, body.t, 2), side, 5), p1 = off(off(S, body.t, 3), side, 5);
+    out.push(line(p0, p1, 'prop thick'));
+    const back = body.t + 180, t = (ground - p0[1]) / Math.sin(rad(back));
+    out.push(line(p0, off(p0, back, t), 'prop'));
+  }
+  // Back extension: hips on a pad, heels under a roller, on a 45° frame.
+  if (has('hyper')) {
+    const la = 135, pad0 = off(off(H, la, 1), la - 90, 4), pad1 = off(off(H, la, 10), la - 90, 4);
+    const an = F.legA[1], heel = off(an, la + 90, 4);
+    out.push(line(pad0, pad1, 'prop thick'), dot(heel, 2.6), line(pad1, an, 'prop'));
+    toGround(pad1, 'prop'); toGround(an, 'prop');
+  }
+  if (has('assist')) {
+    const k = F.legA[0], ft = F.legA[2], y = Math.min(hA[1], hB[1]) - 1.5, top = k[1] + 2.5;
+    out.push(line([hA[0] - 22, y], [hA[0] + 22, y], 'prop thick'), rect(Math.min(ft[0], k[0]) - 2, top, Math.abs(k[0] - ft[0]) + 6, 3));
+    toGround([(k[0] + ft[0]) / 2, top + 3]);
+  }
+  if (has('barTop')) { const y = Math.min(hA[1], hB[1]) + 1.5; out.push(line([hA[0] - 22, y], [hA[0] + 22, y], 'prop thick')); }
+  if (has('preacher')) {
+    const e = F.armA[0], up = Math.atan2(e[1] - S[1], e[0] - S[0]) * 180 / Math.PI;
+    const p0 = off(off(S, up, 4), up + 90, 4), p1 = off(e, up + 90, 4);
+    out.push(line(p0, p1, 'prop thick')); toGround(off(p0, up, 6), 'prop');
+  }
+  // Sled: a low frame on the floor with two upright poles to push.
+  if (has('sled')) { const x = Math.max(hA[0], hB[0]); out.push(rect(x - 2, ground - 6, 22, 6), line(hA, [x + 1, ground - 6], 'prop thick')); }
+  // Cardio machines
+  if (has('treadmill')) {
+    const x0 = minX - 12, x1 = maxX + 8, top = ground - 5, hy = H[1] - 4;
+    out.push(rect(x0, top, x1 - x0, 5), line([x1, top], [x1 + 3, hy], 'prop thick'), line([x1 + 3, hy], [x1 - 7, hy], 'prop thick'));
+  }
+  if (has('rower')) {
+    const ry = H[1] + 7, x0 = H[0] - 18, x1 = Math.max(F.legA[2][0], F.legB[2][0]) + 10, fly = [x1 + 3, ry - 6];
+    out.push(line([x0, ry], [x1, ry], 'prop thick'), rect(H[0] - 7, H[1] + 3, 14, 3), ring(fly, 6), dot(fly, 1.6), line(hA, fly, 'prop strap'),
+      line([F.legA[1][0] + 4, F.legA[1][1] - 7], [F.legA[1][0] + 7, ry], 'prop thick'));
+    toGround([x0 + 3, ry], 'prop'); toGround([x1 - 3, ry], 'prop');
+  }
+  if (has('bike') || has('airBike')) {
+    const a = F.legA[1], b = F.legB[1], c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], r = Math.hypot(a[0] - b[0], a[1] - b[1]) / 2;
+    out.push(ring(c, fix(r)), line(a, b, 'prop'), rect(H[0] - 8, H[1] + 2, 13, 3), line([H[0] - 2, H[1] + 5], c, 'prop thick'), line(c, [c[0], ground], 'prop thick'),
+      line([c[0] - 18, ground - 1], [c[0] + 22, ground - 1], 'prop thick'));
+    if (has('bike')) out.push(line(c, hA, 'prop thick'), line([hA[0] - 2, hA[1]], [hA[0] + 5, hA[1]], 'prop thick'));
+    else { const fan = [c[0] + 20, c[1] - 4]; out.push(ring(fan, 11), dot(fan, 1.8), line(c, hA, 'prop'), line(c, hB, 'prop'), line(fan, [fan[0], ground], 'prop thick')); }
+  }
+  if (has('rail')) { const x = Math.max(hA[0], hB[0]) + 3; out.push(line([x - 9, hA[1]], [x, hA[1]], 'prop thick'), line([x, hA[1]], [x, ground], 'prop thick')); }
+  if (has('elliptical')) {
+    const fx = maxX + 12, piv = [fx - 2, ground - 16];
+    [F.legB, F.legA].forEach(l => { const p0 = [l[1][0] - 3, Math.max(l[1][1], l[2][1]) + 2], p1 = [Math.max(l[2][0], l[1][0]) + 3, p0[1]]; out.push(line(p0, p1, 'prop thick'), line(p1, piv, 'prop')); });
+    out.push(line(hA, piv, 'prop thick'), line(hB, piv, 'prop'), rect(fx - 6, ground - 16, 10, 16), line([minX - 8, ground - 1], [fx, ground - 1], 'prop thick'));
+  }
+  const rope = props.find(p => p === 'ropeOver' || p === 'ropeUnder');
+  if (rope) {
+    const cx = (hA[0] + hB[0]) / 2, cy = rope === 'ropeOver' ? F.head[1] - 22 : ground + 6;
+    out.push(`<path d="M${fix(hB[0])},${fix(hB[1])} C${fix(cx - 26)},${fix(cy)} ${fix(cx + 26)},${fix(cy)} ${fix(hA[0])},${fix(hA[1])}" class="prop"/>`);
+  }
+  const waves = props.find(p => p === 'wavesA' || p === 'wavesB');
+  if (waves) {
+    const end = [w - 6, ground - 2], n = 3, amp = waves === 'wavesA' ? 6 : -6;
+    let d = `M${fix(hA[0])},${fix(hA[1])}`;
+    for (let i = 0; i < n; i++) {
+      const p = [hA[0] + (end[0] - hA[0]) * (i + 1) / n, hA[1] + (end[1] - hA[1]) * (i + 1) / n];
+      const q = [hA[0] + (end[0] - hA[0]) * (i + .5) / n, hA[1] + (end[1] - hA[1]) * (i + .5) / n + (i % 2 ? -amp : amp)];
+      d += ` Q${fix(q[0])},${fix(q[1])} ${fix(p[0])},${fix(p[1])}`;
+    }
+    out.push(`<path d="${d}" class="prop"/>`, dot(end, 2.4));
+  }
+  return out;
 }

@@ -1,6 +1,7 @@
 // Dragon Ball milestones: seven orbs, one to seven stars, each for a real achievement.
 // Worked out from the log every time (nothing to drift); only "already celebrated" is saved.
-import { saveProfile } from './state.js';
+import { w, W, skinOf } from './skins.js';
+import { saveProfile, profile } from './state.js';
 import { esc } from './ui.js';
 import { weekStart, prettyDay } from './time.js';
 import { streak } from './insights.js';
@@ -81,8 +82,8 @@ export function ballSVG(stars, lit, px = 40) {
 
 export function ballsCard(list) {
   const n = list.filter(m => m.earned).length;
-  return `<section class="card balls"><div class="row"><p class="lbl" style="margin:0">Dragon Balls</p><span class="num sub">${n} of 7</span></div>
-    <div class="ballrow" role="img" aria-label="${n} of 7 Dragon Balls gathered">${list.map(m => ballSVG(m.stars, m.earned, 36)).join('')}</div>
+  return `<section class="card balls"><div class="row"><p class="lbl" style="margin:0">${esc(W('balls'))}</p><span class="num sub">${n} of 7</span></div>
+    <div class="ballrow" role="img" aria-label="${n} of 7 ${esc(w('balls'))} gathered">${list.map(m => ballSVG(m.stars, m.earned, 36)).join('')}</div>
     <details class="fold"><summary class="sub">See all seven</summary><ul class="list">${list.map(m => `<li><span>${m.stars}★ ${esc(m.title)}<br><span class="chain">${m.day ? 'Gathered ' + prettyDay(m.day) : m.earned ? 'Gathered' : esc(m.how)}</span></span>
       ${m.earned ? '<b aria-label="gathered">✓</b>' : ''}</li>`).join('')}</ul></details>
     ${n === 7 ? '<p class="note">All seven gathered. Make a wish, then go set a new record.</p>' : ''}</section>`;
@@ -93,9 +94,9 @@ export function newBallsCard(p, list) {
   const seen = new Set(p.coach?.balls || []);
   const fresh = list.filter(m => m.earned && !seen.has(m.stars));
   if (!fresh.length) return '';
-  return `<section class="card coachnote"><p class="lbl">Dragon Ball${fresh.length > 1 ? 's' : ''} gathered</p>
+  return `<section class="card coachnote"><p class="lbl">${esc(W(fresh.length > 1 ? 'balls' : 'ball'))} gathered</p>
     <div class="ballrow">${fresh.map(m => ballSVG(m.stars, true, 44)).join('')}</div>
-    <p>${fresh.map(m => `<b>${m.stars}-star ball:</b> ${esc(m.title)}.`).join(' ')}</p>
+    <p>${fresh.map(m => `<b>${skinOf(profile()) === 'dbz' ? `${m.stars}-star ball` : `${W('ball')} ${m.stars}`}:</b> ${esc(m.title)}.`).join(' ')}</p>
     <button class="cta2" id="ballsSeen" data-stars="${fresh.map(m => m.stars).join(',')}" style="margin-top:10px;width:100%">Nice</button></section>`;
 }
 
@@ -111,12 +112,14 @@ export function bindBalls(root, p) {
 // inside the app: a hidden theme, an eternal aura, or a title beside your name.
 export const WISHES = [['theme', 'A new theme', 'Unlock Eternal Dragon: emerald and wish gold.'], ['aura', 'An eternal aura', 'Your avatar keeps a shimmering aura every day.'],
   ['title', 'A title', '"Dragon Ball master" beside your name.']];
+// The title wish follows the skin ("Headliner" under Encore).
+const wishText = (k, d) => k === 'title' ? `"${W('master')}" beside your name.` : d;
 export function wishCard(p, list) {
   if (p.coach?.wish || list.filter(m => m.earned).length < 7) return '';
   return `<section class="card wish"><p class="lbl">All seven Dragon Balls</p>
     <div class="ballrow" style="justify-content:center">${list.map(m => ballSVG(m.stars, true, 32)).join('')}</div>
-    <p style="text-align:center;font-weight:700">Shenron appears. Make one wish.</p>
-    <div class="moregrid">${WISHES.map(([k, n, d]) => `<button class="card pick" data-wish="${k}"><span><b>${n}</b><br><span class="sub">${d}</span></span></button>`).join('')}</div></section>`;
+    <p style="text-align:center;font-weight:700">${esc(W('wisher'))} ${skinOf(profile()) === 'dbz' ? 'appears' : 'is here'}. Make one wish.</p>
+    <div class="moregrid">${WISHES.map(([k, n, d]) => `<button class="card pick" data-wish="${k}"><span><b>${n}</b><br><span class="sub">${esc(wishText(k, d))}</span></span></button>`).join('')}</div></section>`;
 }
 export function bindWish(root, p) {
   root.querySelectorAll('[data-wish]').forEach(b => b.addEventListener('click', async () => {

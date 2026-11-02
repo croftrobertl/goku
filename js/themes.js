@@ -19,6 +19,10 @@ export const THEMES = {
   chamber: { name: 'Time Chamber', desc: 'Quiet white and graphite', accent: '#8b93a7',
     dark: { bg: '#0d0e10', s1: '#17181b', s2: '#1f2125', line: '#2e3137', tx: '#f2f3f5', tx2: '#b4b8c1', tx3: '#9a9fa9', ok: '#6fd3a8', warn: '#f2c14e', care: '#ff8f8f' },
     light: { bg: '#f6f6f7', s1: '#ffffff', s2: '#ececef', line: '#d9dadf', tx: '#131418', tx2: '#4c4f58', tx3: '#5a5d66', ok: '#11795a', warn: '#8a5a00', care: '#b3261e' } },
+  // 2.8: the Encore skin's theme (picked by Rob for that skin): lavender, sky blue and pink, dark purple text.
+  tour: { name: 'Pastel tour', desc: 'Lavender, sky blue and pink', accent: '#ff8fb1',
+    dark: { bg: '#1c1530', s1: '#261d40', s2: '#30264f', line: '#43376b', tx: '#f7f0ff', tx2: '#cdbfeb', tx3: '#b3a5d6', ok: '#7fe0c0', warn: '#ffd27a', care: '#ff9ab0' },
+    light: { bg: '#f7f0ff', s1: '#ffffff', s2: '#efe4ff', line: '#dccdf5', tx: '#3a2a5c', tx2: '#55447a', tx3: '#5c4b82', ok: '#0e6c50', warn: '#8a5a00', care: '#b3261e' } },
   eternal: { name: 'Eternal Dragon', desc: 'Emerald and wish gold · unlocked by a wish', accent: '#e9c13b', locked: true,
     dark: { bg: '#04120c', s1: '#0a1f16', s2: '#102a1e', line: '#1b4231', tx: '#eafff3', tx2: '#a8d9be', tx3: '#8cc4a6', ok: '#6fe0b0', warn: '#f2c14e', care: '#ff8f8f' },
     light: { bg: '#f1f9f2', s1: '#ffffff', s2: '#e1f2e5', line: '#c3e2cb', tx: '#0a2416', tx2: '#33604a', tx3: '#3f6a54', ok: '#0f7a52', warn: '#7d5200', care: '#b3261e' } },

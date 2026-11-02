@@ -10,11 +10,14 @@ export const SYNONYMS = {
   doughnut: ['doughnut', 'donut'], donut: ['doughnut', 'donut'], chickpeas: ['chickpeas', 'garbanzo'], garbanzo: ['chickpeas', 'garbanzo'],
   shake: ['shake', 'smoothie'], ramen: ['ramen', 'noodles'], tuna: ['tuna'], eggs: ['egg'], spuds: ['potato'], spud: ['potato'],
   sub: ['submarine sandwich', 'sub'], hoagie: ['submarine sandwich'], froyo: ['frozen yogurt'], icecream: ['ice cream'], pbandj: ['peanut butter', 'jelly'],
+  liquidiv: ['liquid i.v.', 'liquid iv'], // the brand writes its name with dots
   // exercises
   pushup: ['push-up', 'push up'], pushups: ['push-up'], pullup: ['pull-up'], pullups: ['pull-up'], chinup: ['chin-up'], situp: ['crunch', 'sit-up'],
   abs: ['core', 'abs'], bicep: ['biceps'], tricep: ['triceps'], quads: ['quads'], glute: ['glutes'], butt: ['glutes'], booty: ['glutes'],
   lats: ['lats'], traps: ['traps'], hammies: ['hamstrings'], hamstring: ['hamstrings'], cardio: ['cardio'], stretch: ['stretch', 'mobility'],
   dumbbell: ['dumbbell'], db: ['dumbbell'], kb: ['kettlebell'], bb: ['barbell'], rdl: ['romanian deadlift'], ohp: ['overhead press'],
+  // gym (2.8); other gym names live with the moves (AKA in moves.js), since these words are shared with food search
+  delts: ['shoulders'], pecs: ['chest'],
 };
 
 // Optimal string alignment distance (Levenshtein plus swapped neighbors), stopping early past max.
@@ -45,10 +48,12 @@ export function vocabulary(texts) {
 }
 
 // The closest real word for a typed one (or the word itself when it's already known).
-export function correct(vocab, w) {
+// With fix off, only plurals are matched: "eggs" finds "egg", but "biscoff" stays "biscoff".
+export function correct(vocab, w, fix = true) {
   if (w.length < 3 || vocab.has(w)) return w;
   if (w.endsWith('s') && vocab.has(w.slice(0, -1))) return w.slice(0, -1);
   if (vocab.has(w + 's')) return w + 's';
+  if (!fix) return w;
   const max = w.length < 5 ? 1 : 2;
   let best = null, bd = max + 1, bc = 0;
   for (const [cand, count] of vocab) {
@@ -61,13 +66,14 @@ export function correct(vocab, w) {
 
 // Turns a typed query into the words to look for: synonyms first, then spelling fixes.
 // Returns { groups: [[alternatives...], ...], fixed: the corrected query or '' when unchanged }.
-export function expand(vocab, q) {
+export function expand(vocab, q, { fix = true } = {}) {
   const typed = words(q.replace(/-/g, ' '));
   const joined = typed.join('');
   const groups = [], shown = [];
   for (const w of SYNONYMS[joined] && typed.length > 1 ? [joined] : typed) {
-    if (SYNONYMS[w]) { groups.push(SYNONYMS[w]); shown.push(w); continue; }
-    const c = correct(vocab, w);
+    // The typed word always counts too, so "mac" finds the Big Mac as well as macaroni.
+    if (SYNONYMS[w]) { groups.push([...new Set([...SYNONYMS[w], w])]); shown.push(w); continue; }
+    const c = correct(vocab, w, fix);
     groups.push(c === w ? [w] : [c, w]); shown.push(c);
   }
   const fixed = shown.join(' ');
@@ -82,4 +88,16 @@ export function complete(vocab, q, n = 5) {
   const head = typed.slice(0, -1).join(' ');
   return [...vocab].filter(([w]) => w.startsWith(last) && w !== last).sort((a, b) => b[1] - a[1]).slice(0, n)
     .map(([w]) => (head ? head + ' ' : '') + w);
+}
+
+// Exact first (2.8): search what was typed (synonyms and plurals only). Only when that finds
+// nothing is a spelling fix tried, and then it's offered, not used: the result is empty with
+// .suggest set to the corrected words, so "biscoff" never quietly turns into "butter".
+export function exactFirst(vocab, q, run) {
+  const out = run(expand(vocab, q, { fix: false }).groups);
+  if (out.length) return out;
+  const { groups, fixed } = expand(vocab, q);
+  const none = [];
+  none.suggest = fixed && run(groups.map(g => [g[0]])).length ? fixed : '';
+  return none;
 }

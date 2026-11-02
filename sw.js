@@ -1,18 +1,18 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.7.0';
+const CACHE_VERSION = '2.8.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './js/app.js', './js/db.js', './js/time.js', './js/crypto.js', './js/ui.js', './js/state.js', './js/validate.js',
-  './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/trend.js', './js/skills.js', './js/milestones.js', './js/homelayout.js', './js/duel.js', './js/figure.js', './js/moves.js', './js/movepicker.js', './js/foods.js', './js/fuzzy.js', './js/scouter.js', './js/saga.js', './js/calendar.js', './js/muscles.js', './js/supplements.js', './data/interactions.json', './data/everyday.json', './js/nutrition.js', './js/scan.js', './js/health.js', './js/version.js',
+  './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/trend.js', './js/skills.js', './js/milestones.js', './js/homelayout.js', './js/duel.js', './js/figure.js', './js/moves.js', './js/movepicker.js', './js/foods.js', './js/fuzzy.js', './js/scouter.js', './js/saga.js', './js/calendar.js', './js/muscles.js', './js/supplements.js', './data/interactions.json', './data/everyday.json', './data/restaurants.json', './js/nutrition.js', './js/scan.js', './js/health.js', './js/skins.js', './js/version.js',
   './icons/apple-touch-icon.png', './icons/favicon-32.png', './icons/favicon-48.png', './icons/favicon-192.png',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
 ];
 
 // The food list and barcode scanner are big and rarely change, so they live in their own
 // cache that survives app updates; bump DATA_VERSION only when tools/build-foods.py runs again.
-const DATA_VERSION = 'foods-2026-10-29';
+const DATA_VERSION = 'foods-2026-11-01';
 const DATA = 'goku-data-' + DATA_VERSION;
 const DATA_FILES = ['./data/foods.json', './vendor/zxing.min.js'];
 // Exercise drawings and the muscle map (2.4), kept across app updates; bump ART_VERSION when they change.

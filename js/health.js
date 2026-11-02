@@ -17,6 +17,8 @@ const kindFor = name => {
   if (/run|jog/.test(n)) return 'run';
   if (/cycl|bike|biking/.test(n)) return 'bike';
   if (/swim/.test(n)) return 'swim';
+  if (/row/.test(n)) return 'row';
+  if (/gymnast/.test(n)) return 'gym';
   if (/walk|hik/.test(n)) return 'hike';
   if (/strength|functional|weight|core|hiit|cross/.test(n)) return 'lift';
   return 'sport';

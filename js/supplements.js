@@ -4,7 +4,7 @@
 import { profile, saveProfile, entries, today } from './state.js';
 import { esc, overlay, guard, toast, ask } from './ui.js';
 import { addDays } from './time.js';
-import { vocabulary, expand, complete, dist, words } from './fuzzy.js';
+import { vocabulary, exactFirst, complete, dist, words } from './fuzzy.js';
 import { isMinor } from './coach.js';
 
 // [name, other names people search for, dose unit, form, NIH fact sheet key or null]. No doses are
@@ -42,11 +42,39 @@ const LIST = [
   ['Ashwagandha', 'withania', 'mg', 'capsule', 'Ashwagandha'],
   ['Valerian', 'valerian root', 'mg', 'capsule', 'Valerian'],
   ['Black cohosh', '', 'mg', 'capsule', 'BlackCohosh'],
-  ['Caffeine', 'pre-workout preworkout', 'mg', 'capsule', 'Caffeine'],
+  ['Caffeine', 'caffeine pills', 'mg', 'capsule', 'Caffeine'],
   ['Ginseng', 'panax', 'mg', 'capsule', 'Ginseng'],
   ['Creatine', 'creatine monohydrate', 'g', 'scoop', null],
-  ['Protein powder', 'whey casein pea protein shake', 'g', 'scoop', null],
-  ['Electrolytes', 'electrolyte salt tablets hydration', '', 'packet', null],
+  ['Protein powder', 'pea plant protein shake', 'g', 'scoop', null],
+  ['Whey protein', 'whey isolate concentrate', 'g', 'scoop', null],
+  ['Casein protein', 'casein micellar', 'g', 'scoop', null],
+  ['Mass gainer', 'weight gainer', 'g', 'scoop', null],
+  ['Pre-workout', 'preworkout pre workout', '', 'scoop', null],
+  ['Electrolytes', 'electrolyte salt tablets hydration lmnt liquid iv nuun', '', 'packet', null],
+  ['Citrulline', 'l-citrulline citrulline malate', 'g', 'scoop', null],
+  ['Beetroot (nitrate)', 'beet beets beet juice beetroot juice nitrate', 'mg', 'shot', null],
+  ['ZMA', 'zinc magnesium aspartate', '', 'capsule', null],
+  ['Greens powder', 'greens superfood ag1 athletic greens', 'g', 'scoop', null],
+  ['L-glutamine', 'glutamine', 'g', 'scoop', null],
+  ['HMB', 'beta-hydroxy beta-methylbutyrate', 'g', 'capsule', null],
+  ['Sodium bicarbonate', 'baking soda bicarb', 'g', 'serving', null],
+  ['Taurine', '', 'mg', 'capsule', null],
+  ['L-theanine', 'theanine', 'mg', 'capsule', null],
+  ['Tart cherry', 'cherry juice montmorency', 'mg', 'capsule', null],
+  ['CoQ10', 'coenzyme q10 ubiquinol ubiquinone', 'mg', 'softgel', null],
+  ['Fiber (psyllium)', 'psyllium metamucil fiber supplement', 'g', 'serving', null],
+  ['Ketones', 'ketone ester exogenous ketones', 'g', 'serving', null],
+  ['St. John\'s wort', 'st johns wort hypericum', 'mg', 'capsule', 'StJohnsWort'],
+  ['Rhodiola', 'rhodiola rosea', 'mg', 'capsule', null],
+  ['Lion\'s mane', 'lions mane mushroom', 'mg', 'capsule', null],
+  ['Spirulina', 'algae chlorella', 'g', 'tablet', null],
+  ['Green tea extract', 'egcg', 'mg', 'capsule', null],
+  ['Garlic', 'garlic extract allicin', 'mg', 'capsule', null],
+  ['Ginkgo', 'ginkgo biloba', 'mg', 'tablet', null],
+  ['Milk thistle', 'silymarin', 'mg', 'capsule', null],
+  ['Flaxseed oil', 'flax flaxseed', 'mg', 'softgel', null],
+  ['CBD', 'cannabidiol', 'mg', 'serving', null],
+  ['Molybdenum', '', 'mcg', 'tablet', 'Molybdenum'],
   ['Beta-alanine', 'beta alanine', 'g', 'scoop', null],
   ['Collagen', 'collagen peptides', 'g', 'scoop', null],
   ['Melatonin', 'sleep', 'mg', 'tablet', null],
@@ -75,12 +103,12 @@ export function amountText(s) {
 let vocab = null;
 const text = s => `${s.name} ${s.alt}`.toLowerCase().replace(/-/g, ' ');
 const suppVocab = () => vocab ||= vocabulary(LIST.map(text));
+// What was typed is searched as typed; a spelling fix ("St. John's whey") is only offered.
 function search(q) {
-  if (!q.trim()) return { list: LIST, fixed: '' };
-  const { groups, fixed } = expand(suppVocab(), q);
-  const list = LIST.filter(s => groups.every(g => g.some(w => text(s).includes(w.replace(/-/g, ' ')))));
+  if (!q.trim()) return { list: LIST, suggest: '' };
+  const list = exactFirst(suppVocab(), q, groups => LIST.filter(s => groups.every(g => g.some(w => text(s).includes(w.replace(/-/g, ' '))))));
   list.sort((a, b) => +b.name.toLowerCase().startsWith(q.trim().toLowerCase()) - +a.name.toLowerCase().startsWith(q.trim().toLowerCase()));
-  return { list, fixed };
+  return { list, suggest: list.suggest || '' };
 }
 
 // ---------- The day's supplements, stored on the day's gut entry ----------
@@ -114,14 +142,15 @@ export function pickSupplement(g, save, recent) {
     <div class="scroll" id="sres"></div>`, { label: 'Add a supplement' });
   const $ = s => el.querySelector(s);
   const draw = () => {
-    const q = $('#sq').value, { list, fixed } = search(q);
-    $('#sfix').textContent = fixed ? `Showing results for “${fixed}”` : '';
+    const q = $('#sq').value, { list, suggest } = search(q);
+    $('#sfix').textContent = q.trim() && !list.length ? `“${q.trim()}” isn't in Goku's list.` : '';
     const mine = q.trim() ? [] : recent, stacks = q.trim() ? [] : profile().settings.stacks || [];
     const typed = q.trim() && !list.some(s => s.name.toLowerCase() === q.trim().toLowerCase()) ? q.trim().slice(0, 40) : '';
     $('#sres').innerHTML = `${stacks.length ? `<p class="lbl">Stacks</p><ul class="list">${stacks.map((st, i) => `<li><button class="itemrow" data-stack="${i}"><span><b>${esc(st.name)}</b><br><span class="chain">${esc(st.items.map(x => x.name).join(', '))}</span></span><span class="sub">Log all</span></button>
         <button class="cta2" data-rmstack="${i}" aria-label="Delete ${esc(st.name)}">×</button></li>`).join('')}</ul>` : ''}
       ${mine.length ? `<p class="lbl">Yours</p><ul class="list">${mine.map((s, i) => `<li><button class="itemrow" data-mine="${i}"><span><b>${esc(s.name)}</b><br><span class="chain">${esc(amountText(s))}</span></span><span class="sub">Add</span></button></li>`).join('')}</ul>` : ''}
       ${list.length ? `${mine.length ? '<p class="lbl" style="margin-top:12px">All</p>' : ''}<ul class="list">${list.map(s => `<li><button class="itemrow" data-name="${esc(s.name)}"><span><b>${esc(s.name)}</b></span></button></li>`).join('')}</ul>` : ''}
+      ${suggest ? `<ul class="list"><li><button class="itemrow" data-sq="${esc(suggest)}"><span>Did you mean <b>${esc(suggest)}</b>?</span></button></li></ul>` : ''}
       ${typed ? `<ul class="list"><li><button class="itemrow" data-custom="${esc(typed)}"><span><b>Add “${esc(typed)}”</b><br><span class="chain">Not in Goku's list. You can still log it.</span></span></button></li></ul>` : ''}`;
   };
   draw();
@@ -129,6 +158,7 @@ export function pickSupplement(g, save, recent) {
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
+    if (b.dataset.sq) { $('#sq').value = b.dataset.sq; $('#sq').focus(); return draw(); }
     if (b.dataset.stack !== undefined) { const st = profile().settings.stacks[+b.dataset.stack]; close(); return save([...suppsOf(g), ...st.items.map(x => ({ ...x }))], `${st.name} logged`); }
     if (b.dataset.rmstack !== undefined) { const pr = profile(), st = pr.settings.stacks[+b.dataset.rmstack];
       if (await ask(`Delete the ${esc(st.name)} stack?`, 'Days you already logged keep their supplements.', [{ label: 'Delete', value: true, danger: true }])) { pr.settings.stacks.splice(+b.dataset.rmstack, 1); await saveProfile(pr); draw(); } return; }
@@ -197,6 +227,19 @@ export async function bindSupps(root, g, write, recent) {
 // ---------- Interactions ----------
 let data = null;
 const loadData = () => data ||= fetch('data/interactions.json').then(r => { if (!r.ok) throw new Error(); return r.json(); }).catch(e => { data = null; throw e; });
+// Common US medicines (generic and brand names) that no paragraph in Goku's NIH text names. They
+// count as recognized: they were checked, and nothing was found, rather than "not recognized".
+const KNOWN_MEDS = new Set(`acetaminophen tylenol ibuprofen advil motrin naproxen aleve aspirin celecoxib celebrex meloxicam mobic diclofenac
+  cetirizine zyrtec loratadine claritin fexofenadine allegra diphenhydramine benadryl montelukast singulair fluticasone flonase budesonide albuterol
+  ventolin proair symbicort advair adderall amphetamine dextroamphetamine vyvanse lisdexamfetamine methylphenidate ritalin concerta focalin atomoxetine strattera
+  guanfacine intuniv clonidine hydroxyzine buspirone gabapentin neurontin pregabalin lyrica quetiapine seroquel aripiprazole abilify risperidone risperdal
+  olanzapine zyprexa lamotrigine lamictal topiramate topamax oxcarbazepine trileptal tamsulosin flomax finasteride propecia sildenafil viagra tadalafil cialis
+  oxycodone hydrocodone norco percocet codeine morphine cyclobenzaprine flexeril methocarbamol tizanidine ondansetron zofran promethazine meclizine
+  loperamide imodium bismuth pepto docusate miralax polyethylene glycol senna allopurinol colchicine hydroxychloroquine plaquenil adalimumab humira
+  etanercept enbrel isotretinoin accutane tretinoin spironolactone valacyclovir valtrex acyclovir oseltamivir tamiflu fluconazole diflucan
+  nitroglycerin isosorbide hydralazine losartan ezetimibe zetia fenofibrate gemfibrozil estradiol progesterone medroxyprogesterone testosterone
+  sumatriptan prednisone epinephrine epipen glucagon`.split(/\s+/));
+
 const norm = s => String(s).toLowerCase().replace(/[®™]/g, '').replace(/[^a-z0-9' -]+/g, ' ').replace(/\s+/g, ' ').trim();
 // A medicine matches a section when it names one of its medicines, or is a near spelling of one.
 function hits(med, tags) {
@@ -225,7 +268,8 @@ export async function checkInteractions(p = profile()) {
   const hitHTML = (name, other, x, sheet) => { const sp = spacing(x);
     return `<div class="hit"><p><b>${esc(name)}</b> and <b>${esc(other)}</b></p>${sp ? `<p class="space">${esc(sp)}</p>` : ''}
       <details><summary>What NIH says${x.h ? ` about ${esc(x.h.toLowerCase())}` : ''}</summary>${x.t.map(s => `<p>${esc(s)}</p>`).join('')}
-      <p class="note">${x.own ? 'Heading added by Goku. ' : ''}NIH Office of Dietary Supplements, ${sheet.src === 'Consumer' ? '' : 'health professional '}fact sheet updated ${esc(sheet.d)}. <a href="${odsUrl(sheet.slug, sheet.src)}" target="_blank" rel="noopener">Read it</a></p></details></div>`; };
+      <p class="note">${x.own ? 'Heading added by Goku. ' : ''}${sheet.src === 'NCCIH' ? `NIH National Center for Complementary and Integrative Health, page updated ${esc(sheet.d)}.`
+        : `NIH Office of Dietary Supplements, ${sheet.src === 'Consumer' ? '' : 'health professional '}fact sheet updated ${esc(sheet.d)}.`} <a href="${sheet.url || odsUrl(sheet.slug, sheet.src)}" target="_blank" rel="noopener">Read it</a></p></details></div>`; };
   const draw = () => {
     const meds = p.settings.meds, list = [...new Set([...logged, ...considering])];
     const hitsList = [], clear = [], noText = [];
@@ -236,7 +280,7 @@ export async function checkInteractions(p = profile()) {
         ...(x.s || []).filter(sn => list.some(n => byName(n)?.name === sn)).map(sn => [sn, x])]);
       if (found.length) hitsList.push(...found.map(([other, x]) => hitHTML(name, other, x, sheet))); else clear.push(name);
     }
-    const unknownMeds = meds.filter(med => !allItems.some(x => hits(med, x.m)));
+    const unknownMeds = meds.filter(med => !KNOWN_MEDS.has(norm(med)) && !allItems.some(x => hits(med, x.m)));
     el.querySelector('#ib').innerHTML = `
       <p class="lbl">Your medicines</p>
       <div class="pills">${meds.map((m, i) => `<button data-rmmed="${i}" aria-label="Remove ${esc(m)}">${esc(m)} ×</button>`).join('')}</div>

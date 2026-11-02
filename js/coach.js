@@ -4,6 +4,7 @@
 import { esc, overlay, round, toast } from './ui.js';
 import { weight, weightUnit, toLb, length, lengthUnit, toIn } from './units.js';
 import { dayKey, deviceTZ, validTZ, daysBetween } from './time.js';
+import { EQUIP, GEAR } from './moves.js';
 
 const VOICE = '<p class="voice">You can tap the mic on your keyboard to talk instead of typing.</p>';
 const yearNow = () => new Date().getFullYear();
@@ -17,7 +18,9 @@ export const GOALS = {
   perf: [['skills', 'Learn new skills'], ['strength', 'Stronger for my skills'], ['flex', 'More flexible'],
     ['compete', 'Compete well'], ['healthy', 'Stay healthy and injury-free'], ['fun', 'Have fun']],
 };
-export const EQUIPMENT = [['db', 'Dumbbells'], ['trx', 'Suspension trainer (TRX)'], ['bar', 'Pull-up bar, rings or playset']];
+// Every kind of gear the exercise catalog uses (2.8), with the original three's wording kept.
+const OWN = { bar: 'Pull-up bar, rings or playset' };
+export const EQUIPMENT = GEAR.map(k => [k, OWN[k] || EQUIP.find(e => e[0] === k)[1]]);
 export const ALLERGIES = [['dairy', 'Dairy'], ['gluten', 'Gluten'], ['peanuts', 'Peanuts'], ['nuts', 'Tree nuts'], ['eggs', 'Eggs'], ['soy', 'Soy'], ['fish', 'Fish'], ['shellfish', 'Shellfish']];
 const TZS = ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Phoenix', 'America/Los_Angeles', 'America/Anchorage',
   'Pacific/Honolulu', 'America/Toronto', 'America/Vancouver', 'America/Mexico_City', 'Europe/London', 'Europe/Paris', 'Europe/Berlin',
@@ -260,7 +263,7 @@ export function bindCoach(root, p, ctx, save) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'coachSkip') { markAsked(q, p); countAnswerToday(p); return save(p); }
     if (b.id === 'coachSave') {
-      const err = questionRead(q, draft, card);
+      const err = questionRead(q, draft, card) || ((q.type === 'choice' || q.type === 'yesno') && q.key && draft.about[q.key] == null ? 'Pick one, or tap Skip.' : '');
       if (err) { card.querySelector('.msg').textContent = err; return; }
       if (q.type === 'multi') draft.about[q.key] ||= [];
       Object.assign(p, { about: draft.about, units: draft.units, tz: draft.tz });

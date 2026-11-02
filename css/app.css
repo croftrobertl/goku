@@ -133,6 +133,10 @@ sup { font-size: .65em; color: var(--tx3); }
   border: 1px solid var(--line); margin: 12px 0; user-select: none; -webkit-user-select: none; touch-action: manipulation; min-height: 240px; }
 .tap > span { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .tap .reps { font-size: 7rem; font-weight: 600; line-height: 1; }
+/* Weight for the stage (2.8), always under the rep counter during a set */
+.wrow { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
+.wrow .cta2 { width: 52px; min-height: 44px; font-size: 1.3rem; padding: 0; }
+.wrow b { min-width: 110px; text-align: center; font-size: 1.1rem; }
 .tap.bump .reps { color: var(--accent-text); }
 .tap.resting { background: var(--s2); cursor: default; }
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 8px 0 12px; }
@@ -155,6 +159,7 @@ sup { font-size: .65em; color: var(--tx3); }
 .toggle input { width: 28px; min-height: 28px; height: 28px; accent-color: var(--accent-line); flex: none; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--dock-h) + 16px); z-index: 40;
   background: var(--tx); color: var(--bg); border-radius: 12px; padding: 10px 16px; font-size: .9rem; max-width: 90vw; }
+.toast button { margin-left: 12px; background: none; border: 0; color: inherit; font: inherit; font-weight: 800; text-decoration: underline; padding: 6px 4px; min-height: 0; }
 .empty { text-align: center; padding: 24px 8px; color: var(--tx2); }
 .empty h2, .empty h1 { color: var(--tx); }
 .empty .cta2 { margin-top: 12px; }
@@ -277,7 +282,7 @@ details.grp { margin: 8px 0 0; } details.grp .list { margin-top: 4px; }
 
 /* ===== Manga panel look (2.0): ink outlines, hard offset shadows, bold flat color. =====
    --ink is set with the theme in js/ui.js (near-black in light mode, warm off-white in dark). */
-:root { --ink: #141414; --shade: #141414; --pop: 4px; }
+:root { --ink: var(--ink-manga, #141414); --shade: var(--shade-manga, #141414); --pop: 4px; } /* skins (end of file) can swap these */
 .num { font-family: inherit; font-weight: 700; font-variant-numeric: tabular-nums; }
 h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -.01em; }
 h2 { font-size: 1.15rem; font-weight: 800; }
@@ -547,6 +552,8 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .poster { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 4px; padding: 10px 12px; border: 2px dashed var(--accent-line); border-radius: 12px; background: var(--s2); }
 .poster .wanted { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
 .poster b { font-size: 18px; line-height: 1.25; }
+.saga .arc .poster { color: var(--tx); } /* the poster has its own surface, so it can't inherit the orange arc's dark text */
+.saga .arc .poster .sub { color: var(--tx2); }
 .poster .hp { height: 10px; border-radius: 6px; border: 1.5px solid var(--ink, var(--line)); overflow: hidden; background: var(--s1); }
 .poster .hp i { display: block; height: 100%; background: var(--care); transition: width .4s ease; }
 .poster.won { border-style: solid; }
@@ -700,3 +707,19 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 /* 2.7 Settings: the accent color lives inside the theme */
 .tcustom { margin-top: 12px; }
 .tcustom > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent-text); font-weight: 600; }
+
+/* ===== Skins (2.8): the same screens with a different shell. Dragon Ball is the manga look above. ===== */
+/* Encore: rounded "stage" cards with a soft pink lift instead of hard ink panels. */
+[data-skin="encore"] { --ink: var(--accent-line); --shade: var(--accent); --pop: 3px; }
+[data-skin="encore"] .card { border-width: 2px; border-radius: 22px; }
+[data-skin="encore"] .cta, [data-skin="encore"] .cta2 { border-radius: 999px; }
+[data-skin="encore"] .cd.tr { background: #ffb3c7; border-color: #3a2a5c; }
+[data-skin="encore"] .saga .arc.now { background: #9fd6ff; }
+[data-skin="encore"] .saga .arc.next { background: #ffb3c7; }
+/* Plain: thin lines, no offset shadows, no comic outlines. */
+[data-skin="plain"] { --ink: var(--line); --shade: transparent; --pop: 0px; }
+[data-skin="plain"] .card { border-width: 1px; border-radius: 14px; box-shadow: none; }
+[data-skin="plain"] .cta, [data-skin="plain"] .cta2 { border-width: 1px; box-shadow: none; }
+[data-skin="plain"] .cd.tr { background: var(--accent); border-color: var(--line); box-shadow: none; }
+[data-skin="plain"] .saga .arc.now, [data-skin="plain"] .saga .arc.next { background: var(--s2); color: var(--tx); }
+[data-skin="plain"] .saga .arc h2, [data-skin="plain"] .saga .arc .link { color: var(--tx); }

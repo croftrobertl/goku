@@ -3,6 +3,7 @@
 //   Training  up to 4,000: training days against your weekly goal
 //   Fuel      up to 2,500: days your protein goal was met (or days with food logged)
 //   Recovery  up to 2,500: average readiness (gymnastics), or days you showed up (strength)
+import { w, W } from './skins.js';
 import { addDays } from './time.js';
 import { dayProtein, proteinGoal } from './nutrition.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
@@ -33,7 +34,7 @@ export function powerLevel(p, all, today) {
 const tier = n => n >= 8000 ? 'Over 8,000' : n >= 6000 ? 'Elite' : n >= 4000 ? 'Strong' : n >= 2000 ? 'Rising' : 'Warming up';
 
 // The gauge card. extra = HTML shown inside (readiness for gymnastics).
-export function scouterCard(p, all, today, { extra = '', title = 'Scouter' } = {}) {
+export function scouterCard(p, all, today, { extra = '', title = W('scouter') } = {}) {
   const pl = powerLevel(p, all, today);
   const R = 92, C = 2 * Math.PI * R, pct = pl.total / MAX_POWER;
   const ticks = Array.from({ length: 36 }, (_, i) => { const a = i * 10 * Math.PI / 180, r1 = 104, r2 = i % 3 ? 108 : 113;
@@ -42,13 +43,13 @@ export function scouterCard(p, all, today, { extra = '', title = 'Scouter' } = {
   return `<section class="card scouter compact" aria-labelledby="h-scouter">
     <div class="row"><p class="lbl" id="h-scouter" style="margin:0">${esc(title)}</p><span class="scan">Reading</span></div>
     ${extra}
-    <details class="scdet"><summary><span class="sm">Power level</span> <b class="num">${pl.total.toLocaleString('en-US')}</b> <span class="sm">${tier(pl.total)}</span>
+    <details class="scdet"><summary><span class="sm">${esc(W('power'))}</span> <b class="num">${pl.total.toLocaleString('en-US')}</b> <span class="sm">${tier(pl.total)}</span>
       <span class="minibar" aria-hidden="true"><i style="width:${Math.round(pct * 100)}%"></i></span></summary>
-    <div class="gauge" role="img" aria-label="Power level ${pl.total.toLocaleString('en-US')} of ${MAX_POWER.toLocaleString('en-US')}, ${tier(pl.total)}">
+    <div class="gauge" role="img" aria-label="${esc(W('power'))} ${pl.total.toLocaleString('en-US')} of ${MAX_POWER.toLocaleString('en-US')}, ${tier(pl.total)}">
       <svg viewBox="0 0 240 240" aria-hidden="true"><g class="tick">${ticks}</g>
         <circle cx="120" cy="120" r="${R}" class="track"/>
         <circle cx="120" cy="120" r="${R}" class="fill" stroke-dasharray="${(C * pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 120 120)"/></svg>
-      <div class="read"><span class="sm">Power level</span><b class="num">${pl.total.toLocaleString('en-US')}</b><span class="sm">${tier(pl.total)}</span></div>
+      <div class="read"><span class="sm">${esc(W('power'))}</span><b class="num">${pl.total.toLocaleString('en-US')}</b><span class="sm">${tier(pl.total)}</span></div>
     </div>
     <ul class="list scl">
       <li><span>Training · ${pl.trained} of ${pl.goalDays} days</span><b class="num">${pl.training.toLocaleString('en-US')}</b></li>

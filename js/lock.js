@@ -1,4 +1,5 @@
 // Passcode lock screen. Lock-screen only (data itself is not encrypted).
+import { setSkin, skinOf } from './skins.js';
 import { S, saveProfile } from './state.js';
 import { hashPin, checkPin } from './crypto.js';
 import { overlay, esc, ask, setAccent, setTheme, announce } from './ui.js';
@@ -28,7 +29,7 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
     const verifying = m === 'verify';
     if (verifying) m = 'unlock';
     let entry = '', first = '';
-    setTheme(p.settings?.theme, p.settings?.mode);
+    setTheme(p.settings?.theme, p.settings?.mode); setSkin(skinOf(p));
     setAccent(p.accent);
     const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'Delete'];
     const { el, close } = overlay(`

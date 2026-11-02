@@ -2,6 +2,7 @@
 // emblem in that character's signature color with a kanji that fits them, labeled with their
 // name. A fighter is only the avatar; the app's colors come from the theme.
 // A photo the person picks is resized here and stored only on this phone.
+import { skin } from './skins.js';
 import { esc } from './ui.js';
 
 // [id, name, emblem color, kanji]
@@ -20,6 +21,20 @@ export const AURAS = [
   ['majin', 'Majin pink', '#ff6fb0'], ['destroyer', 'Destroyer purple', '#a86bff'], ['kaio', 'Crimson', '#ff5a4a'],
 ];
 
+// Friendship-bracelet initials (2.8, the Encore skin's avatars): two letter beads on a colored cord.
+export const BRACELETS = [['pink', 'Pink', '#ffb3c7'], ['sky', 'Sky', '#9fd6ff'], ['lilac', 'Lilac', '#c9b3ff'], ['mint', 'Mint', '#a8e6cf'],
+  ['peach', 'Peach', '#ffcfa3'], ['butter', 'Butter', '#ffe58f']];
+const bracelet = (color, letters, px) => {
+  const ls = [...letters.toUpperCase()].slice(0, 2), x0 = ls.length > 1 ? 9.5 : 15;
+  return `<svg viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
+    <circle cx="20" cy="20" r="18" fill="${color}" stroke="#3a2a5c" stroke-width="2"/>
+    <path d="M4 22 Q20 30 36 22" fill="none" stroke="#3a2a5c" stroke-width="1.6"/>
+    <circle cx="6.5" cy="22.8" r="2.2" fill="#fff" stroke="#3a2a5c" stroke-width="1"/><circle cx="33.5" cy="22.8" r="2.2" fill="#fff" stroke="#3a2a5c" stroke-width="1"/>
+    ${ls.map((l, i) => `<rect x="${x0 + i * 11}" y="13" width="10" height="11" rx="2.5" fill="#fff" stroke="#3a2a5c" stroke-width="1.4"/>
+    <text x="${x0 + 5 + i * 11}" y="21.6" text-anchor="middle" font-size="8" font-weight="800" fill="#3a2a5c" font-family="system-ui, sans-serif">${esc(l)}</text>`).join('')}</svg>`;
+};
+const initials = name => { const parts = String(name || '?').trim().split(/\s+/); return parts.length > 1 ? parts[0][0] + parts[1][0] : String(name || '?').slice(0, 2); };
+
 // An inked emblem: a colored ring, a white center and the kanji.
 const emblem = (fill, kanji, px) => `<svg viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
     <circle cx="20" cy="20" r="18" fill="${fill}" stroke="#141414" stroke-width="2.5"/><circle cx="20" cy="20" r="11.5" fill="#fff" stroke="#141414" stroke-width="1.5"/>
@@ -31,6 +46,8 @@ export function avatarHTML(p, px = 36) {
   const a = p.avatar || {};
   const c = a.type === 'char' && CHARACTERS.find(x => x[0] === a.id);
   if (c) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(c[1])}">${emblem(c[2], c[3], px)}</span>`;
+  const bead = a.type === 'beads' && BRACELETS.find(x => x[0] === a.id);
+  if (bead) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(bead[1])} bracelet">${bracelet(bead[2], initials(p.name), px)}</span>`;
   if (a.type === 'photo' && /^data:image\/(jpeg|png|webp);base64,/.test(a.img || ''))
     return `<span class="av av-art" style="width:${px}px;height:${px}px"><img src="${a.img}" alt="" width="${px}" height="${px}"></span>`;
   const aura = a.type === 'aura' && AURAS.find(x => x[0] === a.id);
@@ -43,6 +60,7 @@ export const avatarName = p => {
   const a = p.avatar || {};
   if (a.type === 'char') return CHARACTERS.find(x => x[0] === a.id)?.[1] || '';
   if (a.type === 'aura') return AURAS.find(x => x[0] === a.id)?.[1] || '';
+  if (a.type === 'beads') return (BRACELETS.find(x => x[0] === a.id)?.[1] || '') + ' bracelet';
   return a.type === 'photo' ? 'Your photo' : 'Your initial';
 };
 
@@ -51,10 +69,16 @@ export function avatarPicker(p) {
   const cur = p.avatar || { type: 'initial' };
   const on = (t, id) => cur.type === t && (id === undefined || cur.id === id);
   const self = { ...p, avatar: null };
-  return `<p class="sub">Pick a fighter, a power-up aura, or your own photo. Character names are labels only; the emblems are original drawings, not official art. Your colors stay with your theme.</p>
-    <p class="lbl" style="margin-top:12px">Fighters</p>
+  const fighters = `<p class="lbl" style="margin-top:12px">Fighters</p>
     <div class="avgrid">${CHARACTERS.map(([id, name]) => `<button data-avatar="char:${id}" aria-pressed="${on('char', id)}">
-      ${avatarHTML({ ...p, avatar: { type: 'char', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>
+      ${avatarHTML({ ...p, avatar: { type: 'char', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
+  const bracelets = `<p class="lbl" style="margin-top:12px">Bracelets</p>
+    <div class="avgrid">${BRACELETS.map(([id, name]) => `<button data-avatar="beads:${id}" aria-pressed="${on('beads', id)}">
+      ${avatarHTML({ ...p, avatar: { type: 'beads', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
+  // The skin's own set comes first (2.8); every set stays available.
+  const first = skin().avatars === 'bracelets';
+  return `<p class="sub">Pick an avatar, an aura, or your own photo. Character names are labels only; every drawing is original, not official art. Your colors stay with your theme.</p>
+    ${first ? bracelets + fighters : fighters + bracelets}
     <p class="lbl" style="margin-top:12px">Auras</p>
     <div class="avgrid">
       <button data-avatar="initial:" aria-pressed="${on('initial')}">${avatarHTML(self, 44)}<span>Plain</span></button>

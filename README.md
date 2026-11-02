@@ -32,6 +32,21 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.8.0:* skins. Each profile picks a skin in Settings: Dragon Ball, Encore (an original pop-tour
+  look: Spotlight, Tour, rain checks, Take the stage, bead-bracelet avatars, a mic buddy in setup and
+  the Pastel tour theme) or Plain. Features are the same in every skin. Search finds exactly what
+  you typed and only offers a spelling fix ("Did you mean banana?"); it never swaps the word. The
+  food list has 125,000 foods (the hand-picked brands plus the 1,700 biggest US brands in USDA's
+  data, sports fuel included) and 465 items from 18 restaurant chains, each credited to the chain's
+  own nutrition page and date. 60 gym moves with drawings (machines, cables, cardio machines, sled,
+  ropes), and setup asks about every kind of gear, with Full gym. 30 more supplements, St. John's
+  wort interaction text from NIH's NCCIH, and about 150 common medicines recognized. Workouts show
+  a weight row under the rep counter; Edit session has weight boxes. Log activity adds Rowing,
+  Gymnastics, Lifting, distance and a name for Other sport. A logged food can move to another meal
+  or day, and Remove has Undo. Fixes: the Nutrition day no longer carries over between profiles,
+  the custom exercise editor no longer breaks after a blank stage, fuel counts the minutes actually
+  trained, Quick add and labels refuse impossible numbers, fast water taps all count, a quick second
+  tap no longer lands under a closed sheet, and switching profiles opens on Home.
 - *2.7.0:* the Ki gauge is an aura orb (an ember at 0%, aura rings fill to 100%, rays at 100%).
   Library rows show each exercise's drawing (or muscle map); tap one for how-to with Edit inside.
   History marks training days as Dragon Balls, rest days as rings. Nutrition's calorie panel holds
@@ -477,6 +492,7 @@ js/movepicker.js       Library search, ? popups, adding exercises
 js/foods.js            the offline food list: loading, search, servings
 js/fuzzy.js            spelling fixes, synonyms and suggestions for food and exercise search
 js/scouter.js          the Scouter gauge and power level
+js/skins.js            skins: Dragon Ball, Encore and Plain words, avatars, mascot and card style
 js/saga.js             the Saga map: arcs, poster bosses and the Arc cleared screen
 js/calendar.js         the History training calendar
 js/muscles.js          muscles each exercise works, the muscle map, and which drawing goes with which exercise
@@ -486,7 +502,8 @@ img/                   exercise drawings and the muscle map (credits in img/CRED
 data/everyday.json     160 everyday foods (built by tools/build-everyday.py)
 js/nutrition.js        the Nutrition tab, adding foods, meals, labels, symptoms
 js/scan.js             barcode scanner
-data/foods.json        32,906 foods (built by tools/build-foods.py)
+data/foods.json        124,697 foods (built by tools/build-foods.py)
+data/restaurants.json  465 restaurant items from 18 chains (tools/build-restaurants.py, tools/src/restaurants.json)
 vendor/zxing.min.js    ZXing barcode reader (Apache-2.0, see ZXING-LICENSE.txt)
 tools/figures.html     dev page: every exercise's two drawings (open at 127.0.0.1)
 js/health.js           Scouter link: Health file import

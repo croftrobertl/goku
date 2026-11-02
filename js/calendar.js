@@ -1,6 +1,7 @@
 // Training calendar (2.3): a month grid in History. Each day shows what happened:
 // trained, rest, something else logged, a new record (engine) or skill stage (gymnastics),
 // and the days a Senzu bean saved the streak.
+import { w, W } from './skins.js';
 import { esc } from './ui.js';
 import { addDays, weekStart, prettyDay } from './time.js';
 import { streak } from './insights.js';
@@ -34,7 +35,7 @@ function states(p, all, t, skills) {
 }
 
 const words = (st, kind) => [st.has('train') && 'trained', st.has('rest') && !st.has('train') && 'rest day', st.has('log') && !st.has('train') && 'logged',
-  st.has('rec') && (kind === 'perf' ? 'skill stage' : 'new record'), st.has('bean') && 'saved by a Senzu bean'].filter(Boolean);
+  st.has('rec') && (kind === 'perf' ? 'skill stage' : 'new record'), st.has('bean') && w('savedBy')].filter(Boolean);
 
 function grid(p, by, t) {
   const ym = shown, first = ym + '-01', start = weekStart(first);
@@ -58,7 +59,7 @@ export function calendarCard(p, all, t, skills = []) {
   if (!shown || shown > t.slice(0, 7)) shown = t.slice(0, 7);
   const by = states(p, all, t, skills);
   return `<section class="card cal" id="cal" data-t="${t}">${grid(p, by, t)}
-    <p class="calkey sub" aria-hidden="true"><span class="cd tr"></span>trained <span class="cd rs"></span>rest <span class="cd lg"></span>logged <span class="reck">★</span>${p.kind === 'perf' ? 'skill stage' : 'record'} <span class="cd bn"><i class="bean"></i></span>Senzu save</p></section>`;
+    <p class="calkey sub" aria-hidden="true"><span class="cd tr"></span>trained <span class="cd rs"></span>rest <span class="cd lg"></span>logged <span class="reck">★</span>${p.kind === 'perf' ? 'skill stage' : 'record'} <span class="cd bn"><i class="bean"></i></span>${W('beanSave')}</p></section>`;
 }
 
 export function bindCalendar(root, p, all, t, skills = []) {

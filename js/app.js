@@ -1,4 +1,5 @@
 // Boot, routing, profile switching, the update bar.
+import { w, W, setSkin, skinOf } from './skins.js';
 import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, kindLabel } from './state.js';
 import * as db from './db.js';
 import { showLock, isUnlocked, watchRelock } from './lock.js';
@@ -10,15 +11,16 @@ import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback } from '.
 
 // One word under the center button: "Enter chamber" → Train, "Check in · 30 s" → Check in.
 const SHORT = { 'Enter chamber': 'Train', 'Log a session': 'Log', 'Add exercise': 'Add', 'Add a skill': 'Add', 'Add food': 'Add' };
-const shortLabel = s => s ? (SHORT[s] || s.split(' · ')[0]) : '';
+const shortLabel = s => s ? (s === W('enter') ? 'Train' : SHORT[s] || s.split(' · ')[0]) : ''; // the skin's "Enter the chamber" is Train too
 
 // The Ki menu: the screen's own action plus quick logs, fanned out above the center button.
 async function kiMenu(p, action, scr) {
   db.setMeta('kiHint', true); document.querySelector('.kihint')?.remove();
   const main = scr.mainAction ? await scr.mainAction() : null;
   const items = [];
-  if (action) items.push([shortLabel(action[0]) === 'Ki' ? action[0] : action[0], ICON.bolt, action[1]]);
-  if (main && (!action || main[0] !== action[0])) items.push([main[0], ICON.bolt, main[1]]);
+  if (action) items.push([action[0], ICON.bolt, action[1]]);
+  // The screen's own action and the main one can be the same thing (Home's circuit); it's listed once.
+  if (main && (!action || ![action[0], shortLabel(action[0])].includes(main[0]))) items.push([main[0], ICON.bolt, main[1]]);
   if (p.modules?.nutrition !== false) {
     items.push(['Log food', ICON.nutrition, () => { go('nutrition'); addFood(nowMeal(), today()); }]);
     items.push(['Water', ICON.water, async () => { await quickWater(p); toast('Glass of water logged'); render(); }]);
@@ -78,7 +80,7 @@ import { setHomeView, homeView } from './homelayout.js';
 // The Saga screen (2.5) is Home's game cards on a page of their own, reached from the status strip.
 const sagaOf = home => async () => {
   const was = homeView(); setHomeView('saga');
-  try { const v = await home(); return { ...v, cta: null, html: `<div class="row"><h1 style="margin:0">Saga</h1><button class="cta2" data-tab="home">Back to Home</button></div>${v.html}` }; }
+  try { const v = await home(); return { ...v, cta: null, html: `<div class="row"><h1 style="margin:0">${esc(W('saga'))}</h1><button class="cta2" data-tab="home">Back to Home</button></div>${v.html}` }; }
   finally { setHomeView(was === 'saga' ? 'today' : was); }
 };
 const SCREENS = {
@@ -120,6 +122,7 @@ async function draw() {
   if (!p) return;
   setTheme(p.settings.theme, p.settings.mode);
   setAccent(p.accent);
+  setSkin(skinOf(p));
   setFeedback(p);
   const scr = SCREENS[p.kind];
   const charged = await poweredUp(p).catch(() => false);
@@ -139,7 +142,7 @@ async function draw() {
       <span class="row" style="gap:8px"><button class="cta2" id="updLater">Later</button><button class="cta" id="updNow" style="width:auto;min-height:44px;padding:0 16px">Update</button></span></div>` : ''}
     <header class="top">
       <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch profile' : 'Add a profile'}">
-        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${avatarHTML(p, 36)}</span><span class="chipname">${esc(p.name)}${p.coach?.wish === 'title' ? '<small class="wtitle">Dragon Ball master</small>' : ''}</span><span class="sub" aria-hidden="true">⇄</span></button>
+        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${avatarHTML(p, 36)}</span><span class="chipname">${esc(p.name)}${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">⇄</span></button>
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}</main>`;
@@ -155,7 +158,7 @@ async function draw() {
   $('#dock').innerHTML = `<div class="dock-in">
     <div class="brand" aria-hidden="true"><img src="icons/favicon-48.png" alt="" width="28" height="28"><span>Goku</span></div>
     <nav class="tabs" aria-label="Sections">${main.slice(0, 2).map(t => tabBtn(t)).join('')}
-      <button class="tb center" id="cta" aria-label="Quick actions${action ? ': ' + esc(action[0]) + ' and more' : ''}" aria-haspopup="dialog"><span class="ki-btn">${ICON.bolt}</span><span>${esc(shortLabel(action?.[0]) || 'Ki')}</span></button>
+      <button class="tb center" id="cta" aria-label="Quick actions${action ? ': ' + esc(action[0]) + ' and more' : ''}" aria-haspopup="dialog"><span class="ki-btn">${ICON.bolt}</span><span>${esc(shortLabel(action?.[0]) || w('ki'))}</span></button>
       ${main.slice(2).map(t => tabBtn(t)).join('')}
       ${more.map(t => tabBtn(t, 'more-item')).join('')}
       ${more.length ? `<button class="tb more-btn" id="moreTabs" ${inMore ? 'aria-current="page"' : ''} aria-label="More: ${esc(more.map(m => m[1]).join(', '))}">${ICON.more}<span>More</span></button>` : ''}</nav></div>`;
@@ -171,6 +174,7 @@ async function draw() {
 }
 
 async function open(id) {
+  if (S.current !== id) tabs[id] = 'home'; // opening someone else's profile starts on their Home
   S.current = id;
   const p = profile();
   await db.setMeta('lastProfile', id);
