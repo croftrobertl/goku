@@ -122,8 +122,10 @@ export function setAccent(accent) {
   root.setProperty('color-scheme', dark ? 'dark' : 'light');
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', pal.bg);
   const bg = pal.s1;
+  // Link text is checked against every surface it can sit on (2.8.2): the page, cards and panels.
+  const surfaces = [pal.bg, pal.s1, pal.s2].filter(Boolean);
   let text = hex(accent);
-  for (let t = 0; t <= 1 && contrast(toHex(text), bg) < 4.5; t += 0.05) text = mix(hex(accent), dark ? [255, 255, 255] : [0, 0, 0], t);
+  for (let t = 0; t <= 1 && surfaces.some(b => contrast(toHex(text), b) < 4.5); t += 0.05) text = mix(hex(accent), dark ? [255, 255, 255] : [0, 0, 0], t);
   // Lines, rings, bars and selection outlines carry meaning without text, so they get their own
   // shade at 3:1 or more on the cards (the accessibility minimum for graphics).
   let line = hex(accent);

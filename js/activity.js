@@ -18,6 +18,15 @@ export const activityName = (k, name) => name || ACTIVITIES.find(a => a[0] === k
 const DISTANCE = ['run', 'bike', 'swim', 'row'];
 const distUnits = (kind, p) => kind === 'row' ? 'm' : kind === 'swim' ? (metric(p) ? 'm' : 'yd') : metric(p) ? 'km' : 'mi'; // rowing machines count meters everywhere
 const distText = d => d.dist ? ` · ${d.dist} ${d.distUnit}` : '';
+// Pace (2.8.2), worked out as you type: runs per mile or km, rows per 500 m, rides in mph or km/h, swims per 100 yd or m.
+const mmss = min => { const t = Math.round(min * 60); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+export function paceText(kind, minutes, dist, unit) {
+  if (!(minutes > 0 && dist > 0)) return '';
+  if (kind === 'bike') return `${Math.round(dist / (minutes / 60) * 10) / 10} ${unit === 'km' ? 'km/h' : 'mph'}`;
+  if (kind === 'row') return `${mmss(minutes / (dist / 500))} per 500 m`;
+  if (kind === 'swim') return `${mmss(minutes / (dist / 100))} per 100 ${unit}`;
+  return `${mmss(minutes / dist)} per ${unit === 'km' ? 'km' : 'mile'}`;
+}
 export const activityGroups = k => ACTIVITIES.find(a => a[0] === k)?.[2] || [];
 
 export async function activitiesOn(day) { return (await entries('activity')).filter(e => e.day === day); }
@@ -32,13 +41,18 @@ export function activityRows(list, { edit = true } = {}) {
 export function logActivity(existing = null, onDone = () => window.goku.render()) {
   // A Custom profile starts on its own sport; everyone else on soccer, the original pack.
   const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'sport', martial: 'sport', gymnastics: 'gym', yoga: 'other' };
-  const first = profile().custom?.sports?.map(x => own[x]).find(Boolean);
+  // A Gymnastics profile starts on Gymnastics (2.8.2).
+  const first = profile().kind === 'perf' && !profile().custom ? 'gym' : profile().custom?.sports?.map(x => own[x]).find(Boolean);
   const d = existing ? structuredClone(existing.data) : { kind: first || 'soccer', minutes: 60, effort: 6 };
   let day = existing?.day || today();
   const { el, close } = overlay(`<div class="row"><h1>${existing ? 'Edit activity' : 'Log activity'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="f"></div>
     <button class="cta" id="save">Save</button>
     ${existing ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete</button>' : ''}`, { label: 'Log activity' });
+  const distShown = () => d.distTyped !== undefined ? d.distTyped : d.dist && d.distUnit === distUnits(d.kind, profile()) ? String(d.dist) : '';
+  const pace = () => { const u = distUnits(d.kind, profile()), t = paceText(d.kind, d.minutes, +String(distShown()).replace(',', '.'), u);
+    return t ? `<b class="num">${esc(t)}</b> <span class="sub">· from ${esc(d.minutes)} min and ${esc(distShown())} ${u}</span>` : ''; };
+  const showPace = () => { const el2 = el.querySelector('#pace'); if (!el2) return; const t = pace(); el2.innerHTML = t; el2.hidden = !t; };
   const draw = () => {
     el.querySelector('#f').innerHTML = `<div class="row" style="margin:8px 0"><span class="lbl" style="margin:0">Day</span>${dayPicker(day, today(), 'Activity day')}</div>
       <p class="lbl" style="margin-top:12px">What</p>
@@ -47,7 +61,8 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
       <div class="seg">${[30, 45, 60, 90, 120].map(m => `<button data-min="${m}" aria-pressed="${d.minutes === m}">${m}</button>`).join('')}</div>
       <input id="mins" type="number" inputmode="numeric" min="1" max="600" value="${d.minutes ? esc(d.minutes) : ''}" aria-label="Minutes" style="margin-top:8px">
       ${d.kind === 'sport' ? `<label class="f" style="margin-top:12px"><span>Which sport (optional)</span><input id="aname" maxlength="40" value="${esc(d.name || '')}" placeholder="e.g. Basketball"></label>` : ''}
-      ${DISTANCE.includes(d.kind) ? `<label class="f" style="margin-top:12px"><span>Distance (optional, ${distUnits(d.kind, profile())})</span><input id="adist" inputmode="decimal" value="${d.dist && d.distUnit === distUnits(d.kind, profile()) ? esc(d.dist) : ''}"></label>` : ''}
+      ${DISTANCE.includes(d.kind) ? `<label class="f" style="margin-top:12px"><span>Distance (optional, ${distUnits(d.kind, profile())})</span><input id="adist" inputmode="decimal" value="${esc(distShown())}"></label>
+        <p class="say" id="pace" aria-live="polite" style="text-align:center;margin-top:8px"${pace() ? '' : ' hidden'}>${pace()}</p>` : ''}
       <p class="lbl" style="margin-top:16px">Effort (1 easy, 10 all-out)</p>
       <div class="pills">${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<button data-eff="${v}" aria-pressed="${d.effort === v}">${v}</button>`).join('')}</div>`;
   };
@@ -55,6 +70,7 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
     if (e.target.id === 'mins') d.minutes = e.target.value === '' ? 0 : Math.round(+e.target.value || 0); // checked on Save, not silently clamped
     if (e.target.id === 'aname') d.name = e.target.value.slice(0, 40);
     if (e.target.id === 'adist') d.distTyped = e.target.value;
+    showPace();
   });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;

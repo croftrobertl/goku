@@ -4,18 +4,18 @@ import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from
 import * as db from './db.js';
 import { esc, toast, ask, overlay, stepper, unlockAudio, beep, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
-import { weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
+import { metric, weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
 import { coachCard, bindCoach, isMinor } from './coach.js';
 import { fuelCard, fuelRanges, timingCard, fuelNowCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
-import { loggedEntries, records, recordFor, progression, GROUPS } from './insights.js';
+import { loggedEntries, records, recordFor, progression, GROUPS, liftHistory } from './insights.js';
 import { openNutritionDay, nutritionDays, dayTotals } from './nutrition.js';
 import { streakCard, recapCard, bindShared, riskCard, kiGauge } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
 import { homeLayout, bindRows } from './homelayout.js';
-import { pickMove, showMove, howBtn, moveFor, addMove } from './movepicker.js';
+import { pickMove, showMove, howBtn, moveFor, addMove, moveData } from './movepicker.js';
 import { GROUPS as MOVE_GROUPS } from './moves.js';
 import { figureSVG } from './figure.js';
 import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
@@ -122,9 +122,9 @@ export async function trainByFeel(circuit) {
   let feel = 'ready', g = p.settings.gravity || 50;
   const pickFor = f => { const shift = FEELS.find(x => x[0] === f)[2], i = levels.indexOf(p.settings.gravity || 50);
     return levels[Math.max(0, Math.min(3, shift === -9 ? 0 : i + shift))]; };
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">How much ki do you have today?</h1><button class="cta2" id="x" data-close>Close</button></div>
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${esc(w('energyQ'))}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="tf"></div>
-    <button class="cta" id="go">${esc(W('enter'))}</button>`, { label: 'How do you feel today?' });
+    <button class="cta" id="go">${esc(W('enter'))}</button>`, { label: w('energyQ') });
   const draw = () => {
     const [rounds, rest, cap] = GRAVITY[g], ghost = ghostFor(sessions, g);
     el.querySelector('#tf').innerHTML = `<div class="pills" style="margin-top:8px">${FEELS.map(([k, n]) => `<button data-feel="${k}" aria-pressed="${k === feel}">${n}</button>`).join('')}</div>
@@ -141,7 +141,7 @@ export async function trainByFeel(circuit) {
     if (b.dataset.feel) { feel = b.dataset.feel; g = pickFor(feel); return draw(); }
     if (b.dataset.lv) { g = +b.dataset.lv; return draw(); }
     if (b.id === 'rest') { await saveEntry('rest', {}, { id: p.id + ':rest:' + today(), day: today() }); close(); toast('Rest day logged. Recovery is training too.'); return window.goku.render(); }
-    if (b.id === 'go') { if (g !== p.settings.gravity) { p.settings.gravity = g; await saveProfile(p); } close(); await startRun(await todaysCircuit()); }
+    if (b.id === 'go') { if (g !== p.settings.gravity) { p.settings.gravity = g; await saveProfile(p); } close(); await startRun(circuit); }
   }));
   draw();
 }
@@ -156,6 +156,9 @@ export async function home() {
   const all = (await loggedEntries(p)).sort((a, b) => a.ts - b.ts);
   const sessions = all.filter(e => e.type === 'session').sort(byDay);
   const last = sessions[sessions.length - 1];
+  // Same As Last Time (2.8.2): the last session's moves in their order, those still in the Library.
+  const libNow = await library(), lastIds = last ? [...new Set((last.data.sets || []).map(x => x.exId))] : [];
+  const lastCircuit = lastIds.map(id => libNow.find(e => e.id === id)).filter(Boolean);
   const ghost = ghostFor(sessions, g);
   const eaten = on(p, 'nutrition') ? await dayTotals(p, today()) : null;
   const len = 2 * Math.PI * 80;
@@ -190,7 +193,7 @@ export async function home() {
   const coachHTML = coachCard(p, ctx);
 
   return {
-    cta: circuit.length ? [W('enter'), () => trainByFeel(circuit)] : null,
+    cta: circuit.length ? [W('enter'), () => trainByFeel(circuit)] : null, ctaShown: true, // Enter the chamber is on the page already
     html: homeLayout(p, [
       ['balls', `${newBallsCard(p, milestones(p, all, t))}`],
       ['wish', wishCard(p, milestones(p, all, t))],
@@ -209,6 +212,7 @@ export async function home() {
       <p class="sub">×${g} ${esc(w('gravity'))} · ${circuit.length} move${circuit.length === 1 ? '' : 's'} · ${rounds} rounds · ${rest}s rest · ${cap}-min cap</p>
       ${p.about?.days ? `<p class="sub">This week: <b class="num">${weekCount}</b> of ${esc(p.about.days)} sessions${weekCount >= +p.about.days ? ' · goal met' : ''} ${whyBtn('weekgoal')}</p>` : ''}
       ${circuit.length ? `<button class="cta" id="enterChamber" style="margin-top:12px">${esc(W('enter'))}</button>` : ''}
+      ${lastCircuit.length ? '<button class="cta2" id="sameLast" style="width:100%;margin-top:8px">Same As Last Time</button>' : ''}
       ${ghost ? `<div class="ghost">Ghost: your last ×${g} session (${prettyDay(ghost.day)}) · <b class="num">${sessionTotal(ghost)}</b> reps in ${round(minutes(ghost))} min. Beat it.</div>`
         : `<div class="ghost">Your first ×${g} session becomes your ghost. Next time at ×${g}, you race it live.</div>`}
       <details class="gravd"><summary>Change ${esc(w('gravity'))} · ${depth === 1 ? 'one stage per set' : depth === 2 ? 'to failure, one drop' : 'to failure, then drop'}</summary>
@@ -272,6 +276,7 @@ export async function home() {
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
         if (b.dataset.how) return showMove(b.dataset.how);
         if (b.id === 'enterChamber') return trainByFeel(circuit);
+        if (b.id === 'sameLast') return trainByFeel(lastCircuit);
         if (b.id === 'addLoad') return window.goku.go('library');
         if (b.id === 'progLater') return window.goku.render();
         if (b.id === 'logAct') return logActivity();
@@ -298,7 +303,7 @@ async function startRun(circuit) {
     const ghost = ghostFor(await sessionsInOrder(), g);
     const run = {
       startedAt: Date.now(), gravity: g, rounds, rest, cap, round: 1, ex: 0, stage: 0, phase: 'set', restUntil: 0,
-      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, moveId: e.data.moveId, stages: e.data.stages.slice(0, depth) })),
+      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, moveId: e.data.moveId, stages: e.data.stages.slice(0, depth), ...(e.data.rest ? { rest: e.data.rest } : {}) })),
       best: Object.fromEntries(Object.entries(records(await sessionsInOrder())).map(([k, v]) => [k, v.reps])),
       sets: [], cur: null, repTimes: [], ghost: ghost?.data.repTimes || null,
     };
@@ -344,7 +349,7 @@ function openRunner(run) {
     <div class="row">
       <button class="cta2" id="undo" aria-label="Undo">Undo</button>
       <span class="num sub" id="clock">00:00</span>
-      <span class="endwrap"><button class="cta2 kame" id="end" aria-label="Finish: hold to charge"><span>Finish</span></button><small class="endhint" aria-hidden="true">Hold to finish</small></span>
+      <span class="endwrap"><button class="cta2 kame" id="end" aria-label="Finish: hold to finish"><span>Finish</span></button><small class="endhint" aria-hidden="true">Hold to finish</small></span>
     </div>
     <p class="sub" id="where" style="text-align:center;margin-top:8px"></p>
     <p style="text-align:center"><button class="link" id="howEx" hidden></button></p>
@@ -425,7 +430,7 @@ function openRunner(run) {
       $('#reps').setAttribute('aria-live', 'off');
       $('#stage').textContent = 'Rest · next: ' + curEx().name;
       $('#reps').textContent = clock(left);
-      $('#ex').textContent = 'Breathe. Rest ends on its own.';
+      $('#ex').textContent = run.recNote ? run.recNote + '. Rest ends on its own.' : 'Breathe. Rest ends on its own.';
       $('#wrow').hidden = true;
       { const how = moveFor(curEx()); $('#howEx').hidden = !how; if (how) $('#howEx').textContent = `? Next: how to do ${curEx().name}`; }
       $('#tap').setAttribute('aria-label', `Resting, ${Math.ceil(left / 1000)} seconds left`);
@@ -439,7 +444,7 @@ function openRunner(run) {
           if (!cancelCue) beep(988, 180, 2);
           cancelCue = null; restBeeped = true; announce('Rest over. ' + curEx().name);
         }
-        run.phase = 'set'; save();
+        run.phase = 'set'; run.recNote = ''; save();
       }
       return;
     }
@@ -461,11 +466,15 @@ function openRunner(run) {
   }
 
   function endSet() {
+    const rec = run.cur.rec; delete run.cur.rec; delete run.cur.base;
+    run.recNote = rec ? `New record: ${rec} reps` : '';
+    if (rec) { beep(1320, 120, 1); announce(run.recNote); }
+    const restS = curEx().rest || run.rest; // an exercise can set its own rest (2.8.2)
     run.sets.push(run.cur); run.cur = null; run.stage = 0;
     run.ex++;
     if (run.ex >= run.plan.length) { run.ex = 0; run.round++; }
-    if (run.round > run.rounds) return finish();
-    run.phase = 'rest'; run.restUntil = Date.now() + run.rest * 1000;
+    if (run.round > run.rounds) { if (run.recNote) toast(run.recNote); return finish(); }
+    run.phase = 'rest'; run.restUntil = Date.now() + restS * 1000;
     bookRestCue(); save(); draw();
   }
 
@@ -494,7 +503,10 @@ function openRunner(run) {
       remember(); ensureSet();
       run.cur.stages[run.stage].reps++;
       const key = run.cur.exId + '|' + run.cur.stages[run.stage].label, prev = run.best?.[key] || 0;
-      if (prev && run.cur.stages[run.stage].reps === prev + 1) { toast(`New record: ${run.cur.stages[run.stage].reps} reps`); beep(1320, 120, 1); }
+      // A new record is noted once per set and shown when the set ends (2.8.2), not on every rep past it.
+      // It's measured against the best from before this set began, so a first-ever set never "beats" itself.
+      const base = (run.cur.base ||= {})[key] ??= prev, reps = run.cur.stages[run.stage].reps;
+      if (base && reps > base) run.cur.rec = Math.max(run.cur.rec || 0, reps);
       if (run.best && run.cur.stages[run.stage].reps > prev) run.best[key] = run.cur.stages[run.stage].reps; // later rounds race the new record
       run.repTimes.push(Math.round((Date.now() - run.startedAt) / 100) / 10);
       b.classList.add('bump'); setTimeout(() => b.classList.remove('bump'), 120);
@@ -504,7 +516,8 @@ function openRunner(run) {
       // so later rounds and the next session start from it.
       if (run.phase === 'rest') return;
       remember(); ensureSet();
-      const st = run.cur.stages[run.stage], step = toLb(stepShown(p), p);
+      // Dumbbells use the step from Settings; barbell, machines and the rest go by 5 lb (2.5 kg) (2.8.2).
+      const st = run.cur.stages[run.stage], step = isDumbbell(curEx()) ? toLb(stepShown(p), p) : toLb(metric(p) ? 2.5 : 5, p);
       const next = Math.max(0, round((st.load || 0) + (b.id === 'wUp' ? step : -step), 3)) || null;
       st.load = next;
       const planned = curEx().stages.find(x => x.label === st.label); if (planned) planned.load = next;
@@ -517,15 +530,21 @@ function openRunner(run) {
       if (Date.now() - lastNext < 600) return; // double-tap protection
       lastNext = Date.now();
       remember();
-      if (run.phase === 'rest') { run.phase = 'set'; cancelCue?.(); cancelCue = null; save(); draw(); return; }
+      if (run.phase === 'rest') { run.phase = 'set'; run.recNote = ''; cancelCue?.(); cancelCue = null; save(); draw(); return; }
       if (run.stage < run.cur.stages.length - 1) { run.stage++; save(); draw(); } else endSet();
     } else if (b.id === 'end') {
       // Touch and mouse finish by holding (below); a tap only explains. Keyboards finish at once.
-      if (Date.now() - pressedAt < 1500) return;
+      if (Date.now() - pressedAt < 1500 || asking) return; // a held mouse click lands here after the hold already asked
       await askFinish();
     }
   });
+  let asking = false;
   async function askFinish() {
+    if (asking) return; // the hold timer and the click can both fire: one dialog (2.8.2)
+    asking = true;
+    try { await askFinishOnce(); } finally { asking = false; }
+  }
+  async function askFinishOnce() {
     const r = await ask('Finish session?', 'Everything logged so far is saved.', [{ label: 'Finish and save', value: 'save' }, { label: 'Discard session', value: 'discard' }]);
     if (r === 'save') finish();
     else if (r === 'discard' && await ask('Discard this session?', 'The reps you logged in it will be deleted.', [{ label: 'Discard', value: true, danger: true }])) finish(true);
@@ -552,15 +571,18 @@ export async function libraryView() {
   const p = profile();
   const lib = await library();
   await musclesReady().catch(() => {}); // the muscle maps on rows without a drawing
-  const best = records(await sessionsInOrder());
+  const sessions = await sessionsInOrder(), best = records(sessions);
+  // Sections use the move picker's seven groups and names (2.8.2), in its order; cardio no longer sits under Power.
   const groups = {};
-  for (const e of lib) (groups[e.data.slot] ||= []).push(e);
+  for (const g of MOVE_GROUPS) groups[g[0]] = [];
+  for (const e of lib) (groups[groupOf(e.data)] ||= []).push(e);
+  const groupLabel = g => MOVE_GROUPS.find(x => x[0] === g)?.[1] || g.slice(0, 1).toUpperCase() + g.slice(1);
   const pr = e => e.data.stages.map(st => [st.label, recordFor(best, e.id, st.label)]).filter(([, r]) => r);
   return {
     cta: ['Add exercise', () => pickMove({ onCustom: () => editExercise(), have: lib.map(e => moveFor(e.data)?.id).filter(Boolean) })],
     html: `<h1>Library</h1><p class="sub">Circuits pick one exercise per group. Tap one to see how it's done or to edit it.</p>
-      ${Object.entries(groups).map(([slot, list]) => `<section class="card" style="margin-top:12px">
-        <p class="lbl">${esc(slot.slice(0, 1).toUpperCase() + slot.slice(1))} <span class="sub">· ${list.length} move${list.length === 1 ? '' : 's'}</span></p>
+      ${Object.entries(groups).filter(([, list]) => list.length).map(([g, list]) => `<section class="card" style="margin-top:12px">
+        <p class="lbl">${esc(groupLabel(g))} <span class="sub">· ${list.length} move${list.length === 1 ? '' : 's'}</span></p>
         <ul class="list librows">${list.map(e => { const m = moveFor(e.data), art = m && artOf(m.id);
           // Picture rows (2.7): the exercise drawing, else its muscle map; the whole row opens it.
           const pic = art ? `<img src="${art.end}" alt="" loading="lazy">` : m ? miniMap(m.id) : '';
@@ -573,10 +595,32 @@ export async function libraryView() {
         const b = e.target.closest('[data-open]'); if (!b) return;
         const ex = lib.find(x => x.id === b.dataset.open), m = moveFor(ex.data);
         // Moves from the built-in list open their how-to (with Edit inside); your own exercises open the editor.
-        if (m) showMove(m.id, { onEdit: () => editExercise(ex) }); else editExercise(ex);
+        const hist = liftCard(p, liftHistory(sessions, ex.id));
+        if (m) showMove(m.id, { onEdit: () => editExercise(ex, hist), extra: hist }); else editExercise(ex, hist);
       });
     },
   };
+}
+
+// The history card (2.8.2): a small line of the estimate over time, then the last 3 sessions' heaviest sets.
+// Only sets with a weight count. Goku never asks anyone to test a real one-rep max.
+export function liftCard(p, hist) {
+  if (!hist.length) return '';
+  const w1 = v => round(weight(v, p), 0), u = weightUnit(p), pts = hist.slice(-8).map(h => w1(h.e1));
+  let chart = '';
+  if (pts.length >= 2) {
+    const W = 300, H = 110, lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1;
+    const x = i => 14 + i * (W - 28) / (pts.length - 1), y = v => H - 14 - (v - lo) / span * (H - 40);
+    chart = `<svg viewBox="0 0 ${W} ${H}" class="liftchart" role="img" aria-label="Estimated one-rep best over your last ${pts.length} sessions, from ${pts[0]} to ${pts.at(-1)} ${u}">
+      <line x1="14" y1="${H - 8}" x2="${W - 14}" y2="${H - 8}" class="lc-axis"/>
+      <polyline class="lc-line" points="${pts.map((v, i) => x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ')}"/>
+      ${pts.map((v, i) => `<circle class="lc-dot" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4"/>`).join('')}
+      <text x="${W - 14}" y="${(y(pts.at(-1)) - 10).toFixed(1)}" text-anchor="end" class="lc-lab">${pts.at(-1)} ${u}</text></svg>
+      <p class="sub" style="text-align:center">Estimated one-rep best, from your heaviest set each session</p>`;
+  }
+  return `<section class="card"><p class="lbl">Your history</p>${chart}
+    <ul class="list">${hist.slice(-3).reverse().map(h => `<li><span>${prettyDay(h.day)}<br><span class="chain">${esc(weight(h.load, p))} ${u} × ${h.reps}</span></span><b class="num">est. ${w1(h.e1)} ${u}</b></li>`).join('')}</ul>
+    <p class="note">Estimate: weight × (1 + reps ÷ 30), the Epley formula (Epley B, Boyd Epley Workout, 1985), most accurate up to about 10 reps. It's an estimate; Goku never asks you to test a one-rep max.</p></section>`;
 }
 
 // Dumbbell steps in the person's own units; the stored step snaps to the nearest one shown.
@@ -589,14 +633,14 @@ const groupOf = d => d.group || moveFor(d)?.group || { joints: 'mobility' }[d.sl
 // Dumbbell math (2.8.1) only for dumbbell exercises: the built-in list's equipment, else a "DB" or "dumbbell" name.
 const isDumbbell = d => { const eq = moveFor(d)?.equip || SEED.find(x => x[0] === d.name)?.[4]; return eq ? eq === 'db' : /\b(db|dumbbells?)\b/i.test(d.name); };
 
-function editExercise(ex) {
+function editExercise(ex, hist = '') {
   const p = profile();
   const d = ex ? structuredClone(ex.data) : { name: '', slot: 'push', module: null, order: 999, stages: [{ label: '', load: null }] };
   const { el, close } = overlay(`<div class="row"><h1>${ex ? 'Edit exercise' : 'New exercise'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="f"></div>
     <p class="msg" id="m" role="status"></p>
     <button class="cta" id="save">Save</button>
-    ${ex ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete exercise</button>' : ''}`, { label: 'Edit exercise' });
+    ${ex ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete exercise</button>' : ''}`, { label: ex ? 'Edit exercise' : 'New exercise' });
   const $ = s => el.querySelector(s);
   function draw() {
     $('#f').innerHTML = `<label class="f"><span>Name</span><input id="nm" value="${esc(d.name)}" maxlength="40"></label>
@@ -607,11 +651,16 @@ function editExercise(ex) {
         <input data-i="${i}" data-k="load" value="${esc(weight(s.load, p))}" inputmode="decimal" placeholder="${weightUnit(p)}" aria-label="Stage ${i + 1} load in ${weightUnit(p) === 'kg' ? 'kilograms' : 'pounds'}" style="width:80px">
         <button class="cta2" data-rm="${i}" aria-label="Remove stage ${i + 1}">−</button></div>`).join('')}
       <button class="cta2" id="add" style="margin-top:8px">Add stage</button>
+      <p class="lbl" style="margin-top:16px">Rest after this exercise</p>
+      <div class="seg" role="group" aria-label="Rest after this exercise">${[[null, `Circuit (${GRAVITY[p.settings.gravity || 50][1]} s)`], [60, '60 s'], [90, '90 s'], [120, '2 min']]
+        .map(([v, l]) => `<button data-rest="${v ?? ''}" aria-pressed="${(d.rest || null) === v}">${l}</button>`).join('')}</div>
+      <p class="note">A heavy lift can rest longer; the rest of the circuit keeps its own rest.</p>
       ${d.stages.some(s => s.load) && isDumbbell(d) ? `<div class="card" style="margin-top:14px"><p class="lbl">Dumbbell math</p>
         <p class="sub">Loads are per dumbbell. A pair of ${esc(weight(d.stages.find(s => s.load).load, p))} ${weightUnit(p)} is ${esc(weight(d.stages.find(s => s.load).load * 2, p))} ${weightUnit(p)} in total.</p>
         <label class="f"><span>Your dumbbells go up in steps of</span><select id="dbstep">${stepOptions(p).map(v =>
           `<option value="${v}" ${v === stepShown(p) ? 'selected' : ''}>${v} ${weightUnit(p)}</option>`).join('')}</select></label>
-        <button class="cta2" id="stepUp" style="margin-top:8px">Add one step to every loaded stage</button></div>` : ''}`;
+        <button class="cta2" id="stepUp" style="margin-top:8px">Add one step to every loaded stage</button></div>` : ''}
+      ${hist}`;
   }
   el.addEventListener('input', e => {
     const t = e.target;
@@ -628,6 +677,7 @@ function editExercise(ex) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') close();
     if (b.id === 'add') { d.stages.push({ label: '', load: null }); draw(); }
+    if (b.dataset.rest !== undefined) { if (b.dataset.rest) d.rest = +b.dataset.rest; else delete d.rest; draw(); }
     if (b.id === 'stepUp') { const step = toLb(stepShown(p), p); d.stages.forEach(s => { if (s.load) s.load = round(s.load + step, 3); }); draw(); toast('Loads raised. Tap Save to keep them.'); }
     if (b.dataset.rm) { if (d.stages.length > 1) { d.stages.splice(+b.dataset.rm, 1); draw(); } }
     if (b.id === 'save') {
@@ -656,7 +706,7 @@ export async function historyView() {
       <div style="margin-top:12px">${calendarCard(p, all, t)}${ballsCard(milestones(p, all, t))}</div>
       <section class="card"><p class="lbl">Sessions</p>
       ${sessions.length ? `<ul class="list">${sessions.map(s => `<li><span>${prettyDay(s.day)} · ×${esc(s.data.gravity)}<br>
-        <span class="chain">${s.data.sets.length} sets · ${round(minutes(s))} min</span></span>
+        <span class="chain">${s.data.sets.length} set${s.data.sets.length === 1 ? '' : 's'} · ${round(minutes(s))} min</span></span>
         <span class="row" style="gap:8px"><span class="num">${sessionTotal(s)} reps</span>
         <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('')}</ul>`
         : `<div class="empty"><h2>No sessions yet</h2><p>${esc(W('enter'))} from Home. Each finished session lands here and becomes your next ghost.</p></div>`}
@@ -699,6 +749,7 @@ function editSession(s) {
       <button class="addrow" id="addEx">+ Add an exercise</button>`;
   };
   // Adding (2.8.1): another round of an exercise already in the session, or a new exercise from the picker.
+  const pending = new Map(); // set index → move to add to the Library on Save
   const names = () => [...new Set(d.sets.map(x => x.name))];
   const addRound = name => {
     const last = d.sets.filter(x => x.name === name).at(-1);
@@ -715,16 +766,21 @@ function editSession(s) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
     if (b.dataset.dayshift) { const nd = addDays(day, +b.dataset.dayshift); if (nd <= today()) day = nd; return draw(); }
-    if (b.dataset.rmset) { d.sets.splice(+b.dataset.rmset, 1); return draw(); }
+    if (b.dataset.rmset) { // later sets move up one, and so do their pending moves
+      const i = +b.dataset.rmset; d.sets.splice(i, 1);
+      const moved = [...pending].filter(([k]) => k !== i).map(([k, m]) => [k > i ? k - 1 : k, m]); pending.clear(); moved.forEach(([k, m]) => pending.set(k, m));
+      return draw(); }
     if (b.id === 'addRound') {
       const name = names().length === 1 ? names()[0] : await ask('Add a round of…', '', names().map(n => ({ label: n, value: n })));
       if (name) addRound(name);
       return;
     }
+    // A move not in the Library joins it only on Save changes (2.8.2); closing without saving leaves the Library as it was.
     if (b.id === 'addEx') return pickMove({ onPick: async m => {
       const lib = await library();
-      const ex = lib.find(x => x.data.moveId === m.id || x.data.name === m.name) || await addMove(m);
-      d.sets.push({ exId: ex.id, name: ex.data.name, slot: ex.data.slot, round: 1, stages: ex.data.stages.map(st => ({ label: st.label, reps: 0, load: st.load ?? null })) });
+      const ex = lib.find(x => x.data.moveId === m.id || x.data.name === m.name);
+      if (ex) d.sets.push({ exId: ex.id, name: ex.data.name, slot: ex.data.slot, round: 1, stages: ex.data.stages.map(st => ({ label: st.label, reps: 0, load: st.load ?? null })) });
+      else { const nd = moveData(m); pending.set(d.sets.length, m); d.sets.push({ exId: null, name: nd.name, slot: nd.slot, round: 1, stages: nd.stages.map(st => ({ label: st.label, reps: 0, load: null })) }); }
       draw();
     } });
     if (b.dataset.d) {
@@ -738,6 +794,10 @@ function editSession(s) {
       if (reps !== d.repTimes.length) {
         const secs = Math.max(60, (d.endedAt - d.startedAt) / 1000);
         d.repTimes = Array.from({ length: reps }, (_, i) => round((i + 1) * secs / reps, 1));
+      }
+      for (const [i, m] of pending) if (d.sets[i] && !d.sets[i].exId) { // the same set, not removed since
+        const lib = await library(), ex = lib.find(x => x.data.moveId === m.id || x.data.name === m.name) || await addMove(m);
+        for (const set of d.sets) if (!set.exId && set.name === ex.data.name) set.exId = ex.id; // its added rounds too
       }
       await saveEntry('session', d, { id: s.id, day, ts: s.ts }); close(); toast('Session updated'); window.goku.render(); }
     if (b.id === 'del' && await ask('Delete this session?', 'It will be removed from history and from your ghost.', [{ label: 'Delete', value: true, danger: true }])) {

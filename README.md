@@ -32,6 +32,24 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.8.2:* changes picked in the second phone review. Pages whose action lived in the center
+  button (check-in, Week, Library, Skills) have it as a button at the bottom again. Readiness reads
+  "Talk to a parent or coach before training" after a yes to back pain, pain changing a skill or
+  dizziness; St. John's wort warnings show NIH's lead-in; "Lose fat" isn't offered under 18. "New
+  record" shows once, when the set ends; the weight buttons hide during rest; holding Finish opens
+  one dialog; barbell and machine weights step by 5 lb (2.5 kg). A time-zone change starts with the
+  next day. Food search ranks a chain's own item first, reads "2 slices pizza" as 2 slices, lists a
+  chain's menu by its name and points supplements to Supplements; Banana shows once and an egg has
+  no "slice". Past days are named in Nutrition. Why? does its math in lb for pound users, and
+  "Build muscle" aims for the middle of the protein range. Encore and Plain drop the Dragon Ball
+  fighters, words and theme names; Encore says Chapter, charm and intensity. New profile names start
+  with a capital letter, and Back during setup goes back a step. From the third review: each exercise shows its
+  weight × reps history with an estimated one-rep best (Epley formula), the Week planner takes
+  hours in one tap, Log activity shows pace as you type, Add food offers "Same dinner as
+  yesterday" while that meal is empty, Home has "Same As Last Time", an exercise can set its own
+  rest, and Custom profiles get goal ideas from the sports they picked. From the fourth: Add food asks "Which meal
+  is this?" first, adult profiles get weight goal ideas at the CDC's steady 1 to 2 lb a week (cited
+  on screen), and swimming has gentler goal ideas.
 - *2.8.1:* changes picked in the first phone review. Setup has a "Pick a look" step for the skin,
   one page color throughout, a "24 / 24" counter on the name, 7 training days a week, and the
   Soccer pack off for Strength profiles. The center button is "Quick add". "Hold to finish" sits

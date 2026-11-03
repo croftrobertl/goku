@@ -44,7 +44,7 @@ export function scouterCard(p, all, today, { extra = '', title = W('scouter') } 
   return `<section class="card scouter compact" aria-labelledby="h-scouter">
     <div class="row"><p class="lbl" id="h-scouter" style="margin:0">${esc(title)}</p><span class="scan">Reading</span></div>
     ${extra}
-    <details class="scdet"><summary><span class="sm">${esc(W('power'))}</span> <b class="num">${pl.total.toLocaleString('en-US')}</b> <span class="sm">${tier(pl.total)}</span>
+    <details class="scdet"><summary><span class="sm">${esc(W('power'))}</span> <b class="num">${pl.total.toLocaleString('en-US')}</b> <span class="sm">${tier(pl.total)} · last 7 days</span>
       <span class="minibar" aria-hidden="true"><i style="width:${Math.round(pct * 100)}%"></i></span></summary>
     <div class="gauge" role="img" aria-label="${esc(W('power'))} ${pl.total.toLocaleString('en-US')} of ${MAX_POWER.toLocaleString('en-US')}, ${tier(pl.total)}">
       <svg viewBox="0 0 240 240" aria-hidden="true"><g class="tick">${ticks}</g>
@@ -53,7 +53,7 @@ export function scouterCard(p, all, today, { extra = '', title = W('scouter') } 
       <div class="read"><span class="sm">${esc(W('power'))}</span><b class="num">${pl.total.toLocaleString('en-US')}</b><span class="sm">${tier(pl.total)}</span></div>
     </div>
     <ul class="list scl">
-      <li><span>Training · ${pl.trained} of ${pl.goalDays} days</span><b class="num">${pl.training.toLocaleString('en-US')}</b></li>
+      <li><span>Training · ${pl.trained} of ${pl.goalDays} days, last 7 days</span><b class="num">${pl.training.toLocaleString('en-US')}</b></li>
       <li><span>Fuel · ${pl.fedDays} of 7 days${pl.goal ? ' at your protein goal' : ' with food logged'}</span><b class="num">${pl.fuel.toLocaleString('en-US')}</b></li>
       <li><span>Recovery · ${p.kind === 'perf' && pl.checks ? `readiness, ${pl.checks} check-ins` : 'days you showed up'}</span><b class="num">${pl.recovery.toLocaleString('en-US')}</b></li></ul>
     <p class="note" style="text-align:center">A game score from your last 7 days, not a health measure. ${whyBtn('power')}</p></details></section>`;

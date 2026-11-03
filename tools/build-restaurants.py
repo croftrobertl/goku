@@ -19,7 +19,8 @@ def pretty(day): d = datetime.date.fromisoformat(day); return f'{d:%B} {d.day}, 
 
 rows, seen = [], set()
 for chain in src:
-    when = f"{chain['chain']}'s nutrition information{', which the chain publishes through Nutritionix' if 'nutritionix' in chain['source'] else ''}, read {pretty(chain['retrieved'])}"
+    # No possessive (2.8.2): "McDonald's's" and "Dunkin''s" read wrong.
+    when = f"{chain['chain']} nutrition information{', which the chain publishes through Nutritionix' if 'nutritionix' in chain['source'] else ''}, read {pretty(chain['retrieved'])}"
     for it in chain['items']:
         if it.get('kcal') is None or (chain['chain'], it['name']) in seen: continue
         seen.add((chain['chain'], it['name']))

@@ -121,6 +121,7 @@ function focusKey() {
 async function draw() {
   const p = profile();
   if (!p) return;
+  if (p.tzNext && Date.now() >= p.tzNext.at) { p.tz = p.tzNext.tz; delete p.tzNext; await saveProfile(p); } // the new zone's first day (2.8.2)
   setTheme(p.settings.theme, p.settings.mode);
   setAccent(p.accent);
   setSkin(skinOf(p));
@@ -142,12 +143,14 @@ async function draw() {
   $('#app').innerHTML = `${showUpd ? `<div class="updbar" role="status"><span>A new version of Goku is ready.</span>
       <span class="row" style="gap:8px"><button class="cta2" id="updLater">Later</button><button class="cta" id="updNow" style="width:auto;min-height:44px;padding:0 16px">Update</button></span></div>` : ''}
     <header class="top">
-      <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch profile' : 'Add a profile'}">
-        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${avatarHTML(p, 36)}</span><span class="chipname">${esc(p.name)}${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">⇄</span></button>
+      <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch or add a profile' : 'Add a profile'}">
+        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name)}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">⇄</span></button>
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
-    <main id="main">${view.html}</main>`;
+    <main id="main">${view.html}${view.cta && !view.ctaShown ? `<button class="cta pagecta" id="pageCta">${esc(view.cta[0])}</button>` : ''}</main>`;
   view.bind?.($('#main'));
+  // The page's own action at the bottom (2.8.2): Quick add stays a menu, so Save and Add are on the page too.
+  if (view.cta && !view.ctaShown) $('#pageCta').onclick = () => view.cta[1]();
   // Tab bar (2.2): three main tabs with icons, a big center action, and More for the rest.
   // On desktop the same items line up in the sidebar, the action on top.
   const all = [...list, ...(list.some(([id]) => id === 'settings') ? [] : [['settings', 'Settings']])].filter(x => !x[2]);
@@ -189,9 +192,8 @@ async function open(id) {
   if (p.kind === 'engine') engine.resumeRun();
 }
 
+// With two profiles a tap opens the same small picker as with more (2.8.2): switch, or Add a profile.
 async function chooseProfile() {
-  const others = S.profiles.filter(x => x.id !== S.current);
-  if (others.length === 1 && isUnlocked(profile())) return open(others[0].id);
   const pick = await ask('Switch profile', 'Each profile keeps its own data and passcode.',
     [...S.profiles.map(x => ({ label: `${x.name} · ${kindLabel(x)}`, value: x.id })), { label: 'Add a profile', value: 'add' }]);
   if (pick === 'add') { const np = await onboard({ cancellable: true }); if (np) return open(np.id); }
@@ -278,12 +280,13 @@ function watchBack() {
     if (leaving) return; // back on the bottom entry: the next Back leaves
     const top = [...document.querySelectorAll('.overlay')].pop();
     if (top && top.id !== 'runner') {
-      const x = top.querySelector('[data-close]');
+      // Setup's own Back goes one step back (2.8.2), so first-time setup doesn't close and lose its answers.
+      const x = top.querySelector('[data-goback]') || top.querySelector('[data-close]');
       if (x) { history.pushState({ goku: 'guard' }, ''); x.click(); return; }
     }
     if (document.getElementById('runner')) {
       history.pushState({ goku: 'guard' }, '');
-      if (await ask('Leave the workout?', 'It stays saved and picks up where you left off.', [{ label: 'Leave Goku', value: 'leave' }]) === 'leave') { leaving = true; history.go(-2); }
+      if (await ask('Close Goku?', 'Your workout stays saved and picks up where you left off.', [{ label: 'Close Goku', value: 'leave' }]) === 'leave') { leaving = true; history.go(-2); }
       return;
     }
     leaving = true; history.back(); // nothing to close: leave the app

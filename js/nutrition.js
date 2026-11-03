@@ -10,9 +10,9 @@ import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from 
 import { fuelRanges } from './fuel.js';
 import { whyBtn } from './why.js';
 import { gutPatterns, HIGH_BLOAT } from './insights.js';
-import { loadFoods, myFoods, search, suggestFoods, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
+import { loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
 import { scanBarcode } from './scan.js';
-import { suppCard, bindSupps, recentSupps } from './supplements.js';
+import { suppCard, bindSupps, recentSupps, suppNamed } from './supplements.js';
 
 export const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']];
 // A small barcode picture, so the scan button is recognizable at a glance.
@@ -83,7 +83,7 @@ export async function nutritionView() {
   const target = p.settings.kcalTarget || null;
   const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
   const range = fuelRanges(p, 0);
-  const pGoal = own || range?.protein[0] || null;
+  const pGoal = own || range?.aim || null;
   const macroK = (tot.p || 0) * 4 + (tot.c || 0) * 4 + (tot.f || 0) * 9;
   const pct = v => macroK ? Math.round(v / macroK * 100) : 0;
   const symptomsOn = on(p, 'gut');
@@ -114,7 +114,7 @@ export async function nutritionView() {
     html: `<div class="row"><h1 style="margin:0">Nutrition</h1>${dayPicker(day, t, 'Nutrition day')}</div>
     <div class="cols"><div>
       <section class="card sum" style="margin-top:12px">
-        <details class="ringd"><summary aria-label="Calories ${Math.round(tot.kcal || 0)}${target ? ' of ' + target : ''}. Show protein and nutrients">${calRing(tot.kcal || 0, target)}
+        <details class="ringd"><summary aria-label="Calories ${Math.round(tot.kcal || 0)}${target ? ' of ' + target : ''}. Show protein and nutrients">${calRing(tot.kcal || 0, target, day === t ? 'today' : 'on ' + prettyDay(day))}
           <span class="sub ringhint">Protein and nutrients</span></summary>
         ${pGoal ? kiBar('Protein', tot.p || 0, pGoal, ' g', tot.p >= pGoal ? 'Protein goal met' : `${Math.round(pGoal - (tot.p || 0))} g to go`, true) : ''}
         <div class="macros">
@@ -133,14 +133,14 @@ export async function nutritionView() {
       </section>
       ${MEALS.map(mealCard).join('')}
       ${(() => { const empty = MEALS.filter(([k]) => !items.some(it => (it.meal || 'snacks') === k)).map(m => m[1]);
-        return empty.length === 4 ? '<p class="sub" style="text-align:center;margin:-6px 0 18px">Nothing logged yet. Tap + Food to start the day.</p>'
+        return empty.length === 4 ? `<p class="sub" style="text-align:center;margin:-6px 0 18px">${day === t ? 'Nothing logged yet. Tap + Food to start the day.' : `Nothing logged for ${esc(prettyDay(day))}. Tap + Food to add some.`}</p>`
           : empty.length ? `<p class="sub" style="text-align:center;margin:-6px 0 18px">Not logged yet: ${empty.join(' · ')}</p>` : ''; })()}
     </div><div>
       <section class="card"><div class="row"><p class="lbl" style="margin:0">Water</p><span class="num big">${esc(volume(water, p))} <span class="sub">${volumeUnit(p)}</span></span></div>
         ${glasses(water, p)}
         <div class="row" style="justify-content:center;gap:8px;margin-top:8px">${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join('')}</div></section>
-      ${suppCard(gut, recent, p.settings.meds || [])}
-      ${symptomsOn ? `<details class="card fold feel" ${gut ? 'open' : ''}><summary class="lbl">How you feel today</summary>
+      ${suppCard(gut, recent, p.settings.meds || [], day === t ? 'today' : 'on ' + prettyDay(day))}
+      ${symptomsOn ? `<details class="card fold feel" ${gut ? 'open' : ''}><summary class="lbl">${day === t ? 'How you feel today' : 'How you felt on ' + esc(prettyDay(day))}</summary>
         <p class="sub">Optional. It helps the pattern finder spot foods that line up with bad days.</p>
         <p class="lbl" style="margin-top:10px">Bloating (0 = none, 10 = worst)</p>${stepper('bloat', g.bloat ?? 'none', 'bloating')}
         <div class="pills" style="margin-top:10px">${SYMPTOMS.map(([k, n]) => `<button data-sym="${k}" aria-pressed="${!!g[k]}">${n}</button>`).join('')}</div>
@@ -190,9 +190,9 @@ export async function nutritionView() {
 
 // The meal guess follows the profile's time zone, like the day itself does.
 // The calorie ring (2.5): calories left of a target, or just today's calories without one.
-function calRing(kcal, target) {
+function calRing(kcal, target, when = 'today') { // a past day is named (2.8.2)
   // Without a target a ring would have nothing to fill toward, so it shows the number alone.
-  if (!target) return `<span class="ring plain"><span class="rv"><b class="num">${Math.round(kcal).toLocaleString('en-US')}</b><span class="sub">calories today</span></span></span>`;
+  if (!target) return `<span class="ring plain"><span class="rv"><b class="num">${Math.round(kcal).toLocaleString('en-US')}</b><span class="sub">calories ${esc(when)}</span></span></span>`;
   const R = 52, C = 2 * Math.PI * R, pct = Math.min(1, kcal / target), over = kcal > target;
   const big = Math.abs(Math.round(target - kcal)).toLocaleString('en-US'), small = over ? 'over' : 'left';
   return `<span class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" class="rt"/>
@@ -248,10 +248,26 @@ async function addItems(day, list) {
   await saveEntry('food', food, { id: foodId(p, day), day });
 }
 
-export function addFood(meal, day, { scan = false } = {}) {
-  const p = profile();
-  let tab = 'recent', q = '', all = null, mine = [], recent = [], meals = [], failed = false;
+// Meal first (2.8.2): Add food asks "Which meal is this?" before the search, so nothing lands in a
+// meal guessed from the clock. The meal can still be changed on the next screen.
+export function addFood(meal, day, opts = {}) {
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add food</h1><button class="cta2" id="x" data-close>Close</button></div>
+    ${day !== today() ? `<p class="sub">Adding to ${esc(prettyDay(day))}</p>` : ''}
+    <p class="lbl" style="margin-top:16px">Which meal is this?</p>
+    ${MEALS.map(([k, n]) => `<button class="cta2 mealpick" data-pickmeal="${k}">${n}</button>`).join('')}
+    <p class="note" style="margin-top:14px">Next you pick the food. You can still change the meal before adding.</p>`, { label: 'Which meal is this?' });
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'x') return close();
+    if (b.dataset.pickmeal) { close(); foodSheet(b.dataset.pickmeal, day, opts); }
+  });
+}
+
+function foodSheet(meal, day, { scan = false } = {}) {
+  const p = profile();
+  let tab = 'recent', q = '', all = null, mine = [], recent = [], meals = [], failed = false, prevDay = [], thisDay = [];
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add food</h1><button class="cta2" id="x" data-close>Close</button></div>
+    ${day !== today(p) ? `<p class="sub">Adding to ${esc(prettyDay(day))}</p>` : ''}
     <div class="seg meals" role="group" aria-label="Meal">${MEALS.map(([k, n]) => `<button data-meal="${k}" aria-pressed="${k === meal}">${n}</button>`).join('')}</div>
     <input id="fq" type="search" placeholder="Search foods, e.g. banana" autocomplete="off" enterkeyhint="search" aria-label="Search foods" style="margin-top:10px">
     <div class="pills sugg" id="fsugg" aria-label="Suggestions"></div>
@@ -265,24 +281,31 @@ export function addFood(meal, day, { scan = false } = {}) {
     <span class="chain">${esc(sub)}</span></span><span class="num">${f.kc ?? ''}</span></button></li>`;
   const firstPortion = f => { const ps = portionsOf(f); return ps[defaultPortion(ps)]; };
   const sub = f => { const po = firstPortion(f); const k = kcalOf(scale(f.per, po.g)); f.kc = k == null ? '' : k; return po.label; };
-  let shown = [];
+  let shown = [], amt = { q: '', qty: null, unit: '' };
   const draw = () => {
     $('#tabs').innerHTML = q ? '' : [['recent', 'Recent'], ['mine', 'My foods'], ['meals', 'Meals']].map(([k, n]) => `<button data-ftab="${k}" aria-pressed="${tab === k}">${n}</button>`).join('');
     if (q) {
       if (!all) { $('#fstat').textContent = failed ? "The food list couldn't load. Check your connection once, then it works offline." : 'Loading the food list…'; if (failed) { failed = false; loadFoods().then(list => { all = list; draw(); }).catch(() => { failed = true; draw(); }); } return; }
       if (q.length < 2) { $('#fstat').textContent = 'Keep typing…'; $('#fsugg').innerHTML = ''; $('#fres').innerHTML = ''; return; } // one letter matches nearly all 125,000 foods
-      shown = search([...mine, ...all], q, 60);
+      amt = parseAmount(q);
+      shown = search([...mine, ...all], amt.q, 60);
       // A spelling fix is only ever offered as a suggestion; what you typed is what's searched.
-      $('#fsugg').innerHTML = [...(shown.suggest ? [[`Did you mean ${shown.suggest}?`, shown.suggest]] : []), ...suggestFoods(q).map(s => [s, s])]
+      $('#fsugg').innerHTML = [...(shown.suggest ? [[`Did you mean ${shown.suggest}?`, shown.suggest]] : []), ...suggestFoods(amt.q).map(s => [s, s])]
         .map(([label, s]) => `<button data-fsugg="${esc(s)}">${esc(label)}</button>`).join('');
       $('#fstat').textContent = shown.length ? `${shown.length >= 60 ? 'Top 60' : shown.length} match${shown.length === 1 ? '' : 'es'}` : `No “${q}” in the food list yet.`;
-      $('#fres').innerHTML = shown.length ? `<ul class="list">${shown.map((f, i) => row(f, 's:' + i, (f.src === 'brand' ? '' : f.src === 'mine' ? 'My food · ' : '') + sub(f))).join('')}</ul>`
-        : '<div class="empty"><p>Try fewer words, or add it from its label below.</p></div>';
+      const sp = p.modules?.nutrition !== false ? suppNamed(amt.q) : null;
+      $('#fres').innerHTML = (sp ? `<ul class="list"><li><button class="itemrow" data-tosupp="${esc(sp.name)}"><span><b>${esc(sp.name)} is a supplement</b><br>
+        <span class="chain">Log it under Supplements</span></span><span class="sub">Open</span></button></li></ul>` : '') + (shown.length ? `<ul class="list">${shown.map((f, i) => row(f, 's:' + i, (f.src === 'brand' ? '' : f.src === 'mine' ? 'My food · ' : '') + sub(f))).join('')}</ul>`
+        : sp ? '' : '<div class="empty"><p>Try fewer words, or add it from its label below.</p></div>');
       return;
     }
     $('#fstat').textContent = ''; $('#fsugg').innerHTML = '';
-    if (tab === 'recent') $('#fres').innerHTML = recent.length ? `<ul class="list">${recent.map((it, i) => { const f = { ...it, kc: kcalOf(it.n) }; return row(f, 'r:' + i, amountText(it)); }).join('')}</ul>`
-      : '<div class="empty"><p>Foods you log show up here for one-tap adding.</p></div>';
+    // Same meal as the day before (2.8.2): only while this meal is still empty, so it never adds twice.
+    const prev = prevDay.filter(it => (it.meal || 'snacks') === meal && !it.quick), empty = !thisDay.some(it => (it.meal || 'snacks') === meal);
+    const same = prev.length && empty ? `<ul class="list"><li><button class="itemrow" data-same="1"><span><b>Same ${esc(mealName(meal).toLowerCase())} as ${day === today(p) ? 'yesterday' : esc(prettyDay(addDays(day, -1)))}</b><br>
+      <span class="chain">${esc(prev.map(it => tidyName(it.name, it.src)).slice(0, 4).join(' · '))}${prev.length > 4 ? ` and ${prev.length - 4} more` : ''}</span></span><span class="num">${kcalOf(sumN(prev)) ?? ''}</span></button></li></ul>` : '';
+    if (tab === 'recent') $('#fres').innerHTML = same + (recent.length ? `<ul class="list">${recent.map((it, i) => { const f = { ...it, kc: kcalOf(it.n) }; return row(f, 'r:' + i, amountText(it)); }).join('')}</ul>`
+      : same ? '' : '<div class="empty"><p>Foods you log show up here for one-tap adding.</p></div>');
     if (tab === 'mine') $('#fres').innerHTML = mine.length ? `<ul class="list">${mine.map((f, i) => row(f, 'm:' + i, sub(f))).join('')}</ul>`
       : '<div class="empty"><p>Foods you add from a label show up here.</p></div>';
     if (tab === 'meals') $('#fres').innerHTML = meals.length ? `<ul class="list">${meals.map((m, i) => `<li><button class="itemrow" data-pick="ml:${i}"><span><b>${esc(m.data.name)}</b><br>
@@ -298,7 +321,9 @@ export function addFood(meal, day, { scan = false } = {}) {
     }
     const f = kind === 's' ? shown[i] : kind === 'm' ? mine[i] : kind === 'r' ? { ...recent[i] } : null;
     if (!f) return;
-    serving(f, { meal, qty: kind === 'r' ? recent[i].qty : 1, portionLabel: kind === 'r' ? recent[i].pl : null, onDone: async item => {
+    // A typed amount ("2 slices pizza") opens at that amount and serving (2.8.2).
+    const typedPortion = kind === 's' && amt.qty ? portionsOf(f)[portionFor(portionsOf(f), amt.unit)]?.label || null : null;
+    serving(f, { meal, qty: kind === 'r' ? recent[i].qty : kind === 's' && amt.qty ? amt.qty : 1, portionLabel: kind === 'r' ? recent[i].pl : typedPortion, onDone: async item => {
       await addItems(day, [item]); toast(`${item.name} added`); close(); window.goku.render();
     } });
   };
@@ -306,10 +331,20 @@ export function addFood(meal, day, { scan = false } = {}) {
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
-    if (b.dataset.meal) { meal = b.dataset.meal; el.querySelectorAll('[data-meal]').forEach(x => x.setAttribute('aria-pressed', x.dataset.meal === meal)); return; }
+    if (b.dataset.meal) { meal = b.dataset.meal; el.querySelectorAll('[data-meal]').forEach(x => x.setAttribute('aria-pressed', x.dataset.meal === meal)); return draw(); }
+    if (b.dataset.same) {
+      const prev = prevDay.filter(it => (it.meal || 'snacks') === meal && !it.quick).map(it => ({ ...structuredClone(it), meal }));
+      await addItems(day, prev); toast(`${mealName(meal)} added: ${prev.length} food${prev.length === 1 ? '' : 's'}`); close(); return window.goku.render();
+    }
     if (b.dataset.ftab) { tab = b.dataset.ftab; return draw(); }
     if (b.dataset.fsugg) { q = b.dataset.fsugg; const i = $('#fq'); i.value = q + ' '; i.focus(); return draw(); }
     if (b.dataset.pick) return pick(b.dataset.pick);
+    if (b.dataset.tosupp) { // "creatine" in food search opens Supplements, already searched (2.8.2)
+      close(); await window.goku.render();
+      const add = document.getElementById('addSupp'); if (!add) return toast('Log it in Nutrition, under Supplements');
+      add.click(); const sq = document.getElementById('sq'); if (sq) { sq.value = b.dataset.tosupp; sq.dispatchEvent(new Event('input', { bubbles: true })); }
+      return;
+    }
     if (b.id === 'quick') return quickAdd(meal, async item => { await addItems(day, [item]); close(); window.goku.render(); });
     if (b.id === 'label') return labelFood({}, async f => { mine = await myFoods(); serving(f, { meal, onDone: async item => { await addItems(day, [item]); close(); window.goku.render(); } }); });
     if (b.id === 'scan') {
@@ -322,7 +357,8 @@ export function addFood(meal, day, { scan = false } = {}) {
         labelFood({ upc: code }, async nf => { mine = await myFoods(); serving(nf, { meal, onDone: async item => { await addItems(day, [item]); close(); window.goku.render(); } }); });
     }
   }));
-  Promise.all([myFoods(), recentItems(p), entries('meal')]).then(([m, r, ml]) => { mine = m; recent = r; meals = ml; draw(); });
+  Promise.all([myFoods(), recentItems(p), entries('meal'), readDay(p, addDays(day, -1)), readDay(p, day)]).then(([m, r, ml, y, td]) => {
+    mine = m; recent = r; meals = ml; prevDay = y.food.items || []; thisDay = td.food.items || []; draw(); });
   if (scan) el.querySelector('#scan').click(); // Scan on the Nutrition panel goes straight to the camera
   loadFoods().then(list => { all = list; if (q) draw(); }).catch(() => { failed = true; draw(); });
   draw();
@@ -357,7 +393,7 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
     const n = scale(f.per, amount() * ps[pi].g);
     $('#nt').innerHTML = `<p class="big num" style="text-align:center;margin-top:12px">${kcalOf(n) ?? '—'} <span class="sub">calories</span></p>
       <ul class="list">${NUTRIENTS.slice(1).map(([k, label, u]) => `<li><span>${label}</span><span class="num">${fmt(n[k], u)}</span></li>`).join('')}</ul>
-      <p class="sub" style="text-align:center">${round(amount() * ps[pi].g, 1)} ${f.unit === 'ml' ? 'ml' : 'g'} in all</p>`;
+      ${f.unit === 'srv' ? '' : `<p class="sub" style="text-align:center">${round(amount() * ps[pi].g, 1)} ${f.unit === 'ml' ? 'ml' : 'g'} in all</p>`}`; // a chain with no published weight: servings only (2.8.2)
   };
   el.addEventListener('input', e => { if (e.target.id === 'qty') draw(); });
   el.addEventListener('change', e => { if (e.target.id === 'por') { pi = +e.target.value; draw(); } });
@@ -504,7 +540,7 @@ function dayDetail(items, day) {
 // The day's protein goal: your own daily target, else the bottom of the coach range.
 export function proteinGoal(p) {
   const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
-  return own || fuelRanges(p, 0)?.protein[0] || null;
+  return own || fuelRanges(p, 0)?.aim || null;
 }
 // True when today's protein reached the goal: the avatar's aura powers up.
 export async function poweredUp(p) {

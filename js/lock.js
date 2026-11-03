@@ -66,7 +66,8 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
       el.querySelectorAll('[data-rem]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.rem === L.remember));
       $('#forgot').style.display = m === 'unlock' && !verifying ? '' : 'none';
     }
-    const end = ok => { active = null; close(); document.removeEventListener('keydown', onKey); resolve(ok); };
+    // The spoken "Enter the same 6 digits again" is cleared, so it isn't read out after setup (2.8.2).
+    const end = ok => { active = null; const live = document.getElementById('sr-live'); if (live) live.textContent = ''; close(); document.removeEventListener('keydown', onKey); resolve(ok); };
     endRef = end;
 
     async function finish() {

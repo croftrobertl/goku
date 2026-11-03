@@ -19,6 +19,7 @@ import { skillSummary, skillList } from './skills.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
 import { calendarCard, bindCalendar } from './calendar.js';
+import { activityName } from './activity.js';
 
 // Check-in has no tab of its own (the big button and Home's readiness card open it), so five tabs fit.
 // Session names come from the profile: Gymnastics and Vaulting, or a Custom profile's sports.
@@ -28,7 +29,9 @@ export const tabs = p => [['home', 'Home'], ['week', 'Week'], ...(on(p, 'skills'
 
 export { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
 import { readiness, sleepTargetFor as sleepTarget } from './perf-score.js';
-const word = r => r >= 75 ? 'Good to go' : r >= 55 ? 'Take it steady' : 'Talk to your coach today';
+// Any "yes" to back pain, pain changing a skill, or dizziness overrides the number's word (2.8.2).
+const word = (r, c = {}) => c.archPain || c.techPain || c.dizzy ? 'Talk to a parent or coach before training'
+  : r >= 75 ? 'Good to go' : r >= 55 ? 'Take it steady' : 'Talk to your coach today';
 
 // Red flags (only when the person has "Red flags and care checks" on).
 // Any area sore in each of the last 3 check-ins, all within the last 7 days. Wrists were the
@@ -66,7 +69,10 @@ export async function home() {
   const len = 2 * Math.PI * 72;
   const plan = p.settings.weekPlan;
   const ws = weekStart(t);
-  const sessions = await db.byIndexRange('entries', 'profileDay', [p.id, ws], [p.id, addDays(ws, 6)]).then(l => l.filter(e => e.type === 'session'));
+  const weekEntries = await db.byIndexRange('entries', 'profileDay', [p.id, ws], [p.id, addDays(ws, 6)]);
+  const sessions = weekEntries.filter(e => e.type === 'session');
+  // Logged activities (Quick add → Activity) count as training on the Today card and the week strip (2.8.2).
+  const trained = weekEntries.filter(e => e.type === 'session' || e.type === 'activity'), doneToday = trained.filter(s => s.day === t);
   const planned = plan[weekday(t)];
   const todays = sessions.filter(s => s.day === t);
   // Fuel follows the bigger of what's planned and what's been logged, so an extra practice counts.
@@ -81,10 +87,10 @@ export async function home() {
   const coachHTML = coachCard(p, {});
 
   return {
-    cta: c ? ['Log a session', () => logSession()] : ['Check in · 30 s', () => openCheckin(t)],
+    cta: c ? ['Log a session', () => logSession()] : ['Check in · 30 s', () => openCheckin(t)], ctaShown: !c, // the scouter has its own Check in button
     html: homeLayout(p, [
-      ['ready', scouterCard(p, all, t, { title: "Today's scouter", extra: c ? `<div class="scread">
-          <h2 id="h-ready">Readiness ${r} · ${word(r)}</h2>
+      ['ready', scouterCard(p, all, t, { title: `Today's ${w('scouter').toLowerCase()}`, extra: c ? `<div class="scread">
+          <h2 id="h-ready">Readiness ${r} · ${word(r, c)}</h2>
           <p>${whyBtn('readiness', JSON.stringify(c))} <button class="link" data-ci="${t}">Edit check-in</button></p></div>`
         : `<div class="scread"><h2 id="h-ready">No reading yet today</h2><p class="sub">Six quick questions about sleep, energy and how your body feels, about 30 seconds.</p>
           <button class="cta2" data-ci="${t}" style="margin-top:8px">Check in</button></div>` })],
@@ -104,7 +110,7 @@ export async function home() {
         <div class="row"><h2>This week</h2><span class="num sub">${round(weekMins / 60, 1)} h planned</span></div>
         ${weekMins ? `<div class="week">${DOW.map((d, i) => {
           const key = addDays(ws, i), mins = plan[i].gym + plan[i].vault;
-          const logged = sessions.filter(s => s.day === key).reduce((a, s) => a + s.data.minutes, 0);
+          const logged = trained.filter(s => s.day === key).reduce((a, s) => a + s.data.minutes, 0);
           // Dragon Radar: training days are glowing orbs sized by hours, rest days faint blips, a star once logged.
           const size = mins ? Math.round(16 + Math.min(mins, 300) / 300 * 14) : 8;
           return `<button class="day radar ${key === t ? 'today' : ''} ${mins === 0 ? 'rest' : ''}" data-day="${i}" aria-label="${d}: ${mins ? round(mins / 60, 1) + ' hours planned' : 'rest day'}${logged ? ', ' + logged + ' minutes logged' : ''}">
@@ -116,9 +122,9 @@ export async function home() {
       ['duel', duel],
       ['streak', `${streakCard(p, all, t)}`],
       ['today', `<section class="card"><p class="lbl">Today</p>
-        ${planned.gym + planned.vault === 0 ? `<p>${todays.length ? 'Planned rest day, and you trained anyway.' : weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
+        ${planned.gym + planned.vault === 0 ? `<p>${doneToday.length ? 'Planned rest day, and you trained anyway.' : weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
           `<p>${planned.gym ? `${esc(nm[0])} ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `${esc(nm[1] || 'Other')} ${round(planned.vault / 60, 1)} h` : ''}</p>`}
-        ${todays.length ? `<ul class="list" style="margin-top:8px">${todays.map(s => `<li><span>${esc(kindName(p, s))} · ${esc(s.data.minutes)} min</span>
+        ${doneToday.length ? `<ul class="list" style="margin-top:8px">${doneToday.map(s => `<li><span>${esc(s.type === 'activity' ? activityName(s.data.kind, s.data.name) : kindName(p, s))} · ${esc(s.data.minutes)} min</span>
           <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}
         <p class="note">Load = minutes × effort (0–10).</p>
       </section>`],
@@ -261,12 +267,17 @@ export async function weekView() {
   // Week strip (2.2): tap a day, edit it below. Training days are filled, today is outlined.
   const strip = () => `<div class="wstrip" role="group" aria-label="Pick a day">${DOW.map((d, i) => `<button data-wd="${i}" class="${plan[i].gym + plan[i].vault ? 'train' : ''}${addDays(ws, i) === t ? ' now' : ''}"
       aria-pressed="${i === weekPick}" aria-label="${d}: ${plan[i].gym + plan[i].vault ? h(plan[i].gym + plan[i].vault) + ' hours' : 'rest day'}"><span>${d[0]}</span><b class="num">${dayH(i)}</b></button>`).join('')}</div>`;
+  // Hours in one tap (2.8.2), with − and + kept for 15-minute steps.
+  const CHIPS = [[0, '0'], [60, '1'], [90, '1½'], [120, '2'], [150, '2½'], [180, '3'], [240, '4']];
+  const hours = (k, i, name) => `<p class="lbl" style="margin-top:10px">${esc(name)}</p>
+      <div class="seg" role="group" aria-label="${esc(name)} hours on ${DOW[i]}">${CHIPS.map(([m, l]) => `<button data-wh="${k}:${i}:${m}" aria-pressed="${plan[i][k] === m}" aria-label="${l} hours">${l}</button>`).join('')}</div>
+      <div class="row" style="margin-top:6px"><span class="sub">Fine-tune</span>${stepper(k + ':' + i, h(plan[i][k]), name.toLowerCase() + ' on ' + DOW[i], ' h')}</div>`;
   const editor = i => `<section class="card" id="wedit"><div class="row"><h2 style="margin:0">${DOW[i]}${addDays(ws, i) === t ? ' · today' : ''}</h2><span class="sub" id="rest">${plan[i].gym + plan[i].vault ? '' : 'Rest day'}</span></div>
-      <div class="row" style="margin-top:8px"><span>${esc(nm[0])}</span>${stepper('gym:' + i, h(plan[i].gym), nm[0].toLowerCase() + ' on ' + DOW[i], ' h')}</div>
-      ${nm[1] || plan[i].vault ? `<div class="row" style="margin-top:6px"><span>${esc(nm[1] || 'Other')}</span>${stepper('vault:' + i, h(plan[i].vault), (nm[1] || 'other').toLowerCase() + ' on ' + DOW[i], ' h')}</div>` : ''}
+      ${hours('gym', i, nm[0])}
+      ${nm[1] || plan[i].vault ? hours('vault', i, nm[1] || 'Other') : ''}
       ${plan[i].gym + plan[i].vault ? `<label class="f" style="margin-top:8px"><span>Usually starts at (optional, for Fuel now)</span>
         <input type="time" id="wat" value="${plan[i].at != null ? String(Math.floor(plan[i].at / 60)).padStart(2, '0') + ':' + String(plan[i].at % 60).padStart(2, '0') : ''}"></label>` : ''}
-      <p class="note">15-minute steps. This is your usual week; it repeats.</p></section>`;
+      <p class="note">Tap the hours, or use − and + for 15-minute steps. This is your usual week; it repeats.</p></section>`;
   return {
     cta: ['Log a session', () => logSession()],
     html: `<h1>Week</h1>
@@ -286,6 +297,13 @@ export async function weekView() {
       root.addEventListener('click', guard(async e => {
         const pick = e.target.closest('[data-wd]');
         if (pick) { weekPick = +pick.dataset.wd; root.querySelector('#wstrip').innerHTML = strip(); root.querySelector('#weditor').innerHTML = editor(weekPick); return; }
+        const chip = e.target.closest('[data-wh]');
+        if (chip) {
+          const [k, i, m] = chip.dataset.wh.split(':'); plan[+i][k] = +m; await saveProfile(p);
+          root.querySelector('#wtot').textContent = total() + ' h';
+          root.querySelector('#weditor').innerHTML = editor(+i); root.querySelector('#wstrip').innerHTML = strip();
+          root.querySelector(`[data-wh="${chip.dataset.wh}"]`)?.focus(); return;
+        }
         const b = e.target.closest('button[data-d]'); if (!b) return;
         const [k, i] = b.closest('[data-step]').dataset.step.split(':');
         plan[+i][k] = Math.min(600, Math.max(0, plan[+i][k] + +b.dataset.d * 15));
@@ -293,6 +311,7 @@ export async function weekView() {
         b.closest('[data-step]').querySelector('.num').textContent = h(plan[+i][k]) + ' h';
         root.querySelector('#wtot').textContent = total() + ' h';
         root.querySelector('#rest').textContent = plan[+i].gym + plan[+i].vault ? '' : 'Rest day';
+        root.querySelectorAll(`[data-wh^="${k}:${i}:"]`).forEach(c => c.setAttribute('aria-pressed', +c.dataset.wh.split(':')[2] === plan[+i][k]));
         if (!root.querySelector('#wat') !== !(plan[+i].gym + plan[+i].vault)) root.querySelector('#weditor').innerHTML = editor(+i);
         root.querySelector('#wstrip').innerHTML = strip();
       }));

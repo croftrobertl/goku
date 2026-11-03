@@ -76,7 +76,7 @@ function foodItem(it) {
 const DATA = {
   exercise: d => ({ name: str(d.name, 40), slot: str(d.slot, 12, 'push'), ...(/^[a-z]{1,12}$/.test(d.group || '') ? { group: d.group } : {}), module: d.module === 'soccer' ? 'soccer' : null,
     order: int(d.order, 0, 10000, 999), mode: d.mode === 'hold' ? 'hold' : 'reps', ...(/^[a-z0-9-]{1,40}$/.test(d.moveId || '') ? { moveId: d.moveId } : {}),
-    stages: stages(d.stages).map(({ label, load }) => ({ label, load })) }),
+    stages: stages(d.stages).map(({ label, load }) => ({ label, load })), ...([60, 90, 120].includes(d.rest) ? { rest: d.rest } : {}) }),
   session: d => ('kind' in d
     ? { kind: d.kind === 'vault' ? 'vault' : 'gym', minutes: int(d.minutes, 0, 1440, 0), effort: int(d.effort, 0, 10, 0) }
     : { gravity: [10, 20, 50, 100].includes(d.gravity) ? d.gravity : 50, startedAt: num(d.startedAt, 0, 1e14, 0), endedAt: num(d.endedAt, 0, 1e14, 0),

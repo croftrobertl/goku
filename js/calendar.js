@@ -59,7 +59,8 @@ export function calendarCard(p, all, t, skills = []) {
   if (!shown || shown > t.slice(0, 7)) shown = t.slice(0, 7);
   const by = states(p, all, t, skills);
   return `<section class="card cal" id="cal" data-t="${t}">${grid(p, by, t)}
-    <p class="calkey sub" aria-hidden="true"><span class="cd tr"></span>trained <span class="cd rs"></span>rest <span class="cd lg"></span>logged <span class="reck">★</span>${p.kind === 'perf' ? 'skill stage' : 'record'} <span class="cd bn"><i class="bean"></i></span>${W('beanSave')}</p></section>`;
+    <p class="calkey sub"><span class="ck"><span class="cd tr" aria-hidden="true"></span>trained</span> <span class="ck"><span class="cd rs" aria-hidden="true"></span>rest</span> <span class="ck"><span class="cd lg" aria-hidden="true"></span>logged</span>
+      <span class="ck"><span class="reck" aria-hidden="true">★</span>${p.kind === 'perf' ? 'skill stage' : 'record'}</span> <span class="ck"><span class="cd bn" aria-hidden="true"><i class="bean"></i></span>${W('beanSave')}</span></p></section>`;
 }
 
 export function bindCalendar(root, p, all, t, skills = []) {

@@ -1,6 +1,6 @@
 // App state: the list of profiles and which one is open.
 import * as db from './db.js';
-import { dayKey } from './time.js';
+import { dayKey, zoneOf } from './time.js';
 
 export const KINDS = {
   engine: { label: 'Strength and conditioning', theme: 'Gravity chamber', accent: '#5ea4ff', initial: 'D' },
@@ -79,6 +79,9 @@ export async function saveProfile(p) {
   if (i >= 0) S.profiles[i] = p; else S.profiles.push(p);
 }
 
+// Names start with a capital letter (2.8.2): "rob" is saved as "Rob".
+export const capName = s => { const t = String(s).trim(); return t.charAt(0).toLocaleUpperCase('en-US') + t.slice(1); };
+
 export function newProfile(kind, name, accent) {
   const mods = {};
   for (const [k] of liveModules(kind)) mods[k] = true;
@@ -93,7 +96,7 @@ export function newProfile(kind, name, accent) {
   };
 }
 
-export const today = p => { const x = p || profile(); return dayKey(Date.now(), x?.dayEndsAt ?? 3, x?.tz); };
+export const today = p => { const x = p || profile(); return dayKey(Date.now(), x?.dayEndsAt ?? 3, zoneOf(x)); };
 
 export async function entries(type, p = profile()) {
   return (await db.byIndex('entries', 'profileType', [p.id, type])).sort((a, b) => a.ts - b.ts);

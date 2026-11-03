@@ -2,7 +2,7 @@
 // and stored only on this device.
 import { skin, skinId, setSkin, SKINS, w } from './skins.js';
 import { THEMES } from './themes.js';
-import { KINDS, newProfile, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames } from './state.js';
+import { KINDS, newProfile, capName, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames } from './state.js';
 import { showLock } from './lock.js';
 import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
 import { DOW, deviceTZ } from './time.js';
@@ -145,7 +145,7 @@ export function onboard({ cancellable = false } = {}) {
         : st === 2 ? d.name.trim().length > 0 : true;
       $('#obnav').innerHTML = `<p class="msg" id="obm" role="status"></p>
         <button class="cta" id="next">${step === steps.length - 1 ? 'Set passcode' : 'Continue'}</button>
-        ${step > 0 ? '<button class="cta2" id="back" style="width:100%;margin-top:8px">Back</button>' : ''}`;
+        ${step > 0 ? '<button class="cta2" id="back" data-goback style="width:100%;margin-top:8px">Back</button>' : ''}`;
       $('#next').dataset.ready = ready;
       setTheme('capsule', 'auto');
       setAccent(d.accent || (d.kind ? KINDS[d.kind].accent : '#5ea4ff'));
@@ -159,7 +159,7 @@ export function onboard({ cancellable = false } = {}) {
     el.addEventListener('change', async e => {
       if (e.target.dataset.mod) d.modules[e.target.dataset.mod] = e.target.checked;
       if (e.target.matches('[data-avatar-photo]')) {
-        try { d.avatar = await photoToAvatar(e.target.files[0]); t.value = ''; e.target.value = ''; draw(); } catch (err) { $('#obm').textContent = err.message || "That photo couldn't be read."; }
+        try { d.avatar = await photoToAvatar(e.target.files[0]); e.target.value = ''; draw(); } catch (err) { $('#obm').textContent = err.message || "That photo couldn't be read."; }
       }
     });
     el.addEventListener('click', async e => {
@@ -199,7 +199,7 @@ export function onboard({ cancellable = false } = {}) {
         if (step < steps.length - 1) { step++; draw(); $('#ob').scrollTop = 0; return; }
         const most = d.proteinPer === 'meal' ? 150 : 500;
         if (d.kind === 'engine' && d.protein && !(+d.protein >= 10 && +d.protein <= most)) { $('#obm').textContent = `Protein target: enter 10 to ${most} grams, or leave it blank.`; return; }
-        const p = newProfile(d.kind, d.name.trim(), d.accent);
+        const p = newProfile(d.kind, capName(d.name), d.accent);
         for (const [k, v] of Object.entries(d.modules)) p.modules[k] = v;
         Object.assign(p, { avatar: d.avatar, units: d.units, tz: d.tz, about: d.about, coach: d.coach });
         // The skin, and its theme when it has one (Encore → Pastel tour); a color picked in setup stays.

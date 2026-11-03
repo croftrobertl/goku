@@ -93,6 +93,9 @@ const plural = (form, n) => (FORMS.find(f => f[0] === form) || [form, form + 's'
 const byName = n => LIST.find(s => s.name.toLowerCase() === String(n).toLowerCase())
   || LIST.find(s => words(s.alt).includes(String(n).toLowerCase()));
 
+// Food search points here (2.8.2): the supplement a typed name means exactly, if any ("creatine").
+export const suppNamed = q => q.trim().length >= 3 ? byName(q.trim()) || null : null;
+
 // "2 capsules · 500 mg each", "1 scoop · 5 g", or just "1 tablet".
 export function amountText(s) {
   const n = s.qty || 1, each = s.dose ? `${s.dose} ${s.unit}` : '';
@@ -125,11 +128,11 @@ export async function recentSupps(p = profile()) {
 }
 
 // Home of the Nutrition card. g = the day's gut data (or null), recent = recentSupps().
-export function suppCard(g, recent, meds) {
+export function suppCard(g, recent, meds, when = 'today') {
   const list = suppsOf(g);
   return `<section class="card supps"><div class="row"><p class="lbl" style="margin:0">Supplements</p><button class="cta2" id="addSupp">+ Add</button></div>
     ${list.length ? `<ul class="list">${list.map((s, i) => `<li><button class="itemrow" data-supp="${i}" aria-label="Edit ${esc(s.name)}"><span><b>${esc(s.name)}</b><br>
-      <span class="chain">${esc(amountText(s))}</span></span></button></li>`).join('')}</ul>` : '<p class="sub">None logged today.</p>'}
+      <span class="chain">${esc(amountText(s))}</span></span></button></li>`).join('')}</ul>` : `<p class="sub">None logged ${esc(when)}.</p>`}
     <div class="row" style="justify-content:center;gap:14px;margin-top:8px">${list.length >= 2 ? '<button class="link" id="saveStack">Save as a stack</button>' : ''}
       <button class="link" id="checkInt">Check interactions</button></div></section>`;
 }
@@ -145,7 +148,7 @@ export function pickSupplement(g, save, recent) {
     const q = $('#sq').value, { list, suggest } = search(q);
     $('#sfix').textContent = q.trim() && !list.length ? `“${q.trim()}” isn't in Goku's list.` : '';
     const mine = q.trim() ? [] : recent, stacks = q.trim() ? [] : profile().settings.stacks || [];
-    const typed = q.trim() && !list.some(s => s.name.toLowerCase() === q.trim().toLowerCase()) ? q.trim().slice(0, 40) : '';
+    const typed = q.trim() && !list.length ? q.trim().slice(0, 40) : ''; // only when nothing matched (2.8.2)
     $('#sres').innerHTML = `${stacks.length ? `<p class="lbl">Stacks</p><ul class="list">${stacks.map((st, i) => `<li><button class="itemrow" data-stack="${i}"><span><b>${esc(st.name)}</b><br><span class="chain">${esc(st.items.map(x => x.name).join(', '))}</span></span><span class="sub">Log all</span></button>
         <button class="cta2" data-rmstack="${i}" aria-label="Delete ${esc(st.name)}">×</button></li>`).join('')}</ul>` : ''}
       ${mine.length ? `<p class="lbl">Yours</p><ul class="list">${mine.map((s, i) => `<li><button class="itemrow" data-mine="${i}"><span><b>${esc(s.name)}</b><br><span class="chain">${esc(amountText(s))}</span></span><span class="sub">Add</span></button></li>`).join('')}</ul>` : ''}
@@ -265,8 +268,10 @@ export async function checkInteractions(p = profile()) {
   p.settings.meds ||= [];
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Interaction check</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="ib"></div>`, { label: 'Interaction check' });
-  const hitHTML = (name, other, x, sheet) => { const sp = spacing(x);
-    return `<div class="hit"><p><b>${esc(name)}</b> and <b>${esc(other)}</b></p>${sp ? `<p class="space">${esc(sp)}</p>` : ''}
+  // NCCIH pages (St. John's wort) list bare medicine names under a lead-in; that lead-in shows first (2.8.2), word for word.
+  const leadOf = sheet => sheet.src === 'NCCIH' && sheet.i?.[0]?.startsWith('•') ? sheet.i : [];
+  const hitHTML = (name, other, x, sheet) => { const sp = spacing(x), lead = leadOf(sheet);
+    return `<div class="hit"><p><b>${esc(name)}</b> and <b>${esc(other)}</b></p>${lead.length ? [...lead, ...x.t].map(s => `<p class="space">${esc(s)}</p>`).join('') : ''}${sp ? `<p class="space">${esc(sp)}</p>` : ''}
       <details><summary>What NIH says${x.h ? ` about ${esc(x.h.toLowerCase())}` : ''}</summary>${x.t.map(s => `<p>${esc(s)}</p>`).join('')}
       <p class="note">${x.own ? 'Heading added by Goku. ' : ''}${sheet.src === 'NCCIH' ? `NIH National Center for Complementary and Integrative Health, page updated ${esc(sheet.d)}.`
         : `NIH Office of Dietary Supplements, ${sheet.src === 'Consumer' ? '' : 'health professional '}fact sheet updated ${esc(sheet.d)}.`} <a href="${sheet.url || odsUrl(sheet.slug, sheet.src)}" target="_blank" rel="noopener">Read it</a></p></details></div>`; };
@@ -300,6 +305,7 @@ export async function checkInteractions(p = profile()) {
       <p class="note" style="margin-top:14px">This only knows the medicines NIH names in its supplement fact sheets. Before starting a supplement, ask a pharmacist or your doctor, and tell them everything you take.</p>`;
   };
   draw();
+  el.querySelector('#med')?.focus({ preventScroll: true }); // opens in the medicine box, not on Close (2.8.2)
   const addMed = async v => { v = v.trim().slice(0, 60); if (!v || p.settings.meds.some(m => m.toLowerCase() === v.toLowerCase())) return; p.settings.meds = [...p.settings.meds, v].slice(0, 30); await saveProfile(p); draw(); el.querySelector('#med')?.focus(); };
   const consider = v => { const c = byName(v) || search(v).list[0]; const n = c ? c.name : v.trim().slice(0, 40); if (n && !considering.includes(n)) considering.push(n); draw(); el.querySelector('#consider')?.focus(); };
   el.addEventListener('input', e => {

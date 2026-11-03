@@ -65,11 +65,11 @@ export function kiGauge(p, all, today) {
   const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
   // A rest day counts once it's marked with "Rest day" (2.8.1); a planned one alone used to fill half the ring.
   const trained = day.some(e => e.type === 'session' || e.type === 'activity'), rested = !trained && day.some(e => e.type === 'rest');
-  const parts = [trained || rested ? 1 : 0], rows = [['Training', trained ? 'Done' : rested ? 'Rest day' : plannedRest ? 'Rest day planned · mark it in the quick menu' : 'Not yet']];
+  const parts = [trained || rested ? 1 : 0], rows = [['Training', trained ? 'Done' : rested ? 'Rest day' : plannedRest ? 'Rest day planned · mark it in Quick add' : 'Not yet']];
   if (p.modules?.nutrition !== false) {
     const food = of('food'), gut = of('gut'), prot = dayProtein(food, gut);
     // The same protein number the recap uses: your own daily target, else the bottom of the range.
-    const target = (p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget) || fuelRanges(p, 0)?.protein[0];
+    const target = (p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget) || fuelRanges(p, 0)?.aim;
     if (target) parts.push(Math.min(1, prot / target));
     rows.push(['Protein', target ? `${prot} of ${target} g` : `${prot} g`]);
     rows.push(['Water', `${volume(food?.water ?? gut?.fluidsOz ?? 0, p)} ${volumeUnit(p)}`]);
@@ -108,7 +108,7 @@ export function recapCard(p, all, today) {
     if (n.activities.length) rows.push(['Other training', `${n.activities.reduce((a, x) => a + x.data.minutes, 0)} min`]);
     // The same protein number the Gut log shows: your own daily target, else the bottom of the range.
     const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
-    const target = own || fuelRanges(p, 0)?.protein[0];
+    const target = own || fuelRanges(p, 0)?.aim;
     // Days with food logged (or older Gut logs with protein taps), protein from both.
     const byDay = {};
     for (const g of n.gut) (byDay[g.day] ||= {}).gut = g.data;
@@ -141,7 +141,7 @@ export function recapCard(p, all, today) {
     if (fed.length) rows.push(['Average calories', `${Math.round(fed.reduce((a, f) => a + sumN(f.data.items).kcal, 0) / fed.length)} on ${fed.length} day${fed.length === 1 ? '' : 's'}`]);
     if (watered.length) rows.push(['Average water', `${volume(watered.reduce((a, f) => a + f.data.water, 0) / watered.length, p)} ${volumeUnit(p)}`]);
   }
-  return `<section class="card recap"><p class="lbl">Arc recap · ${prettyDay(from)} – ${prettyDay(to)}</p>
+  return `<section class="card recap"><p class="lbl">${esc(W('arc'))} recap · ${prettyDay(from)} – ${prettyDay(to)}</p>
     <ul class="list">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b class="num">${esc(v)}</b></li>`).join('')}</ul>
     <p class="say"><b>Next week's focus:</b> ${esc(focus[0])}</p>
     <button class="cta2" id="recapDone" data-week="${from}" style="margin-top:10px;width:100%">Got it</button></section>`;

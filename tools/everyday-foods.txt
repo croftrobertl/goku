@@ -1,8 +1,11 @@
 # Everyday foods: friendly name | =exact USDA name (or comma-separated words that must all appear) | serving to offer first (start of its label)
+# An optional fourth field lists servings to drop, comma-separated (2.8.2: an egg has no "1 slice").
+# The USDA food each line copies is hidden from search, so it doesn't show twice; "also hide" lines hide other copies.
 # Built into data/everyday.json by tools/build-everyday.py, which prints each match for checking.
 # Fruit
 Apple | =Apple, raw | 1 medium
-Banana | =Banana, raw | 1 banana
+Banana | =Bananas, raw | 1 medium
+also hide | =Banana, raw
 Orange | =Orange, raw | 1 fruit
 Strawberries | =Strawberries, raw | 1 cup
 Blueberries | =Blueberries, raw | 1 cup
@@ -66,7 +69,7 @@ Popcorn | =Popcorn, NFS | 1 single serving bag
 Quinoa, cooked | =Quinoa, cooked | 1 cup
 Couscous, cooked | =Couscous, plain, cooked | 1 cup
 # Protein foods
-Egg, boiled | =Egg, whole, boiled or poached | 1 egg
+Egg, boiled | =Egg, whole, boiled or poached | 1 egg | 1 slice
 Eggs, scrambled | =Egg omelet or scrambled egg, NS as to fat | 1 egg
 Egg, fried | =Egg, whole, fried with oil | 1 egg
 Egg whites, scrambled | =Egg white omelet, scrambled, or fried, NS as to fat | 1 egg white

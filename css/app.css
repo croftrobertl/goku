@@ -136,6 +136,7 @@ sup { font-size: .65em; color: var(--tx3); }
 /* Weight for the stage (2.8), always under the rep counter during a set */
 .wrow { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
 .wrow .cta2 { width: 52px; min-height: 44px; font-size: 1.3rem; padding: 0; }
+.wrow[hidden] { display: none; } /* 2.8.2: hidden during rest */
 .wrow b { min-width: 110px; text-align: center; font-size: 1.1rem; }
 .tap.bump .reps { color: var(--accent-text); }
 .tap.resting { background: var(--s2); cursor: default; }
@@ -466,7 +467,10 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .aura.st-blue { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5.5px #33c4ff, 0 0 10px 3px rgba(51, 196, 255, .5); }
 .aura.st-eternal { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5.5px #e9c13b, 0 0 0 8px #3fd18f; }
 .wtitle { display: block; font-size: .68rem; font-weight: 800; color: var(--accent-text); line-height: 1; }
-.chipname { display: flex; flex-direction: column; }
+.chipname { display: flex; flex-direction: column; min-width: 0; }
+/* 2.8.2: a long name ends in "…" in the chip and in Settings → Profiles instead of pushing the page sideways */
+.cn { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pname { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .card.wish { background: #0a1f16; color: #eafff3; }
 .card.wish .lbl { color: #ffe07a; }
 .card.wish .card.pick { background: #102a1e; color: #eafff3; border-color: #e9c13b; box-shadow: 3px 3px 0 #e9c13b; }
@@ -544,6 +548,7 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .cd .rec { position: absolute; top: 2px; right: 3px; }
 .cd .bean { position: absolute; bottom: 3px; left: 50%; width: 9px; height: 6px; margin-left: -4.5px; border-radius: 50%; background: var(--ok); }
 .calkey { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; margin-top: 10px; }
+.calkey .ck { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; } /* 2.8.2: a dot stays with its word */
 .calkey .cd { display: inline-block; width: 14px; height: 14px; min-height: 0; aspect-ratio: auto; }
 .calkey .cd.lg::after { bottom: 3.5px; }
 .calkey .cd .bean { bottom: 3px; width: 8px; height: 5px; margin-left: -4px; }
@@ -732,3 +737,11 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .endhint { font-size: .72rem; font-weight: 700; color: var(--tx2); }
 /* Edit session (2.8.1): dashed "Add a round" and "Add an exercise" buttons */
 .addrow { width: 100%; margin-top: 12px; padding: 14px; border: 2px dashed var(--tx2); border-radius: 14px; background: transparent; color: var(--tx); font-weight: 700; font-size: 1rem; }
+.pagecta { margin-top: 20px; }
+.liftchart { width: 100%; height: auto; display: block; }
+.liftchart .lc-axis { stroke: var(--line); stroke-width: 1; }
+.liftchart .lc-line { fill: none; stroke: var(--accent-line); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.liftchart .lc-dot { fill: var(--accent-line); }
+.liftchart .lc-lab { font-size: 12px; fill: var(--tx2); }
+#pace[hidden] { display: none; }
+.mealpick { width: 100%; min-height: 64px; font-size: 1.15rem; margin-top: 10px; }

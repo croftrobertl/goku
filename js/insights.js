@@ -63,6 +63,20 @@ export function records(sessions) {
 }
 export const recordFor = (best, exId, label) => best[exId + '|' + label]?.reps || 0;
 
+// Weight × reps history (2.8.2): each session's heaviest set for one exercise, by estimated one-rep best.
+// Epley B. Poundage chart. In: Boyd Epley Workout. Lincoln, NE: Body Enterprises; 1985:86.
+export const epley = (load, reps) => load * (1 + reps / 30);
+export function liftHistory(sessions, exId) {
+  const out = [];
+  for (const s of sessions) {
+    let best = null;
+    for (const set of s.data.sets || []) if (set.exId === exId) for (const st of set.stages || [])
+      if (st.load > 0 && st.reps > 0 && (!best || epley(st.load, st.reps) > best.e1)) best = { day: s.day, load: st.load, reps: st.reps, e1: epley(st.load, st.reps) };
+    if (best) out.push(best);
+  }
+  return out;
+}
+
 // ---------- Auto-progression ----------
 // Beating the ghost (more total reps than the session before) twice running at one gravity.
 const total = s => s.data.sets.reduce((a, set) => a + set.stages.reduce((b, x) => b + x.reps, 0), 0);

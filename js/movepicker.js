@@ -22,7 +22,7 @@ export const howBtn = (id, name) => `<button class="how" data-how="${esc(id)}" a
 
 // The "?" popup (2.4): the drawings first, then the muscles it works, then the steps.
 // Details (level, equipment, the drawings' credits) sit last, in small print.
-export function showMove(id, { onAdd = null, added = false, onEdit = null } = {}) {
+export function showMove(id, { onAdd = null, added = false, onEdit = null, extra = '' } = {}) {
   const m = moveById(id); if (!m) return;
   const art = artOf(m.id);
   const pic = (src, alt) => `<img src="${src}" alt="${esc(alt)}" loading="lazy">`;
@@ -36,6 +36,7 @@ export function showMove(id, { onAdd = null, added = false, onEdit = null } = {}
       ${muscleLine(m.id)}
       <ol class="steps">${m.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
       <p class="tipline"><b>Tip:</b> ${esc(m.tip)}</p>
+      ${extra}
       ${m.mode === 'hold' ? `<p class="note">${['cardio', 'power'].includes(m.group) ? 'Done for time' : 'Held for time'}, not counted in reps.</p>` : ''}
       <p class="note">${esc(LEVELS[m.level])} · ${esc(equipName(m.equip))}. Start light and slow. Sore muscles are normal; sharp pain means stop.</p>
       ${sources([...(art ? ['Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, CC BY-SA 4.0.'] : []),
@@ -52,9 +53,10 @@ export function showMove(id, { onAdd = null, added = false, onEdit = null } = {}
   }));
 }
 
+export const moveData = m => ({ name: m.name.slice(0, 40), slot: SLOT[m.group] || 'core', module: null, order: 999, mode: m.mode,
+  moveId: m.id, stages: m.chain.map(label => ({ label, load: null })) });
 export async function addMove(m) {
-  const e = await saveEntry('exercise', { name: m.name.slice(0, 40), slot: SLOT[m.group] || 'core', module: null, order: 999, mode: m.mode,
-    moveId: m.id, stages: m.chain.map(label => ({ label, load: null })) }, { day: '1970-01-01' });
+  const e = await saveEntry('exercise', moveData(m), { day: '1970-01-01' });
   // Circuits draw from push, pull, legs and core; the rest are warm-up and cool-down moves.
   toast(['push', 'pull', 'legs', 'core'].includes(m.group) ? `${m.name} added to your library` : `${m.name} added. Circuits use push, pull, legs and core, so use it to warm up or cool down.`, 4000);
   return e;
@@ -91,7 +93,9 @@ export function pickMove({ onCustom, have = [], onPick = null } = {}) {
       : GROUPS.map(([k, n]) => { const g = list.filter(m => m.group === k); return g.length ? `<details class="card fold grp"><summary class="lbl">${esc(n)} · ${g.length}</summary><ul class="list">${g.map(row).join('')}</ul></details>` : ''; }).join('');
   };
   el.addEventListener('input', e => { if (e.target.id === 'q') { f.q = e.target.value; draw(); } });
-  el.addEventListener('change', e => { if (e.target.id === 'grp') f.group = e.target.value; if (e.target.id === 'eq') f.equip = e.target.value; draw(); });
+  // Only the drop-downs redraw on change (2.8.2): the search box's change fires as the keyboard closes and
+  // redrew the list under the finger, so the first tap on Add was lost.
+  el.addEventListener('change', e => { if (e.target.id !== 'grp' && e.target.id !== 'eq') return; if (e.target.id === 'grp') f.group = e.target.value; if (e.target.id === 'eq') f.equip = e.target.value; draw(); });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') { close(); return onPick ? null : window.goku.render(); }

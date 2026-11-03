@@ -2,6 +2,7 @@
 // (about 3 minutes); follow-ups come one or two a day on Home. Every question here feeds
 // something the app actually does with the answer (see "used for" on each).
 import { esc, overlay, round, toast } from './ui.js';
+import { w } from './skins.js';
 import { weight, weightUnit, toLb, length, lengthUnit, toIn } from './units.js';
 import { dayKey, deviceTZ, validTZ, daysBetween } from './time.js';
 import { EQUIP, GEAR } from './moves.js';
@@ -19,6 +20,8 @@ export const GOALS = {
   perf: [['skills', 'Learn new skills'], ['strength', 'Stronger for my skills'], ['flex', 'More flexible'],
     ['compete', 'Compete well'], ['healthy', 'Stay healthy and injury-free'], ['fun', 'Have fun']],
 };
+// "Lose fat" isn't offered to under-18s (2.8.2); an answer already saved stays visible.
+export const goalsFor = p => GOALS[p.kind].filter(([k]) => k !== 'leaner' || !isMinor(p) || p.about?.goal === 'leaner');
 // Every kind of gear the exercise catalog uses (2.8), with the original three's wording kept.
 const OWN = { bar: 'Pull-up bar, rings or playset' };
 export const EQUIPMENT = GEAR.map(k => [k, OWN[k] || EQUIP.find(e => e[0] === k)[1]]);
@@ -57,8 +60,8 @@ export const QUESTIONS = [
       : 'Sizes your protein and carbohydrate ranges. Skip it if you like.' },
   { id: 'experience', essential: true, kinds: ['engine'], title: 'How long have you trained seriously?', type: 'choice', key: 'experience',
     options: [['0', 'Less than a year'], ['1', '1–3 years'], ['3', '3–5 years'], ['5', '5–10 years'], ['10', 'More than 10 years']],
-    help: 'Sets where your starting gravity level begins.' },
-  { id: 'goal', essential: true, title: 'What matters most right now?', type: 'choice', key: 'goal', options: p => GOALS[p.kind],
+    help: () => `Sets where your starting ${w('gravity')} level begins.` },
+  { id: 'goal', essential: true, title: 'What matters most right now?', type: 'choice', key: 'goal', options: goalsFor,
     help: 'Shapes your starting plan and what the coach checks in about.' },
   { id: 'equipment', essential: true, kinds: ['engine'], title: 'What equipment do you have?', type: 'multi', key: 'equipment', options: EQUIPMENT,
     help: 'Your exercise library is built from this. Pick none for bodyweight only.' },
@@ -83,7 +86,7 @@ export const QUESTIONS = [
     help: 'Under the recommended amount, the coach reminds you that recovery suffers.' },
   { id: 'feel', kinds: ['engine'], title: 'How did your sessions feel this week?', type: 'choice', key: '_feel', repeat: 7,
     options: [['easy', 'Too easy'], ['right', 'About right'], ['hard', 'Too hard']],
-    when: (p, ctx) => ctx.sessionsThisWeek > 0, help: 'The coach suggests your next gravity level from this.' },
+    when: (p, ctx) => ctx.sessionsThisWeek > 0, help: () => `The coach suggests your next ${w('gravity')} level from this.` },
   { id: 'reweigh', title: 'Has your weight changed?', type: 'body', repeat: 28, onlyWeight: true,
     when: p => p.about?.weightLb && daysBetween(dayKey(p.about.weightAt || 0), dayKey()) >= 28,
     help: 'Keeps your fueling ranges accurate. Skip if nothing changed.' },
@@ -120,10 +123,13 @@ export function screenClick(qs, p, b, root) {
 }
 // Reads every question on a screen; shows the first problem next to its question.
 export function screenRead(qs, p, root) {
+  let first = null;
   for (const q of qs) {
     const err = questionRead(q, p, root);
-    if (err) { const m = root.querySelector(`.q[data-qid="${q.id}"] .msg`); if (m) m.textContent = err; return false; }
+    if (err) { const m = root.querySelector(`.q[data-qid="${q.id}"] .msg`); if (m) { m.textContent = err; first ||= m; } else first ||= root; }
   }
+  // The first problem scrolls into view, above the keyboard (2.8.2).
+  if (first) { if (first !== root) first.scrollIntoView({ block: 'center', behavior: 'smooth' }); return false; }
   qs.forEach(q => { if (q.type === 'multi') p.about[q.key] ||= []; markAsked(q, p); }); // Next with nothing picked means "none"
   return true;
 }
@@ -191,11 +197,13 @@ export function questionClick(q, p, b) {
 export function questionRead(q, p, root) {
   const a = p.about ||= {};
   const v = s => root.querySelector(s)?.value.trim() ?? '';
-  if (q.type === 'units') { const tz = v('#q-tz'); p.tz = validTZ(tz) ? tz : deviceTZ(); p.units ||= 'imperial'; }
+  if (q.type === 'units') { const tz = v('#q-tz'); p.tz = validTZ(tz) ? tz : deviceTZ(); delete p.tzNext; p.units ||= 'imperial'; }
   if (q.type === 'body') {
     const hi = toIn(v('#q-h'), p), lb = toLb(v('#q-w'), p);
-    if (!q.onlyWeight && v('#q-h') && (hi === null || hi < 36 || hi > 96)) return `That height doesn't look right. Use ${lengthUnit(p)}.`;
-    if (v('#q-w') && (lb === null || lb < 40 || lb > 600)) return `That weight doesn't look right. Use ${weightUnit(p)}.`;
+    // Every problem at once (2.8.2), so a bad weight doesn't wait for the height to be fixed.
+    const errs = [!q.onlyWeight && v('#q-h') && (hi === null || hi < 36 || hi > 96) ? `That height doesn't look right. Use ${lengthUnit(p)}.` : '',
+      v('#q-w') && (lb === null || lb < 40 || lb > 600) ? `That weight doesn't look right. Use ${weightUnit(p)}.` : ''].filter(Boolean);
+    if (errs.length) return errs.join(' ');
     if (!q.onlyWeight && v('#q-h')) a.heightIn = round(hi, 2);
     if (v('#q-w')) { a.weightLb = round(lb, 1); a.weightAt = Date.now(); }
   }
@@ -265,7 +273,7 @@ export function bindCoach(root, p, ctx, save) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'coachSkip') { markAsked(q, p); countAnswerToday(p); return save(p); }
     if (b.id === 'coachSave') {
-      const err = questionRead(q, draft, card) || ((q.type === 'choice' || q.type === 'yesno') && q.key && draft.about[q.key] == null ? 'Pick one, or tap Skip.' : '');
+      const err = questionRead(q, draft, card) || ((q.type === 'choice' || q.type === 'yesno') && q.key && draft.about[q.key] == null ? 'Pick one, or tap Not now.' : '');
       if (err) { card.querySelector('.msg').textContent = err; return; }
       if (q.type === 'multi') draft.about[q.key] ||= [];
       Object.assign(p, { about: draft.about, units: draft.units, tz: draft.tz });

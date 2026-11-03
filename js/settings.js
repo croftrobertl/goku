@@ -1,5 +1,5 @@
 // Settings, profile management, and backup (export / import).
-import { S, profile, saveProfile, KINDS, newProfile, liveModules, soonModules, kindLabel } from './state.js';
+import { S, profile, saveProfile, KINDS, newProfile, capName, liveModules, soonModules, kindLabel } from './state.js';
 import * as db from './db.js';
 import { encryptJSON, decryptJSON } from './crypto.js';
 import { showLock, lockNow } from './lock.js';
@@ -10,12 +10,12 @@ import { VERSION } from './version.js';
 import { dayKey } from './time.js';
 import { phoneCheck } from './devcheck.js';
 import { THEMES, MODES } from './themes.js';
-import { w, W, SKINS, skinOf } from './skins.js';
+import { w, W, SKINS, skinOf, themeName } from './skins.js';
 import { avatarHTML, avatarName, avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
-import { QUESTIONS, essentials, setupFlow, GOALS, EQUIPMENT, ALLERGIES, TZS } from './coach.js';
+import { QUESTIONS, essentials, setupFlow, goalsFor, EQUIPMENT, ALLERGIES, TZS } from './coach.js';
 import { editHome } from './homelayout.js';
 import { weight, weightUnit, length, lengthUnit } from './units.js';
-import { deviceTZ, TZ } from './time.js';
+import { deviceTZ, TZ, nextDayStart } from './time.js';
 import { parseHealth, saveHealth, RECIPE } from './health.js';
 
 export const SCHEMA_VERSION = 1;
@@ -237,11 +237,11 @@ function aboutRows(p) {
   const pick = (list, v) => list.find(x => x[0] === v)?.[1];
   const qs = essentials(p).concat(QUESTIONS.filter(q => ['meals', 'sleep', 'comp'].includes(q.id) && (!q.kinds || q.kinds.includes(p.kind))));
   const shown = {
-    units: `${p.units === 'metric' ? 'Metric' : 'US units'} · ${p.tz || TZ}`,
+    units: `${p.units === 'metric' ? 'Metric' : 'US units'} · ${p.tzNext?.tz || p.tz || TZ}`,
     birthYear: a.birthYear ? String(a.birthYear) : '',
     body: [a.heightIn != null ? `${length(a.heightIn, p)} ${lengthUnit(p)}` : '', a.weightLb != null ? (p.kind === 'perf' ? 'weight saved' : `${weight(a.weightLb, p)} ${weightUnit(p)}`) : ''].filter(Boolean).join(' · '),
     experience: pick(QUESTIONS.find(q => q.id === 'experience').options, a.experience),
-    goal: pick(GOALS[p.kind], a.goal),
+    goal: pick(goalsFor(p), a.goal),
     equipment: a.equipment ? (a.equipment.map(v => pick(EQUIPMENT, v)).join(', ') || 'Bodyweight only') : '',
     days: a.days ? a.days + ' days a week' : '',
     diet: { any: 'Everything', pescatarian: 'Pescatarian', vegetarian: 'Vegetarian', vegan: 'Vegan' }[a.diet],
@@ -294,7 +294,7 @@ export async function settingsView() {
     <section class="card"><p class="lbl">Theme</p>
       <div class="themes">${Object.entries(THEMES).filter(([id, t]) => !t.locked || p.coach?.wish === 'theme').map(([id, t]) => `<button data-theme="${id}" aria-pressed="${(p.settings.theme || 'capsule') === id}">
         <span class="tsw" aria-hidden="true" style="background:${t.dark.s1};box-shadow:inset -18px 0 0 ${t.light.s1}"><i style="background:${t.accent}"></i></span>
-        <span><b>${esc(t.name)}</b><br><span class="sub">${esc(t.desc)}</span></span></button>`).join('')}</div>
+        <span><b>${esc(themeName(id, t))}</b><br><span class="sub">${esc(t.desc)}</span></span></button>`).join('')}</div>
       <div class="seg" role="group" aria-label="Light or dark">${MODES.map(([v, l]) => `<button data-mode="${v}" aria-pressed="${(p.settings.mode || 'auto') === v}">${l}</button>`).join('')}</div>
       <details class="tcustom"${p.accent !== THEMES[p.settings.theme || 'capsule']?.accent ? ' open' : ''}><summary>Customize this theme</summary>
         <p class="sub">Accent color for buttons and highlights. Picking a theme again resets it.</p>
@@ -323,8 +323,9 @@ export async function settingsView() {
     <section class="card"><p class="lbl">Units and time</p>
       <div class="seg" role="group" aria-label="Units"><button data-units="imperial" aria-pressed="${p.units !== 'metric'}">lb · in · oz</button>
         <button data-units="metric" aria-pressed="${p.units === 'metric'}">kg · cm · ml</button></div>
-      <label class="f"><span>Time zone</span><select id="tz">${[...new Set([p.tz || TZ, deviceTZ(), ...TZS])]
-        .map(z => `<option ${z === (p.tz || TZ) ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label>
+      <label class="f"><span>Time zone</span><select id="tz">${[...new Set([p.tzNext?.tz || p.tz || TZ, p.tz || TZ, deviceTZ(), ...TZS])]
+        .map(z => `<option ${z === (p.tzNext?.tz || p.tz || TZ) ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label>
+      ${p.tzNext ? `<p class="note">Starts with your next day. Until then, today stays on ${esc(p.tz || TZ)}.</p>` : ''}
       <label class="f"><span>Day ends at</span>
       <select id="de">${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}" ${h === p.dayEndsAt ? 'selected' : ''}>${h === 0 ? 'Midnight' : h + ':00 AM'}</option>`).join('')}</select></label>
       <p class="note">Entries before this hour count toward the day before.</p>
@@ -354,7 +355,7 @@ export async function settingsView() {
       <div class="row" style="margin-top:12px"><button class="cta2" id="chg">Change passcode</button><button class="cta2" id="lockNow">Lock now</button></div>
     </section>
     <section class="card"><p class="lbl">Profiles on this phone</p>
-      ${others.map(o => `<div class="toggle"><span>${esc(o.name)}<br><span class="sub">${esc(kindLabel(o))}</span></span>
+      ${others.map(o => `<div class="toggle"><span class="pname"><span class="cn">${esc(o.name)}</span><span class="sub">${esc(kindLabel(o))}</span></span>
         <span class="row" style="gap:8px"><button class="cta2" data-open="${esc(o.id)}">Open</button><button class="cta2" data-reset="${esc(o.id)}">Reset passcode</button></span></div>`).join('')}
       <button class="cta2" id="add" style="width:100%;margin-top:8px">Add a profile</button>
     </section>
@@ -368,7 +369,7 @@ export async function settingsView() {
     bind(root) {
       root.addEventListener('change', async e => {
         const t = e.target;
-        if (t.id === 'nm' && t.value.trim()) { p.name = t.value.trim().slice(0, 24); await saveProfile(p); window.goku.render(); }
+        if (t.id === 'nm' && t.value.trim()) { p.name = capName(t.value.slice(0, 24)); await saveProfile(p); window.goku.render(); }
         if ('duel' in t.dataset) { p.settings.duel = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.fb) { p.settings[t.dataset.fb] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); window.goku.render(); }
@@ -376,7 +377,12 @@ export async function settingsView() {
           if (v && !(v >= 10 && v <= most)) return toast(`Protein target: 10 to ${most} grams`); // a typo like 1985 isn't saved
           p.settings.proteinTarget = v; await saveProfile(p); }
         if (t.id === 'de') { p.dayEndsAt = +t.value; await saveProfile(p); }
-        if (t.id === 'tz') { p.tz = t.value; await saveProfile(p); window.goku.render(); }
+        if (t.id === 'tz') {
+          // The new zone starts with the next training day; today keeps its date (2.8.2).
+          if (t.value === p.tz) delete p.tzNext;
+          else { p.tzNext = { tz: t.value, at: nextDayStart(p.dayEndsAt ?? 3, p.tz || TZ) }; toast(`${t.value} starts with your next day. Today keeps its date.`); }
+          await saveProfile(p); window.goku.render();
+        }
         if (t.matches('[data-avatar-photo]')) {
           try { p.avatar = await photoToAvatar(t.files[0]); t.value = ''; await saveProfile(p); toast('Photo saved'); window.goku.render(); }
           catch (err) { toast(err.message || "That photo couldn't be read."); }

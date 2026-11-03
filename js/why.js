@@ -3,28 +3,33 @@
 import { w, W } from './skins.js';
 import { esc, round } from './ui.js';
 import { kgOf, weight, weightUnit } from './units.js';
-import { SOURCES, carbTier, fuelRanges, ratio } from './fuel.js';
+import { SOURCES, carbTier, fuelRanges, ratio, perLb, proteinAimPer } from './fuel.js';
 import { isMinor } from './coach.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
 
 export const whyBtn = (key, arg = '') => `<button class="why" data-why="${key}" data-arg="${esc(arg)}">Why?</button>`;
 
 const kgLine = p => { const kg = kgOf(p); return `Your weight: ${weight(p.about.weightLb, p)} ${weightUnit(p)}${weightUnit(p) === 'kg' ? '' : ` (${round(kg, 1)} kg)`}.`; };
+// The math in the person's own units (2.8.2): "185 lb × 0.64 g", or "84 kg × 1.4 g". A Gymnastics profile's
+// weight is never shown, so its lines read "your weight × …".
+const per = (p, x) => weightUnit(p) === 'kg' ? String(x) : perLb(x);
+const times = (p, x, cap = false) => `${p.kind === 'perf' ? (cap ? 'Your weight' : 'your weight') : `${weight(p.about.weightLb, p)} ${weightUnit(p)}`} × ${per(p, x)} g`;
 
 export const WHY = {
   protein: (p, minutes) => {
-    const kg = kgOf(p), r = fuelRanges(p, +minutes || 0);
+    const r = fuelRanges(p, +minutes || 0), aim = proteinAimPer(p);
     return ['Your protein range', `<p>${p.kind === 'perf' ? 'Sized from your saved weight.' : esc(kgLine(p))}</p>
-      <p style="margin-top:8px">${round(kg, 1)} kg × 1.4 g = <b>${r.protein[0]} g</b>, up to ${round(kg, 1)} kg × 2.0 g = <b>${r.protein[1]} g</b> a day.</p>
-      ${r.perMeal ? `<p style="margin-top:8px">Per meal: ${round(kg, 1)} kg × 0.25 g ≈ <b>${r.perMeal} g</b>, across your ${r.meals} meals.</p>` : ''}
+      <p style="margin-top:8px">${times(p, 1.4, true)} = <b>${r.protein[0]} g</b>, up to ${times(p, '2.0')} = <b>${r.protein[1]} g</b> a day.</p>
+      <p style="margin-top:8px">Home aims for <b>${r.aim} g</b> (${ratio(p, aim)}), ${aim === 1.4 ? 'the bottom of the range; reach it most days' : 'the middle of the range, because your goal is Build muscle'}.</p>
+      ${r.perMeal ? `<p style="margin-top:8px">Per meal: ${times(p, 0.25)} ≈ <b>${r.perMeal} g</b>, across your ${r.meals} meals.</p>` : ''}
       ${p.settings.proteinTarget && p.settings.proteinPer !== 'meal' ? `<p style="margin-top:8px">Your own target of ${esc(p.settings.proteinTarget)} g ${p.settings.proteinTarget < r.protein[0] ? 'is below' : p.settings.proteinTarget > r.protein[1] ? 'is above' : 'sits inside'} this range.</p>` : ''}
       <p class="note">${esc(SOURCES.issn)}</p>${isMinor(p) ? '<p class="note">These ranges come from studies of adults; under 18, a pediatrician or sports dietitian should confirm them.</p>' : ''}`];
   },
   carbs: (p, minutes) => {
-    const kg = kgOf(p), t = carbTier(+minutes || 0), r = fuelRanges(p, +minutes || 0);
-    return ['Your carbohydrate range', `<p>Training counted today: <b>${esc(+minutes || 0)} minutes</b> (${esc(t[1].toLowerCase())}).</p>
-      <p style="margin-top:8px">That tier is ${t[2]}–${t[3]} g per kg${weightUnit(p) === 'kg' ? '' : ` (${ratio(p, t[2], t[3])})`}: ${round(kg, 1)} kg × ${t[2]} = <b>${r.carbs[0]} g</b> to × ${t[3]} = <b>${r.carbs[1]} g</b>.</p>
-      <p style="margin-top:8px">Tiers: under 45 min, light 3–5; under 90 min, moderate 5–7; under 4 h, high 6–10; 4 h or more, very high 8–12. The minute cut-offs are Goku's reading of the statement's wording.</p>
+    const t = carbTier(+minutes || 0), r = fuelRanges(p, +minutes || 0);
+    return ['Your carbohydrate range', `<p>Training counted today: <b>${esc(+minutes || 0)} minutes</b>, a ${esc(t[1].toLowerCase())}.</p>
+      <p style="margin-top:8px">That tier is ${ratio(p, t[2], t[3])}: ${times(p, t[2])} = <b>${r.carbs[0]} g</b> to ${times(p, t[3])} = <b>${r.carbs[1]} g</b>.</p>
+      <p style="margin-top:8px">Tiers, in g per ${weightUnit(p)}: under 45 min, light ${per(p, 3)}–${per(p, 5)}; under 90 min, moderate ${per(p, 5)}–${per(p, 7)}; under 4 h, high ${per(p, 6)}–${per(p, 10)}; 4 h or more, very high ${per(p, 8)}–${per(p, 12)}. The minute cut-offs are Goku's reading of the statement's wording.</p>
       <p class="note">${esc(SOURCES.acsm)}</p>`];
   },
   readiness: (p, json) => {

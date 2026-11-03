@@ -1,6 +1,7 @@
 // Dragon Ball milestones: seven orbs, one to seven stars, each for a real achievement.
 // Worked out from the log every time (nothing to drift); only "already celebrated" is saved.
-import { w, W, skinOf } from './skins.js';
+import { w, W, skinOf, themeName } from './skins.js';
+import { THEMES } from './themes.js';
 import { saveProfile, profile } from './state.js';
 import { esc } from './ui.js';
 import { weekStart, prettyDay } from './time.js';
@@ -10,7 +11,7 @@ import { restAllowance } from './homecards.js';
 // [stars, title, how to earn]
 const LIST = {
   engine: [[1, 'First session', 'Finish your first circuit.'], [2, '7 days in a row', 'Keep the streak going for a week.'],
-    [3, 'First power level record', 'Beat your best reps on any exercise.'], [4, 'Weekly goal met', 'Train as many days as your weekly goal in one week.'],
+    [3, () => `First ${w('power').toLowerCase()} record`, 'Beat your best reps on any exercise.'], [4, 'Weekly goal met', 'Train as many days as your weekly goal in one week.'],
     [5, '25 sessions', 'Finish 25 circuits.'], [6, '30 days in a row', 'Keep the streak going for 30 days.'], [7, '100 days logged', 'Log something on 100 different days.']],
   perf: [[1, 'First check-in', 'Do your first daily check-in.'], [2, '7 days in a row', 'Keep the streak going for a week.'],
     [3, 'First skill moved up', 'Move any skill up a stage.'], [4, 'Check-in week', 'Check in on 5 days in one week.'],
@@ -62,7 +63,7 @@ export function milestones(p, all, today, skills = []) {
   }
   // A ball once celebrated stays gathered, even if what earned it (a skill, say) is later deleted.
   const kept = new Set(p.coach?.balls || []);
-  return LIST[p.kind].map(([stars, title, how], i) => ({ stars, title, how, day: got[i] || null, earned: !!got[i] || kept.has(stars) }));
+  return LIST[p.kind].map(([stars, title, how], i) => ({ stars, title: typeof title === 'function' ? title() : title, how, day: got[i] || null, earned: !!got[i] || kept.has(stars) }));
 }
 
 // Star layouts inside a 40×40 orb, one to seven stars.
@@ -110,13 +111,13 @@ export function bindBalls(root, p) {
 
 // Shenron's wish (2.2): with all seven balls gathered, one wish, once. The wish is a reward
 // inside the app: a hidden theme, an eternal aura, or a title beside your name.
-export const WISHES = [['theme', 'A new theme', 'Unlock Eternal Dragon: emerald and wish gold.'], ['aura', 'An eternal aura', 'Your avatar keeps a shimmering aura every day.'],
+export const WISHES = [['theme', 'A new theme', () => `Unlock the ${themeName("eternal", THEMES.eternal)} theme: emerald and wish gold.`], ['aura', 'An eternal aura', 'Your avatar keeps a shimmering aura every day.'],
   ['title', 'A title', '"Dragon Ball master" beside your name.']];
 // The title wish follows the skin ("Headliner" under Encore).
-const wishText = (k, d) => k === 'title' ? `"${W('master')}" beside your name.` : d;
+const wishText = (k, d) => k === 'title' ? `"${W('master')}" beside your name.` : typeof d === 'function' ? d() : d;
 export function wishCard(p, list) {
   if (p.coach?.wish || list.filter(m => m.earned).length < 7) return '';
-  return `<section class="card wish"><p class="lbl">All seven Dragon Balls</p>
+  return `<section class="card wish"><p class="lbl">All seven ${esc(w('balls'))}</p>
     <div class="ballrow" style="justify-content:center">${list.map(m => ballSVG(m.stars, true, 32)).join('')}</div>
     <p style="text-align:center;font-weight:700">${esc(W('wisher'))} ${skinOf(profile()) === 'dbz' ? 'appears' : 'is here'}. Make one wish.</p>
     <div class="moregrid">${WISHES.map(([k, n, d]) => `<button class="card pick" data-wish="${k}"><span><b>${n}</b><br><span class="sub">${esc(wishText(k, d))}</span></span></button>`).join('')}</div></section>`;

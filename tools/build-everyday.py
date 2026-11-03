@@ -8,11 +8,14 @@ import json, re, sys
 
 foods = json.load(open('data/foods.json', encoding='utf-8'))['foods']
 generic = [f for f in foods if f[12] in ('fndds', 'sr')]
-out, missing = [], []
+out, missing, hide = [], [], []
 for line in open('tools/everyday-foods.txt', encoding='utf-8'):
     line = line.strip()
     if not line or line.startswith('#'): continue
-    name, words, serving = [x.strip() for x in line.split('|')]
+    if line.startswith('also hide |'):  # another USDA copy of a food above (2.8.2)
+        hide.append(line.split('|', 1)[1].strip().lstrip('=').strip()); continue
+    name, words, serving, *drop = [x.strip() for x in line.split('|')]
+    drop = [d.strip().lower() for d in (drop[0].split(',') if drop else []) if d.strip()]
     exact = words.startswith('=') and words[1:].strip().lower()
     phrases = [p.strip().lower() for p in words.split(',') if p.strip()]
     def ok(f):
@@ -23,7 +26,7 @@ for line in open('tools/everyday-foods.txt', encoding='utf-8'):
     if not cands:
         missing.append(name); continue
     f = list(cands[0])
-    ps = [p for p in f[10].split(';') if p]
+    ps = [p for p in f[10].split(';') if p and p.split('|')[0].lower() not in drop]
     if '~' in serving:  # "1 cup (8 fl oz)~1 fl oz (NFS)*8": a new serving made from a listed one
         label, rest = serving.split('~'); base, times = rest.rsplit('*', 1)
         src = next((p for p in ps if p.split('|')[0] == base), None)
@@ -33,7 +36,9 @@ for line in open('tools/everyday-foods.txt', encoding='utf-8'):
     if pick: ps.remove(pick); ps.insert(0, pick)
     f[10] = ';'.join(ps)
     print(f'{name:38} <- {f[0][:60]:60} [{f[12]}] {f[2]} kcal/100g | first serving: {ps[0] if ps else "100 g"}')
+    hide.append(f[0])  # the copied USDA food, so search doesn't list it twice (2.8.2)
     f[0], f[1], f[12] = name, '', 'common'
     out.append(f)
-json.dump(out, open('data/everyday.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+# The last item is {'hide': [USDA names]}, read by loadFoods, not a food.
+json.dump(out + [{'hide': sorted(set(hide))}], open('data/everyday.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print(f'\n{len(out)} everyday foods; not matched: {missing}', file=sys.stderr)

@@ -34,6 +34,19 @@ export function dayKey(ts = Date.now(), dayEndsAt = 3, tz = TZ) {
   return date.toISOString().slice(0, 10);
 }
 
+// A time-zone change waits for the next training day (2.8.2), so today's entries keep their date.
+// Returns when the current training day ends in tz, to the minute.
+export function nextDayStart(dayEndsAt = 3, tz = TZ, now = Date.now()) {
+  const k = dayKey(now, dayEndsAt, tz);
+  let t = now - now % 900000;
+  while (dayKey(t + 900000, dayEndsAt, tz) === k) t += 900000;
+  t += 900000;
+  while (dayKey(t - 60000, dayEndsAt, tz) !== k) t -= 60000;
+  return t;
+}
+// The zone in force: a pending change takes over once its day has started.
+export const zoneOf = (p, now = Date.now()) => p?.tzNext && now >= p.tzNext.at ? p.tzNext.tz : p?.tz;
+
 export function addDays(key, n) {
   const d = new Date(key + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + n);

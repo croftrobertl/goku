@@ -13,6 +13,12 @@ export const SOURCES = {
 
 // Ratios in the person's own units (2.8.1): the sources give g per kg, so pound users see g per lb.
 const perLb = x => { const v = x / 2.20462; return String(v < 2 ? Math.round(v * 100) / 100 : Math.round(v * 10) / 10); };
+// Grams for a g-per-kg figure (2.8.2): pound users get pounds × the per-lb ratio they're shown, so the
+// card, Why? and Home all round the same way.
+export const gOf = (p, x) => { const kg = kgOf(p); return !kg ? null : weightUnit(p) === 'kg' ? Math.round(kg * x) : Math.round(p.about.weightLb * +perLb(x)); };
+export { perLb };
+// "Build muscle" aims for the middle of the protein range, about 1.7 g per kg (2.8.2); other goals aim for its bottom.
+export const proteinAimPer = p => p.about?.goal === 'muscle' ? 1.7 : 1.4;
 export const ratio = (p, a, b) => weightUnit(p) === 'kg' ? `${a}${b != null ? '–' + b : ''} g per kg` : `${perLb(a)}${b != null ? '–' + perLb(b) : ''} g per lb`;
 
 // Carbohydrate tiers from the 2016 joint position statement (g/kg/day). The minutes that
@@ -32,10 +38,10 @@ export function fuelRanges(p, minutes) {
   const meals = +(p.about?.meals || 0);
   const t = carbTier(minutes);
   return {
-    protein: [Math.round(kg * 1.4), Math.round(kg * 2.0)],
-    perMeal: meals ? Math.round(kg * 0.25) : null,
+    protein: [gOf(p, 1.4), gOf(p, 2.0)], aim: gOf(p, proteinAimPer(p)),
+    perMeal: meals ? gOf(p, 0.25) : null,
     meals,
-    carbs: [Math.round(kg * t[2]), Math.round(kg * t[3])], tier: t[1],
+    carbs: [gOf(p, t[2]), gOf(p, t[3])], tier: t[1],
   };
 }
 
@@ -68,12 +74,12 @@ export function fuelCard(p, minutes, { title = 'Fuel today', planned = 0 } = {})
 export function timingCard(p, minutes, { open = true } = {}) {
   if (!(minutes > 0)) return '';
   const kg = kgOf(p);
-  const dose = kg ? `about ${Math.round(kg * 0.25)}–${Math.round(kg * 0.4)} g (${ratio(p, 0.25, '0.40')})` : '20–40 g';
+  const dose = kg ? `about ${gOf(p, 0.25)}–${gOf(p, 0.4)} g (${ratio(p, 0.25, '0.40')})` : '20–40 g';
   const rows = [
     ['Through the day', `Protein ${dose} every 3 to 4 hours, so the daily total is spread out.`],
     ['After training', `High-quality protein, ${dose}, within 2 hours of finishing.`],
     ...(minutes > 60 ? [['During long, hard sessions', 'Past about an hour of hard work, 30–60 g of carbohydrate an hour, as sips of a sports drink every 10–15 minutes.']] : []),
-    ['Training again within 4 hours', kg ? `Carbohydrate about ${Math.round(kg * 1.2)} g an hour (${ratio(p, 1.2)}) until the next session, or ${Math.round(kg * 0.8)} g an hour with ${Math.round(kg * 0.2)}–${Math.round(kg * 0.4)} g of protein an hour.`
+    ['Training again within 4 hours', kg ? `Carbohydrate about ${gOf(p, 1.2)} g an hour (${ratio(p, 1.2)}) until the next session, or ${gOf(p, 0.8)} g an hour with ${gOf(p, 0.2)}–${gOf(p, 0.4)} g of protein an hour.`
       : `Carbohydrate about ${ratio(p, 1.2)} of body weight an hour until the next session.`],
   ];
   const body = `<ul class="list">${rows.map(([k, v]) => `<li><span><b>${esc(k)}</b><br><span class="sub">${esc(v)}</span></span></li>`).join('')}</ul>
@@ -99,7 +105,7 @@ export function fuelNowCard(p, { at = null, minutes = 0, lastEnd = 0 } = {}) {
   const end = at != null && minutes ? at + minutes : null;
   if (sinceLogged <= 120 || (end != null && now >= end && now - end <= 120)) {
     const left = Math.round(120 - Math.min(sinceLogged, end != null && now >= end ? now - end : Infinity));
-    const dose = kg ? `about ${Math.round(kg * 0.25)}–${Math.round(kg * 0.4)} g of protein` : '20–40 g of protein';
+    const dose = kg ? `about ${gOf(p, 0.25)}–${gOf(p, 0.4)} g of protein` : '20–40 g of protein';
     return card('Refuel after training', `Have ${dose} within 2 hours of finishing: about ${left} minutes left.`,
       qbtn('Greek yogurt, plain', 'Greek yogurt') + qbtn('Chocolate milk', 'Chocolate milk') + qbtn('String cheese', 'String cheese'), SOURCES.timing);
   }
@@ -109,7 +115,7 @@ export function fuelNowCard(p, { at = null, minutes = 0, lastEnd = 0 } = {}) {
   if (h < 1) return `<section class="card fuelnow"><p class="lbl">Fuel now</p><h2>Practice at ${clockOf(at)}</h2>
     <p>Starts in ${until} minutes. Fill your water bottle.</p><div class="qlog"><button class="cta2" data-qwater>Log a glass of water</button></div></section>`;
   const gpk = Math.min(4, Math.max(1, Math.round(h)));
-  const carbs = kg ? `about ${Math.round(kg * gpk)} g of carbohydrate (${ratio(p, gpk)})` : `about ${ratio(p, gpk)} of body weight of carbohydrate`;
+  const carbs = kg ? `about ${gOf(p, gpk)} g of carbohydrate (${ratio(p, gpk)})` : `about ${ratio(p, gpk)} of body weight of carbohydrate`;
   return card(`Practice at ${clockOf(at)}`, `In ${h >= 1.25 ? `about ${(hh => hh % 1 ? Math.floor(hh) + '½' : hh)(Math.round(h * 2) / 2)} hours` : 'about an hour'}. A meal or snack now with ${carbs} tops up your energy.`,
     qbtn('Banana', 'Banana') + qbtn('Bagel, plain', 'Bagel') + qbtn('Oatmeal, cooked', 'Oatmeal'),
     `${ratio(p, 1, 4)} in the 1–4 hours before; Goku uses about ${ratio(p, 1)} per hour. ${SOURCES.acsm}`);

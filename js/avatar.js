@@ -16,10 +16,12 @@ export const CHARACTERS = [
 ];
 
 // [id, name, aura color]: the person's own initial wrapped in a power-up glow.
+// The fourth name is for Encore and Plain (2.8.2), which use no Dragon Ball words.
 export const AURAS = [
-  ['saiyan', 'Saiyan gold', '#f5c542'], ['blue', 'Divine blue', '#4fb3ff'], ['namek', 'Namekian green', '#3fd18f'],
-  ['majin', 'Majin pink', '#ff6fb0'], ['destroyer', 'Destroyer purple', '#a86bff'], ['kaio', 'Crimson', '#ff5a4a'],
+  ['saiyan', 'Saiyan gold', '#f5c542', 'Gold'], ['blue', 'Divine blue', '#4fb3ff', 'Blue'], ['namek', 'Namekian green', '#3fd18f', 'Green'],
+  ['majin', 'Majin pink', '#ff6fb0', 'Pink'], ['destroyer', 'Destroyer purple', '#a86bff', 'Purple'], ['kaio', 'Crimson', '#ff5a4a', 'Crimson'],
 ];
+const auraName = a => skin().avatars === 'fighters' ? a[1] : a[3];
 
 // Friendship-bracelet initials (2.8, the Encore skin's avatars): two letter beads on a colored cord.
 export const BRACELETS = [['pink', 'Pink', '#ffb3c7'], ['sky', 'Sky', '#9fd6ff'], ['lilac', 'Lilac', '#c9b3ff'], ['mint', 'Mint', '#a8e6cf'],
@@ -59,7 +61,7 @@ export function avatarHTML(p, px = 36) {
 export const avatarName = p => {
   const a = p.avatar || {};
   if (a.type === 'char') return CHARACTERS.find(x => x[0] === a.id)?.[1] || '';
-  if (a.type === 'aura') return AURAS.find(x => x[0] === a.id)?.[1] || '';
+  if (a.type === 'aura') { const x = AURAS.find(x => x[0] === a.id); return x ? auraName(x) : ''; }
   if (a.type === 'beads') return (BRACELETS.find(x => x[0] === a.id)?.[1] || '') + ' bracelet';
   return a.type === 'photo' ? 'Your photo' : 'Your initial';
 };
@@ -75,15 +77,16 @@ export function avatarPicker(p) {
   const bracelets = `<p class="lbl" style="margin-top:12px">Bracelets</p>
     <div class="avgrid">${BRACELETS.map(([id, name]) => `<button data-avatar="beads:${id}" aria-pressed="${on('beads', id)}">
       ${avatarHTML({ ...p, avatar: { type: 'beads', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
-  // The skin's own set comes first (2.8); every set stays available.
-  const first = skin().avatars === 'bracelets';
-  return `<p class="sub">Pick an avatar, an aura, or your own photo. Character names are labels only; every drawing is original, not official art. Your colors stay with your theme.</p>
-    ${first ? bracelets + fighters : fighters + bracelets}
+  // The skin's own set comes first (2.8). Fighters are Dragon Ball's only (2.8.2): Encore and Plain don't list them,
+  // though a fighter picked before keeps showing as the avatar.
+  const dbz = skin().avatars === 'fighters';
+  return `<p class="sub">${dbz ? 'Pick an avatar, an aura, or your own photo. Character names are labels only; every drawing is original, not official art.' : 'Pick an avatar, an aura, or your own photo.'} Your colors stay with your theme.</p>
+    ${dbz ? fighters + bracelets : bracelets}
     <p class="lbl" style="margin-top:12px">Auras</p>
     <div class="avgrid">
       <button data-avatar="initial:" aria-pressed="${on('initial')}">${avatarHTML(self, 44)}<span>Plain</span></button>
-      ${AURAS.map(([id, name]) => `<button data-avatar="aura:${id}" aria-pressed="${on('aura', id)}">
-      ${avatarHTML({ ...p, avatar: { type: 'aura', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>
+      ${AURAS.map(a => `<button data-avatar="aura:${a[0]}" aria-pressed="${on('aura', a[0])}">
+      ${avatarHTML({ ...p, avatar: { type: 'aura', id: a[0] } }, 44)}<span>${esc(auraName(a))}</span></button>`).join('')}</div>
     <p class="lbl" style="margin-top:12px">Your photo</p>
     <div class="row" style="justify-content:flex-start;gap:12px">
       ${cur.type === 'photo' ? avatarHTML(p, 44) : ''}
