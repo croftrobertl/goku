@@ -350,7 +350,7 @@ export async function settingsView() {
       <button class="link" id="healthHow" style="width:100%">How to set up the shortcut</button>
     </section>
     <section class="card"><p class="lbl">Passcode</p>
-      <p class="sub">Don't ask again on this phone for</p>
+      <p class="sub">Remember this phone for</p>
       <div class="seg">${[[0, 'Always ask'], [1, '1 day'], [7, '1 week'], [30, '30 days']].map(([v, l]) => `<button data-rem="${v}" aria-pressed="${p.lock.remember === v}">${l}</button>`).join('')}</div>
       <div class="row" style="margin-top:12px"><button class="cta2" id="chg">Change passcode</button><button class="cta2" id="lockNow">Lock now</button></div>
     </section>

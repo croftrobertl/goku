@@ -16,6 +16,7 @@ export const MODULES = {
     ['shuffle', 'Shuffle', 'A fresh circuit from your library on demand.'],
     ['soccer', 'Soccer engine pack', 'Adds explosive-power and joint-armor exercises to circuits.'],
     ['fuel', 'Fuel ranges', 'Protein and carbohydrate ranges for your weight and training, with sources.'],
+    ['weight', 'Weight trend', 'Log weigh-ins and see a smoothed trend line. A weight goal can track itself.'],
     ['skills', 'Playset skill unlocks', 'Bodyweight skill ladders.', true],
   ],
   perf: [

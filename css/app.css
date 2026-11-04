@@ -795,3 +795,16 @@ details.fold > summary.lbl { text-align: left; }
 .ringd > .ring { margin: 0 auto 10px; } .ring.plain { height: auto; } /* 2.9: the panel is always open */
 .gravd .gsub { font-weight: 400; color: var(--tx2); }
 .overlay .supp > input + button { margin-top: 10px; padding: 0 22px; } /* 2.9: room between a box and its button */
+/* Weight trend (2.10) */
+.wtchart { width: 100%; height: auto; display: block; margin: 8px 0; }
+.wtchart .wt-dot { fill: var(--tx3); }
+.wtchart .wt-line { fill: none; stroke: var(--tx); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+.wtbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+/* Workout (2.10): what you did last time, and the plates for a barbell weight */
+.lastline { display: block; margin-top: 10px; font-weight: 700; color: var(--accent-text); }
+.lastline:empty, .plates:empty { display: none; }
+.plates { text-align: center; margin: 6px 0 0; }
+/* Stats tiles (2.10, review 7): a small trend line under the number */
+.spark { width: 100%; height: auto; display: block; margin-top: 6px; }
+.spark polyline { fill: none; stroke: var(--accent-line); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.sparknote { margin: 2px 0 0; }

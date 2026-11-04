@@ -98,8 +98,10 @@ const DATA = {
     ...(str(d.name, 40).trim() ? { name: str(d.name, 40).trim() } : {}),
     ...(num(d.dist, 0.01, 100000) && ['mi', 'km', 'yd', 'm'].includes(d.distUnit) ? { dist: num(d.dist, 0.01, 100000), distUnit: d.distUnit } : {}) }),
   rest: () => ({}),
+  weigh: d => ({ lb: num(d.lb, 30, 800, 150) }),
   arc: d => ({ name: str(d.name, 40).trim() || 'Arc', boss: str(d.boss, 80).trim() || 'My goal', start: DAY.test(d.start || '') ? d.start : '1970-01-01', weeks: int(d.weeks, 1, 52, 4), done: DAY.test(d.done || '') ? d.done : null,
-    link: d.link && (d.link.type === 'ex' || d.link.type === 'skill') && str(d.link.id, 64) ? { type: d.link.type, id: str(d.link.id, 64), ...(d.link.type === 'ex' ? { stage: str(d.link.stage, 40) } : {}), target: int(d.link.target, 1, 999, 1) } : null }),
+    link: d.link?.type === 'weight' ? { type: 'weight', target: num(d.link.target, 0.5, 200, 4) }
+      : d.link && (d.link.type === 'ex' || d.link.type === 'skill') && str(d.link.id, 64) ? { type: d.link.type, id: str(d.link.id, 64), ...(d.link.type === 'ex' ? { stage: str(d.link.stage, 40) } : {}), target: int(d.link.target, 1, 999, 1) } : null }),
   skill: d => ({ name: str(d.name, 40).trim() || 'Skill', event: ['vault', 'floor', 'beam', 'bars', 'flex', 'other'].includes(d.event) ? d.event : 'other',
     stage: int(d.stage, 0, 3, 0), log: Array.isArray(d.log) ? d.log.slice(-40).filter(l => DAY.test(l?.day || '')).map(l => ({ stage: int(l.stage, 0, 3, 0), day: l.day })) : [] }),
   sleep: d => ({ hours: num(d.hours, 0, 24, 0), source: 'health' }),
@@ -134,7 +136,9 @@ export function cleanBackup(prof, entries) {
       ? { gravity: [10, 20, 50, 100].includes(prof.settings?.gravity) ? prof.settings.gravity : 50, shuffleSeed: int(prof.settings?.shuffleSeed, 0, 1e6, 0),
         proteinTarget: int(prof.settings?.proteinTarget, 1, 1000), proteinPer: prof.settings?.proteinPer === 'meal' ? 'meal' : 'day',
         pantry: Array.isArray(prof.settings?.pantry) ? prof.settings.pantry.slice(0, 40).map(x => ({ n: str(x?.n, 40).trim(), g: int(x?.g, 0, 300, 0) })).filter(x => x.n) : [],
-        dbStep: num(prof.settings?.dbStep, 1, 50, 5) }
+        dbStep: num(prof.settings?.dbStep, 1, 50, 5),
+        ...(num(prof.settings?.bar, 5, 100) ? { bar: num(prof.settings.bar, 5, 100) } : {}),
+        ...(Array.isArray(prof.settings?.plates) ? { plates: [...new Set(prof.settings.plates.map(x => num(x, 0.5, 120)).filter(Boolean))].slice(0, 12), platesUnit: prof.settings.platesUnit === 'kg' ? 'kg' : 'lb' } : {}) }
       : { weekPlan: plan, sharing: false }) },
     lockRemember: [0, 1, 7, 30].includes(prof.lockRemember) ? prof.lockRemember : 7,
   };

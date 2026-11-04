@@ -32,6 +32,17 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.10.0:* picks from review 6. Exercise and stage names on the workout screen stay as written
+  (2.9.0's Title Case had caught them). Weight trend on Strength profiles' Stats: every weigh-in is
+  kept and smoothed with The Hacker's Diet method (John Walker, "Pencil and Paper": each day moves
+  the trend a tenth of the way to that day's weight), and a weight goal can track itself on the
+  trend. Gymnastics profiles never show weight, as their setup promises. During a set: "Last time:
+  14 reps · Beat it with 15" for that exercise and stage, and plates per side for barbell lifts (bar
+  and plates set in the exercise editor). The level is picked only in Today's Workout. Smaller:
+  Edit Home says Today's Workout, Quick Add → Supplements always opens today, Settings option names
+  use Title Case, "Remember this phone for", "Next Hard workout, you race it live", "Fuel Timing".
+  From review 7: the Last Session and Food Today tiles on Stats get a small trend line (the last 8
+  workouts' reps per minute; the last 7 days' calories, with the average of the logged days before today).
 - *2.9.0:* changes picked in phone review 5. Flat panels: black borders, no offset shadows (that
   shadow also nudged cards left, cutting them off). Pages no longer slide under the bottom bar (the
   bar's full height, the iPhone home-bar area and the + button are now counted). Quick Add is one

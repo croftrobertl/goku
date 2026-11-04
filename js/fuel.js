@@ -86,7 +86,7 @@ export function timingCard(p, minutes, { open = true } = {}) {
     ${isMinor(p) ? '<p class="note">Studied in adults; for athletes under 18, a pediatrician or sports dietitian should confirm.</p>' : ''}${sources([esc(SOURCES.timing)])}`;
   // Before any training is logged, it stays folded so Home isn't crowded on days off.
   return open ? `<section class="card"><p class="lbl">Fuel timing</p>${body}</section>`
-    : `<details class="card fold"><summary class="lbl">Fuel timing for when you train</summary>${body}</details>`;
+    : `<details class="card fold"><summary class="lbl">Fuel timing</summary>${body}</details>`;
 }
 
 // Fuel now (2.3): a prompt timed to today's practice, with one-tap logging.

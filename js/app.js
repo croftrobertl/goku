@@ -25,7 +25,7 @@ async function kiMenu(p, action, scr) {
     food.push(['Food', ICON.nutrition, () => { go('nutrition'); addFood(nowMeal(), today()); }]);
     food.push(['Water', ICON.water, async () => { await quickWater(p); toast('Glass of water logged'); render(); }]);
     food.push(['Supplements', ICON.pill, async () => {
-      tabs[S.current] = 'nutrition'; await render(); window.scrollTo(0, 0);
+      openNutritionDay(today()); await render(); window.scrollTo(0, 0); // always today, never the last day Nutrition showed
       const add = document.getElementById('addSupp'); add ? add.click() : toast('Turn on Supplements in Nutrition first');
     }]);
   }
@@ -80,7 +80,7 @@ import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
 import { setupFlow } from './coach.js';
 import { skillsView } from './skills.js';
-import { nutritionView, forgetHistory, poweredUp, addFood, nowMeal, quickWater } from './nutrition.js';
+import { nutritionView, forgetHistory, poweredUp, addFood, nowMeal, quickWater, openNutritionDay } from './nutrition.js';
 import { logActivity } from './activity.js';
 import { loadFoods, foodVocab } from './foods.js';
 import { streakSeen, toggleKi } from './homecards.js';

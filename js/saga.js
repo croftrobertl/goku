@@ -6,6 +6,8 @@ import { stagesFor } from './skills.js';
 import { esc, overlay, guard, toast, ask } from './ui.js';
 import { addDays, daysBetween, prettyDay } from './time.js';
 import { isMinor } from './coach.js';
+import { weightTrend, trendOn, weightOn } from './weight.js';
+import { weight, weightUnit, toLb } from './units.js';
 
 const WEEKS = 4;
 // Name ideas follow the skin (2.8.2): "Gravity training" and "Skill saga" are Dragon Ball's.
@@ -42,9 +44,15 @@ const bossIdeas = p => isMinor(p) ? sportIdeas(p) : [...sportIdeas(p), ...WEIGHT
 
 // Poster boss (2.3): an arc can link its boss to an exercise (best reps at one stage, from
 // sessions inside the arc) or to a skill (reaching a stage), so the boss's HP drops on its own.
-// link = { type: 'ex', id, stage, target } or { type: 'skill', id, target }
-export function arcProgress(a, { sessions = [], skills = [] } = {}) {
+// link = { type: 'ex', id, stage, target } or { type: 'skill', id, target }, or (2.10) { type: 'weight', target }:
+// pounds to lose, measured on the weight trend from the arc's start.
+export function arcProgress(a, { sessions = [], skills = [], weighs = [] } = {}) {
   const l = a.data.link; if (!l) return null;
+  if (l.type === 'weight') {
+    const pts = weightTrend(weighs); if (!pts.length) return { have: 0, need: l.target, label: 'Weigh in to track it', pct: 0 };
+    const lost = Math.max(0, Math.round((trendOn(pts, a.data.start) - pts.at(-1).trend) * 10) / 10), p = profile();
+    return { have: lost, need: l.target, label: `${weight(lost, p)} of ${weight(l.target, p)} ${weightUnit(p)} on the trend`, pct: Math.min(1, lost / l.target) };
+  }
   if (l.type === 'ex') {
     let have = 0;
     for (const s of sessions) if (s.day >= a.data.start) for (const set of s.data.sets || []) if (set.exId === l.id)
@@ -116,7 +124,7 @@ function cleared(a, arcs) {
 async function editArc(a, arcs) {
   const p = profile();
   const exs = p.kind === 'engine' ? await entries('exercise', p) : [], sks = p.kind === 'perf' ? await entries('skill', p) : [];
-  const t = today();
+  const t = today(), wOn = weightOn(p);
   const last = arcs.filter(x => !x.data.done).map(x => addDays(x.data.start, (x.data.weeks || WEEKS) * 7)).sort().pop();
   const d = a ? { ...a.data } : { name: NAMES()[arcs.length % NAMES().length], boss: '', start: last && last > t ? last : t, weeks: WEEKS, done: null };
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${a ? 'Edit ' + esc(w('arc').toLowerCase()) : 'New ' + esc(w('arc').toLowerCase())}</h1><button class="cta2" id="x" data-close>Close</button></div>
@@ -126,7 +134,8 @@ async function editArc(a, arcs) {
       <label class="f"><span>The ${esc(w('boss').toLowerCase())}: one goal to beat in ${WEEKS} weeks</span><input id="ab" maxlength="80" value="${esc(d.boss)}" placeholder="e.g. 20 strict push-ups in one set"></label>
       <div class="pills sugg">${bossIdeas(p).map(x => `<button data-ab="${esc(x)}">${esc(x)}</button>`).join('')}</div>
       ${isMinor(p) ? '' : `<p class="note">${esc(WEIGHT_SOURCE)} <a href="https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html" target="_blank" rel="noopener">Read it</a></p>`}
-      ${exs.length || sks.length ? `<label class="f"><span>Track the ${esc(w('boss').toLowerCase())} automatically (optional)</span><select id="lk"><option value="">Don't track, I'll say when</option>
+      ${exs.length || sks.length || wOn ? `<label class="f"><span>Track the ${esc(w('boss').toLowerCase())} automatically (optional)</span><select id="lk"><option value="">Don't track, I'll say when</option>
+        ${wOn ? `<option value="weight|"${d.link?.type === 'weight' ? ' selected' : ''}>Weight trend · ${weightUnit(p)} to lose</option>` : ''}
         ${exs.map(e => e.data.stages.map(st => `<option value="ex|${esc(e.id)}|${esc(st.label)}"${d.link?.type === 'ex' && d.link.id === e.id && d.link.stage === st.label ? ' selected' : ''}>${esc(e.data.name)} · ${esc(st.label)}</option>`).join('')).join('')}
         ${sks.map(k => `<option value="skill|${esc(k.id)}"${d.link?.id === k.id ? ' selected' : ''}>${esc(k.data.name)}</option>`).join('')}</select></label>
       <div id="lkt"></div>` : ''}
@@ -139,6 +148,7 @@ async function editArc(a, arcs) {
   const $ = s => el.querySelector(s);
   const target = () => { const v = $('#lk')?.value || '', [type, id] = v.split('|');
     if (!type) return $('#lkt') && ($('#lkt').innerHTML = '');
+    if (type === 'weight') { $('#lkt').innerHTML = `<label class="f"><span>${weightUnit(p)} to lose on the weight trend</span><input id="lkn" inputmode="decimal" value="${d.link?.type === 'weight' ? esc(weight(d.link.target, p)) : weightUnit(p) === 'kg' ? 2 : 4}"></label>`; return; }
     if (type === 'ex') $('#lkt').innerHTML = `<label class="f"><span>Reps in one set to beat the ${esc(w('boss').toLowerCase())}</span><input id="lkn" type="number" inputmode="numeric" min="1" max="999" value="${d.link?.type === 'ex' ? d.link.target : 20}"></label>`;
     else { const k = sks.find(x => x.id === id), st = stagesFor(k.data.event);
       $('#lkt').innerHTML = `<label class="f"><span>Stage that beats the ${esc(w('boss').toLowerCase())}</span><select id="lkn">${st.map((x, i) => i ? `<option value="${i}"${(d.link?.type === 'skill' ? d.link.target : st.length - 1) === i ? ' selected' : ''}>${esc(x)}</option>` : '').join('')}</select></label>`; }
@@ -148,15 +158,18 @@ async function editArc(a, arcs) {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
     if (b.dataset.an) { $('#an').value = b.dataset.an; return; }
-    if (b.dataset.ab) { $('#ab').value = b.dataset.ab; return; }
+    if (b.dataset.ab) { $('#ab').value = b.dataset.ab;
+      // A weight idea also tracks itself on the weight trend: 4 lb (2 kg) in both ideas.
+      if (wOn && /^Lose /.test(b.dataset.ab) && $('#lk')) { d.link = { type: 'weight', target: 4 }; $('#lk').value = 'weight|'; target(); }
+      return; }
     if (b.id === 'del' && await ask('Delete this arc?', '', [{ label: 'Delete', value: true, danger: true }])) { await deleteEntry(a.id); close(); return window.goku.render(); }
     if (b.id !== 'ok') return;
     const name = $('#an').value.trim().slice(0, 40), boss = $('#ab').value.trim().slice(0, 80), start = $('#as').value;
     if (!name || !boss) { $('#am').textContent = `Give the ${w('arc').toLowerCase()} a name and a ${w('boss').toLowerCase()} to beat.`; return; }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) { $('#am').textContent = 'Pick a start date.'; return; }
-    const [lt, lid, lst] = ($('#lk')?.value || '').split('|'), n = Math.round(+$('#lkn')?.value || 0);
-    if (lt && !(n >= 1)) { $('#am').textContent = `Set a number for the ${w('boss').toLowerCase()}.`; return; }
-    const link = lt === 'ex' ? { type: 'ex', id: lid, stage: lst, target: n } : lt === 'skill' ? { type: 'skill', id: lid, target: n } : null;
+    const [lt, lid, lst] = ($('#lk')?.value || '').split('|'), n = lt === 'weight' ? toLb(($('#lkn')?.value || '').replace(',', '.'), p) || 0 : Math.round(+$('#lkn')?.value || 0);
+    if (lt && !(n >= (lt === 'weight' ? 0.5 : 1))) { $('#am').textContent = `Set a number for the ${w('boss').toLowerCase()}.`; return; }
+    const link = lt === 'weight' ? { type: 'weight', target: Math.round(n * 10) / 10 } : lt === 'ex' ? { type: 'ex', id: lid, stage: lst, target: n } : lt === 'skill' ? { type: 'skill', id: lid, target: n } : null;
     await saveEntry('arc', { ...d, name, boss, start, link }, a ? { id: a.id, day: a.day, ts: a.ts } : { day: start });
     close(); toast(a ? `${W('arc')} saved` : `${W('arc')} started: ${name}`); window.goku.render();
   }));

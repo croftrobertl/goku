@@ -41,7 +41,7 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
       <div class="pad">${keys.map(k => k === '' ? '<span></span>' :
         `<button class="${k.length > 1 ? 'txt' : 'num'}" data-key="${k}" aria-label="${k}">${k}</button>`).join('')}</div>
       <div class="card" id="rem" style="margin:0;text-align:left;width:100%">
-        <p class="lbl">Don't ask again on this phone for</p>
+        <p class="lbl">Remember this phone for</p>
         <div class="seg" role="group" aria-label="Remember passcode for">
           <button data-rem="0">Always ask</button><button data-rem="1">1 day</button><button data-rem="7">1 week</button><button data-rem="30">30 days</button>
         </div>

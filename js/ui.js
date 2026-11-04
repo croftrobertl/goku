@@ -238,7 +238,7 @@ export const titleCase = str => { let i = -1; return String(str).split(/(\s+)/).
 
 // Applied as the page draws: every heading, label, button and tab label gets Title Case.
 // Names from data (exercises, foods, supplements, your own words) are marked data-raw and left alone.
-const TC = 'h1, h2, h3, .lbl, .link, summary:not(.hrow > summary), .hrow > summary > b, .cta, .cta2, nav.tabs .tb > span, .seg button, .qahead, .qaitem span';
+const TC = 'h1, h2, h3, .lbl, .link, summary:not(.hrow > summary), .hrow > summary > b, .cta, .cta2, nav.tabs .tb > span, .seg button, .qahead, .qaitem span, label.toggle > span > b';
 const tcText = el => {
   if (el.closest('[data-raw], input, textarea, .itemrow, .list')) return;
   const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('[data-raw]') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
