@@ -175,7 +175,7 @@ export function pickSupplement(g, save, recent) {
 // The amount sheet: dose from the label, and how many.
 export function editSupplement(s, done, remove = null) {
   const d = { ...s, qty: s.qty || 1 };
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${esc(d.name)}</h1><button class="cta2" id="x" data-close>Close</button></div>
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left" data-raw>${esc(d.name)}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll">
       <p class="lbl">How many</p>
       <div class="amt"><div class="step" data-step="qty"><button type="button" data-d="-1" aria-label="Fewer">−</button>

@@ -80,7 +80,7 @@ export function kiGauge(p, all, today) {
   const inner = Math.min(1, pct / 50), outer = Math.max(0, (pct - 50) / 50);
   const rays = [0, 45, 90, 135, 180, 225, 270, 315].map(a => `<path d="M32 -3.5v3.5" transform="rotate(${a} 32 32)"/>`).join('');
   const what = parts.length > 1 ? 'Training and protein' : 'Training';
-  return `<section class="ki${kiOpen ? ' open' : ''}" aria-label="Today's ${esc(w('ki').toLowerCase())}">
+  return `<section class="ki${kiOpen ? ' open' : ''}" aria-label="Today's ${esc(w('ki'))}">
     <button class="kibtn" data-ki aria-expanded="${kiOpen}" aria-controls="kirows">
       <svg class="kiring" viewBox="0 0 64 64" aria-hidden="true">
       ${outer ? `<circle class="a2" cx="32" cy="32" r="${25 + 6 * outer}" opacity="${(.3 * outer).toFixed(2)}"/>` : ''}
@@ -88,7 +88,7 @@ export function kiGauge(p, all, today) {
       ${pct >= 100 ? `<g class="rays">${rays}</g>` : ''}
       <circle class="core${pct ? '' : ' ember'}" cx="32" cy="32" r="19"/>
       <text x="32" y="36.5" text-anchor="middle"${pct >= 100 ? ' style="font-size:10.5px"' : ''}>${pct}%</text></svg>
-      <span><b>Today's ${esc(w('ki').toLowerCase())}</b><span class="sub">${what} today<span class="kitap"> · tap for details</span></span></span></button>
+      <span><b>Today's ${esc(w('ki'))}</b><span class="sub">${what} today<span class="kitap"></span></span></span></button>
     <ul class="list kirows" id="kirows">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b class="num">${esc(v)}</b></li>`).join('')}
       <li><button class="link" data-hview="stats">Streak</button><b class="num">${s.days} day${s.days === 1 ? '' : 's'}${s.todayDone ? '' : ' · log today'}</b></li>
       <li><button class="link" data-go="saga">${esc(W('power'))} · ${esc(W('saga'))}</button><b class="num">${pl.toLocaleString('en-US')}</b></li></ul></section>`;
@@ -120,7 +120,7 @@ export function recapCard(p, all, today) {
       if (hit < Math.ceil(days.length / 2)) focus.push(`Reach ${target} g of protein on more days. Saved meals in Nutrition make it one tap.`);
     }
     if (goal && n.sessions.length < goal) focus.push(`Fit in ${goal} sessions. Short ×10 or ×20 days still count.`);
-    if (!focus.length) focus.push(`Strong week. Try one ${w('gravity')} level higher, or beat your ghost by a few reps.`);
+    if (!focus.length) focus.push(`Strong week. Try one level higher, or beat your ghost by a few reps.`);
   } else {
     const scores = n.checkins.map(c => readiness(c.data, sleepTargetFor(p)));
     const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;

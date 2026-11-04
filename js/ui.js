@@ -61,7 +61,9 @@ export function overlay(content, { label = 'Dialog', id } = {}) {
   el.innerHTML = `<div class="inner">${content}</div>`;
   document.body.append(el);
   // A search sheet starts in its search box, so typing and Enter search instead of pressing Close.
-  (el.querySelector('input[type=search]') || el.querySelector('button, input, select, textarea'))?.focus({ preventScroll: true });
+  // Otherwise the sheet itself takes focus (2.9), so no orange ring lands on Close when it opens.
+  el.tabIndex = -1;
+  (el.querySelector('input[type=search]') || el).focus({ preventScroll: true });
   el.addEventListener('keydown', e => {
     if (e.key === 'Escape') { el.querySelector('[data-close]')?.click(); return; }
     if (e.key !== 'Tab') return;
@@ -218,4 +220,39 @@ export function dayPicker(day, todayKey, label = 'Day') {
     <button type="button" data-dayshift="-1" aria-label="Previous day">‹</button>
     <span class="num" aria-live="polite">${esc(txt)}</span>
     <button type="button" data-dayshift="1" aria-label="Next day" ${day >= todayKey ? 'disabled' : ''}>›</button></div>`;
+}
+
+// Title Case for headings, labels, buttons and tabs (2.9, review 5). Small words stay lowercase
+// unless first; units, numbers and words that already have capitals (brands, Ki, NIH) are kept.
+const SMALL = new Set(['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'per', 'the', 'to', 'vs', 'via', 'with', 'from', 'into']);
+const UNIT = new Set(['g', 'kg', 'lb', 'lbs', 'oz', 'ml', 'cal', 'kcal', 'mg', 'mcg', 'min', 's', 'h', 'in', 'cm', 'km', 'mi']);
+const ALWAYS_LOWER = new Set(['g', 'kg', 'lb', 'lbs', 'oz', 'ml', 'cal', 'kcal', 'mg', 'mcg', 'cm', 'km']); // even first, as in "lb · in · oz"
+export const titleCase = str => { let i = -1; return String(str).split(/(\s+)/).map(word => {
+  if (!word || /^\s+$/.test(word)) return word;
+  i++;
+  if (/[A-Z]/.test(word) || /\d/.test(word)) return word;
+  const bare = word.toLowerCase().replace(/[^a-z']/g, '');
+  if (ALWAYS_LOWER.has(bare) || (i > 0 && (SMALL.has(bare) || UNIT.has(bare)))) return word;
+  return word.split('-').map(part => part.replace(/^([("'“‘]*)([a-z])/, (_, pre, c) => pre + c.toUpperCase())).join('-');
+}).join(''); };
+
+// Applied as the page draws: every heading, label, button and tab label gets Title Case.
+// Names from data (exercises, foods, supplements, your own words) are marked data-raw and left alone.
+const TC = 'h1, h2, h3, .lbl, .link, summary:not(.hrow > summary), .hrow > summary > b, .cta, .cta2, nav.tabs .tb > span, .seg button, .qahead, .qaitem span';
+const tcText = el => {
+  if (el.closest('[data-raw], input, textarea, .itemrow, .list')) return;
+  const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('[data-raw]') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  let first = true;
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    const v = n.nodeValue; if (!v.trim()) continue;
+    const t = first ? titleCase(v) : titleCase('x ' + v).slice(2);
+    if (t !== v) n.nodeValue = t;
+    first = false;
+  }
+};
+const tcIn = root => { if (root.nodeType !== 1) return; if (root.matches(TC)) tcText(root); root.querySelectorAll(TC).forEach(tcText); };
+export function startTitleCase() {
+  tcIn(document.body);
+  new MutationObserver(list => { for (const m of list) { const host = m.target.nodeType === 1 ? m.target : m.target.parentElement; const near = host?.closest(TC); if (near) tcText(near); m.addedNodes.forEach(tcIn); } })
+    .observe(document.body, { childList: true, subtree: true });
 }

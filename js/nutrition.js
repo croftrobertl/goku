@@ -85,7 +85,11 @@ export async function nutritionView() {
   const range = fuelRanges(p, 0);
   const pGoal = own || range?.aim || null;
   const macroK = (tot.p || 0) * 4 + (tot.c || 0) * 4 + (tot.f || 0) * 9;
-  const pct = v => macroK ? Math.round(v / macroK * 100) : 0;
+  // Whole-number shares that always add up to 100 (2.9): the largest remainders get the leftover points.
+  const shares = (() => { if (!macroK) return [0, 0, 0];
+    const raw = [(tot.p || 0) * 4, (tot.c || 0) * 4, (tot.f || 0) * 9].map(v => v / macroK * 100), out = raw.map(Math.floor);
+    raw.map((v, i) => [v - out[i], i]).sort((a, b) => b[0] - a[0]).slice(0, 100 - out.reduce((a, b) => a + b, 0)).forEach(([, i]) => out[i]++);
+    return out; })();
   const symptomsOn = on(p, 'gut');
   // Read the whole history once and reuse it until a symptom or food changes (water taps don't).
   if (symptomsOn && (!hist || hist.id !== p.id)) hist = { id: p.id, gut: await entries('gut', p), food: await entries('food', p), pattern: null };
@@ -114,20 +118,19 @@ export async function nutritionView() {
     html: `<div class="row"><h1 style="margin:0">Nutrition</h1>${dayPicker(day, t, 'Nutrition day')}</div>
     <div class="cols"><div>
       <section class="card sum" style="margin-top:12px">
-        <details class="ringd"><summary aria-label="Calories ${Math.round(tot.kcal || 0)}${target ? ' of ' + target : ''}. Show protein and nutrients">${calRing(tot.kcal || 0, target, day === t ? 'today' : 'on ' + prettyDay(day))}
-          <span class="sub ringhint">Protein and nutrients</span></summary>
+        <div class="ringd">${calRing(tot.kcal || 0, target, day === t ? 'today' : 'on ' + prettyDay(day))}
         ${pGoal ? kiBar('Protein', tot.p || 0, pGoal, ' g', tot.p >= pGoal ? 'Protein goal met' : `${Math.round(pGoal - (tot.p || 0))} g to go`, true) : ''}
         <div class="macros">
           <div class="mp"><b class="num">${pGoal ? `${Math.round(tot.p || 0)}<small>/${pGoal}</small>` : fmt(tot.p)}</b><span>Protein</span></div>
           <div class="mc"><b class="num">${fmt(tot.c)}</b><span>Carbs</span></div>
           <div class="mf"><b class="num">${fmt(tot.f)}</b><span>Fat</span></div>
           <div class="mfb"><b class="num">${fmt(tot.fib)}</b><span>Fiber</span></div></div>
-        ${macroK ? `<div class="split" role="img" aria-label="Calories from protein ${pct(tot.p * 4)}%, carbohydrate ${pct(tot.c * 4)}%, fat ${pct(tot.f * 9)}%">
-          <i class="sp" style="width:${pct(tot.p * 4)}%"></i><i class="sc" style="width:${pct(tot.c * 4)}%"></i><i class="sf" style="width:${pct(tot.f * 9)}%"></i></div>
-          <p class="sub" style="text-align:center">Protein ${pct(tot.p * 4)}% · Carbs ${pct(tot.c * 4)}% · Fat ${pct(tot.f * 9)}% of calories</p>` : ''}
+        ${macroK ? `<div class="split" role="img" aria-label="Calories from protein ${shares[0]}%, carbohydrate ${shares[1]}%, fat ${shares[2]}%">
+          <i class="sp" style="width:${shares[0]}%"></i><i class="sc" style="width:${shares[1]}%"></i><i class="sf" style="width:${shares[2]}%"></i></div>
+          <p class="sub" style="text-align:center">Protein ${shares[0]}% · Carbs ${shares[1]}% · Fat ${shares[2]}% of calories</p>` : ''}
         ${range ? `<p class="sub" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
         <div class="row" style="justify-content:center;margin-top:8px;gap:8px"><button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>
-          <button class="link" id="dayDetail">All nutrients</button></div></details>
+          <button class="link" id="dayDetail">All nutrients ›</button></div></div>
         <div class="qadd"><button class="cta2" id="addFood">+ Food</button><button class="cta2" data-fl="${volumeSteps(p)[1][1]}">+ Water</button>
           <button class="cta2" id="scanFood">${BARCODE}<span>Scan</span></button></div>
       </section>
@@ -371,7 +374,7 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
   const ps = portionsOf(f);
   let pi = portionLabel ? Math.max(0, ps.findIndex(x => x.label === portionLabel)) : defaultPortion(ps);
   if (portionLabel && ps.findIndex(x => x.label === portionLabel) < 0) ps.unshift({ label: portionLabel, g: f.pg || 100 }), pi = 0;
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${esc(f.name)}</h1><button class="cta2" id="x" data-close>Back</button></div>
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left" data-raw>${esc(f.name)}</h1><button class="cta2" id="x" data-close>Back</button></div>
     ${f.brand ? `<p class="sub" style="text-align:center">${esc(f.brand)}</p>` : ''}
     <div class="scroll">
       <div class="row" style="gap:8px;margin-top:8px">

@@ -7,36 +7,43 @@ import { onboard } from './onboarding.js';
 import { settingsView, backupAgeDays } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
-import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback } from './ui.js';
+import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback, titleCase, startTitleCase } from './ui.js';
 
 // One word under the center button: "Enter chamber" → Train, "Check in · 30 s" → Check in.
 const SHORT = { 'Enter chamber': 'Train', 'Log a session': 'Log', 'Add exercise': 'Add', 'Add a skill': 'Add', 'Add food': 'Add' };
 const shortLabel = s => s ? (s === W('enter') ? 'Train' : SHORT[s] || s.split(' · ')[0]) : ''; // the skin's "Enter the chamber" is Train too
 
-// The Ki menu: the screen's own action plus quick logs, fanned out above the center button.
+// Quick Add (2.9, review 5): one panel with two groups, Food & Drink and Activity, so nothing overlaps.
+// Activity starts with this screen's own action, then the main one when it's different.
+const QA_SHORT = { 'Add exercise': 'Exercise', 'Add Exercise': 'Exercise', 'Log a session': 'Session', 'Log a Session': 'Session', 'Add a skill': 'Skill', 'Add a Skill': 'Skill' };
+const qaLabel = s => QA_SHORT[s] || (s === W('enter') ? 'Train' : titleCase(shortLabel(s)));
 async function kiMenu(p, action, scr) {
   db.setMeta('kiHint', true); document.querySelector('.kihint')?.remove();
   const main = scr.mainAction ? await scr.mainAction() : null;
-  const items = [];
-  if (action) items.push([action[0], ICON.bolt, action[1]]);
-  // The screen's own action and the main one can be the same thing (Home's circuit); it's listed once.
-  if (main && (!action || ![action[0], shortLabel(action[0])].includes(main[0]))) items.push([main[0], ICON.bolt, main[1]]);
+  const food = [], act = [];
   if (p.modules?.nutrition !== false) {
-    items.push(['Log food', ICON.nutrition, () => { go('nutrition'); addFood(nowMeal(), today()); }]);
-    items.push(['Water', ICON.water, async () => { await quickWater(p); toast('Glass of water logged'); render(); }]);
+    food.push(['Food', ICON.nutrition, () => { go('nutrition'); addFood(nowMeal(), today()); }]);
+    food.push(['Water', ICON.water, async () => { await quickWater(p); toast('Glass of water logged'); render(); }]);
+    food.push(['Supplements', ICON.pill, async () => {
+      tabs[S.current] = 'nutrition'; await render(); window.scrollTo(0, 0);
+      const add = document.getElementById('addSupp'); add ? add.click() : toast('Turn on Supplements in Nutrition first');
+    }]);
   }
-  items.push(['Activity', ICON.run, () => logActivity()]);
-  items.push(['Rest day', ICON.moon, async () => { await saveEntry('rest', {}, { id: p.id + ':rest:' + today(), day: today() }); toast('Rest day logged. Recovery is training too.'); render(); }]);
-  const n = items.length;
-  const { el, close } = overlay(`<div class="kimenu">${items.map(([label, icon], i) => {
-      const a = Math.PI * (1 - (i + .5) / n), x = Math.cos(a) * 128, y = Math.sin(a) * 128; // a half circle above the button
-      return `<button class="kiitem" data-i="${i}" style="--x:${x.toFixed(0)}px;--y:${(-y).toFixed(0)}px">${icon}<span>${esc(label)}</span></button>`; }).join('')}
-      <button class="kiclose" id="x" data-close aria-label="Close quick actions">${ICON.close}</button></div>`, { label: 'Quick actions' });
+  if (action) act.push([qaLabel(action[0]), ICON.bolt, action[1]]);
+  // The screen's own action and the main one can be the same thing (Home's circuit); it's listed once.
+  if (main && (!action || ![action[0], shortLabel(action[0])].includes(main[0]))) act.push([qaLabel(main[0]), ICON.bolt, main[1]]);
+  act.push(['Activity', ICON.run, () => logActivity()]);
+  act.push(['Rest Day', ICON.moon, async () => { await saveEntry('rest', {}, { id: p.id + ':rest:' + today(), day: today() }); toast('Rest day logged. Recovery is training too.'); render(); }]);
+  const items = [...food, ...act];
+  const group = (name, list, start) => list.length ? `<p class="lbl qahead">${name}</p>
+    <div class="qagrid">${list.map(([label, icon], i) => `<button class="cta2 qaitem" data-i="${start + i}">${icon}<span>${esc(label)}</span></button>`).join('')}</div>` : '';
+  const { el, close } = overlay(`<div class="qasheet"><h2>Quick Add</h2>${group('Food &amp; Drink', food, 0)}${group('Activity', act, food.length)}
+      <button class="cta" id="x" data-close>Close</button></div>`, { label: 'Quick Add' });
   el.classList.add('kiov');
   el.addEventListener('click', async e => {
     const b = e.target.closest('button');
     if (!b || b.id === 'x' || e.target === el) return close();
-    const it = items[+b.dataset.i]; close(); await it[2]();
+    const it = items[+b.dataset.i]; if (!it) return; close(); await it[2]();
   });
 }
 function showKiHint() {
@@ -57,6 +64,7 @@ const ICON = {
   week: svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
   nutrition: svg('<path d="M12 7c-3-3-8-1-8 4 0 5 4 10 8 10s8-5 8-10c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-4"/>'),
   history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  pill: svg('<rect x="3" y="9" width="18" height="7" rx="3.5"/><path d="M12 9v7"/>'),
   settings: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'),
   skills: svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
   more: svg('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
@@ -219,7 +227,17 @@ document.addEventListener('click', e => {
 });
 
 // Keeps the page's bottom padding equal to the dock's real height (it grows with text size).
-new ResizeObserver(([e]) => document.documentElement.style.setProperty('--dock-h', Math.ceil(e.contentRect.height) + 'px')).observe($('#dock'));
+// 2.9: the whole bar counts (padding, border and the iPhone home-bar area), plus the + button
+// that pokes up above it. On desktop the dock is a side menu, so nothing is reserved.
+const wide = matchMedia('(min-width: 900px)');
+const dockSize = () => {
+  const d = $('#dock'), top = d.getBoundingClientRect().top, btn = d.querySelector('.ki-btn');
+  const poke = btn ? Math.max(0, top - btn.getBoundingClientRect().top) : 0;
+  document.documentElement.style.setProperty('--dock-h', wide.matches || !d.offsetHeight ? '0px' : Math.ceil(d.offsetHeight + poke) + 'px');
+};
+new ResizeObserver(dockSize).observe($('#dock'));
+new MutationObserver(dockSize).observe($('#dock'), { childList: true });
+wide.addEventListener('change', dockSize);
 matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => profile() && setAccent(profile().accent));
 
 // ---------- Install gate (iOS keeps Home Screen app storage separate from Safari tabs — verify) ----------
@@ -296,6 +314,7 @@ function watchBack() {
 async function boot() {
   registerSW();
   watchBack();
+  startTitleCase();
   if (isIOS && !standalone) await installGate();
   await loadProfiles();
   if (!S.profiles.length) {

@@ -32,6 +32,19 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.9.0:* changes picked in phone review 5. Flat panels: black borders, no offset shadows (that
+  shadow also nudged cards left, cutting them off). Pages no longer slide under the bottom bar (the
+  bar's full height, the iPhone home-bar area and the + button are now counted). Quick Add is one
+  panel with two groups, Food & Drink (Food, Water, Supplements) and Activity (the screen's action,
+  Activity, Rest Day). Title Case for headings, labels, buttons and tabs; exercise, food and
+  supplement names stay as written. The box you're typing in gets an orange edge inside its border;
+  sheets no longer ring the Close button when they open. Workouts use plain levels (Easy, Medium,
+  Hard, Max = the old ×10, ×20, ×50, ×100, so history and ghosts carry over), and Train goes
+  straight to Today's Workout without the ki question; "Today's ki" is "Today's Progress".
+  Anything that unfolds ends in "Show ▾", anything that opens ends in an orange ›. Nutrition shows
+  protein, macros and the calorie split without a tap; the split always adds up to 100%. 31 more
+  Everkinetic drawings (65 in all), each checked by eye; exercises without one show the muscle map
+  and steps instead of a stick figure. USDA serving names are no longer in capitals.
 - *2.8.2:* changes picked in the second phone review. Pages whose action lived in the center
   button (check-in, Week, Library, Skills) have it as a button at the bottom again. Readiness reads
   "Talk to a parent or coach before training" after a yes to back pain, pain changing a skill or

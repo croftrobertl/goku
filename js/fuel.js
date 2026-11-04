@@ -94,7 +94,7 @@ export function timingCard(p, minutes, { open = true } = {}) {
 //     Goku reads it as about 1 g per kg for each hour before, so a meal 3 h out gets about 3 g per kg.
 //   After: protein 0.25–0.40 g per kg within 2 hours of finishing (SOURCES.timing).
 // at = start in minutes after midnight (or null), minutes = how long, lastEnd = ts of training logged today.
-const qbtn = (name, label) => `<button class="cta2" data-qlog="${esc(name)}">${esc(label)}</button>`;
+const qbtn = (name, label) => `<button class="cta2" data-raw data-qlog="${esc(name)}">${esc(label)}</button>`;
 export function fuelNowCard(p, { at = null, minutes = 0, lastEnd = 0 } = {}) {
   const now = minutesNow(p.tz), kg = kgOf(p);
   const minor = isMinor(p) ? ' Studied in adults; under 18, a pediatrician or sports dietitian should confirm.' : '';

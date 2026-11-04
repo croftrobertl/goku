@@ -90,6 +90,15 @@ const ART = {
   'calf-raise': ['0281', 'Shown with a barbell on the back.'], 'good-morning': ['0101', 'Shown with a barbell on the back.'], 'side-plank': ['0113'],
   crunch: ['0291', 'Shown with the feet up on a bench.'], bicycle: ['0284'], 'reverse-crunch': ['0287'], 'leg-raise': ['0021', 'Shown lying on a bench.'],
   'reverse-fly': ['0032', 'Shown with the head resting on a bench.'],
+  // 2.9 (review 5): more Everkinetic matches, each checked by eye against Goku's steps.
+  'bb-overhead-press': ['0004', 'Shown seated.'], 'one-arm-row': ['0024'], 'seated-cable-row': ['0025'], 'db-pullover': ['0046'],
+  'cable-crossover': ['0048'], 'incline-db-press': ['0061'], 'machine-chest-press': ['0066'], chinup: ['0091', 'Shown with a wider grip.'],
+  'straight-arm-pulldown': ['0092'], 'back-extension': ['0103'], 'bb-lunge': ['0114'], 'flutter-kick': ['0116'], 'lying-leg-curl': ['0117'],
+  'bb-rdl': ['0118'], 'seated-leg-curl': ['0119'], 'hack-squat': ['0123'], 'smith-squat': ['0124'], 'leg-press': ['0127'],
+  'bb-front-squat': ['0138'], 'leg-extension': ['0142'], 'hip-abduction': ['0156'], 'hip-adduction': ['0157'],
+  'db-skull-crusher': ['0181'], 'ez-skull-crusher': ['0183', 'Shown with a straight barbell.'], 'db-kickback': ['0204'],
+  'tricep-pushdown': ['0205'], 'cable-curl': ['0212'], 'preacher-curl': ['0239'], 'machine-calf-raise': ['0282'],
+  'ab-wheel': ['0286', 'Shown with a barbell; an ab wheel rolls the same way.'], 'cable-crunch': ['0288', 'Shown seated; kneeling works the same way.'],
 };
 export const artOf = id => ART[id] ? { start: `img/moves/${ART[id][0]}-relaxation.svg`, end: `img/moves/${ART[id][0]}-tension.svg`, note: ART[id][1] || '' } : null;
 export const ART_FILES = Object.values(ART).flatMap(([n]) => [`img/moves/${n}-relaxation.svg`, `img/moves/${n}-tension.svg`]);

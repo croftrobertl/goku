@@ -745,3 +745,53 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .liftchart .lc-lab { font-size: 12px; fill: var(--tx2); }
 #pace[hidden] { display: none; }
 .mealpick { width: 100%; min-height: 64px; font-size: 1.15rem; margin-top: 10px; }
+
+/* ===== 2.9 (review 5): flat panels. Black borders stay; no offset shadows anywhere. ===== */
+:root { --pop: 0px; }
+.card, .cta, .cta2, .chip, .daypick, .seg button, .pills button, .wstrip button, .macros > div, .tap, .fcard, .giant > button,
+nav.tabs .tb, nav.tabs .center, nav.tabs .center .ki-btn, .kiitem, .kiclose, .saga .arc.now, .tside .ki { box-shadow: none !important; }
+.card { margin: 0 0 18px; }
+.cta { width: 100%; }
+.tap { margin: 12px 0 16px; }
+.overlay { padding-left: 16px; padding-right: 16px; }
+/* Selection used to be an accent shadow; now it's an accent border. */
+.card.pick[aria-pressed="true"], .risk { border-color: var(--accent-line); box-shadow: inset 0 0 0 1.5px var(--accent-line) !important; }
+.capsule-setup .card.pick[aria-pressed="true"] { border-color: #fff; box-shadow: inset 0 0 0 1.5px #fff !important; }
+.card.wish .card.pick { box-shadow: none !important; }
+.cta:active, .cta2:active, .pills button:active, .seg button:active, .tap:active, nav.tabs .center:active .ki-btn { transform: translateY(1px); filter: brightness(.94); }
+/* Text boxes: the edge for the box you're typing in sits inside its border, so it never pokes past the screen. */
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; border-color: var(--accent-line); box-shadow: inset 0 0 0 1.5px var(--accent-line); }
+/* Buttons show their focus ring only for keyboard use, not when a sheet opens. */
+.cta:focus:not(:focus-visible), .cta2:focus:not(:focus-visible) { outline: none; }
+.overlay:focus { outline: none; }
+/* Sheets: room above the fixed bottom button, and the text fades out instead of running under it. */
+.overlay .inner > .scroll { padding-bottom: 18px; -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent); }
+.overlay .inner > .scroll ~ .cta, .overlay .inner > .scroll ~ .cta2 { margin-top: 8px; }
+/* Quick Add panel (2.9): two labeled groups slide up from the bottom; nothing can overlap. */
+.overlay.kiov .inner { max-width: 560px; margin: 0 auto; justify-content: flex-end; }
+.qasheet { background: var(--bg); border: 2.5px solid var(--ink); border-bottom: 0; border-radius: 22px 22px 0 0; padding: 18px 16px calc(var(--safe-b) + 18px); }
+.qasheet h2 { margin: 0 0 6px; }
+.qasheet .qahead { text-align: left; margin: 12px 0 8px; }
+.qagrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; }
+.qaitem { min-height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 4px; font-size: .85rem; line-height: 1.15; }
+.qaitem svg { width: 26px; height: 26px; }
+.qasheet > .cta { margin-top: 18px; }
+@media (prefers-reduced-motion: no-preference) { .qasheet { animation: qaup .2s ease-out both; } @keyframes qaup { from { transform: translateY(40px); opacity: 0; } } }
+@media (min-width: 900px) { .qasheet { border-bottom: 2.5px solid var(--ink); border-radius: 22px; margin-bottom: 40px; } }
+.nw { white-space: nowrap; }
+/* Tap signals (2.9, review 5): anything that unfolds ends in "Show ▾" (Hide ▴ when open); anything that
+   opens something ends in an orange ›. Cards with neither only show information. */
+details.fold > summary, .gravd > summary, .tcustom > summary, .hit details > summary, .feel > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; min-height: 44px; text-decoration: none; }
+details.fold > summary::-webkit-details-marker, .gravd > summary::-webkit-details-marker, .tcustom > summary::-webkit-details-marker, .hit details > summary::-webkit-details-marker { display: none; }
+details.fold > summary::after, .gravd > summary::after, .tcustom > summary::after, .hit details > summary::after { content: "Show ▾"; flex: none; color: var(--accent-text); font-weight: 800; font-size: .95rem; letter-spacing: 0; }
+details.fold[open] > summary::after, .gravd[open] > summary::after, .tcustom[open] > summary::after, .hit details[open] > summary::after { content: "Hide ▴"; }
+details.fold > summary.lbl { text-align: left; }
+.gravd > summary { color: var(--tx); font-weight: 700; }
+.hrow > summary::after { color: var(--accent-text); font-weight: 800; }
+.moregrid .card.pick::after { content: "›"; margin-left: auto; font-size: 1.4rem; font-weight: 800; color: var(--accent-text); }
+.link { text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
+.ki .kitap::after { content: " · Show ▾"; color: var(--accent-text); font-weight: 800; }
+.ki.open .kitap::after { content: " · Hide ▴"; }
+.ringd > .ring { margin: 0 auto 10px; } .ring.plain { height: auto; } /* 2.9: the panel is always open */
+.gravd .gsub { font-weight: 400; color: var(--tx2); }
+.overlay .supp > input + button { margin-top: 10px; padding: 0 22px; } /* 2.9: room between a box and its button */

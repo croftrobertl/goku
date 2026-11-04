@@ -1,6 +1,6 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.8.2';
+const CACHE_VERSION = '2.9.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
@@ -17,10 +17,12 @@ const DATA = 'goku-data-' + DATA_VERSION;
 const DATA_FILES = ['./data/foods.json', './vendor/zxing.min.js'];
 // Exercise drawings and the muscle map (2.4), kept across app updates; bump ART_VERSION when they change.
 // The drawing list matches ART in js/muscles.js.
-const ART_VERSION = 'art-2026-10-29';
+const ART_VERSION = 'art-2026-11-04';
 const ART = 'goku-art-' + ART_VERSION;
 const ART_FILES = ['./img/muscles.svg', ...['0077', '0075', '0162', '0055', '0018', '0033', '0056', '0198', '0042', '0020', '0086', '0087', '0224', '0227',
-  '0261', '0105', '0122', '0152', '0129', '0115', '0121', '0137', '0109', '0118', '0107', '0099', '0281', '0101', '0113', '0291', '0284', '0287', '0021', '0032']
+  '0261', '0105', '0122', '0152', '0129', '0115', '0121', '0137', '0109', '0118', '0107', '0099', '0281', '0101', '0113', '0291', '0284', '0287', '0021', '0032',
+  '0004', '0024', '0025', '0046', '0048', '0061', '0066', '0091', '0092', '0103', '0114', '0116', '0117', '0119', '0123', '0124', '0127', '0138',
+  '0142', '0156', '0157', '0181', '0183', '0204', '0205', '0212', '0239', '0282', '0286', '0288']
   .flatMap(n => [`./img/moves/${n}-relaxation.svg`, `./img/moves/${n}-tension.svg`])];
 
 // Each file is fetched with ?v=<version> so GitHub's CDN can't hand back a stale copy

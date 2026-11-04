@@ -4,8 +4,8 @@
 // feel, not any real artist: no names, lyrics, photos or album art.
 
 export const SKINS = {
-  dbz: { name: 'Dragon Ball', desc: 'Ki, sagas, Senzu beans and the gravity chamber', theme: null, avatars: 'fighters', mascot: 'star', dots: ['#0b0f1a', '#5aa2ff', '#f39a1e'],
-    words: { ki: 'Ki', kiMenu: 'Ki menu', power: 'Power level', saga: 'Saga', sagaMap: 'Saga map', arc: 'Arc', boss: 'Boss', bean: 'Senzu bean', beans: 'Senzu beans',
+  dbz: { name: 'Dragon Ball', desc: 'Sagas, Senzu beans, Dragon Balls and the gravity chamber', theme: null, avatars: 'fighters', mascot: 'star', dots: ['#0b0f1a', '#5aa2ff', '#f39a1e'],
+    words: { ki: 'Progress', kiMenu: 'Quick Add', power: 'Power level', saga: 'Saga', sagaMap: 'Saga map', arc: 'Arc', boss: 'Boss', bean: 'Senzu bean', beans: 'Senzu beans',
       beanSave: 'Senzu save', savedBy: 'saved by a Senzu bean', chamber: 'Gravity chamber', enter: 'Enter the chamber', scouter: 'Scouter', readiness: 'Scouter and readiness',
       gravity: 'gravity', news: 'Dragon Ball news', master: 'Dragon Ball master', ball: 'Dragon Ball', balls: 'Dragon Balls', wisher: 'Shenron', pickAvatar: 'Choose your fighter',
       bossBeat: 'Boss defeated', energyQ: 'How much ki do you have today?' } },

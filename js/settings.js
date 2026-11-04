@@ -65,7 +65,7 @@ export async function exportNow(encrypted = false) {
   const file = new File([JSON.stringify(payload, null, 1)], name, { type: 'application/json' });
   const canShare = !!navigator.canShare?.({ files: [file] });
   const { el, close } = overlay(`<div class="scroll" style="display:flex;flex-direction:column;justify-content:center">
-    <p class="lbl">Backup ready</p><h1>${esc(name)}</h1>
+    <p class="lbl">Backup ready</p><h1 data-raw>${esc(name)}</h1>
     <p class="sub" style="margin:8px 0 16px">${Math.max(1, Math.round(file.size / 1024))} KB · ${payload.entries ? payload.entries.length + ' entries' : 'encrypted'}.
     ${canShare ? 'Choose <b>Save to Files</b>, then iCloud Drive, so it survives a lost phone.' : 'Your browser will download it. Move it somewhere safe, like iCloud Drive.'}</p>
     <p class="msg" id="m" role="status"></p>

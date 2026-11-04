@@ -33,7 +33,9 @@ export function tidyName(name, src) {
 }
 // "1 Shake (11.5 fl oz) (345 ml)" reads better as "1 Shake (11.5 fl oz, 345 ml)".
 // Label unit codes (2.8.2): "2 ONZ (56 g)", "20 Z (56 g)" and "16 OZA (473 ml)" read as "56 g" and "473 ml".
-export const tidyServing = p => String(p || '').replace(/(^|;)\s*[\d./]+\s*(?:ONZ|OZA|GRM|GR|MLT|Z)\s*\(([^()|;]+)\)(?=\|)/gi, '$1$2')
+// 2.9: USDA labels in capitals ("1 TEASPOON (4.0 g)") read as "1 teaspoon (4 g)".
+const quiet = label => label.replace(/\b[A-Z]{2,}\b/g, w => w.toLowerCase()).replace(/(\d)\.0\b/g, '$1');
+export const tidyServing = p => String(p || '').split(';').map(x => { const [label, ...rest] = x.split('|'); return [quiet(label), ...rest].join('|'); }).join(';').replace(/(^|;)\s*[\d./]+\s*(?:ONZ|OZA|GRM|GR|MLT|Z)\s*\(([^()|;]+)\)(?=\|)/gi, '$1$2')
   .replace(/\(([^()|;]+)\) \(([^()|;]+)\)/g, '($1, $2)');
 export const foodAt = i => db?.[i] || null;
 

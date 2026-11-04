@@ -1,7 +1,6 @@
 // Library helpers (1.8): the "?" explanation for any exercise, and a searchable picker that
 // adds catalog exercises to the person's circuit library.
 import { MOVES, GROUPS, EQUIP, LEVELS, moveById, searchMoves, suggestMoves } from './moves.js';
-import { figureSVG } from './figure.js';
 import { artOf, muscleMap, muscleLine } from './muscles.js';
 import { profile, saveEntry } from './state.js';
 import { esc, overlay, guard, toast, sources } from './ui.js';
@@ -26,11 +25,11 @@ export function showMove(id, { onAdd = null, added = false, onEdit = null, extra
   const m = moveById(id); if (!m) return;
   const art = artOf(m.id);
   const pic = (src, alt) => `<img src="${src}" alt="${esc(alt)}" loading="lazy">`;
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${esc(m.name)}</h1><button class="cta2" id="x" data-close>Close</button></div>
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left" data-raw>${esc(m.name)}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll">
-      <div class="figs${art ? ' art' : ''}">
-        <figure>${art ? pic(art.start, `${m.name}: start position`) : figureSVG(m.start)}<figcaption>1 · Start</figcaption></figure>
-        <figure>${art ? pic(art.end, `${m.name}: finish position`) : figureSVG(m.end)}<figcaption>2 · Finish</figcaption></figure></div>
+      ${/* 2.9: real drawings only; without one, the muscle map and steps carry the how-to */ ''}${art ? `<div class="figs art">
+        <figure>${pic(art.start, `${m.name}: start position`)}<figcaption>1 · Start</figcaption></figure>
+        <figure>${pic(art.end, `${m.name}: finish position`)}<figcaption>2 · Finish</figcaption></figure></div>` : ''}
       ${art?.note ? `<p class="note" style="text-align:center">${esc(art.note)}</p>` : ''}
       <div class="musmap" id="musmap"></div>
       ${muscleLine(m.id)}

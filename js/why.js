@@ -55,7 +55,7 @@ export const WHY = {
   },
   progress: (p, json) => {
     const r = JSON.parse(json || '[]');
-    return ['Why the coach says level up', `<p>Your last three sessions at this ${esc(w('gravity'))}: <b>${r.map(esc).join(' → ')}</b> reps.</p>
+    return ['Why the coach says level up', `<p>Your last three workouts at this level: <b>${r.map(esc).join(' → ')}</b> reps.</p>
       <p style="margin-top:8px">You beat your ghost twice in a row, which means the current level is getting easier. A small step up keeps you progressing.</p>
       <p class="note">Progressive overload: gradually raising load or volume as you adapt (ACSM position stand on resistance training progression, 2009).</p>`];
   },

@@ -71,7 +71,7 @@ export function sagaCard(arcs, t, ctx = {}) {
     const over = day >= len, pr = arcProgress(a, ctx), won = pr && pr.have >= pr.need;
     const hp = pr ? Math.round((1 - pr.pct) * 100) : null;
     return `<div class="arc now"><div class="row"><span class="pill">${esc(W('arc'))} ${n(a)} · ${over ? 'time is up' : `week ${wk} of ${a.data.weeks || WEEKS}`}</span><button class="link" data-arcedit="${esc(a.id)}">Edit</button></div>
-      <h2>${esc(a.data.name)}</h2>
+      <h2 data-raw>${esc(a.data.name)}</h2>
       <div class="poster${won ? ' won' : ''}"><span class="wanted">${esc(W('boss'))}</span><b>${esc(a.data.boss)}</b>
         ${pr ? `<div class="hp" role="img" aria-label="${esc(W('boss'))} HP ${hp} percent"><i style="width:${hp}%"></i></div><span class="sub">${won ? 'Target reached. Mark it beaten below.' : `${esc(W('boss'))} HP ${hp}% · ${esc(pr.label)}`}</span>`
           : '<span class="sub">Link it to an exercise or skill in Edit and its HP drops as you train.</span>'}</div>
@@ -81,7 +81,7 @@ export function sagaCard(arcs, t, ctx = {}) {
   };
   return `<section class="card saga"><div class="row"><p class="lbl" style="margin:0">Your ${esc(w('saga').toLowerCase())}</p><span class="sub">${cleared.length} cleared</span></div>
     ${cur ? arcHTML(cur) : `<p class="sub" style="text-align:center">${next ? `Next ${esc(w('arc').toLowerCase())} starts ${esc(prettyDay(next.data.start))}.` : `No ${esc(w('arc').toLowerCase())} running.`}</p>`}
-    ${next && cur ? `<div class="arc next"><span class="pill">${esc(W('arc'))} ${n(next)} · next</span><h2>${esc(next.data.name)}</h2><p><b>${esc(W('boss'))}:</b> ${esc(next.data.boss)}</p></div>` : ''}
+    ${next && cur ? `<div class="arc next"><span class="pill">${esc(W('arc'))} ${n(next)} · next</span><h2 data-raw>${esc(next.data.name)}</h2><p><b>${esc(W('boss'))}:</b> ${esc(next.data.boss)}</p></div>` : ''}
     ${!next ? `<button class="cta2" id="arcNew" style="width:100%;margin-top:10px">Plan the next ${esc(w('arc').toLowerCase())}</button>` : ''}
     ${cleared.length ? `<details class="fold"><summary class="sub">Cleared ${esc(w('arc').toLowerCase())}s</summary><ul class="list">${cleared.slice().reverse().map(a => `<li><span><b>${esc(a.data.name)}</b><br><span class="chain">Beat: ${esc(a.data.boss)}</span></span><span class="sub">${esc(prettyDay(a.data.done))}</span></li>`).join('')}</ul></details>` : ''}
   </section>`;
@@ -105,7 +105,7 @@ export function bindSaga(root, arcs) {
 function cleared(a, arcs) {
   const days = Math.max(1, daysBetween(a.data.start, today()) + 1), num = arcs.filter(x => x.data.done || x === a).length;
   const { el, close } = overlay(`<div class="clr"><div class="burst" aria-hidden="true">${Array.from({ length: 12 }, (_, i) => `<i style="--k:${i}"></i>`).join('')}</div>
-    <p class="lbl">${esc(W('arc'))} ${arcs.indexOf(a) + 1} cleared</p><h1>${esc(a.data.name)}</h1>
+    <p class="lbl">${esc(W('arc'))} ${arcs.indexOf(a) + 1} cleared</p><h1 data-raw>${esc(a.data.name)}</h1>
     <p class="beat">${esc(w('bossBeat'))}: <b>${esc(a.data.boss)}</b></p>
     <p class="sub">Cleared in ${days} day${days === 1 ? '' : 's'}. ${num} ${esc(w('arc').toLowerCase())}${num === 1 ? '' : 's'} cleared in your ${esc(w('saga').toLowerCase())}.</p>
     <button class="cta" id="nx">Plan the next ${esc(w('arc').toLowerCase())}</button><button class="cta2" id="x" data-close style="width:100%;margin-top:8px">Later</button></div>`, { label: `${W('arc')} cleared`, id: 'cleared' });

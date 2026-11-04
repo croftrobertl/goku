@@ -68,7 +68,7 @@ export function editHome(p, onDone = () => window.goku.render()) {
     <div class="scroll" id="f"></div>
     <button class="cta2" id="reset" style="width:100%;margin-top:8px">Back to the default order</button>`, { label: 'Home cards' });
   // Card names follow the skin (2.8): "Saga map" is "Tour map" under Encore.
-  const SKINNED = { balls: () => `${W('ball')} news`, wish: () => `${W('wisher')}${skinOf(p) === 'dbz' ? "'s" : ''} wish`, chamber: () => W('chamber'),
+  const SKINNED = { balls: () => `${W('ball')} news`, wish: () => `${W('wisher')}${skinOf(p) === 'dbz' ? "'s" : ''} wish`, chamber: () => "Today's workout",
     scouter: () => W('scouter'), ready: () => W('readiness'), saga: () => W('sagaMap'), recap: () => `${W('arc')} recap` };
   const name = id => { const c = CARDS[p.kind].find(x => x[0] === id); return SKINNED[id] ? [c[0], SKINNED[id](), c[2]] : c; };
   const draw = () => {
