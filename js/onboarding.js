@@ -2,7 +2,7 @@
 // and stored only on this device.
 import { skin, skinId, setSkin, SKINS, w } from './skins.js';
 import { THEMES } from './themes.js';
-import { KINDS, newProfile, capName, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames } from './state.js';
+import { KINDS, newProfile, capName, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames, profile } from './state.js';
 import { showLock } from './lock.js';
 import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
 import { DOW, deviceTZ } from './time.js';
@@ -164,7 +164,9 @@ export function onboard({ cancellable = false } = {}) {
     });
     el.addEventListener('click', async e => {
       const b = e.target.closest('button'); if (!b) return;
-      if (b.id === 'cancel') { setSkin(was); close(); resolve(null); return; }
+      if (b.id === 'cancel') { // setup shows its own colors; the open profile's theme and accent come back too (2.10.2)
+        setSkin(was); const cur = profile(); if (cur) { setTheme(cur.settings?.theme, cur.settings?.mode); setAccent(cur.accent); }
+        close(); resolve(null); return; }
       const qs = qAt(step);
       if (b.dataset.fullgym !== undefined) { d.about.equipment = fullGym(d) ? [] : [...GEAR]; draw(); return; }
       if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }
