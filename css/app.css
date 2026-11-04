@@ -715,19 +715,19 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 
 /* ===== Skins (2.8): the same screens with a different shell. Dragon Ball is the manga look above. ===== */
 /* Encore: rounded "stage" cards with a soft pink lift instead of hard ink panels. */
-[data-skin="encore"] { --ink: var(--accent-line); --shade: var(--accent); --pop: 3px; }
-[data-skin="encore"] .card { border-width: 2px; border-radius: 22px; }
-[data-skin="encore"] .cta, [data-skin="encore"] .cta2 { border-radius: 999px; }
-[data-skin="encore"] .cd.tr { background: #ffb3c7; border-color: #3a2a5c; }
-[data-skin="encore"] .saga .arc.now { background: #9fd6ff; }
-[data-skin="encore"] .saga .arc.next { background: #ffb3c7; }
+:root[data-skin="encore"] { --ink: var(--accent-line); --shade: var(--accent); --pop: 3px; }
+:root[data-skin="encore"] .card { border-width: 2px; border-radius: 22px; }
+:root[data-skin="encore"] .cta, :root[data-skin="encore"] .cta2 { border-radius: 999px; }
+:root[data-skin="encore"] .cd.tr { background: #ffb3c7; border-color: #3a2a5c; }
+:root[data-skin="encore"] .saga .arc.now { background: #9fd6ff; }
+:root[data-skin="encore"] .saga .arc.next { background: #ffb3c7; }
 /* Plain: thin lines, no offset shadows, no comic outlines. */
-[data-skin="plain"] { --ink: var(--line); --shade: transparent; --pop: 0px; }
-[data-skin="plain"] .card { border-width: 1px; border-radius: 14px; box-shadow: none; }
-[data-skin="plain"] .cta, [data-skin="plain"] .cta2 { border-width: 1px; box-shadow: none; }
-[data-skin="plain"] .cd.tr { background: var(--accent); border-color: var(--line); box-shadow: none; }
-[data-skin="plain"] .saga .arc.now, [data-skin="plain"] .saga .arc.next { background: var(--s2); color: var(--tx); }
-[data-skin="plain"] .saga .arc h2, [data-skin="plain"] .saga .arc .link { color: var(--tx); }
+:root[data-skin="plain"] { --ink: var(--line); --shade: transparent; --pop: 0px; }
+:root[data-skin="plain"] .card { border-width: 1px; border-radius: 14px; box-shadow: none; }
+:root[data-skin="plain"] .cta, :root[data-skin="plain"] .cta2 { border-width: 1px; box-shadow: none; }
+:root[data-skin="plain"] .cd.tr { background: var(--accent); border-color: var(--line); box-shadow: none; }
+:root[data-skin="plain"] .saga .arc.now, :root[data-skin="plain"] .saga .arc.next { background: var(--s2); color: var(--tx); }
+:root[data-skin="plain"] .saga .arc h2, :root[data-skin="plain"] .saga .arc .link { color: var(--tx); }
 /* Setup (2.8.1): the name counter near the limit, and each skin's colors on "Pick a look" */
 .note .count { float: right; font-weight: 700; }
 .skin-dots { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
@@ -808,3 +808,6 @@ details.fold > summary.lbl { text-align: left; }
 .spark { width: 100%; height: auto; display: block; margin-top: 6px; }
 .spark polyline { fill: none; stroke: var(--accent-line); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .sparknote { margin: 2px 0 0; }
+/* 2.10.1: the setup color fills the whole screen, home-bar area included, on iPhone */
+html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background: #ffd84d; }
+.gatehint { display: block; font-size: .8rem; font-weight: 400; color: var(--tx2); margin-top: 2px; text-decoration: none; }

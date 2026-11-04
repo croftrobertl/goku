@@ -77,7 +77,7 @@ export function onboard({ cancellable = false } = {}) {
     const extra = () => d.pick === 'custom' ? 2 : 0; // Custom adds "What do you do?" and "How do you train?"
     const firstQ = () => 4 + extra();
     const qAt = i => d.kind && i >= firstQ() && i < firstQ() + screens().length ? screens()[i - firstQ()][1] : null;
-    const qSteps = () => screens().map(([title], i) => () => `<div class="lbl">${label()}</div><h1>${esc(title)}</h1>${screenHTML(screens()[i][1], d)}`);
+    const qSteps = () => screens().map(([title], i) => () => `<div class="lbl">${label()}</div><h1>${esc(title)}</h1>${screenHTML(screens()[i][1], d).replace(`<h2>${esc(title)}</h2>`, '')}`);
     const label = () => progress(step, steps.length, step >= firstQ() && qAt(step) ? 'Your coach' : '');
     let steps = [];
     const names = () => sessionNames(d.pick === 'custom' ? d : {});

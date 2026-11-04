@@ -32,6 +32,12 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.10.1:* fixes found on the iPhone simulator. The setup color fills the screen down through the
+  home-bar area; Library section counts stay lowercase ("· 2 moves"); the install screen's Safari
+  link is "Try It in Safari Anyway" with the warning in plain words under it; "Units and Time" shows
+  once in setup; the look picker's Encore and Plain cards no longer take on those looks' borders
+  (skin styles now apply only from the page itself); and before any profile exists, a new version
+  goes live at once instead of waiting for Safari to close.
 - *2.10.0:* picks from review 6. Exercise and stage names on the workout screen stay as written
   (2.9.0's Title Case had caught them). Weight trend on Strength profiles' Stats: every weigh-in is
   kept and smoothed with The Hacker's Diet method (John Walker, "Pencil and Paper": each day moves

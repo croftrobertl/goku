@@ -255,7 +255,7 @@ function installGate() {
         <li>Tap <b>View More</b> if you see it, then <b>Add to Home Screen</b>.</li>
         <li>Tap <b>Add</b>, then open Goku from your Home Screen.</li>
       </ol></section>
-      <button class="link" id="anyway" style="width:100%">Try it in Safari anyway (data may be deleted)</button>`;
+      <button class="link" id="anyway" style="width:100%">Try It in Safari Anyway<span class="gatehint" data-raw>Data kept in a Safari tab may be deleted</span></button>`;
     $('#dock').innerHTML = '';
     $('#anyway').onclick = () => resolve();
   });
@@ -271,11 +271,14 @@ function applyUpdate() {
   else location.reload();
 }
 
+let profilesLoaded = false; // set once the saved profiles are read, so a new phone and an existing user aren't confused
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
     const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-    const ready = () => { if (!update) { update = { reg, dismissed: false }; if (profile()) render(); } };
+    // With no profile yet (install screen, first setup) there's nothing to lose, so a new version
+    // goes live at once (2.10.1); otherwise the Update bar asks first.
+    const ready = () => { if (update) return; update = { reg, dismissed: false }; if (profilesLoaded && !S.profiles.length && !document.querySelector('.overlay')) return applyUpdate(); if (profile()) render(); };
     if (reg.waiting && navigator.serviceWorker.controller) ready();
     reg.addEventListener('updatefound', () => {
       const w = reg.installing;
@@ -315,8 +318,8 @@ async function boot() {
   registerSW();
   watchBack();
   startTitleCase();
-  if (isIOS && !standalone) await installGate();
-  await loadProfiles();
+  if (isIOS && !standalone) { await loadProfiles(); profilesLoaded = true; if (update && !S.profiles.length) return applyUpdate(); await installGate(); }
+  await loadProfiles(); profilesLoaded = true;
   if (!S.profiles.length) {
     const p = await onboard();
     db.requestPersist();

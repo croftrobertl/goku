@@ -601,7 +601,7 @@ export async function libraryView() {
     cta: ['Add exercise', () => pickMove({ onCustom: () => editExercise(), have: lib.map(e => moveFor(e.data)?.id).filter(Boolean) })],
     html: `<h1>Library</h1><p class="sub">Circuits pick one exercise per group. Tap one to see how it's done or to edit it.</p>
       ${Object.entries(groups).filter(([, list]) => list.length).map(([g, list]) => `<section class="card" style="margin-top:12px">
-        <p class="lbl">${esc(groupLabel(g))} <span class="sub">· ${list.length} move${list.length === 1 ? '' : 's'}</span></p>
+        <p class="lbl">${esc(groupLabel(g))} <span class="sub" data-raw>· ${list.length} move${list.length === 1 ? '' : 's'}</span></p>
         <ul class="list librows">${list.map(e => { const m = moveFor(e.data), art = m && artOf(m.id);
           // Picture rows (2.7): the exercise drawing, else its muscle map; the whole row opens it.
           const pic = art ? `<img src="${art.end}" alt="" loading="lazy">` : m ? miniMap(m.id) : '';
