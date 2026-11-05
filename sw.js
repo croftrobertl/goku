@@ -1,6 +1,6 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.10.2';
+const CACHE_VERSION = '2.11.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
@@ -17,6 +17,10 @@ const DATA = 'goku-data-' + DATA_VERSION;
 const DATA_FILES = ['./data/foods.json', './vendor/zxing.min.js'];
 // Exercise drawings and the muscle map (2.4), kept across app updates; bump ART_VERSION when they change.
 // The drawing list matches ART in js/muscles.js.
+// Scan-only barcode files (2.11, data/upc/*.json): fetched one at a time on first scan and kept here.
+// Bump UPC_VERSION only when tools/build-barcodes.py runs again.
+const UPC_VERSION = 'upc-2026-11-05';
+const UPC = 'goku-upc-' + UPC_VERSION;
 const ART_VERSION = 'art-2026-11-04';
 const ART = 'goku-art-' + ART_VERSION;
 const ART_FILES = ['./img/muscles.svg', ...['0077', '0075', '0162', '0055', '0018', '0033', '0056', '0198', '0042', '0020', '0086', '0087', '0224', '0227',
@@ -53,7 +57,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil((async () => {
-    for (const k of await caches.keys()) if ((k.startsWith('goku-app-') && k !== CACHE) || (k.startsWith('goku-data-') && k !== DATA) || (k.startsWith('goku-art-') && k !== ART)) await caches.delete(k);
+    for (const k of await caches.keys()) if ((k.startsWith('goku-app-') && k !== CACHE) || (k.startsWith('goku-data-') && k !== DATA) || (k.startsWith('goku-art-') && k !== ART) || (k.startsWith('goku-upc-') && k !== UPC)) await caches.delete(k);
     await self.clients.claim();
   })());
 });
@@ -66,6 +70,13 @@ self.addEventListener('fetch', e => {
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     if (req.mode === 'navigate') return (await cache.match('./index.html')) || fetch(req);
+    if (new URL(req.url).pathname.includes('/data/upc/')) {
+      const upc = await caches.open(UPC), hit = await upc.match(req, { ignoreSearch: true });
+      if (hit) return hit;
+      const res = await fetch(new Request(req.url.split('?')[0] + '?v=' + UPC_VERSION, { cache: 'reload' }));
+      if (res.ok) await upc.put(req.url.split('?')[0], res.clone());
+      return res;
+    }
     return (await cache.match(req, { ignoreSearch: true })) || (await (await caches.open(DATA)).match(req, { ignoreSearch: true }))
       || (await (await caches.open(ART)).match(req, { ignoreSearch: true })) || fetch(req);
   })());

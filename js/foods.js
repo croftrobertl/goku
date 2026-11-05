@@ -8,6 +8,10 @@ export const NUTRIENTS = [['kcal', 'Calories', ''], ['p', 'Protein', 'g'], ['c',
   ['sat', 'Saturated fat', 'g'], ['fib', 'Fiber', 'g'], ['sug', 'Sugars', 'g'], ['na', 'Sodium', 'mg']];
 export const SOURCE_NOTE = 'Food data: USDA FoodData Central (public domain). Brand items come from the makers’ labels as of October 2026, and restaurant items from each chain’s own nutrition page, so check the package or the chain if a recipe has changed.';
 
+// One stored food row ([name, brand, nutrients…, portions, upc, src, unit, from?, url?]) as the app uses it.
+const toFood = (a, i) => ({ i, name: tidyName(a[0], a[12]), brand: a[1], per: Object.fromEntries(K.map((k, j) => [k, a[2 + j]])),
+  portions: tidyServing(a[10]), upc: a[11], src: a[12], unit: a[13], ...(a[14] ? { from: a[14], url: a[15] } : {}), key: (a[0] + ' ' + a[1]).toLowerCase() });
+
 let db = null, loading = null;
 export function loadFoods() {
   if (db) return Promise.resolve(db);
@@ -17,8 +21,7 @@ export function loadFoods() {
     // The everyday list ends with the USDA foods it copies (2.8.2), hidden so "Banana" shows once.
     const hide = new Set(every.find(x => !Array.isArray(x))?.hide || []);
     every = every.filter(Array.isArray);
-    db = [...every, ...chains, ...j.foods.filter(a => !(hide.has(a[0]) && (a[12] === 'fndds' || a[12] === 'sr')))].map((a, i) => ({ i, name: tidyName(a[0], a[12]), brand: a[1], per: Object.fromEntries(K.map((k, j) => [k, a[2 + j]])),
-      portions: tidyServing(a[10]), upc: a[11], src: a[12], unit: a[13], ...(a[14] ? { from: a[14], url: a[15] } : {}), key: (a[0] + ' ' + a[1]).toLowerCase() }));
+    db = [...every, ...chains, ...j.foods.filter(a => !(hide.has(a[0]) && (a[12] === 'fndds' || a[12] === 'sr')))].map(toFood);
     return db;
   }).catch(e => { loading = null; throw e; });
 }
@@ -164,6 +167,28 @@ export function byBarcode(list, code) {
     if (f) return f;
   }
   return null;
+}
+
+// Scan-only barcodes (2.11): every other current US product with a barcode lives in
+// data/upc/<first 3 digits>.json (tools/build-barcodes.py), so search stays small. The first scan in a
+// group fetches that one small file; the service worker keeps it for offline use.
+// Returns the food, null when no product has that barcode, or 'offline' when the file couldn't be fetched.
+const groups = {};
+const getGroup = k => fetch(`data/upc/${k}.json`).then(r => r.status === 404 ? { foods: [] } : r.ok ? r.json() : Promise.reject(new Error('barcode file')));
+export async function lookupBarcode(code) {
+  let offline = false;
+  for (const one of String(code).split(',')) {
+    const c = one.replace(/\D/g, '').replace(/^0+/, '');
+    if (c.length < 6) continue;
+    let k = c.slice(0, 3), g;
+    try {
+      g = groups[k] ||= await getGroup(k);
+      while (g.split) { k = c.slice(0, g.split); g = groups[k] ||= await getGroup(k); } // a big group is split one digit further
+    } catch { offline = true; continue; }
+    const a = (g.foods || []).find(x => x[11] === c);
+    if (a) return toFood(a, 'upc:' + c);
+  }
+  return offline ? 'offline' : null;
 }
 
 export const kcalOf = n => n?.kcal == null ? null : Math.round(n.kcal);

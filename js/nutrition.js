@@ -10,7 +10,7 @@ import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from 
 import { fuelRanges } from './fuel.js';
 import { whyBtn } from './why.js';
 import { gutPatterns, HIGH_BLOAT } from './insights.js';
-import { loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
+import { loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, lookupBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
 import { scanBarcode } from './scan.js';
 import { suppCard, bindSupps, recentSupps, suppNamed } from './supplements.js';
 
@@ -354,9 +354,13 @@ function foodSheet(meal, day, { scan = false } = {}) {
       const codes = await scanBarcode(); if (!codes) return;
       const code = codes.split(',')[0]; // a typed short code arrives with its long form after a comma
       const list = [...mine, ...(all || await loadFoods().catch(() => []))];
-      const f = byBarcode(list, codes);
-      if (f) return serving(f, { meal, onDone: async item => { await addItems(day, [item]); close(); window.goku.render(); } });
-      if (await ask('Not in the food list yet', `Barcode ${esc(code)} isn't in Goku's food list. Add it from the label once, and the next scan finds it.`, [{ label: 'Add from the label', value: true }]))
+      // The search list first, then the scan-only barcode files (2.11).
+      let f = byBarcode(list, codes);
+      if (!f) { $('#fstat').textContent = 'Looking up the barcode…'; f = await lookupBarcode(codes); $('#fstat').textContent = ''; }
+      if (f && f !== 'offline') return serving(f, { meal, onDone: async item => { await addItems(day, [item]); close(); window.goku.render(); } });
+      if (await ask(f === 'offline' ? 'Needs internet this once' : 'Not in the food list yet',
+        f === 'offline' ? `Goku looks up barcode ${esc(code)} online the first time, then remembers it. Connect and scan again, or add it from the label now.`
+          : `Barcode ${esc(code)} isn't in USDA's product list. Add it from the label once, and the next scan finds it.`, [{ label: 'Add from the label', value: true }]))
         labelFood({ upc: code }, async nf => { mine = await myFoods(); serving(nf, { meal, onDone: async item => { await addItems(day, [item]); close(); window.goku.render(); } }); });
     }
   }));

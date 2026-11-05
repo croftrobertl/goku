@@ -32,6 +32,13 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.11.0:* many more barcodes. A KIND breakfast bar wouldn't scan: USDA lists 478 KIND barcodes and
+  the search list kept 238. Now every other current US product in USDA Branded Foods (October 2026)
+  with a barcode, calories and a gram or ml serving, 301,195 more, can be scanned; KIND goes to 459.
+  They live in data/upc/ (tools/build-barcodes.py), small files grouped by the barcode's first digits
+  (the biggest is 380 KB, about 85 KB compressed), so search and the first download stay the same
+  size. A scan checks the search list first, then fetches that one file the first time, and keeps it
+  for offline use. Scanned offline in a group not fetched yet, Goku says it needs internet this once.
 - *2.10.2:* cancelling Add a profile puts the open profile's theme and accent back (setup had left
   the app in its own blue default until the next restart).
 - *2.10.1:* fixes found on the iPhone simulator. The setup color fills the screen down through the
