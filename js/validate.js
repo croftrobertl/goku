@@ -69,7 +69,7 @@ function foodItem(it) {
   if (!it || typeof it !== 'object') return null;
   const base = { meal: MEALS.includes(it.meal) ? it.meal : 'snacks', name: str(it.name, 80).trim() || 'Food', brand: str(it.brand, 40), n: per(it.n) };
   if (it.quick === true) return { ...base, quick: true };
-  return { ...base, src: ['sr', 'fndds', 'brand', 'mine'].includes(it.src) ? it.src : 'mine', per: per(it.per), unit: it.unit === 'ml' ? 'ml' : 'g',
+  return { ...base, src: ['sr', 'fndds', 'fdn', 'brand', 'chain', 'common', 'mine'].includes(it.src) ? it.src : 'mine', per: per(it.per), unit: it.unit === 'ml' ? 'ml' : 'g',
     portions: str(it.portions, 400), pl: str(it.pl, 48) || 'serving', pg: num(it.pg, 0.1, 5000, 100), qty: num(it.qty, 0.01, 5000, 1) };
 }
 
@@ -93,8 +93,7 @@ const DATA = {
   myfood: d => ({ name: str(d.name, 60).trim() || 'Food', brand: str(d.brand, 40), upc: String(d.upc || '').replace(/\D/g, '').slice(0, 14), unit: d.unit === 'ml' ? 'ml' : 'g',
     serving: str(d.serving, 48) || '1 serving', servingG: num(d.servingG, 0.1, 5000, 100), per: per(d.per) }),
   meal: d => ({ name: str(d.name, 40).trim() || 'Meal', items: Array.isArray(d.items) ? d.items.slice(0, 60).map(foodItem).filter(Boolean) : [] }),
-  activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'row', 'gym', 'hike', 'sport', 'lift', 'other', 'basketball', 'volleyball', 'tennis', 'baseball',
-    'football', 'hockey', 'track', 'cheer', 'dance', 'martial', 'boxing', 'wrestling', 'climb', 'skate'].includes(d.kind) ? d.kind : 'other',
+  activity: d => ({ kind: ['soccer', 'run', 'bike', 'swim', 'row', 'gym', 'lift', 'hike', 'basketball', 'volleyball', 'tennis', 'baseball', 'football', 'hockey', 'track', 'cheer', 'dance', 'martial', 'boxing', 'wrestling', 'climb', 'skate', 'badminton', 'tabletennis', 'racquetball', 'squash', 'golf', 'bowling', 'archery', 'fencing', 'rugby', 'cricket', 'handball', 'frisbee', 'waterpolo', 'paddle', 'surf', 'sup', 'diving', 'aqua', 'ski', 'snowboard', 'snowshoe', 'horse', 'skateboard', 'trampoline', 'jumprope', 'yoga', 'pilates', 'elliptical', 'hiit', 'sport', 'other'].includes(d.kind) ? d.kind : 'other',
     minutes: int(d.minutes, 1, 1440, 30), effort: int(d.effort, 0, 10, 5), ...(d.source === 'health' ? { source: 'health' } : {}),
     ...(str(d.name, 40).trim() ? { name: str(d.name, 40).trim() } : {}),
     ...(num(d.dist, 0.01, 100000) && ['mi', 'km', 'yd', 'm'].includes(d.distUnit) ? { dist: num(d.dist, 0.01, 100000), distUnit: d.distUnit } : {}) }),

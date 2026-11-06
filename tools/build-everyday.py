@@ -7,7 +7,7 @@ name. The chosen serving moves to the front. Every match is printed so it can be
 import json, re, sys
 
 foods = json.load(open('data/foods.json', encoding='utf-8'))['foods']
-generic = [f for f in foods if f[12] in ('fndds', 'sr')]
+generic = [f for f in foods if f[12] in ('fndds', 'sr', 'fdn')]
 out, missing, hide = [], [], []
 for line in open('tools/everyday-foods.txt', encoding='utf-8'):
     line = line.strip()

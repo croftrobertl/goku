@@ -15,6 +15,32 @@ const kindFor = name => {
   const n = String(name).toLowerCase();
   // Apple Health workout names (2.12: the new sports first, so "American Football" isn't soccer).
   if (/american football/.test(n)) return 'football';
+  // 2.13: Apple's other workout types
+  if (/high intensity|hiit/.test(n)) return 'hiit';
+  if (/table tennis/.test(n)) return 'tabletennis';
+  if (/water polo/.test(n)) return 'waterpolo';
+  if (/water fitness/.test(n)) return 'aqua';
+  if (/paddle sports|kayak|canoe/.test(n)) return 'paddle';
+  if (/surf/.test(n)) return 'surf';
+  if (/underwater diving|diving/.test(n)) return 'diving';
+  if (/snowboard/.test(n)) return 'snowboard';
+  if (/ski/.test(n) && !/skat/.test(n)) return 'ski';
+  if (/badminton/.test(n)) return 'badminton';
+  if (/racquetball/.test(n)) return 'racquetball';
+  if (/squash/.test(n)) return 'squash';
+  if (/golf/.test(n)) return 'golf';
+  if (/bowling/.test(n)) return 'bowling';
+  if (/archery/.test(n)) return 'archery';
+  if (/fencing/.test(n)) return 'fencing';
+  if (/rugby/.test(n)) return 'rugby';
+  if (/cricket/.test(n)) return 'cricket';
+  if (/handball/.test(n)) return 'handball';
+  if (/disc sports|frisbee/.test(n)) return 'frisbee';
+  if (/equestrian/.test(n)) return 'horse';
+  if (/jump rope/.test(n)) return 'jumprope';
+  if (/pilates/.test(n)) return 'pilates';
+  if (/yoga/.test(n)) return 'yoga';
+  if (/elliptical/.test(n)) return 'elliptical';
   if (/basketball/.test(n)) return 'basketball';
   if (/volleyball/.test(n)) return 'volleyball';
   if (/tennis/.test(n) && !/table/.test(n)) return 'tennis';

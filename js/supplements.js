@@ -85,6 +85,21 @@ const LIST = [
   ['Elderberry', 'sambucus', 'mg', 'gummy', null],
   ['Echinacea', '', 'mg', 'capsule', 'Echinacea'],
   ['BCAA', 'branched chain amino acids', 'g', 'scoop', null],
+  // 2.13: herbs with an NCCIH page that names medicines
+  ['Acai', 'acai berry', 'mg', 'capsule', 'Acai'],
+  ['Aloe vera', 'aloe latex aloe juice', 'mg', 'capsule', 'AloeVera'],
+  ['Astragalus', '', 'mg', 'capsule', 'Astragalus'],
+  ['Cat\'s claw', 'cats claw una de gato', 'mg', 'capsule', 'CatsClaw'],
+  ['Chamomile', 'chamomile tea', 'mg', 'capsule', 'Chamomile'],
+  ['Cranberry', 'cranberry pills cranberry extract', 'mg', 'capsule', 'Cranberry'],
+  ['Dandelion', 'dandelion root', 'mg', 'capsule', 'Dandelion'],
+  ['Feverfew', '', 'mg', 'capsule', 'Feverfew'],
+  ['Goldenseal', 'golden seal berberine', 'mg', 'capsule', 'Goldenseal'],
+  ['Kava', 'kava kava', 'mg', 'capsule', 'Kava'],
+  ['Lavender', 'lavender oil', 'mg', 'capsule', 'Lavender'],
+  ['Licorice root', 'licorice liquorice', 'mg', 'capsule', 'Licorice'],
+  ['White mulberry leaf', 'mulberry leaf', 'mg', 'capsule', 'WhiteMulberry'],
+  ['Yohimbe', 'yohimbine', 'mg', 'capsule', 'Yohimbe'],
 ].map(([name, alt, unit, form, ods]) => ({ name, alt, unit, form, ods }));
 
 export const UNITS = ['mg', 'mcg', 'g', 'IU', 'mL'];

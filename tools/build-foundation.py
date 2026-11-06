@@ -57,7 +57,39 @@ for x in found:
         if c in got: row[c] = r1(got[c])
         else: kept += 1
     done += 1
-src = 'USDA FoodData Central: Foundation Foods (October 2026), replacing SR Legacy numbers where USDA links the two'
+# 2.13: Foundation foods with no SR Legacy food to update are added as their own rows (src "fdn"), with
+# USDA's household portions. Lab-only entries ("Beans, Dry, Navy (0% moisture)") are left out.
+names = {f[0] for f in db['foods'] if f[12] in ('sr', 'fndds', 'fdn')}
+db['foods'] = [f for f in db['foods'] if f[12] != 'fdn']
+added = 0
+def nums(x):
+    got = {}
+    for n in x['foodNutrients']:
+        num, a = n['nutrient']['number'], n.get('amount')
+        if a is None: continue
+        if num in ENERGY and n['nutrient']['unitName'] == 'kcal': got.setdefault(('e', ENERGY.index(num)), a)
+        elif num in COL: got.setdefault(COL[num], a)
+    return got
+for x in found:
+    if desc.get(ndb.get(str(x.get('ndbNumber')), '')): continue  # has an SR Legacy food (updated above)
+    name = ' '.join(x['description'].split())[:80]
+    if '0% moisture' in name or name in names: continue
+    got = nums(x)
+    e = next((got[('e', i)] for i in range(3) if ('e', i) in got), None)
+    if e is None or 3 not in got: continue
+    ps = []
+    for q in x.get('foodPortions', []):
+        unit = (q.get('measureUnit') or {}).get('name', '')
+        if unit in ('RACC', 'undetermined') or not q.get('gramWeight'): continue
+        amt = q.get('amount') or q.get('value') or ''
+        amt = str(int(amt)) if isinstance(amt, float) and amt.is_integer() else str(amt)
+        label = ' '.join(w for w in [amt, unit, (q.get('modifier') or '').strip()] if w).replace('|', '/').replace(';', ',')[:48]
+        if label and all(p[0] != label for p in ps): ps.append((label, round(q['gramWeight'], 1)))
+    db['foods'].append([name, '', r1(e), *[r1(got.get(c)) for c in range(3, 10)], ';'.join(f'{a}|{g}' for a, g in ps[:6]), '', 'fdn', 'g'])
+    added += 1
+print('added', added, 'Foundation-only foods', file=sys.stderr)
+src = 'USDA FoodData Central: Foundation Foods (October 2026), replacing SR Legacy numbers where USDA links the two, plus foods new to Foundation'
+db['sources'] = [x for x in db['sources'] if not x.startswith('USDA FoodData Central: Foundation Foods')]
 if src not in db['sources']: db['sources'].insert(1, src)
 json.dump(db, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print('updated', done, 'SR Legacy foods; numbers Foundation skips, kept from SR Legacy:', kept, file=sys.stderr)

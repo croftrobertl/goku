@@ -21,7 +21,7 @@ export function loadFoods() {
     // The everyday list ends with the USDA foods it copies (2.8.2), hidden so "Banana" shows once.
     const hide = new Set(every.find(x => !Array.isArray(x))?.hide || []);
     every = every.filter(Array.isArray);
-    db = [...every, ...chains, ...j.foods.filter(a => !(hide.has(a[0]) && (a[12] === 'fndds' || a[12] === 'sr')))].map(toFood);
+    db = [...every, ...chains, ...j.foods.filter(a => !(hide.has(a[0]) && (a[12] === 'fndds' || a[12] === 'sr' || a[12] === 'fdn')))].map(toFood);
     return db;
   }).catch(e => { loading = null; throw e; });
 }
@@ -151,7 +151,7 @@ function ranked(list, groups, limit) {
     if (f.src === 'common') s += 45;
     if (f.src === 'chain') s += 8 + (groups.every((g, i) => whole[i].some(r => r.test(name))) ? 40 : 0); // "big mac" means McDonald's own item, above copies of its name (2.8.2)
     if (f.src === 'fndds') s += 10; // foods as people eat them: cooked rice, a glass of milk
-    if (f.src === 'sr') s += 6;
+    if (f.src === 'sr' || f.src === 'fdn') s += 6; // fdn: USDA Foundation Foods new since 2018 (2.13)
     s -= name.length / 12;
     res.push([s, f]);
   }

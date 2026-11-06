@@ -14,9 +14,11 @@ is used only where NIH has no consumer section (black cohosh, valerian, ashwagan
 2.12: nine more NCCIH pages (CoQ10, echinacea, flaxseed, garlic, ginkgo, glucosamine, melatonin, green tea,
 rhodiola): the one paragraph on each that names medicines, word for word. NCCIH pages that only say "talk with
 your health care provider" (turmeric, milk thistle, elderberry, probiotics, CBD) name no medicine to match, so they aren't used.
+2.13: fourteen more NCCIH herb pages, the same way (acai, aloe vera, astragalus, cat's claw, chamomile, cranberry,
+dandelion, feverfew, goldenseal, kava, lavender, licorice root, white mulberry leaf, yohimbe).
 Usage: python3 -I tools/build-interactions.py (from the goku folder)."""
 import json, re, hashlib
-NCCIH_SUM = '5437dc1971ee9316bdf443767dba006535cf0790bf2b69a9c39c31cbfa859a8f'
+NCCIH_SUM = 'e87ec237f51ba78391e884a4cc1638ffaff51f7df1011b5f0c2e65320bca8c20'
 
 raw_text = open('tools/src/ods-interactions.json', encoding='utf-8').read()
 raw = json.loads(raw_text)
@@ -246,12 +248,27 @@ EXACT = {'CoQ10': cls('coumarin') + ['blood thinner', 'anticoagulant'] + INSULIN
   'Rhodiola': ['losartan', 'cozaar'],
   # "blood thinner medications", with no kind named, is any of them; "people with epilepsy" take seizure medicines.
   'Melatonin': cls('coumarin', 'anticoag', 'antiplatelet', 'seizure') + BRANDS['anticoag'].split() + BRANDS['antiplatelet'].split()
-    + BRANDS['seizure'].split() + ['blood thinner', 'anticoagulant']}
+    + BRANDS['seizure'].split() + ['blood thinner', 'anticoagulant'],
+  # 2.13
+  'AloeVera': ['digoxin', 'lanoxin', 'cardiac glycoside', 'cardiac glycosides'],
+  'Astragalus': cls('immuno') + ['immunosuppressant', 'immunosuppressants'],
+  'CatsClaw': cls('coumarin', 'anticoag', 'antiplatelet', 'bp', 'ace', 'arb', 'thiazide') + ['blood thinner', 'anticoagulant', 'blood pressure'],
+  'Cranberry': cls('coumarin') + ['blood thinner'],
+  'Dandelion': cls('diabetes', 'coumarin', 'anticoag', 'antiplatelet', 'loop', 'thiazide', 'ksparing') + ['blood thinner', 'anticoagulant', 'water pill', 'diuretic', 'diuretics'],
+  'Feverfew': 'sumatriptan imitrex rizatriptan maxalt zolmitriptan zomig eletriptan relpax naratriptan amerge almotriptan frovatriptan ubrogepant ubrelvy rimegepant nurtec migraine'.split(),
+  'Goldenseal': ['metformin', 'glucophage', 'glumetza', 'fortamet', 'riomet'],
+  'Kava': cls('sedative') + 'benzodiazepine benzodiazepines xanax ativan klonopin valium halcion restoril'.split(),
+  'Lavender': cls('sedative') + 'sedative sedatives xanax ativan klonopin valium halcion restoril ambien lunesta'.split(),
+  'Yohimbe': ('phenelzine nardil tranylcypromine parnate isocarboxazid marplan selegiline emsam maoi amitriptyline elavil nortriptyline pamelor '
+              'imipramine tofranil desipramine norpramin doxepin clomipramine anafranil protriptyline trimipramine tricyclic').split()}
 # 2.12: one paragraph from each of nine more NCCIH pages, matched on the medicines it names (and their classes and brands).
-for k in ('CoQ10', 'Echinacea', 'Flaxseed', 'Garlic', 'Ginkgo', 'Glucosamine', 'Melatonin', 'GreenTea', 'Rhodiola'):
+for k in ('CoQ10', 'Echinacea', 'Flaxseed', 'Garlic', 'Ginkgo', 'Glucosamine', 'Melatonin', 'GreenTea', 'Rhodiola',
+          'Acai', 'AloeVera', 'Astragalus', 'CatsClaw', 'Chamomile', 'Cranberry', 'Dandelion', 'Feverfew', 'Goldenseal', 'Kava',
+          'Lavender', 'Licorice', 'WhiteMulberry', 'Yohimbe'):
     pg = json.loads(nccih_text)[k]
     out[k] = {'d': pg['d'], 'slug': pg['url'].rsplit('/', 1)[1], 'src': 'NCCIH', 'url': pg['url'], 'i': [], 'x': [item(k, None, pg['p'])]}
     if k in EXACT: out[k]['x'][0]['m'] = sorted(set(EXACT[k]))
+    if 'insulin' in out[k]['x'][0]['m']: out[k]['x'][0]['m'] = sorted(set(out[k]['x'][0]['m']) | set(INSULIN))  # brands too
     assert out[k]['x'][0]['m'] or out[k]['x'][0].get('s'), k
 json.dump(out, open('data/interactions.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 for k, v in out.items():

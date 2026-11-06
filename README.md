@@ -32,6 +32,16 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.13.0:* more of each list. Interaction Check: 14 more herbs with NCCIH text, word for word
+  (acai, aloe vera, astragalus, cat's claw, chamomile, cranberry, dandelion, feverfew, goldenseal,
+  kava, lavender, licorice root, white mulberry leaf, yohimbe), each added to the supplement list.
+  Restaurants: 246 items from 11 more chains (Chili's, Olive Garden, Applebee's, Jimmy John's,
+  Firehouse Subs, Jack in the Box, Zaxby's, Bojangles, Smoothie King, Tropical Smoothie Cafe,
+  Papa John's); Dairy Queen's site blocks automated reading. Plain foods: 177 foods new to USDA
+  Foundation Foods (src "fdn"), such as raw chicken breast, sockeye salmon, oat milk and Hass avocado.
+  Log Activity (review 8): 53 sports in one search box, named after the 2024 Compendium of Physical
+  Activities. Empty, it offers your own sports; typing searches names and other words ("ping pong",
+  "jiu jitsu"); anything else logs as Other sport with that name. Apple Health workouts map to them.
 - *2.12.0:* bigger lists. Interaction Check: nine more supplements have NIH text, the one
   paragraph on each NCCIH page that names medicines, word for word (CoQ10, echinacea, flaxseed,
   garlic, ginkgo, glucosamine, melatonin, green tea extract, rhodiola); Lantus and other insulin

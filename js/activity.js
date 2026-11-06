@@ -6,20 +6,35 @@ import { addDays, prettyDay } from './time.js';
 import { forgetHealthWorkout } from './health.js';
 import { metric } from './units.js';
 
-// [id, label, muscle groups it loads]
+// [id, label, muscle groups it loads, other words people search for (2.13)]
+// Names follow the 2024 Adult Compendium of Physical Activities (pacompendium.com); the muscle groups are Goku's own.
+// No calorie numbers are used.
 export const ACTIVITIES = [
-  ['soccer', 'Soccer', ['legs', 'core', 'power']], ['run', 'Running', ['legs']], ['bike', 'Cycling', ['legs']],
-  ['swim', 'Swimming', ['pull', 'push']], ['row', 'Rowing', ['pull', 'legs', 'core']], ['gym', 'Gymnastics', ['push', 'pull', 'core', 'power']],
-  ['lift', 'Lifting', ['push', 'pull', 'legs', 'core']], ['hike', 'Walk or hike', ['legs']],
-  // 2.12: more sports, named as the 2024 Adult Compendium of Physical Activities names them (pacompendium.com/sports).
-  // The muscle groups are Goku's own, as above; no calorie numbers are used.
-  ['basketball', 'Basketball', ['legs', 'core', 'power']], ['volleyball', 'Volleyball', ['legs', 'power', 'push']],
-  ['tennis', 'Tennis', ['legs', 'core', 'push']], ['baseball', 'Baseball or softball', ['legs', 'core', 'push']],
-  ['football', 'Football', ['legs', 'power', 'push', 'core']], ['hockey', 'Hockey', ['legs', 'core']],
-  ['track', 'Track and field', ['legs', 'power']], ['cheer', 'Cheerleading', ['legs', 'power', 'core', 'push']],
-  ['dance', 'Dance', ['legs', 'core']], ['martial', 'Martial arts', ['legs', 'core', 'push', 'power']],
+  ['soccer', 'Soccer', ['legs', 'core', 'power'], 'futbol futsal'], ['run', 'Running', ['legs'], 'run jog jogging'],
+  ['bike', 'Cycling', ['legs'], 'bike biking bicycle spin'], ['swim', 'Swimming', ['pull', 'push'], 'swim laps'],
+  ['row', 'Rowing', ['pull', 'legs', 'core'], 'row erg crew rowing machine'], ['gym', 'Gymnastics', ['push', 'pull', 'core', 'power'], 'vault floor beam bars tumbling'],
+  ['lift', 'Lifting', ['push', 'pull', 'legs', 'core'], 'weights weightlifting strength powerlifting gym'], ['hike', 'Walk or hike', ['legs'], 'walking hiking'],
+  ['basketball', 'Basketball', ['legs', 'core', 'power']], ['volleyball', 'Volleyball', ['legs', 'power', 'push'], 'beach volleyball'],
+  ['tennis', 'Tennis', ['legs', 'core', 'push']], ['baseball', 'Baseball or softball', ['legs', 'core', 'push'], 'softball t-ball'],
+  ['football', 'Football', ['legs', 'power', 'push', 'core'], 'american football flag football'], ['hockey', 'Hockey', ['legs', 'core'], 'ice hockey field hockey roller hockey'],
+  ['track', 'Track and field', ['legs', 'power'], 'sprint sprinting hurdles long jump high jump pole vault throwing'],
+  ['cheer', 'Cheerleading', ['legs', 'power', 'core', 'push'], 'cheer stunting'], ['dance', 'Dance', ['legs', 'core'], 'dancing ballet hip hop jazz tap'],
+  ['martial', 'Martial arts', ['legs', 'core', 'push', 'power'], 'karate taekwondo judo jiu jitsu bjj kung fu kickboxing mma tai chi'],
   ['boxing', 'Boxing', ['push', 'core', 'legs']], ['wrestling', 'Wrestling', ['pull', 'push', 'legs', 'core']],
-  ['climb', 'Rock climbing', ['pull', 'core']], ['skate', 'Skating', ['legs', 'core']],
+  ['climb', 'Rock climbing', ['pull', 'core'], 'climbing bouldering'], ['skate', 'Skating', ['legs', 'core'], 'ice skating roller skating figure skating inline'],
+  ['badminton', 'Badminton', ['legs', 'core', 'push']], ['tabletennis', 'Table tennis', ['legs', 'core'], 'ping pong'],
+  ['racquetball', 'Racquetball', ['legs', 'core', 'push']], ['squash', 'Squash', ['legs', 'core', 'push']],
+  ['golf', 'Golf', ['core']], ['bowling', 'Bowling', ['legs', 'core']], ['archery', 'Archery', ['pull', 'core']],
+  ['fencing', 'Fencing', ['legs', 'core']], ['rugby', 'Rugby', ['legs', 'power', 'push', 'core']], ['cricket', 'Cricket', ['legs', 'core', 'push']],
+  ['handball', 'Handball', ['legs', 'core', 'push', 'power']], ['frisbee', 'Ultimate frisbee', ['legs', 'power'], 'ultimate disc'],
+  ['waterpolo', 'Water polo', ['pull', 'push', 'legs', 'core']], ['paddle', 'Kayaking or canoeing', ['pull', 'core'], 'kayak canoe'],
+  ['surf', 'Surfing', ['pull', 'core', 'legs'], 'surf'], ['sup', 'Paddleboarding', ['core', 'pull', 'legs'], 'sup stand up paddle'],
+  ['diving', 'Diving', ['legs', 'core'], 'scuba snorkeling springboard platform'], ['aqua', 'Water aerobics', ['legs', 'core'], 'water fitness aqua aerobics'],
+  ['ski', 'Skiing', ['legs', 'core'], 'ski downhill cross-country cross country'], ['snowboard', 'Snowboarding', ['legs', 'core'], 'snowboard'],
+  ['snowshoe', 'Snowshoeing', ['legs']], ['horse', 'Horseback riding', ['legs', 'core'], 'equestrian riding'],
+  ['skateboard', 'Skateboarding', ['legs', 'core'], 'skateboard'], ['trampoline', 'Trampoline', ['legs', 'core', 'power']],
+  ['jumprope', 'Jump rope', ['legs', 'power'], 'skipping rope jumping rope'], ['yoga', 'Yoga', ['core']], ['pilates', 'Pilates', ['core']],
+  ['elliptical', 'Elliptical', ['legs'], 'cross trainer'], ['hiit', 'HIIT', ['legs', 'core', 'power', 'push'], 'interval training circuit bootcamp high intensity'],
   ['sport', 'Other sport', ['legs', 'core']],
   ['other', 'Something else', []],
 ];
@@ -48,13 +63,31 @@ export function activityRows(list, { edit = true } = {}) {
     ${edit ? `<button class="cta2" data-act="${esc(e.id)}" aria-label="Edit ${esc(activityName(e.data.kind, e.data.name))} on ${prettyDay(e.day)}">Edit</button>` : ''}</li>`).join('');
 }
 
+// The sport search (2.13, review 8): one box holds every sport. Focused and empty, it offers your own
+// sports (the current one, setup's, then the ones logged most recently); typing searches names and other words.
+const fold = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ').trim();
+export function findSports(q, limit = 8) {
+  const f = fold(q); if (!f) return [];
+  const scored = [];
+  for (const a of ACTIVITIES) {
+    const name = fold(a[1]), words = fold(a[3] || '');
+    const s = name.startsWith(f) ? 3 : name.split(' ').some(w => w.startsWith(f)) ? 2 : (' ' + words).includes(' ' + f) ? 1 : name.includes(f) ? 0.5 : -1;
+    if (s >= 0) scored.push([s, a]);
+  }
+  return scored.sort((x, y) => y[0] - x[0]).slice(0, limit).map(x => x[1]);
+}
+
 export function logActivity(existing = null, onDone = () => window.goku.render()) {
   // A Custom profile starts on its own sport; everyone else on soccer, the original pack.
-  const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'dance', martial: 'martial', gymnastics: 'gym', yoga: 'other' };
+  const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'dance', martial: 'martial', gymnastics: 'gym', yoga: 'yoga' };
   // A Gymnastics profile starts on Gymnastics (2.8.2).
   const first = profile().kind === 'perf' && !profile().custom ? 'gym' : profile().custom?.sports?.map(x => own[x]).find(Boolean);
   const d = existing ? structuredClone(existing.data) : { kind: first || 'soccer', minutes: 60, effort: 6 };
   let day = existing?.day || today();
+  // Your sports, for the empty search: the current one, setup's, recently logged, then a few common ones.
+  let yours = [d.kind, ...(profile().custom?.sports || []).map(x => own[x]).filter(Boolean)];
+  const fill = () => [...new Set([...yours, 'run', 'lift', 'hike', 'other'])].slice(0, 6);
+  entries('activity').then(list => { yours = [...yours, ...list.sort((a, b) => b.ts - a.ts).map(e => e.data.kind)]; }).catch(() => {});
   const { el, close } = overlay(`<div class="row"><h1>${existing ? 'Edit activity' : 'Log activity'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="f"></div>
     <button class="cta" id="save">Save</button>
@@ -66,19 +99,26 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
   const draw = () => {
     el.querySelector('#f').innerHTML = `<div class="row" style="margin:8px 0"><span class="lbl" style="margin:0">Day</span>${dayPicker(day, today(), 'Activity day')}</div>
       <p class="lbl" style="margin-top:12px">What</p>
-      <div class="pills">${ACTIVITIES.map(([k, n]) => `<button data-kind="${k}" aria-pressed="${d.kind === k}">${esc(n)}</button>`).join('')}</div>
+      <input id="asport" value="${esc(activityName(d.kind, d.kind === 'sport' ? d.name : ''))}" autocomplete="off" autocapitalize="off" aria-label="Sport. Type to search all ${ACTIVITIES.length}" placeholder="Search sports, e.g. tennis">
+      <div class="pills sugg" id="asugg" style="margin-top:6px" hidden></div>
       <p class="lbl" style="margin-top:16px">Minutes</p>
       <div class="seg">${[30, 45, 60, 90, 120].map(m => `<button data-min="${m}" aria-pressed="${d.minutes === m}">${m}</button>`).join('')}</div>
       <input id="mins" type="number" inputmode="numeric" min="1" max="600" value="${d.minutes ? esc(d.minutes) : ''}" aria-label="Minutes" style="margin-top:8px">
-      ${d.kind === 'sport' ? `<label class="f" style="margin-top:12px"><span>Which sport (optional)</span><input id="aname" maxlength="40" value="${esc(d.name || '')}" placeholder="e.g. Basketball"></label>` : ''}
       ${DISTANCE.includes(d.kind) ? `<label class="f" style="margin-top:12px"><span>Distance (optional, ${distUnits(d.kind, profile())})</span><input id="adist" inputmode="decimal" value="${esc(distShown())}"></label>
         <p class="say" id="pace" aria-live="polite" style="text-align:center;margin-top:8px"${pace() ? '' : ' hidden'}>${pace()}</p>` : ''}
       <p class="lbl" style="margin-top:16px">Effort (1 easy, 10 all-out)</p>
       <div class="pills">${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<button data-eff="${v}" aria-pressed="${d.effort === v}">${v}</button>`).join('')}</div>`;
   };
+  const sugg = q => { const box = el.querySelector('#asugg'); if (!box) return;
+    const hits = q.trim() ? findSports(q) : fill().map(k => ACTIVITIES.find(a => a[0] === k)).filter(Boolean);
+    box.innerHTML = hits.map(a => `<button data-kind="${a[0]}">${esc(a[1])}</button>`).join('')
+      + (q.trim() && !hits.length ? `<button data-kind="sport" data-name="${esc(q.trim().slice(0, 40))}">Other sport: ${esc(q.trim().slice(0, 40))}</button>` : '');
+    box.hidden = false; };
+  el.addEventListener('keydown', e => { if (e.target.id === 'asport' && e.key === 'Enter') { e.preventDefault(); el.querySelector('#asugg button')?.click(); } });
+  el.addEventListener('focusin', e => { if (e.target.id === 'asport') { e.target.select(); sugg(''); } });
   el.addEventListener('input', e => {
+    if (e.target.id === 'asport') return sugg(e.target.value);
     if (e.target.id === 'mins') d.minutes = e.target.value === '' ? 0 : Math.round(+e.target.value || 0); // checked on Save, not silently clamped
-    if (e.target.id === 'aname') d.name = e.target.value.slice(0, 40);
     if (e.target.id === 'adist') d.distTyped = e.target.value;
     showPace();
   });
@@ -86,7 +126,7 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
     if (b.dataset.dayshift) { const nd = addDays(day, +b.dataset.dayshift); if (nd <= today() && nd >= addDays(today(), -14)) day = nd; return draw(); }
-    if (b.dataset.kind) { d.kind = b.dataset.kind; return draw(); }
+    if (b.dataset.kind) { d.kind = b.dataset.kind; if (b.dataset.name) d.name = b.dataset.name; return draw(); }
     if (b.dataset.min) { d.minutes = +b.dataset.min; return draw(); }
     if (b.dataset.eff) { d.effort = +b.dataset.eff; return draw(); }
     if (b.id === 'save') {
