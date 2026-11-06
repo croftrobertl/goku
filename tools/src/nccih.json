@@ -16,5 +16,68 @@
    "• Certain statins, including simvastatin",
    "• In addition, taking St. John’s wort with certain antidepressants or other drugs that affect serotonin (a substance produced by some nerve cells) may lead to increased serotonin-related side effects, which can be serious."
   ]
+ },
+ "CoQ10": {
+  "d": "January 2019",
+  "url": "https://www.nccih.nih.gov/health/coenzyme-q10",
+  "p": [
+   "• CoQ10 may interact with the anticoagulant (blood thinner) warfarin and the diabetes drug insulin, and it may not be compatible with some types of cancer treatment."
+  ]
+ },
+ "Echinacea": {
+  "d": "November 2024",
+  "url": "https://www.nccih.nih.gov/health/echinacea",
+  "p": [
+   "• There is conflicting evidence about whether echinacea interacts with some drugs metabolized by the liver, and there are theoretical reasons to suspect that echinacea might interact with immunosuppressants or caffeine. If you take any type of medicine, talk to your health care provider before using echinacea or other herbal products; some herbs and medicines interact in harmful ways."
+  ]
+ },
+ "Flaxseed": {
+  "d": "February 2025",
+  "url": "https://www.nccih.nih.gov/health/flaxseed-and-flaxseed-oil",
+  "p": [
+   "• There are theoretical reasons to suspect that flaxseed or flaxseed oil might interact with other drugs, such as anticoagulant or antiplatelet drugs. If you take any type of medicine, talk with your health care provider before using flaxseed, flaxseed oil, or other herbal products; some herbs and medicines interact in harmful ways."
+  ]
+ },
+ "Garlic": {
+  "d": "February 2025",
+  "url": "https://www.nccih.nih.gov/health/garlic",
+  "p": [
+   "• Taking garlic supplements may increase the risk of bleeding. If you take garlic supplements, make sure to tell your health care providers. This is especially important if you are going to have surgery or if you take medicines, such as anticoagulants or aspirin, that may also affect bleeding."
+  ]
+ },
+ "Ginkgo": {
+  "d": "February 2025",
+  "url": "https://www.nccih.nih.gov/health/ginkgo",
+  "p": [
+   "• Ginkgo may increase the risk of bleeding in people who are taking anticoagulant drugs, such as warfarin. Ginkgo may also interact with other drugs. If you take any type of medicine, talk with your health care provider before using ginkgo or other herbal products; some herbs and medicines interact in harmful ways."
+  ]
+ },
+ "Glucosamine": {
+  "d": "October 2023",
+  "url": "https://www.nccih.nih.gov/health/glucosamine-and-chondroitin-for-osteoarthritis",
+  "p": [
+   "No major safety problems have been identified in large studies of glucosamine and chondroitin for osteoarthritis. However, glucosamine may cause increases in blood glucose (sugar) levels in some people, and glucosamine and chondroitin have been associated with an increased risk of bleeding in people who are taking the anticoagulant warfarin. Little is known about the safety of using glucosamine and chondroitin during pregnancy or while breastfeeding."
+  ]
+ },
+ "Melatonin": {
+  "d": "May 2024",
+  "url": "https://www.nccih.nih.gov/health/melatonin-what-you-need-to-know",
+  "p": [
+   "• As with all dietary supplements, people who are taking medicine should consult their health care providers before using melatonin. In particular, people with epilepsy and those taking blood thinner medications need to be under medical supervision when taking melatonin supplements."
+  ]
+ },
+ "GreenTea": {
+  "d": "February 2025",
+  "url": "https://www.nccih.nih.gov/health/green-tea",
+  "p": [
+   "• Green tea at high doses has been shown to reduce blood levels and, therefore, the effectiveness of the drug nadolol, a beta-blocker used for high blood pressure and heart problems. Green tea extract can reduce blood levels of the cholesterol-lowering drug atorvastatin. A study funded by the National Center for Complementary and Integrative Health showed an interaction between green tea and the drug raloxifene, which is used to treat osteoporosis. Green tea may also interact with other medicines. If you take any type of medicine, talk with your health care provider before using green tea supplements or other herbal products; some herbs and medicines interact in harmful ways."
+  ]
+ },
+ "Rhodiola": {
+  "d": "April 2025",
+  "url": "https://www.nccih.nih.gov/health/rhodiola",
+  "p": [
+   "• Interactions between rhodiola and losartan (a drug used for high blood pressure) have been reported."
+  ]
  }
 }

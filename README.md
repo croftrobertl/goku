@@ -32,6 +32,15 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.12.0:* bigger lists. Interaction Check: nine more supplements have NIH text, the one
+  paragraph on each NCCIH page that names medicines, word for word (CoQ10, echinacea, flaxseed,
+  garlic, ginkgo, glucosamine, melatonin, green tea extract, rhodiola); Lantus and other insulin
+  brands now match NIH's insulin text, and Nexplanon, Depo-Provera, amiodarone, tamoxifen and
+  letrozole are recognized. Restaurants: 166 items from 7 more chains (Taco Bell, Panda Express,
+  Wingstop, Arby's, Culver's, Whataburger, Publix deli), each read from the chain's own nutrition
+  page. Plain foods: 192 SR Legacy (2018) foods take USDA Foundation Foods (October 2026) numbers
+  (tools/build-foundation.py). Log Activity: 14 more sports, named as the 2024 Compendium of
+  Physical Activities names them, also matched from Apple Health workouts.
 - *2.11.0:* many more barcodes. A KIND breakfast bar wouldn't scan: USDA lists 478 KIND barcodes and
   the search list kept 238. Now every other current US product in USDA Branded Foods (October 2026)
   with a barcode, calories and a gram or ml serving, 301,195 more, can be scanned; KIND goes to 459.

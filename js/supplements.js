@@ -61,29 +61,29 @@ const LIST = [
   ['Taurine', '', 'mg', 'capsule', null],
   ['L-theanine', 'theanine', 'mg', 'capsule', null],
   ['Tart cherry', 'cherry juice montmorency', 'mg', 'capsule', null],
-  ['CoQ10', 'coenzyme q10 ubiquinol ubiquinone', 'mg', 'softgel', null],
+  ['CoQ10', 'coenzyme q10 ubiquinol ubiquinone', 'mg', 'softgel', 'CoQ10'],
   ['Fiber (psyllium)', 'psyllium metamucil fiber supplement', 'g', 'serving', null],
   ['Ketones', 'ketone ester exogenous ketones', 'g', 'serving', null],
   ['St. John\'s wort', 'st johns wort hypericum', 'mg', 'capsule', 'StJohnsWort'],
-  ['Rhodiola', 'rhodiola rosea', 'mg', 'capsule', null],
+  ['Rhodiola', 'rhodiola rosea', 'mg', 'capsule', 'Rhodiola'],
   ['Lion\'s mane', 'lions mane mushroom', 'mg', 'capsule', null],
   ['Spirulina', 'algae chlorella', 'g', 'tablet', null],
-  ['Green tea extract', 'egcg', 'mg', 'capsule', null],
-  ['Garlic', 'garlic extract allicin', 'mg', 'capsule', null],
-  ['Ginkgo', 'ginkgo biloba', 'mg', 'tablet', null],
+  ['Green tea extract', 'egcg', 'mg', 'capsule', 'GreenTea'],
+  ['Garlic', 'garlic extract allicin', 'mg', 'capsule', 'Garlic'],
+  ['Ginkgo', 'ginkgo biloba', 'mg', 'tablet', 'Ginkgo'],
   ['Milk thistle', 'silymarin', 'mg', 'capsule', null],
-  ['Flaxseed oil', 'flax flaxseed', 'mg', 'softgel', null],
+  ['Flaxseed oil', 'flax flaxseed', 'mg', 'softgel', 'Flaxseed'],
   ['CBD', 'cannabidiol', 'mg', 'serving', null],
   ['Molybdenum', '', 'mcg', 'tablet', 'Molybdenum'],
   ['Beta-alanine', 'beta alanine', 'g', 'scoop', null],
   ['Collagen', 'collagen peptides', 'g', 'scoop', null],
-  ['Melatonin', 'sleep', 'mg', 'tablet', null],
+  ['Melatonin', 'sleep', 'mg', 'tablet', 'Melatonin'],
   ['Probiotic', 'probiotics', '', 'capsule', null],
   ['Turmeric', 'curcumin', 'mg', 'capsule', null],
-  ['Glucosamine', 'chondroitin', 'mg', 'tablet', null],
+  ['Glucosamine', 'chondroitin', 'mg', 'tablet', 'Glucosamine'],
   ['B complex', 'b-complex b vitamins', '', 'tablet', null],
   ['Elderberry', 'sambucus', 'mg', 'gummy', null],
-  ['Echinacea', '', 'mg', 'capsule', null],
+  ['Echinacea', '', 'mg', 'capsule', 'Echinacea'],
   ['BCAA', 'branched chain amino acids', 'g', 'scoop', null],
 ].map(([name, alt, unit, form, ods]) => ({ name, alt, unit, form, ods }));
 
@@ -241,7 +241,8 @@ const KNOWN_MEDS = new Set(`acetaminophen tylenol ibuprofen advil motrin naproxe
   loperamide imodium bismuth pepto docusate miralax polyethylene glycol senna allopurinol colchicine hydroxychloroquine plaquenil adalimumab humira
   etanercept enbrel isotretinoin accutane tretinoin spironolactone valacyclovir valtrex acyclovir oseltamivir tamiflu fluconazole diflucan
   nitroglycerin isosorbide hydralazine losartan ezetimibe zetia fenofibrate gemfibrozil estradiol progesterone medroxyprogesterone testosterone
-  sumatriptan prednisone epinephrine epipen glucagon`.split(/\s+/));
+  sumatriptan prednisone epinephrine epipen glucagon amiodarone pacerone tamoxifen letrozole femara anastrozole arimidex
+  etonogestrel nexplanon depo-provera`.split(/\s+/));
 
 const norm = s => String(s).toLowerCase().replace(/[®™]/g, '').replace(/[^a-z0-9' -]+/g, ' ').replace(/\s+/g, ' ').trim();
 // A medicine matches a section when it names one of its medicines, or is a near spelling of one.

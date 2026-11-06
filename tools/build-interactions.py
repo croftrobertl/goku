@@ -11,9 +11,12 @@ names, so "lisinopril" finds a paragraph about ACE inhibitors).
 supplements?"), in tools/src/ods-consumer.json, checked the same way. The health professional text
 is used only where NIH has no consumer section (black cohosh, valerian, ashwagandha).
 2.8: St. John's wort from the NIH NCCIH page (tools/src/nccih.json), public domain, checked the same way.
+2.12: nine more NCCIH pages (CoQ10, echinacea, flaxseed, garlic, ginkgo, glucosamine, melatonin, green tea,
+rhodiola): the one paragraph on each that names medicines, word for word. NCCIH pages that only say "talk with
+your health care provider" (turmeric, milk thistle, elderberry, probiotics, CBD) name no medicine to match, so they aren't used.
 Usage: python3 -I tools/build-interactions.py (from the goku folder)."""
 import json, re, hashlib
-NCCIH_SUM = 'f8bc00f99585e6866c83726015a36e986982bf2f5a7c0dcd4acef3e5eeb563c0'
+NCCIH_SUM = '5437dc1971ee9316bdf443767dba006535cf0790bf2b69a9c39c31cbfa859a8f'
 
 raw_text = open('tools/src/ods-interactions.json', encoding='utf-8').read()
 raw = json.loads(raw_text)
@@ -147,7 +150,7 @@ RULES = [
 ]
 WORDS = {r'statin': ['statin', 'statins'], r'diuretic': ['diuretic', 'diuretics', 'water pill'],
   r'antacid': ['antacid', 'antacids', 'tums', 'rolaids', 'maalox', 'mylanta'], r'laxative': ['laxative', 'laxatives'],
-  r'warfarin|blood thinner': ['blood thinner'], r'insulin': ['insulin'], r'chemotherapy': ['chemotherapy'], r'radiation': ['radiation']}
+  r'warfarin|blood thinner': ['blood thinner'], r'insulin': ['insulin', *'lantus basaglar toujeo semglee levemir tresiba humalog admelog lyumjev novolog fiasp apidra humulin novolin'.split()], r'chemotherapy': ['chemotherapy'], r'radiation': ['radiation']}
 def class_tags(text):
     t = text.lower(); out = set()
     for rx, names in RULES:
@@ -162,12 +165,12 @@ def class_tags(text):
     return out
 # Supplements a paragraph says interfere with this one (supplement with supplement).
 SUPS = {('Iron', '• Calcium might'): ['Calcium'], ('Magnesium', '• Very high doses of zinc'): ['Zinc'],
-  ('Valerian', 'Valerian might have'): ['Melatonin']}
+  ('Valerian', 'Valerian might have'): ['Melatonin'], ('Echinacea', '• There is conflicting evidence'): ['Caffeine']}
 # Medicines named one by one in the consumer text (plus every class member and brand above).
 DRUGS = set(' '.join(CLASS.values()).split()) | set('''orlistat alli xenical acitretin soriatane bexarotene targretin furosemide fluorouracil adrucil
   isoniazid pyrazinamide dolutegravir dovato tivicay lithium eskalith lithobid levodopa sinemet stalevo penicillamine cimetidine
   insulin metformin methotrexate rheumatrex trexall cycloserine seromycin theophylline cisplatin pivampicillin sulfasalazine azulfidine
-  warfarin coumadin jantoven questran colestid levothroid'''.split())
+  warfarin coumadin jantoven questran colestid levothroid nadolol corgard raloxifene evista'''.split())
 CLOSE = ('Tell your doctor', 'Talk with your', 'If you take dietary')
 
 out = {}
@@ -233,6 +236,23 @@ SJW_TAGS = [
 assert len(ps) == 12 and ps[2].startswith('• Some antidepressants') and ps[11].startswith('• In addition')
 out['StJohnsWort'] = {'d': sjw['d'], 'slug': 'st-johns-wort', 'src': 'NCCIH', 'url': sjw['url'], 'i': ps[:2],
   'x': [{'t': [x], 'm': sorted(set(tags))} for x, tags in zip(ps[2:], SJW_TAGS)]}
+# Where a paragraph names one medicine of a class, it matches that medicine, not the whole class
+# ("the diabetes drug insulin" is insulin, not every diabetes medicine).
+INSULIN = 'insulin lantus basaglar toujeo semglee levemir tresiba humalog admelog lyumjev novolog fiasp apidra humulin novolin'.split()
+EXACT = {'CoQ10': cls('coumarin') + ['blood thinner', 'anticoagulant'] + INSULIN + cls('chemo'),
+  'Echinacea': cls('immuno') + BRANDS['immuno'].split() + ['immunosuppressant', 'immunosuppressants'],
+  'Glucosamine': cls('coumarin') + ['blood thinner'],
+  'GreenTea': ['nadolol', 'corgard', 'atorvastatin', 'lipitor', 'raloxifene', 'evista'],
+  'Rhodiola': ['losartan', 'cozaar'],
+  # "blood thinner medications", with no kind named, is any of them; "people with epilepsy" take seizure medicines.
+  'Melatonin': cls('coumarin', 'anticoag', 'antiplatelet', 'seizure') + BRANDS['anticoag'].split() + BRANDS['antiplatelet'].split()
+    + BRANDS['seizure'].split() + ['blood thinner', 'anticoagulant']}
+# 2.12: one paragraph from each of nine more NCCIH pages, matched on the medicines it names (and their classes and brands).
+for k in ('CoQ10', 'Echinacea', 'Flaxseed', 'Garlic', 'Ginkgo', 'Glucosamine', 'Melatonin', 'GreenTea', 'Rhodiola'):
+    pg = json.loads(nccih_text)[k]
+    out[k] = {'d': pg['d'], 'slug': pg['url'].rsplit('/', 1)[1], 'src': 'NCCIH', 'url': pg['url'], 'i': [], 'x': [item(k, None, pg['p'])]}
+    if k in EXACT: out[k]['x'][0]['m'] = sorted(set(EXACT[k]))
+    assert out[k]['x'][0]['m'] or out[k]['x'][0].get('s'), k
 json.dump(out, open('data/interactions.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 for k, v in out.items():
     for it in v['x']: print(f"{k:16} {(it.get('h') or it['t'][0])[:40]:40} {('SUP ' + str(it['s']) + ' ') if it.get('s') else ''}{', '.join(it['m'])[:120]}")

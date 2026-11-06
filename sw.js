@@ -1,6 +1,6 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.11.0';
+const CACHE_VERSION = '2.12.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
@@ -11,8 +11,8 @@ const FILES = [
 ];
 
 // The food list and barcode scanner are big and rarely change, so they live in their own
-// cache that survives app updates; bump DATA_VERSION only when tools/build-foods.py runs again.
-const DATA_VERSION = 'foods-2026-11-01';
+// cache that survives app updates; bump DATA_VERSION only when tools/build-foods.py or build-foundation.py runs again.
+const DATA_VERSION = 'foods-2026-11-06';
 const DATA = 'goku-data-' + DATA_VERSION;
 const DATA_FILES = ['./data/foods.json', './vendor/zxing.min.js'];
 // Exercise drawings and the muscle map (2.4), kept across app updates; bump ART_VERSION when they change.

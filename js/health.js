@@ -13,6 +13,21 @@ import { round } from './ui.js';
 const DAYRX = /^\d{4}-\d{2}-\d{2}$/;
 const kindFor = name => {
   const n = String(name).toLowerCase();
+  // Apple Health workout names (2.12: the new sports first, so "American Football" isn't soccer).
+  if (/american football/.test(n)) return 'football';
+  if (/basketball/.test(n)) return 'basketball';
+  if (/volleyball/.test(n)) return 'volleyball';
+  if (/tennis/.test(n) && !/table/.test(n)) return 'tennis';
+  if (/baseball|softball/.test(n)) return 'baseball';
+  if (/hockey/.test(n)) return 'hockey';
+  if (/track and field/.test(n)) return 'track';
+  if (/cheer/.test(n)) return 'cheer';
+  if (/danc/.test(n)) return 'dance';
+  if (/martial|kickbox|taekwondo|karate|judo|tai chi/.test(n)) return 'martial';
+  if (/boxing/.test(n)) return 'boxing';
+  if (/wrestl/.test(n)) return 'wrestling';
+  if (/climb/.test(n) && !/stair/.test(n)) return 'climb';
+  if (/skat/.test(n)) return 'skate';
   if (/soccer|football/.test(n)) return 'soccer';
   if (/run|jog/.test(n)) return 'run';
   if (/cycl|bike|biking/.test(n)) return 'bike';

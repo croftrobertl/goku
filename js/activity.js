@@ -10,7 +10,17 @@ import { metric } from './units.js';
 export const ACTIVITIES = [
   ['soccer', 'Soccer', ['legs', 'core', 'power']], ['run', 'Running', ['legs']], ['bike', 'Cycling', ['legs']],
   ['swim', 'Swimming', ['pull', 'push']], ['row', 'Rowing', ['pull', 'legs', 'core']], ['gym', 'Gymnastics', ['push', 'pull', 'core', 'power']],
-  ['lift', 'Lifting', ['push', 'pull', 'legs', 'core']], ['hike', 'Walk or hike', ['legs']], ['sport', 'Other sport', ['legs', 'core']],
+  ['lift', 'Lifting', ['push', 'pull', 'legs', 'core']], ['hike', 'Walk or hike', ['legs']],
+  // 2.12: more sports, named as the 2024 Adult Compendium of Physical Activities names them (pacompendium.com/sports).
+  // The muscle groups are Goku's own, as above; no calorie numbers are used.
+  ['basketball', 'Basketball', ['legs', 'core', 'power']], ['volleyball', 'Volleyball', ['legs', 'power', 'push']],
+  ['tennis', 'Tennis', ['legs', 'core', 'push']], ['baseball', 'Baseball or softball', ['legs', 'core', 'push']],
+  ['football', 'Football', ['legs', 'power', 'push', 'core']], ['hockey', 'Hockey', ['legs', 'core']],
+  ['track', 'Track and field', ['legs', 'power']], ['cheer', 'Cheerleading', ['legs', 'power', 'core', 'push']],
+  ['dance', 'Dance', ['legs', 'core']], ['martial', 'Martial arts', ['legs', 'core', 'push', 'power']],
+  ['boxing', 'Boxing', ['push', 'core', 'legs']], ['wrestling', 'Wrestling', ['pull', 'push', 'legs', 'core']],
+  ['climb', 'Rock climbing', ['pull', 'core']], ['skate', 'Skating', ['legs', 'core']],
+  ['sport', 'Other sport', ['legs', 'core']],
   ['other', 'Something else', []],
 ];
 export const activityName = (k, name) => name || ACTIVITIES.find(a => a[0] === k)?.[1] || 'Activity';
@@ -40,7 +50,7 @@ export function activityRows(list, { edit = true } = {}) {
 
 export function logActivity(existing = null, onDone = () => window.goku.render()) {
   // A Custom profile starts on its own sport; everyone else on soccer, the original pack.
-  const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'sport', martial: 'sport', gymnastics: 'gym', yoga: 'other' };
+  const own = { run: 'run', soccer: 'soccer', team: 'sport', swim: 'swim', bike: 'bike', strength: 'lift', dance: 'dance', martial: 'martial', gymnastics: 'gym', yoga: 'other' };
   // A Gymnastics profile starts on Gymnastics (2.8.2).
   const first = profile().kind === 'perf' && !profile().custom ? 'gym' : profile().custom?.sports?.map(x => own[x]).find(Boolean);
   const d = existing ? structuredClone(existing.data) : { kind: first || 'soccer', minutes: 60, effort: 6 };

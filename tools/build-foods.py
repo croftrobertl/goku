@@ -8,6 +8,9 @@ Sources (download from https://fdc.nal.usda.gov/download-datasets):
   FNDDS survey (2024-10-31)  foods as eaten (smoothies, sandwiches, cereals with milk) with portions
   Branded (2026-10-29)       label data; the hand-picked brands plus the 1,700 biggest US brands (2.8)
 
+Then run tools/build-foundation.py (2.12: newer USDA Foundation Foods numbers for the SR Legacy foods they update)
+and tools/build-everyday.py.
+
 Writes data/foods.json: {v, built, sources, n: [fields], foods: [[...], ...]}
 Each food: [name, brand, kcal, protein, carbs, fat, fiber, sugar, sodium_mg, satfat, portions, upc, src, unit]
 Nutrients are per 100 g (or per 100 ml when unit is "ml"). Portions: "label|grams;label|grams".
