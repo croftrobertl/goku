@@ -10,8 +10,8 @@ export const KINDS = {
 // [key, name, description, soon?]. "soon" modules are listed as coming, never as dead toggles.
 export const MODULES = {
   engine: [
-    ['nutrition', 'Nutrition', 'Log meals from 125,000 foods and 18 restaurant chains with calories, protein, carbs and fat. Barcode scanning and saved meals.'],
-    ['gut', 'Symptom check-ins', 'Bloating, heartburn, cramps and energy in Nutrition, with a pattern finder for foods that line up with bad days.'],
+    ['nutrition', 'Nutrition', 'Log meals from over 125,000 foods and 36 restaurant chains with calories, protein, carbs and fat. Barcode scanning and saved meals.'],
+    ['gut', 'Symptom check-ins', 'A 20-second daily check-in in Nutrition (energy, sleep, soreness, stress and mood) plus stomach questions, with a pattern finder for what lines up with bad days.'],
     ['hypertrophy', 'Home hypertrophy tracker', 'Weekly hard sets per muscle group.'],
     ['shuffle', 'Shuffle', 'A fresh circuit from your library on demand.'],
     ['soccer', 'Soccer engine pack', 'Adds explosive-power and joint-armor exercises to circuits.'],
@@ -20,8 +20,8 @@ export const MODULES = {
     ['skills', 'Playset skill unlocks', 'Bodyweight skill ladders.', true],
   ],
   perf: [
-    ['nutrition', 'Nutrition', 'Log meals from 125,000 foods and 18 restaurant chains with calories, protein, carbs and fat. Barcode scanning and saved meals.'],
-    ['gut', 'Symptom check-ins', 'Bloating, heartburn, cramps and energy in Nutrition, with a pattern finder for foods that line up with bad days.'],
+    ['nutrition', 'Nutrition', 'Log meals from over 125,000 foods and 36 restaurant chains with calories, protein, carbs and fat. Barcode scanning and saved meals.'],
+    ['gut', 'Symptom check-ins', 'Bloating, heartburn, cramps, gas, nausea and low energy in Nutrition, with a pattern finder for foods that line up with bad days.'],
     ['care', 'Red flags and care checks', 'Health questions in the check-in, and a reminder to talk to a parent, coach or doctor when something needs attention.'],
     ['fuel', 'Fuel ranges and tips', 'Protein and carbohydrate ranges for each training day, with sources, plus snack and water tips.'],
     ['skills', 'Skill tree', 'Each skill climbs Learning, With spot, Solo and Competition-ready, with dates.'],

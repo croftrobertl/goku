@@ -32,6 +32,13 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.14.0:* How You Feel Today (review 9). On Strength and Custom profiles it's a short daily
+  check-in: energy, last night's sleep, muscle soreness, stress and mood, one tap each on 1 to 5 (the
+  questions coaches use in daily wellness questionnaires: Hooper and Mackinnon 1995; McLean et al. 2010,
+  in Goku's own words). Bloating, the symptom buttons and waist fold under Stomach. Gymnastics
+  profiles keep the stomach questions only, since their own check-in asks the rest. The pattern finder
+  now looks at every answer, not only bloating, and shows sleep the night before bad days. The
+  Nutrition and Symptom check-ins descriptions in Settings match the app again.
 - *2.13.0:* more of each list. Interaction Check: 14 more herbs with NCCIH text, word for word
   (acai, aloe vera, astragalus, cat's claw, chamomile, cranberry, dandelion, feverfew, goldenseal,
   kava, lavender, licorice root, white mulberry leaf, yohimbe), each added to the supplement list.

@@ -9,7 +9,7 @@ import { addDays, prettyDay } from './time.js';
 import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from './units.js';
 import { fuelRanges } from './fuel.js';
 import { whyBtn } from './why.js';
-import { gutPatterns, HIGH_BLOAT } from './insights.js';
+import { feelPatterns } from './insights.js';
 import { loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, lookupBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
 import { scanBarcode } from './scan.js';
 import { suppCard, bindSupps, recentSupps, suppNamed } from './supplements.js';
@@ -22,6 +22,13 @@ const ARROW_UP = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 13l6-6
 const ARROW_DOWN = ARROW_UP.replace('M4 13l6-6 6 6', 'M4 7l6 6 6-6');
 const mealName = k => MEALS.find(m => m[0] === k)?.[1] || 'Snacks';
 const SYMPTOMS = [['heartburn', 'Heartburn'], ['cramps', 'Cramps'], ['gas', 'Gas'], ['nausea', 'Nausea'], ['lowEnergy', 'Low energy']];
+// Daily check-in (2.14, review 9): the short wellness questions coaches use, in Goku's own words, each 1 to 5
+// (after Hooper and Mackinnon 1995; McLean et al. 2010). Gymnastics profiles answer these in their own check-in.
+const WELL = [['energy', 'Energy', 'Drained', 'Great'], ['soreness', 'Muscle soreness', 'None', 'Very sore'],
+  ['stress', 'Stress', 'Calm', 'Very stressed'], ['mood', 'Mood', 'Low', 'Great']];
+const wellScale = (g, [k, label, lo, hi]) => `<div class="q"><p class="lbl">${label}</p>
+  <div class="seg" role="group" aria-label="${label}">${[1, 2, 3, 4, 5].map(v => `<button data-well="${k}" data-v="${v}" aria-pressed="${g[k] === v}">${v}</button>`).join('')}</div>
+  <div class="row note ends" style="margin-top:4px"><span>${lo}</span><span>${hi}</span></div></div>`;
 
 let navDay = null, navFor = null, hist = null; // navFor: the profile the chosen day belongs to
 export const forgetHistory = () => { hist = null; };
@@ -94,13 +101,23 @@ export async function nutritionView() {
   // Read the whole history once and reuse it until a symptom or food changes (water taps don't).
   if (symptomsOn && (!hist || hist.id !== p.id)) hist = { id: p.id, gut: await entries('gut', p), food: await entries('food', p), pattern: null };
   const allGut = symptomsOn ? hist.gut : [], allFood = symptomsOn ? hist.food : [];
-  if (symptomsOn && !hist.pattern) hist.pattern = patternCard(gutPatterns(mergeForPatterns(allGut, allFood)));
+  if (symptomsOn && !hist.pattern) hist.pattern = patternCard(feelPatterns(mergeForPatterns(allGut, allFood)));
   const water = waterOf(food, gut);
   const recent = on(p, 'nutrition') ? await recentSupps(p) : [];
 
   const save = () => saveDay(p, day, food);
   const g = gut || { bloat: null, foods: [], supplements: [], fluidsOz: 0, protein: [], amWaist: null, pmWaist: null };
   const saveGut = () => { hist = null; return saveEntry('gut', g, { id: gutId(p, day), day }); };
+  // The daily check-in shows where the profile has no check-in of its own (Gymnastics has readiness).
+  const wellOn = p.kind !== 'perf';
+  const healthSleep = wellOn ? (await entries('sleep', p)).find(x => x.day === day)?.data.hours ?? null : null;
+  const stomachSet = g.bloat != null || SYMPTOMS.some(([k]) => g[k]) || g.amWaist != null || g.pmWaist != null;
+  const stomach = `<p class="lbl" style="margin-top:10px">Bloating (0 = none, 10 = worst)</p>${stepper('bloat', g.bloat ?? 'none', 'bloating')}
+        <div class="pills" style="margin-top:10px">${SYMPTOMS.map(([k, n]) => `<button data-sym="${k}" aria-pressed="${!!g[k]}">${n}</button>`).join('')}</div>
+        ${g.amWaist != null || g.pmWaist != null || p.settings.trackWaist ? `<p class="lbl" style="margin-top:12px">Waist (${lengthUnit(p) === 'cm' ? 'cm' : 'inches'})</p>
+          <div class="waist"><span>Morning</span>${stepper('amWaist', length(g.amWaist, p) ?? 'none', 'morning waist')}
+          <span>Evening</span>${stepper('pmWaist', length(g.pmWaist, p) ?? 'none', 'evening waist')}</div>`
+          : '<button class="link" id="trackWaist" style="margin-top:8px">Also track waist size</button>'}`;
 
   const mealCard = ([k, label]) => {
     const list = items.map((it, idx) => [it, idx]).filter(([it]) => (it.meal || 'snacks') === k);
@@ -144,13 +161,12 @@ export async function nutritionView() {
         <div class="row" style="justify-content:center;gap:8px;margin-top:8px">${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join('')}</div></section>
       ${suppCard(gut, recent, p.settings.meds || [], day === t ? 'today' : 'on ' + prettyDay(day))}
       ${symptomsOn ? `<details class="card fold feel" ${gut ? 'open' : ''}><summary class="lbl">${day === t ? 'How you feel today' : 'How you felt on ' + esc(prettyDay(day))}</summary>
-        <p class="sub">Optional. It helps the pattern finder spot foods that line up with bad days.</p>
-        <p class="lbl" style="margin-top:10px">Bloating (0 = none, 10 = worst)</p>${stepper('bloat', g.bloat ?? 'none', 'bloating')}
-        <div class="pills" style="margin-top:10px">${SYMPTOMS.map(([k, n]) => `<button data-sym="${k}" aria-pressed="${!!g[k]}">${n}</button>`).join('')}</div>
-        ${g.amWaist != null || g.pmWaist != null || p.settings.trackWaist ? `<p class="lbl" style="margin-top:12px">Waist (${lengthUnit(p) === 'cm' ? 'cm' : 'inches'})</p>
-          <div class="waist"><span>Morning</span>${stepper('amWaist', length(g.amWaist, p) ?? 'none', 'morning waist')}
-          <span>Evening</span>${stepper('pmWaist', length(g.pmWaist, p) ?? 'none', 'evening waist')}</div>`
-          : '<button class="link" id="trackWaist" style="margin-top:8px">Also track waist size</button>'}
+        ${wellOn ? `<p class="sub">Optional, about 20 seconds. The pattern finder below shows what lines up with good and bad days.</p>
+        ${wellScale(g, WELL[0])}
+        <div class="q"><p class="lbl">Sleep last night (hours)</p>${stepper('sleepH', g.sleepH ?? 'none', 'sleep')}</div>
+        ${WELL.slice(1).map(w => wellScale(g, w)).join('')}
+        <details class="fold" ${stomachSet ? 'open' : ''} style="margin-top:12px"><summary>Stomach</summary>${stomach}</details>`
+        : `<p class="sub">Optional. It helps the pattern finder spot foods that line up with bad days.</p>${stomach}`}
       </details>
       ${hist.pattern}` : ''}
       ${sources([esc(SOURCE_NOTE)])}
@@ -182,10 +198,14 @@ export async function nutritionView() {
         if (st && b.dataset.d) {
           const k = st.dataset.step, d = +b.dataset.d;
           if (k === 'bloat') g.bloat = Math.min(10, Math.max(0, (g.bloat ?? (d > 0 ? -1 : 1)) + d));
+          // Sleep starts from the night Apple Health or Scouter recorded, else the last answer, else 7 hours.
+          else if (k === 'sleepH') { const base = g.sleepH ?? healthSleep ?? allGut.map(x => x.data.sleepH).filter(v => v != null).pop() ?? 7;
+            g.sleepH = g.sleepH == null ? base : Math.min(14, Math.max(0, round(base + d * 0.5, 1))); }
           else { const last = allGut.map(x => x.data.amWaist ?? x.data.pmWaist).filter(v => v != null).pop() ?? 34; g[k] = Math.max(15, round((g[k] ?? last) + d * lengthStep(p), 3)); }
           await saveGut(); return window.goku.render();
         }
         if (b.dataset.sym) { g[b.dataset.sym] = !g[b.dataset.sym]; await saveGut(); return window.goku.render(); }
+        if (b.dataset.well) { const k = b.dataset.well, v = +b.dataset.v; if (g[k] === v) delete g[k]; else g[k] = v; await saveGut(); return window.goku.render(); }
       }));
     },
   };
@@ -229,14 +249,20 @@ function mergeForPatterns(guts, foods) {
   return guts.map(e => ({ ...e, data: { ...e.data, foods: [...new Set([...(e.data.foods || []), ...(names[e.day] || [])])] } }));
 }
 const pctTxt = (n, d) => Math.round(n / d * 100) + '%';
-function patternCard(g) {
+function patternCard(list) {
   const head = '<section class="card"><p class="lbl">Pattern, not proof</p>';
-  if (!g.ready) return `${head}<p class="sub">Once you've scored bloating on 14 days, including 3 days of ${HIGH_BLOAT} or more, this lists the foods and supplements that show up more often on those days.
-    So far: ${g.days} scored day${g.days === 1 ? '' : 's'}, ${g.high} at ${HIGH_BLOAT}+.</p></section>`;
-  return `${head}<p class="sub">High-bloating days are the ones you scored ${HIGH_BLOAT} or more: ${g.high} of your ${g.days} scored days.</p>
-    ${g.rows.length ? `<ul class="list">${g.rows.map(r => `<li><span><b>${esc(r.name)}</b><br><span class="chain">${r.h} of ${g.high} high days (${pctTxt(r.h, g.high)}) · ${r.o} of ${g.other} other days (${pctTxt(r.o, g.other)})</span></span></li>`).join('')}</ul>`
-      : '<p style="margin-top:8px">Nothing shows up more on high-bloating days yet.</p>'}
-    <p class="note">Showing up together isn't proof that a food causes bloating. Talk with your doctor or a dietitian before cutting foods out.</p></section>`;
+  const ready = list.filter(g => g.ready);
+  if (!ready.length) {
+    const most = Math.max(0, ...list.map(g => g.days));
+    return `${head}<p class="sub">Once an answer in How You Feel Today has 14 days, including 3 bad ones (like bloating 6 or more, or energy 1 or 2), this lists the foods and supplements that show up more often on those days.
+    So far: ${most} answered day${most === 1 ? '' : 's'}.</p></section>`;
+  }
+  return `${head}${ready.map(g => `<p class="lbl" style="margin-top:12px">${esc(g.bad[0].toUpperCase() + g.bad.slice(1))}</p>
+    <p class="sub">Days with ${esc(g.rule)}: ${g.high} of your ${g.days} answered days.</p>
+    ${g.rows.length ? `<ul class="list">${g.rows.map(r => `<li><span><b>${esc(r.name)}</b><br><span class="chain">${r.h} of ${g.high} ${esc(g.bad)} (${pctTxt(r.h, g.high)}) · ${r.o} of ${g.other} other days (${pctTxt(r.o, g.other)})</span></span></li>`).join('')}</ul>`
+      : `<p style="margin-top:6px">No food or supplement shows up more on ${esc(g.bad)} yet.</p>`}
+    ${g.sleep ? `<p class="sub" style="margin-top:6px">Sleep the night before: ${round(g.sleep.bad, 1)} h on ${esc(g.bad)}, ${round(g.sleep.other, 1)} h on other days.</p>` : ''}`).join('')}
+    <p class="note">Showing up together isn't proof that one causes the other. Talk with your doctor or a dietitian before cutting foods out.</p></section>`;
 }
 
 // ---------- Add food ----------

@@ -328,6 +328,7 @@ nav.tabs button[aria-current="page"] { color: var(--tx); font-weight: 800; text-
 .macros small { font-size: .7em; font-weight: 700; }
 .feel, .feel .pills, .feel .row { text-align: center; justify-content: center; }
 .feel .step { justify-content: center; }
+.feel .row.ends { justify-content: space-between; } /* the 1-to-5 scales' end words sit under 1 and 5 (2.14) */
 .feel .waist { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; gap: 8px 14px; margin-top: 6px; }
 .feel .supp { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
 .feel .supp input { max-width: 240px; }

@@ -98,22 +98,40 @@ export function recapNumbers(all, from, to) {
   };
 }
 
-// ---------- Gut pattern finder ----------
-// Which foods and supplements show up more often on high-bloating days (scored 6 or more out
-// of 10) than on other days. Needs 14 scored days and 3 high ones. A pattern, never a cause.
+// ---------- Pattern finder ----------
+// For each answer in How You Feel Today (2.14: every answer, not only bloating), which foods and
+// supplements show up more often on that answer's bad days than on other answered days. Each needs
+// 14 answered days and 3 bad ones. A pattern, never a cause. Where last night's sleep was answered on
+// 3+ bad and 3+ other days, the average for each is shown too.
 export const HIGH_BLOAT = 6;
-export function gutPatterns(guts) {
-  const days = guts.filter(g => Number.isFinite(g.data.bloat));
-  const high = days.filter(g => g.data.bloat >= HIGH_BLOAT), other = days.filter(g => g.data.bloat < HIGH_BLOAT);
-  if (days.length < 14 || high.length < 3 || !other.length) return { ready: false, days: days.length, high: high.length };
+const answered = k => g => g.data[k] != null;
+const anyFeel = g => g.data.bloat != null || ['heartburn', 'cramps', 'gas', 'nausea', 'lowEnergy'].some(k => g.data[k] != null);
+export const OUTCOMES = [
+  { k: 'bloat', bad: 'high-bloating days', rule: `bloating ${HIGH_BLOAT} or more`, has: answered('bloat'), isBad: g => g.data.bloat >= HIGH_BLOAT },
+  { k: 'energy', bad: 'low-energy days', rule: 'energy 1 or 2', has: answered('energy'), isBad: g => g.data.energy <= 2 },
+  { k: 'soreness', bad: 'very sore days', rule: 'soreness 4 or 5', has: answered('soreness'), isBad: g => g.data.soreness >= 4 },
+  { k: 'stress', bad: 'high-stress days', rule: 'stress 4 or 5', has: answered('stress'), isBad: g => g.data.stress >= 4 },
+  { k: 'mood', bad: 'low-mood days', rule: 'mood 1 or 2', has: answered('mood'), isBad: g => g.data.mood <= 2 },
+  ...[['heartburn', 'heartburn'], ['cramps', 'cramps'], ['gas', 'gas'], ['nausea', 'nausea']].map(([k, w]) =>
+    ({ k, bad: `${w} days`, rule: `${w} marked`, has: anyFeel, isBad: g => g.data[k] === true })),
+];
+function patternFor(guts, o) {
+  const days = guts.filter(o.has);
+  const high = days.filter(o.isBad), other = days.filter(g => !o.isBad(g));
+  if (days.length < 14 || high.length < 3 || !other.length) return { ...o, ready: false, days: days.length, high: high.length };
   const names = {}, itemsOf = g => new Set([...(g.data.foods || []), ...(g.data.supplements || [])].map(x => {
     const k = String(x).trim().toLowerCase(); names[k] ||= String(x).trim(); return k;
   }));
   const highSets = high.map(itemsOf), otherSets = other.map(itemsOf);
-  // Kept: on 3+ high days and at least 20 points more often than other days, strongest first.
+  // Kept: on 3+ bad days and at least 20 points more often than other days, strongest first.
   const rows = [...new Set(highSets.flatMap(s => [...s]))].map(k => {
-    const h = highSets.filter(s => s.has(k)).length, o = otherSets.filter(s => s.has(k)).length;
-    return { name: names[k], h, o, hr: h / high.length, or: o / other.length };
+    const h = highSets.filter(s => s.has(k)).length, o2 = otherSets.filter(s => s.has(k)).length;
+    return { name: names[k], h, o: o2, hr: h / high.length, or: o2 / other.length };
   }).filter(r => r.h >= 3 && r.hr - r.or >= 0.2).sort((a, b) => (b.hr - b.or) - (a.hr - a.or) || b.h - a.h).slice(0, 5);
-  return { ready: true, days: days.length, high: high.length, other: other.length, rows };
+  const avg = l => l.reduce((a, g) => a + g.data.sleepH, 0) / l.length;
+  const sh = high.filter(g => g.data.sleepH != null), so = other.filter(g => g.data.sleepH != null);
+  const sleep = o.k !== 'sleepH' && sh.length >= 3 && so.length >= 3 ? { bad: avg(sh), other: avg(so) } : null;
+  return { ...o, ready: true, days: days.length, high: high.length, other: other.length, rows, sleep };
 }
+export const feelPatterns = guts => OUTCOMES.map(o => patternFor(guts, o)).filter(r => r.days > 0);
+export const gutPatterns = guts => patternFor(guts, OUTCOMES[0]);

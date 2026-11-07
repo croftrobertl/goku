@@ -88,7 +88,10 @@ const DATA = {
     ...(Array.isArray(d.supps) ? { supps: d.supps.slice(0, 50).filter(x => x && typeof x === 'object' && str(x.name, 40).trim()).map(x => ({ name: str(x.name, 40).trim(), dose: num(x.dose, 0, 100000),
       unit: ['mg', 'mcg', 'g', 'IU', 'mL'].includes(x.unit) ? x.unit : 'mg', form: ['capsule', 'tablet', 'softgel', 'gummy', 'scoop', 'packet', 'drop', 'shot', 'serving'].includes(x.form) ? x.form : 'serving',
       qty: int(x.qty, 1, 20, 1) })) } : {}),
-    ...Object.fromEntries(['heartburn', 'cramps', 'gas', 'nausea', 'lowEnergy'].filter(k => d[k] === true).map(k => [k, true])) }),
+    ...Object.fromEntries(['heartburn', 'cramps', 'gas', 'nausea', 'lowEnergy'].filter(k => d[k] === true).map(k => [k, true])),
+    // 2.14 daily check-in: 1 to 5 answers and last night's sleep, kept only when answered
+    ...Object.fromEntries(['energy', 'soreness', 'stress', 'mood'].map(k => [k, int(d[k], 1, 5)]).filter(([, v]) => v !== null)),
+    ...(num(d.sleepH, 0, 14) !== null ? { sleepH: num(d.sleepH, 0, 14) } : {}) }),
   food: d => ({ items: Array.isArray(d.items) ? d.items.slice(0, 200).map(foodItem).filter(Boolean) : [], water: num(d.water, 0, 1000) }),
   myfood: d => ({ name: str(d.name, 60).trim() || 'Food', brand: str(d.brand, 40), upc: String(d.upc || '').replace(/\D/g, '').slice(0, 14), unit: d.unit === 'ml' ? 'ml' : 'g',
     serving: str(d.serving, 48) || '1 serving', servingG: num(d.servingG, 0.1, 5000, 100), per: per(d.per) }),
