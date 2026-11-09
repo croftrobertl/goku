@@ -32,6 +32,8 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.14.1:* Tab, bookmark and home-screen icons now use the same picture as the share cover
+  (Rob's choice, from his own upload).
 - *2.14.0:* How You Feel Today (review 9). On Strength and Custom profiles it's a short daily
   check-in: energy, last night's sleep, muscle soreness, stress and mood, one tap each on 1 to 5 (the
   questions coaches use in daily wellness questionnaires: Hooper and Mackinnon 1995; McLean et al. 2010,
