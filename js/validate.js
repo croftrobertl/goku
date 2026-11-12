@@ -6,6 +6,8 @@ import { SPORTS, STYLES } from './state.js';
 import { GEAR } from './moves.js';
 const ID = /^[A-Za-z0-9:._-]{1,100}$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
+// A real calendar day between 2000 and tomorrow (2.15): impossible or ancient dates would break the streak count.
+const realDay = d => { if (!DAY.test(d || '')) return false; if (d === '1970-01-01') return true; /* library items (exercises, saved foods and meals) use this day */ const t = Date.parse(d + 'T00:00:00Z'); return isFinite(t) && new Date(t).toISOString().slice(0, 10) === d && d >= '2000-01-01' && t <= Date.now() + 2 * 86400000; };
 const KINDS = ['engine', 'perf'];
 
 const num = (v, lo, hi, d = null) => (typeof v === 'number' && isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d);
@@ -69,7 +71,7 @@ function foodItem(it) {
   if (!it || typeof it !== 'object') return null;
   const base = { meal: MEALS.includes(it.meal) ? it.meal : 'snacks', name: str(it.name, 80).trim() || 'Food', brand: str(it.brand, 40), n: per(it.n) };
   if (it.quick === true) return { ...base, quick: true };
-  return { ...base, src: ['sr', 'fndds', 'fdn', 'brand', 'chain', 'common', 'mine'].includes(it.src) ? it.src : 'mine', per: per(it.per), unit: it.unit === 'ml' ? 'ml' : 'g',
+  return { ...base, src: ['sr', 'fndds', 'fdn', 'brand', 'chain', 'common', 'mine'].includes(it.src) ? it.src : 'mine', per: per(it.per), unit: ['ml', 'srv'].includes(it.unit) ? it.unit : 'g',
     portions: str(it.portions, 400), pl: str(it.pl, 48) || 'serving', pg: num(it.pg, 0.1, 5000, 100), qty: num(it.qty, 0.01, 5000, 1) };
 }
 
@@ -148,7 +150,7 @@ export function cleanBackup(prof, entries) {
   let skipped = 0;
   const out = [];
   for (const e of Array.isArray(entries) ? entries : []) {
-    if (!e || !ID.test(e.id || '') || !DATA[e.type] || !DAY.test(e.day || '') || typeof e.data !== 'object' || !e.data) { skipped++; continue; }
+    if (!e || !ID.test(e.id || '') || !DATA[e.type] || !realDay(e.day) || typeof e.data !== 'object' || !e.data) { skipped++; continue; }
     const ts = Number.isFinite(e.ts) ? e.ts : Date.parse(e.day + 'T12:00:00Z');
     out.push({ id: e.id, profileId: clean.id, type: e.type, day: e.day, ts, updatedAt: Number.isFinite(e.updatedAt) ? e.updatedAt : ts, data: DATA[e.type](e.data) });
   }

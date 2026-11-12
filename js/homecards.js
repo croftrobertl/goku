@@ -1,6 +1,6 @@
 // Home cards both profile types share: the streak with Senzu saves and the weekly arc recap.
 import { w, W } from './skins.js';
-import { saveEntry, saveProfile } from './state.js';
+import { saveEntry, saveProfile, deleteEntry } from './state.js';
 import { esc, round, toast } from './ui.js';
 import { prettyDay, weekday, minutesNow, clockOf } from './time.js';
 import { streak, lastWeek, recapNumbers } from './insights.js';
@@ -119,7 +119,7 @@ export function recapCard(p, all, today) {
       rows.push([own ? 'Protein target hit' : 'Protein range hit', `${hit} of ${days.length} logged days`]);
       if (hit < Math.ceil(days.length / 2)) focus.push(`Reach ${target} g of protein on more days. Saved meals in Nutrition make it one tap.`);
     }
-    if (goal && n.sessions.length < goal) focus.push(`Fit in ${goal} sessions. Short ×10 or ×20 days still count.`);
+    if (goal && n.sessions.length < goal) focus.push(`Fit in ${goal} sessions. Short Easy or Medium days still count.`);
     if (!focus.length) focus.push(`Strong week. Try one level higher, or beat your ghost by a few reps.`);
   } else {
     const scores = n.checkins.map(c => readiness(c.data, sleepTargetFor(p)));
@@ -150,7 +150,7 @@ export function recapCard(p, all, today) {
 export function bindShared(root, p, today) {
   root.querySelectorAll('[data-restday]').forEach(b => b.addEventListener('click', async () => {
     b.disabled = true;
-    await saveEntry('rest', {}, { id: p.id + ':rest:' + today, day: today }); toast('Rest day logged. Recovery is training too.'); window.goku.render();
+    await saveEntry('rest', {}, { id: p.id + ':rest:' + today, day: today }); toast('Rest day logged. Recovery is training too.', 6000, ['Undo', async () => { await deleteEntry(p.id + ':rest:' + today); window.goku.render(); }]); window.goku.render();
   }));
   root.addEventListener('click', async e => {
     const b = e.target.closest('[data-qlog],[data-qwater],[data-qadd]'); if (!b || b.disabled) return;

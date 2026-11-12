@@ -1,6 +1,6 @@
 // Boot, routing, profile switching, the update bar.
 import { w, W, setSkin, skinOf } from './skins.js';
-import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, kindLabel } from './state.js';
+import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, deleteEntry, kindLabel } from './state.js';
 import * as db from './db.js';
 import { showLock, isUnlocked, watchRelock } from './lock.js';
 import { onboard } from './onboarding.js';
@@ -33,7 +33,7 @@ async function kiMenu(p, action, scr) {
   // The screen's own action and the main one can be the same thing (Home's circuit); it's listed once.
   if (main && (!action || ![action[0], shortLabel(action[0])].includes(main[0]))) act.push([qaLabel(main[0]), ICON.bolt, main[1]]);
   act.push(['Activity', ICON.run, () => logActivity()]);
-  act.push(['Rest Day', ICON.moon, async () => { await saveEntry('rest', {}, { id: p.id + ':rest:' + today(), day: today() }); toast('Rest day logged. Recovery is training too.'); render(); }]);
+  act.push(['Rest Day', ICON.moon, async () => { const id = p.id + ':rest:' + today(); await saveEntry('rest', {}, { id, day: today() }); toast('Rest day logged. Recovery is training too.', 6000, ['Undo', async () => { await deleteEntry(id); render(); }]); render(); }]);
   const items = [...food, ...act];
   const group = (name, list, start) => list.length ? `<p class="lbl qahead">${name}</p>
     <div class="qagrid">${list.map(([label, icon], i) => `<button class="cta2 qaitem" data-i="${start + i}">${icon}<span>${esc(label)}</span></button>`).join('')}</div>` : '';
@@ -80,7 +80,7 @@ import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
 import { setupFlow } from './coach.js';
 import { skillsView } from './skills.js';
-import { nutritionView, forgetHistory, poweredUp, addFood, nowMeal, quickWater, openNutritionDay } from './nutrition.js';
+import { nutritionView, forgetHistory, resetNutritionDay, poweredUp, addFood, nowMeal, quickWater, openNutritionDay } from './nutrition.js';
 import { logActivity } from './activity.js';
 import { loadFoods, foodVocab } from './foods.js';
 import { streakSeen, toggleKi } from './homecards.js';
@@ -101,8 +101,9 @@ let update = null; // { reg, dismissed }
 
 const goku = window.goku = { busy: false, toast, render, go, open, idle: () => render() };
 
-function go(tab) { if (tab !== 'nutrition') forgetHistory(); tabs[S.current] = tab; render().then(() => window.scrollTo(0, 0)); warmFoods(); }
-// The food list (and its spelling index) loads quietly a moment after start, so the first search is instant.
+function go(tab) { if (tab !== 'nutrition') forgetHistory(); tabs[S.current] = tab; render().then(() => window.scrollTo(0, 0)); if (tab === 'nutrition') warmFoods(); }
+// The food list (and its spelling index) loads quietly when Nutrition is opened (2.15; it used to load after every
+// launch and froze the screen for a moment even on days with no food to log).
 let warmed = false;
 function warmFoods() {
   const p = profile();
@@ -111,6 +112,21 @@ function warmFoods() {
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1500));
   idle(() => loadFoods().then(() => idle(() => foodVocab())).catch(() => { warmed = false; }));
 }
+
+// A save or screen that fails out of sight says so (2.15), at most once every few seconds.
+let lastOops = 0;
+window.addEventListener('unhandledrejection', e => {
+  console.error(e.reason);
+  if (Date.now() - lastOops < 5000) return;
+  lastOops = Date.now();
+  toast(/quota/i.test(e.reason?.name + ' ' + e.reason?.message) ? "Couldn't save: this phone's storage is full." : "Something went wrong. Your last change may not have saved.", 5000);
+});
+// Coming back to the app on a new day redraws it (2.15), so Home and its buttons never log to yesterday.
+let drawnDay = null;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !profile() || goku.busy || document.querySelector('.overlay')) return;
+  if (drawnDay && drawnDay !== today()) { resetNutritionDay(); render(); }
+});
 
 let rendering = Promise.resolve();
 function render() { rendering = rendering.then(draw, draw); return rendering; }
@@ -126,7 +142,8 @@ function focusKey() {
   return (step ? `[data-step="${CSS.escape(step.dataset.step)}"] ` : '') + `[${attr.name}="${CSS.escape(attr.value)}"]`;
 }
 
-async function draw() {
+async function draw() { db.memoOn(); try { await drawNow(); } finally { db.memoOff(); } }
+async function drawNow() {
   const p = profile();
   if (!p) return;
   if (p.tzNext && Date.now() >= p.tzNext.at) { p.tz = p.tzNext.tz; delete p.tzNext; await saveProfile(p); } // the new zone's first day (2.8.2)
@@ -143,7 +160,12 @@ async function draw() {
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';
   if (tab !== 'settings' && !list.some(([id]) => id === tab)) tab = tabs[p.id] = 'home';
-  const view = tab === 'settings' ? await settingsView() : await scr[tab]();
+  // A screen that fails shows its error in the page (2.15); the bars and Settings keep working, so a backup can still be exported.
+  let view;
+  try { view = tab === 'settings' ? await settingsView() : await scr[tab](); }
+  catch (e) { console.error(e); view = { failed: true, html: `<section class="card" style="margin-top:24px"><h1>This screen hit a problem</h1>
+    <p class="sub">${esc(e?.message || e)}</p><p class="note">Your data is untouched. Other screens still work, and Settings can export a backup.</p>
+    ${tab === 'settings' ? '' : '<button class="cta" id="errSettings" style="margin-top:12px">Open Settings</button>'}</section>` }; }
   const fk = focusKey();
   const age = backupAgeDays(p);
   const stale = age === null ? Date.now() - p.createdAt > 7 * 86400000 : age >= 7;
@@ -156,7 +178,9 @@ async function draw() {
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}${view.cta && !view.ctaShown ? `<button class="cta pagecta" id="pageCta">${esc(view.cta[0])}</button>` : ''}</main>`;
-  view.bind?.($('#main'));
+  try { view.bind?.($('#main')); } catch (e) { console.error(e); }
+  if (view.failed && $('#errSettings')) $('#errSettings').onclick = () => go('settings');
+  drawnDay = today();
   // The page's own action at the bottom (2.8.2): Quick add stays a menu, so Save and Add are on the page too.
   if (view.cta && !view.ctaShown) $('#pageCta').onclick = () => view.cta[1]();
   // Tab bar (2.2): three main tabs with icons, a big center action, and More for the rest.
@@ -164,7 +188,8 @@ async function draw() {
   const all = [...list, ...(list.some(([id]) => id === 'settings') ? [] : [['settings', 'Settings']])].filter(x => !x[2]);
   const main = all.filter(([id]) => !['history', 'settings', 'skills'].includes(id)).slice(0, 3);
   const more = all.filter(x => !main.includes(x));
-  const action = view.cta || (scr.mainAction ? await scr.mainAction() : null);
+  let action = view.cta || null;
+  if (!action && scr.mainAction) { try { action = await scr.mainAction(); } catch (e) { console.error(e); } }
   const tabBtn = ([id, label], cls = '') => `<button data-tab="${id}" class="tb ${cls}" ${id === tab ? 'aria-current="page"' : ''}>${ICON[id] || ICON.more}<span>${label}</span></button>`;
   const inMore = more.some(([id]) => id === tab);
   $('#dock').innerHTML = `<div class="dock-in">
@@ -196,7 +221,6 @@ async function open(id) {
     if (!ok) return;
   }
   await render();
-  warmFoods();
   if (p.kind === 'engine') engine.resumeRun();
 }
 

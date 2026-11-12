@@ -19,7 +19,7 @@ import { skillSummary, skillList } from './skills.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
 import { calendarCard, bindCalendar } from './calendar.js';
-import { activityName } from './activity.js';
+import { activityName, activityRows, editActivityById } from './activity.js';
 
 // Check-in has no tab of its own (the big button and Home's readiness card open it), so five tabs fit.
 // Session names come from the profile: Gymnastics and Vaulting, or a Custom profile's sports.
@@ -124,8 +124,9 @@ export async function home() {
       ['today', `<section class="card"><p class="lbl">Today</p>
         ${planned.gym + planned.vault === 0 ? `<p>${doneToday.length ? 'Planned rest day, and you trained anyway.' : weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
           `<p>${planned.gym ? `${esc(nm[0])} ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `${esc(nm[1] || 'Other')} ${round(planned.vault / 60, 1)} h` : ''}</p>`}
-        ${doneToday.length ? `<ul class="list" style="margin-top:8px">${doneToday.map(s => `<li><span>${esc(s.type === 'activity' ? activityName(s.data.kind, s.data.name) : kindName(p, s))} · ${esc(s.data.minutes)} min</span>
-          <span class="num sub">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></li>`).join('')}</ul>` : ''}
+        ${doneToday.length ? `<ul class="list" style="margin-top:8px">${doneToday.map(s => `<li><span>${esc(s.type === 'activity' ? activityName(s.data.kind, s.data.name) : kindName(p, s))} · ${esc(s.data.minutes)} min<br>
+          <span class="chain">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></span>
+          ${s.type === 'activity' ? `<button class="cta2" data-act="${esc(s.id)}" aria-label="Edit ${esc(activityName(s.data.kind, s.data.name))}">Edit</button>` : ''}</li>`).join('')}</ul>` : ''}
         <p class="note">Load = minutes × effort (0–10).</p>
       </section>`],
       ['skills', `${on(p, 'skills') ? skillSummary(skills) : ''}`],
@@ -144,6 +145,7 @@ export async function home() {
       bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p);
       root.addEventListener('click', e => {
         if (e.target.closest('[data-ci]')) return openCheckin(e.target.closest('[data-ci]').dataset.ci);
+        if (e.target.closest('[data-act]')) return editActivityById(e.target.closest('[data-act]').dataset.act);
         if (e.target.closest('[data-day]') && !e.target.closest('.coach')) window.goku.go('week');
       });
     },
@@ -334,7 +336,7 @@ export function logSession(existing) {
         <div class="seg" role="group" aria-label="Session effort">${[...Array(11).keys()].map(v => `<button data-e="${v}" style="min-width:44px">${v}</button>`).join('')}</div></div>
       <p class="sub" id="load"></p>
     </div>
-    <button class="cta" id="save">${existing ? 'Save changes' : 'Save session'}</button>
+    <button class="cta" id="save">Save</button>
     ${existing ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete session</button>' : ''}`, { label: existing ? 'Edit session' : 'Log a session' });
   const draw = () => {
     el.querySelector('#dp').innerHTML = dayPicker(day, today(), 'Session day');
@@ -349,7 +351,7 @@ export function logSession(existing) {
     if (b.dataset.dayshift) { const nd = addDays(day, +b.dataset.dayshift); if (nd <= today() && nd >= addDays(today(), -60)) day = nd; }
     if (b.dataset.k) s.kind = b.dataset.k;
     if (b.dataset.e) s.effort = +b.dataset.e;
-    if (b.dataset.d) s.minutes = Math.min(600, Math.max(5, s.minutes + +b.dataset.d * 15));
+    if (b.dataset.d) s.minutes = Math.min(600, Math.max(15, Math.round((s.minutes + +b.dataset.d * 15) / 15) * 15));
     if (b.id === 'save') {
       await saveEntry('session', s, existing ? { id: existing.id, day, ts: existing.ts } : { day });
       close(); toast(existing ? 'Session updated' : 'Session saved'); window.goku.render(); return;
@@ -366,6 +368,7 @@ export function logSession(existing) {
 export async function historyView() {
   const cs = (await entries('checkin')).reverse();
   const ss = (await entries('session')).reverse();
+  const acts = (await entries('activity')).reverse(); // logged through Quick Add or brought in from Health (2.15: listed here so they can be fixed)
   const p = profile(), all = await loggedEntries(p), t = today(), skills = on(p, 'skills') ? await skillList() : [];
   const balls = milestones(p, all, t, skills);
   return {
@@ -382,13 +385,15 @@ export async function historyView() {
         <span class="row" style="gap:8px"><span class="num">${s.data.minutes * s.data.effort}</span>
         <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('')}</ul>`
         : '<div class="empty"><p>Log sessions from Home or Week. Each one adds to your training load.</p></div>'}
-    </section>`,
+    </section>
+    ${acts.length ? `<section class="card"><p class="lbl">Other training</p><ul class="list">${activityRows(acts.slice(0, 60))}</ul></section>` : ''}`,
     bind(root) {
       bindCalendar(root, p, all, t, skills);
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.ci) openCheckin(b.dataset.ci);
         if (b.dataset.edit) logSession(ss.find(s => s.id === b.dataset.edit));
+        if (b.dataset.act) editActivityById(b.dataset.act);
       });
     },
   };

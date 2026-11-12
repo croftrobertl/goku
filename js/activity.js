@@ -130,12 +130,20 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
     if (b.dataset.min) { d.minutes = +b.dataset.min; return draw(); }
     if (b.dataset.eff) { d.effort = +b.dataset.eff; return draw(); }
     if (b.id === 'save') {
+      // A sport typed but not picked from the suggestions still counts (2.15): the closest match, or its own name.
+      const typed = el.querySelector('#asport')?.value.trim() || '';
+      if (typed && typed.toLowerCase() !== activityName(d.kind, d.kind === 'sport' ? d.name : '').toLowerCase()) {
+        const hit = findSports(typed, 1)[0];
+        if (hit) { d.kind = hit[0]; delete d.name; } else { d.kind = 'sport'; d.name = typed.slice(0, 40); }
+      }
       if (!(d.minutes >= 1 && d.minutes <= 600)) return toast(d.minutes > 600 ? 'Up to 600 minutes. Log a longer day as two activities.' : 'Enter the minutes, 1 or more');
       // Only the sport gets a name, and only distance kinds keep a distance.
       if (d.kind !== 'sport' || !d.name?.trim()) delete d.name; else d.name = d.name.trim();
       if (d.distTyped !== undefined) { const v = +String(d.distTyped).replace(',', '.'); if (d.distTyped.trim() && !(v > 0 && v < 100000)) return toast('Enter the distance as a number'); d.dist = d.distTyped.trim() ? Math.round(v * 100) / 100 : null; }
+      const newDist = d.distTyped !== undefined && d.distTyped.trim() !== '';
       delete d.distTyped;
-      if (DISTANCE.includes(d.kind) && d.dist) d.distUnit = distUnits(d.kind, profile()); else { delete d.dist; delete d.distUnit; }
+      // The unit changes only with a newly typed distance (2.15), so 5 mi never turns into 5 km.
+      if (DISTANCE.includes(d.kind) && d.dist) { if (newDist || !d.distUnit) d.distUnit = distUnits(d.kind, profile()); } else { delete d.dist; delete d.distUnit; }
       await saveEntry('activity', d, existing ? { id: existing.id, day, ts: existing.ts } : { day }); // an edited import keeps its id, so re-imports skip it
       close(); toast(existing ? 'Activity updated' : 'Activity logged'); onDone();
     }

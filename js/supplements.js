@@ -179,7 +179,7 @@ export function pickSupplement(g, save, recent) {
     if (b.dataset.sq) { $('#sq').value = b.dataset.sq; $('#sq').focus(); return draw(); }
     if (b.dataset.stack !== undefined) { const st = profile().settings.stacks[+b.dataset.stack]; close(); return save([...suppsOf(g), ...st.items.map(x => ({ ...x }))], `${st.name} logged`); }
     if (b.dataset.rmstack !== undefined) { const pr = profile(), st = pr.settings.stacks[+b.dataset.rmstack];
-      if (await ask(`Delete the ${esc(st.name)} stack?`, 'Days you already logged keep their supplements.', [{ label: 'Delete', value: true, danger: true }])) { pr.settings.stacks.splice(+b.dataset.rmstack, 1); await saveProfile(pr); draw(); } return; }
+      if (await ask(`Delete the ${st.name} stack?`, 'Days you already logged keep their supplements.', [{ label: 'Delete', value: true, danger: true }])) { pr.settings.stacks.splice(+b.dataset.rmstack, 1); await saveProfile(pr); draw(); } return; }
     if (b.dataset.mine !== undefined) { close(); return save([...suppsOf(g), { ...recent[+b.dataset.mine] }], `${recent[+b.dataset.mine].name} logged`); }
     const name = b.dataset.name || b.dataset.custom; if (!name) return;
     close(); const c = byName(name);
@@ -201,8 +201,8 @@ export function editSupplement(s, done, remove = null) {
         <select id="unit" class="unit" aria-label="Unit">${UNITS.map(u => `<option ${u === d.unit ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
       <p class="note">Goku doesn't suggest doses. Use the one on your label or the one your doctor gave you.</p>
     </div>
-    <button class="cta" id="ok">${remove ? 'Save' : 'Log it'}</button>
-    ${remove ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Remove</button>' : ''}`, { label: d.name });
+    <button class="cta" id="ok">Save</button>
+    ${remove ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete</button>' : ''}`, { label: d.name });
   const $ = q => el.querySelector(q);
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
@@ -238,7 +238,7 @@ export async function bindSupps(root, g, write, recent) {
   root.querySelectorAll('[data-supp]').forEach(b => b.addEventListener('click', () => {
     const list = suppsOf(g), i = +b.dataset.supp;
     editSupplement(list[i], s => { list[i] = s; g.supps = list; sync(g); write(g); },
-      async () => { if (await ask(`Remove ${esc(list[i].name)}?`, '', [{ label: 'Remove', value: true, danger: true }])) { list.splice(i, 1); g.supps = list; sync(g); write(g); } });
+      async () => { if (await ask(`Delete ${list[i].name}?`, '', [{ label: 'Delete', value: true, danger: true }])) { list.splice(i, 1); g.supps = list; sync(g); write(g); } });
   }));
 }
 

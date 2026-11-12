@@ -4,7 +4,7 @@ import { skin, skinId, setSkin, SKINS, w } from './skins.js';
 import { THEMES } from './themes.js';
 import { KINDS, newProfile, capName, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames, profile } from './state.js';
 import { showLock } from './lock.js';
-import { overlay, esc, setAccent, setTheme, stepper, round } from './ui.js';
+import { overlay, esc, setAccent, setTheme, stepper, round, ask } from './ui.js';
 import { DOW, deviceTZ } from './time.js';
 import { setupScreens, screenHTML, screenClick, screenRead, progress, EQUIPMENT } from './coach.js';
 import { EQUIP, GEAR } from './moves.js';
@@ -59,6 +59,8 @@ const fullGym = d => GEAR.every(k => (d.about.equipment || []).includes(k));
 const nameCount = name => name.length >= 20 ? `${name.length} / 24` : '';
 
 export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081'];
+// Spoken names for the swatches (2.15), so a screen reader says "Blue", not a color code.
+export const ACCENT_NAMES = { '#5ea4ff': 'Blue', '#b18cff': 'Purple', '#ff7ab8': 'Pink', '#4fd1c5': 'Teal', '#f2c14e': 'Gold', '#ff8a3d': 'Orange', '#7ee081': 'Green' };
 
 // Resolves with the new profile, or null if cancelled (only possible when cancellable).
 export function onboard({ cancellable = false } = {}) {
@@ -110,7 +112,7 @@ export function onboard({ cancellable = false } = {}) {
         <p class="note">Only shown inside the app on this phone.<span class="count" id="nmc">${nameCount(d.name)}</span></p>
         <h2 style="margin-top:20px">Pick your color</h2>
         <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}"
-          aria-pressed="${c === (d.accent || KINDS[d.kind].accent)}" aria-label="Color ${c}"></button>`).join('')}</div>`,
+          aria-pressed="${c === (d.accent || KINDS[d.kind].accent)}" aria-label="${ACCENT_NAMES[c] || 'Color'}"></button>`).join('')}</div>`,
       () => `<div class="lbl">${label()}</div><h1>${esc(w('pickAvatar'))}</h1>${avatarPicker({ ...d, name: d.name || '?' })}`,
       ...qSteps(),
       () => `<div class="lbl">${label()}</div><h1>What should the app show?</h1>
@@ -164,7 +166,8 @@ export function onboard({ cancellable = false } = {}) {
     });
     el.addEventListener('click', async e => {
       const b = e.target.closest('button'); if (!b) return;
-      if (b.id === 'cancel') { // setup shows its own colors; the open profile's theme and accent come back too (2.10.2)
+      if (b.id === 'cancel') { if (step > 0 && !(await ask('Discard this setup?', 'Your answers so far will be lost.', [{ label: 'Discard', value: true, danger: true }]))) return;
+        // setup shows its own colors; the open profile's theme and accent come back too (2.10.2)
         setSkin(was); const cur = profile(); if (cur) { setTheme(cur.settings?.theme, cur.settings?.mode); setAccent(cur.accent); }
         close(); resolve(null); return; }
       const qs = qAt(step);

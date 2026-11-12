@@ -5,7 +5,7 @@
 // today's trend = yesterday's trend + a tenth of (today's weight − yesterday's trend);
 // the first weigh-in starts the trend. Here one step is taken per weigh-in.
 import { esc, toast, overlay, sources } from './ui.js';
-import { profile, saveProfile, saveEntry, today, on } from './state.js';
+import { profile, saveProfile, saveEntry, deleteEntry, entries, today, on } from './state.js';
 import { weight, weightUnit, toLb } from './units.js';
 import { addDays, prettyDay, daysBetween, dayKey, zoneOf } from './time.js';
 import { isMinor } from './coach.js';
@@ -59,15 +59,45 @@ export function weighIn(p = profile(), all = []) {
     <label class="f"><span>Today's weight (${weightUnit(p)})</span><input id="wv" inputmode="decimal" value="${last != null ? esc(weight(last, p)) : ''}"></label>
     <p class="note">Same time each day works best, like after waking up. A second weigh-in today replaces the first.</p>
     <p class="msg" id="wm" role="status"></p>
-    <button class="cta" id="ok" style="margin-top:12px">Save</button>`, { label: 'Weigh-in' });
+    <button class="cta" id="ok" style="margin-top:12px">Save</button>
+    <div id="wpast"></div>`, { label: 'Weigh-in' });
   el.querySelector('#wv').focus();
+  // Past weigh-ins (2.15): a wrong one can be fixed or deleted, so it doesn't bend the trend for weeks.
+  entries('weigh', p).then(list => { const past = list.filter(e => e.day !== t).reverse().slice(0, 10); if (!past.length || !el.isConnected) return;
+    el.querySelector('#wpast').innerHTML = `<p class="lbl" style="margin-top:20px;text-align:left">Earlier weigh-ins</p><ul class="list">${past.map(e => `<li><span>${prettyDay(e.day)}<br><span class="chain">${weight(e.data.lb, p)} ${weightUnit(p)}</span></span>
+      <button class="cta2" data-fixw="${esc(e.id)}" aria-label="Edit weigh-in from ${prettyDay(e.day)}">Edit</button></li>`).join('')}</ul>`; });
   el.addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
+    if (b.dataset.fixw) { close(); return fixWeigh(p, b.dataset.fixw); }
     if (b.id !== 'ok') return;
     const lb = toLb(el.querySelector('#wv').value.replace(',', '.'), p);
     if (!(lb >= 30 && lb <= 800)) { el.querySelector('#wm').textContent = `That weight doesn't look right. Use ${weightUnit(p)}.`; return; }
     await logWeigh(p, lb, t);
+    close(); toast('Weigh-in saved'); window.goku.render();
+  });
+}
+
+// Fix or delete one earlier weigh-in (2.15). The profile's weight follows the newest weigh-in that is left.
+async function fixWeigh(p, id) {
+  const e = (await entries('weigh', p)).find(x => x.id === id); if (!e) return;
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Edit weigh-in</h1><button class="cta2" id="x" data-close>Close</button></div>
+    <label class="f"><span>${prettyDay(e.day)} (${weightUnit(p)})</span><input id="wv" inputmode="decimal" value="${esc(weight(e.data.lb, p))}"></label>
+    <p class="msg" id="wm" role="status"></p>
+    <button class="cta" id="ok" style="margin-top:12px">Save</button>
+    <button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete</button>`, { label: 'Edit weigh-in' });
+  const newest = async () => { const last = (await entries('weigh', p)).sort((a, b) => a.day < b.day ? -1 : 1).at(-1);
+    // weightAt moves too, so the weight from setup is never turned back into the weigh-in that was just deleted
+    if (last) p.about = { ...p.about, weightLb: last.data.lb, weightAt: last.ts }; else { const { weightAt, ...rest } = p.about || {}; p.about = rest; }
+    await saveProfile(p); };
+  el.addEventListener('click', async ev => {
+    const b = ev.target.closest('button'); if (!b) return;
+    if (b.id === 'x') return close();
+    if (b.id === 'del') { await deleteEntry(e.id); await newest(); close(); toast('Weigh-in deleted'); return window.goku.render(); }
+    if (b.id !== 'ok') return;
+    const lb = toLb(el.querySelector('#wv').value.replace(',', '.'), p);
+    if (!(lb >= 30 && lb <= 800)) { el.querySelector('#wm').textContent = `That weight doesn't look right. Use ${weightUnit(p)}.`; return; }
+    await saveEntry('weigh', { lb: Math.round(lb * 10) / 10 }, { id: e.id, day: e.day, ts: e.ts }); await newest();
     close(); toast('Weigh-in saved'); window.goku.render();
   });
 }

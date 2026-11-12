@@ -102,7 +102,7 @@ export function bindSaga(root, arcs) {
     const a = arcs.find(x => x.id === (b.dataset.arcedit || b.dataset.arcwin || b.dataset.arcmore)); if (!a) return;
     if (b.dataset.arcedit) return editArc(a, arcs);
     if (b.dataset.arcmore) { await saveEntry('arc', { ...a.data, weeks: (a.data.weeks || WEEKS) + 2 }, { id: a.id, day: a.day, ts: a.ts }); return window.goku.render(); }
-    if (b.dataset.arcwin && await ask(`${esc(W('boss'))} beaten?`, `${esc(a.data.boss)}. Clear "${esc(a.data.name)}" and start the next ${esc(w('arc').toLowerCase())} when you're ready.`, [{ label: 'Yes, clear it', value: true }])) {
+    if (b.dataset.arcwin && await ask(`${W('boss')} beaten?`, `${esc(a.data.boss)}. Clear "${esc(a.data.name)}" and start the next ${esc(w('arc').toLowerCase())} when you're ready.`, [{ label: 'Yes, clear it', value: true }])) {
       await saveEntry('arc', { ...a.data, done: today() }, { id: a.id, day: a.day, ts: a.ts });
       window.goku.render(); cleared(a, arcs);
     }
@@ -160,9 +160,9 @@ async function editArc(a, arcs) {
     if (b.dataset.an) { $('#an').value = b.dataset.an; return; }
     if (b.dataset.ab) { $('#ab').value = b.dataset.ab;
       // A weight idea also tracks itself on the weight trend: 4 lb (2 kg) in both ideas.
-      if (wOn && /^Lose /.test(b.dataset.ab) && $('#lk')) { d.link = { type: 'weight', target: 4 }; $('#lk').value = 'weight|'; target(); }
+      if (wOn && /^Lose /.test(b.dataset.ab) && $('#lk')) { d.link = { type: 'weight', target: weightUnit(p) === 'kg' ? toLb(2, p) : 4 }; $('#lk').value = 'weight|'; target(); }
       return; }
-    if (b.id === 'del' && await ask('Delete this arc?', '', [{ label: 'Delete', value: true, danger: true }])) { await deleteEntry(a.id); close(); return window.goku.render(); }
+    if (b.id === 'del' && await ask(`Delete this ${w('arc').toLowerCase()}?`, '', [{ label: 'Delete', value: true, danger: true }])) { await deleteEntry(a.id); close(); return window.goku.render(); }
     if (b.id !== 'ok') return;
     const name = $('#an').value.trim().slice(0, 40), boss = $('#ab').value.trim().slice(0, 80), start = $('#as').value;
     if (!name || !boss) { $('#am').textContent = `Give the ${w('arc').toLowerCase()} a name and a ${w('boss').toLowerCase()} to beat.`; return; }

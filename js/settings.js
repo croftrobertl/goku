@@ -3,7 +3,7 @@ import { S, profile, saveProfile, KINDS, newProfile, capName, liveModules, soonM
 import * as db from './db.js';
 import { encryptJSON, decryptJSON } from './crypto.js';
 import { showLock, lockNow } from './lock.js';
-import { onboard, ACCENTS } from './onboarding.js';
+import { onboard, ACCENTS, ACCENT_NAMES } from './onboarding.js';
 import { cleanBackup } from './validate.js';
 import { esc, ask, overlay, toast, guard } from './ui.js';
 import { VERSION } from './version.js';
@@ -44,7 +44,13 @@ function parseExport(obj) {
   const raw = (Array.isArray(obj.entries) ? obj.entries : []).map(e => e && typeof e === 'object'
     ? { id: e.id, type: e.type, day: e.day, ts: Date.parse(e.time), updatedAt: Date.parse(e.updatedAt), data: e.data && typeof e.data === 'object' ? fromISO(e.data) : null }
     : null);
-  return cleanBackup(obj.profile && typeof obj.profile === 'object' ? fromISO(obj.profile) : null, raw);
+  const out = cleanBackup(obj.profile && typeof obj.profile === 'object' ? fromISO(obj.profile) : null, raw);
+  // A backup from a newer Goku may hold answers this version doesn't know and would drop (2.15).
+  const num = v => String(v || '').split('.').map(n => parseInt(n, 10) || 0);
+  const [a, b] = [num(obj.appVersion), num(VERSION)];
+  out.newer = a[0] !== b[0] ? a[0] > b[0] : a[1] !== b[1] ? a[1] > b[1] : a[2] > b[2] ? true : false;
+  out.madeBy = typeof obj.appVersion === 'string' ? obj.appVersion.slice(0, 12) : '';
+  return out;
 }
 
 // ---------- Export: build first, then share from a fresh tap ----------
@@ -139,8 +145,10 @@ export function importFlow() {
   input.click();
 }
 
-async function previewImport({ prof, entries, skipped }) {
+async function previewImport({ prof, entries, skipped, newer, madeBy }) {
   const cur = profile();
+  if (newer && !(await ask('This backup is from a newer Goku', `It was made by version ${esc(madeBy)}; this phone has ${esc(VERSION)}. Newer kinds of answers would be left out. Update Goku first if you can.`,
+    [{ label: 'Import anyway', value: true }]))) return;
   const other = S.profiles.find(p => p.id === prof.id && p.id !== cur.id);
   if (other) {
     await ask('This backup belongs to another profile', `It's a backup of <b>${esc(other.name)}</b>. To protect their data, open their profile (with their passcode) and import it there.`, []);
@@ -255,7 +263,7 @@ function aboutRows(p) {
 }
 
 function avatarSheet(p) {
-  const { el, close } = overlay(`<div class="row"><h1>Avatar</h1><button class="cta2" id="x" data-close>Done</button></div>
+  const { el, close } = overlay(`<div class="row"><h1>Avatar</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="av"></div>`, { label: 'Choose an avatar' });
   const draw = () => { el.querySelector('#av').innerHTML = avatarPicker(p); };
   el.addEventListener('click', async e => {
@@ -265,7 +273,7 @@ function avatarSheet(p) {
   });
   el.addEventListener('change', async e => {
     if (!e.target.matches('[data-avatar-photo]')) return;
-    try { p.avatar = await photoToAvatar(e.target.files[0]); t.value = ''; e.target.value = ''; await saveProfile(p); draw(); }
+    try { p.avatar = await photoToAvatar(e.target.files[0]); e.target.value = ''; await saveProfile(p); draw(); }
     catch (err) { toast(err.message || "That photo couldn't be read."); }
   });
   draw();
@@ -298,7 +306,7 @@ export async function settingsView() {
       <div class="seg" role="group" aria-label="Light or dark">${MODES.map(([v, l]) => `<button data-mode="${v}" aria-pressed="${(p.settings.mode || 'auto') === v}">${l}</button>`).join('')}</div>
       <details class="tcustom"${p.accent !== THEMES[p.settings.theme || 'capsule']?.accent ? ' open' : ''}><summary>Customize this theme</summary>
         <p class="sub">Accent color for buttons and highlights. Picking a theme again resets it.</p>
-        <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="Color ${c}"></button>`).join('')}</div></details>
+        <div class="swatches">${ACCENTS.map(c => `<button style="background:${c}" data-acc="${c}" aria-pressed="${c === p.accent}" aria-label="${ACCENT_NAMES[c] || 'Color'}"></button>`).join('')}</div></details>
     </section>
     <section class="card"><p class="lbl">What the app shows</p>
       ${liveModules(p.kind).map(([k, n, d]) => `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span>
@@ -414,7 +422,7 @@ export async function settingsView() {
         else if (b.id === 'expEnc') await exportNow(true);
         else if (b.id === 'imp') importFlow();
         else if (b.id === 'health') healthImport();
-        else if (b.id === 'healthHow') ask(`Set up the ${esc(W('scouter'))} link`, `<ol style="padding-left:20px;line-height:1.6">${RECIPE.map(x => `<li style="margin-top:6px">${esc(x)}</li>`).join('')}</ol>
+        else if (b.id === 'healthHow') ask(`Set up the ${W('scouter')} link`, `<ol style="padding-left:20px;line-height:1.6">${RECIPE.map(x => `<li style="margin-top:6px">${esc(x)}</li>`).join('')}</ol>
           <p class="note">Shortcuts differ a little between iOS versions. If an import shows nothing, check the file has lines like: sleep, 2026-10-28T23:10:00, 2026-10-29T06:40:00.</p>`, []);
         else if (b.id === 'chg') { if (await showLock(p, { mode: 'create', cancellable: true })) toast('Passcode changed'); window.goku.render(); }
         else if (b.id === 'lockNow') { lockNow(p); await saveProfile(p); window.goku.open(p.id); }

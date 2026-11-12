@@ -63,7 +63,7 @@ export function homeLayout(p, cards, { strip = '', rows = {} } = {}) {
 
 export function editHome(p, onDone = () => window.goku.render()) {
   const ids = order(p), off = hidden(p);
-  const { el, close } = overlay(`<div class="row"><h1>Home cards</h1><button class="cta2" id="x" data-close>Done</button></div>
+  const { el, close } = overlay(`<div class="row"><h1>Home cards</h1><button class="cta2" id="x" data-close>Close</button></div>
     <p class="sub">Move cards up or down, or hide the ones you don't use. Some only show when there's something to say.</p>
     <div class="scroll" id="f"></div>
     <button class="cta2" id="reset" style="width:100%;margin-top:8px">Back to the default order</button>`, { label: 'Home cards' });

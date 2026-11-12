@@ -62,21 +62,27 @@ const req1 = (s, mode, op) => withDb(db => run(db, s, mode, (tx, set) => {
   const r = op(tx.objectStore(s)); r.onsuccess = () => set(r.result);
 }));
 
-export const get = (s, key) => req1(s, 'readonly', os => os.get(key));
+// While a screen is being drawn (2.15), the same read is done once and shared; any write clears it.
+let memo = null;
+export const memoOn = () => { memo = new Map(); };
+export const memoOff = () => { memo = null; };
+const shared = (k, read) => { if (!memo) return read(); if (!memo.has(k)) memo.set(k, read()); return memo.get(k); };
+const wrote = v => { memo?.clear(); return v; };
+export const get = (s, key) => shared(`g|${s}|${JSON.stringify(key)}`, () => req1(s, 'readonly', os => os.get(key)));
 export const all = s => req1(s, 'readonly', os => os.getAll());
-export const put = (s, val) => req1(s, 'readwrite', os => os.put(val));
-export const del = (s, key) => req1(s, 'readwrite', os => os.delete(key));
-export const byIndex = (s, index, key) => req1(s, 'readonly', os => os.index(index).getAll(key));
+export const put = (s, val) => { wrote(); return req1(s, 'readwrite', os => os.put(val)).then(wrote); };
+export const del = (s, key) => { wrote(); return req1(s, 'readwrite', os => os.delete(key)).then(wrote); };
+export const byIndex = (s, index, key) => shared(`i|${s}|${index}|${JSON.stringify(key)}`, () => req1(s, 'readonly', os => os.index(index).getAll(key)));
 export const byIndexRange = (s, index, lo, hi) => req1(s, 'readonly', os => os.index(index).getAll(IDBKeyRange.bound(lo, hi)));
 
-export const putMany = (s, vals) => withDb(db => run(db, s, 'readwrite', tx => {
+export const putMany = (s, vals) => (wrote(), withDb(db => run(db, s, 'readwrite', tx => {
   const os = tx.objectStore(s);
   for (const v of vals) os.put(v);
-}));
+})).then(wrote));
 
 // Deletes a profile's entries and writes the new ones in ONE transaction:
 // if any write fails, nothing is deleted.
-export const replaceProfileEntries = (profileId, vals) => withDb(db => run(db, 'entries', 'readwrite', tx => {
+export const replaceProfileEntries = (profileId, vals) => (wrote(), withDb(db => run(db, 'entries', 'readwrite', tx => {
   const os = tx.objectStore('entries');
   const cur = os.index('profile').openKeyCursor(IDBKeyRange.only(profileId));
   cur.onsuccess = () => {
@@ -84,16 +90,16 @@ export const replaceProfileEntries = (profileId, vals) => withDb(db => run(db, '
     if (c) { os.delete(c.primaryKey); c.continue(); }
     else for (const v of vals) os.put(v);
   };
-}));
+})).then(wrote));
 
 // Removes a profile, all its entries and its meta keys, in one transaction.
-export const deleteProfile = profileId => withDb(db => run(db, ['profiles', 'entries', 'meta'], 'readwrite', tx => {
+export const deleteProfile = profileId => (wrote(), withDb(db => run(db, ['profiles', 'entries', 'meta'], 'readwrite', tx => {
   tx.objectStore('profiles').delete(profileId);
   const os = tx.objectStore('entries');
   const cur = os.index('profile').openKeyCursor(IDBKeyRange.only(profileId));
   cur.onsuccess = () => { const c = cur.result; if (c) { os.delete(c.primaryKey); c.continue(); } };
   for (const k of ['run:', 'seeded:']) tx.objectStore('meta').delete(k + profileId);
-}));
+})).then(wrote));
 
 export const getMeta = async key => (await get('meta', key))?.value;
 export const setMeta = (key, value) => put('meta', { key, value });

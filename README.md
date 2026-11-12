@@ -32,6 +32,19 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.15.0:* Fixes from review 10, no new screens. Bugs: a photo avatar chosen in Settings now saves; a sport
+  typed in Log Activity counts without tapping a suggestion; Undo after deleting a food keeps water and
+  food added since; a distance keeps its unit when units change; workout Undo also undoes a weight change
+  in the plan and Library; and six smaller ones. Safety: a screen that fails shows its error in the page
+  and the bars keep working, so Settings can still export a backup; a save that fails says so; coming
+  back on a new day redraws Home; imports check dates, warn about a backup from a newer Goku, and keep
+  per-serving restaurant foods as they were. Fixable now: saved foods and meals (Edit in My Foods and
+  Meals), earlier weigh-ins, a rest day (Undo), and activities on practice-log profiles. Speed: the food
+  list loads when Nutrition opens instead of at every launch, one screen reads each list once, Home no
+  longer waits for the muscle drawing, and install no longer fails when the big food file does. Polish:
+  44-point touch sizes, visible "Why?" on the Nutrition panel, dark text in setup, Return saves one-box
+  sheets, "Discard?" on long forms, landscape and desktop spacing. Words: Close, Save and Delete
+  everywhere; card titles left-aligned.
 - *2.14.1:* Tab, bookmark and home-screen icons now use the same picture as the share cover
   (Rob's choice, from his own upload).
 - *2.14.0:* How You Feel Today (review 9). On Strength and Custom profiles it's a short daily

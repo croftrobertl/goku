@@ -1,6 +1,6 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.14.1';
+const CACHE_VERSION = '2.15.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
@@ -43,9 +43,8 @@ self.addEventListener('install', e => {
     await Promise.all(DATA_FILES.map(async f => {
       if (await data.match(f)) return;
       const res = await fetch(new Request(f + '?v=' + DATA_VERSION, { cache: 'reload' }));
-      if (!res.ok) throw new Error('Missing ' + f);
-      await data.put(f, res);
-    }));
+      if (res.ok) await data.put(f, res);
+    }).map(x => x.catch(() => {}))); // 2.15: a big file that fails on a weak connection no longer fails the whole install; it is kept on first use instead
     const art = await caches.open(ART);
     await Promise.all(ART_FILES.map(async f => {
       if (await art.match(f)) return;
@@ -77,7 +76,14 @@ self.addEventListener('fetch', e => {
       if (res.ok) await upc.put(req.url.split('?')[0], res.clone());
       return res;
     }
-    return (await cache.match(req, { ignoreSearch: true })) || (await (await caches.open(DATA)).match(req, { ignoreSearch: true }))
-      || (await (await caches.open(ART)).match(req, { ignoreSearch: true })) || fetch(req);
+    const hit = (await cache.match(req, { ignoreSearch: true })) || (await (await caches.open(DATA)).match(req, { ignoreSearch: true }))
+      || (await (await caches.open(ART)).match(req, { ignoreSearch: true }));
+    if (hit) return hit;
+    // Not kept at install (2.15): data files and drawings fetched now are stored for offline use.
+    const path = './' + new URL(req.url).pathname.split('/').slice(-2).join('/'), keep = DATA_FILES.includes(path) ? [DATA, DATA_VERSION] : new URL(req.url).pathname.includes('/img/') ? [ART, ART_VERSION] : null;
+    if (!keep) return fetch(req);
+    const res = await fetch(new Request(req.url.split('?')[0] + '?v=' + keep[1], { cache: 'reload' }));
+    if (res.ok) await (await caches.open(keep[0])).put(req.url.split('?')[0], res.clone());
+    return res;
   })());
 });

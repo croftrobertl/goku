@@ -66,6 +66,16 @@ export function overlay(content, { label = 'Dialog', id } = {}) {
   (el.querySelector('input[type=search]') || el).focus({ preventScroll: true });
   el.addEventListener('keydown', e => {
     if (e.key === 'Escape') { el.querySelector('[data-close]')?.click(); return; }
+    // Return saves a sheet with a single box (2.15): weigh-in, calorie target, a name. After the sheet's own handlers, so a search box keeps its Enter.
+    if (e.key === 'Enter' && e.target.matches('input:not([type=search]):not([type=checkbox]):not([type=file])')) {
+      setTimeout(() => {
+        if (e.defaultPrevented || !el.isConnected) return;
+        const boxes = [...el.querySelectorAll('input:not([type=checkbox]):not([type=file]), textarea, select')].filter(n => n.offsetParent !== null);
+        const main = [...el.querySelectorAll('button.cta')].filter(n => n.offsetParent !== null && !n.hasAttribute('data-close'));
+        if (boxes.length === 1 && main.length === 1) main[0].click();
+      }, 0);
+      return;
+    }
     if (e.key !== 'Tab') return;
     const f = [...el.querySelectorAll('button, input, select, textarea, [tabindex="0"]')].filter(n => n.offsetParent !== null);
     if (!f.length) return;
@@ -73,6 +83,13 @@ export function overlay(content, { label = 'Dialog', id } = {}) {
     else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
   });
   return { el, close: () => { el.remove(); swallowTaps(); if (before?.isConnected) before.focus({ preventScroll: true }); } };
+}
+
+// For long forms (2.15): resolves true when it's fine to close, asking first if anything was typed or tapped.
+export function discardGuard(el) {
+  let dirty = false;
+  el.addEventListener('input', () => { dirty = true; });
+  return { touch: () => { dirty = true; }, ok: async () => !dirty || !!(await ask('Discard what you entered?', '', [{ label: 'Discard', value: true, danger: true }])) };
 }
 
 // Ask a question with buttons; resolves with the chosen value (or null on Cancel).

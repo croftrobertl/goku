@@ -3,8 +3,8 @@
 // copy of the food's numbers, so history never changes if the food list is updated.
 // Symptom check-ins (the old Gut log) live in the same day's 'gut' entry.
 import * as db from './db.js';
-import { profile, saveProfile, entries, saveEntry, today, on } from './state.js';
-import { esc, toast, overlay, stepper, round, guard, ask, dayPicker, sources } from './ui.js';
+import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
+import { esc, toast, overlay, stepper, round, guard, ask, dayPicker, sources, discardGuard } from './ui.js';
 import { addDays, prettyDay } from './time.js';
 import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from './units.js';
 import { fuelRanges } from './fuel.js';
@@ -32,6 +32,7 @@ const wellScale = (g, [k, label, lo, hi]) => `<div class="q"><p class="lbl">${la
 
 let navDay = null, navFor = null, hist = null; // navFor: the profile the chosen day belongs to
 export const forgetHistory = () => { hist = null; };
+export const resetNutritionDay = () => { navDay = null; hist = null; };
 export const openNutritionDay = day => { navDay = day; navFor = profile().id; window.goku.go('nutrition'); };
 
 const foodId = (p, day) => p.id + ':food:' + day;
@@ -101,7 +102,7 @@ export async function nutritionView() {
   // Read the whole history once and reuse it until a symptom or food changes (water taps don't).
   if (symptomsOn && (!hist || hist.id !== p.id)) hist = { id: p.id, gut: await entries('gut', p), food: await entries('food', p), pattern: null };
   const allGut = symptomsOn ? hist.gut : [], allFood = symptomsOn ? hist.food : [];
-  if (symptomsOn && !hist.pattern) hist.pattern = patternCard(feelPatterns(mergeForPatterns(allGut, allFood)));
+  if (symptomsOn && !hist.pattern) hist.pattern = patternCard(feelPatterns(mergeForPatterns(allGut, allFood)), p.kind !== 'perf');
   const water = waterOf(food, gut);
   const recent = on(p, 'nutrition') ? await recentSupps(p) : [];
 
@@ -187,7 +188,7 @@ export async function nutritionView() {
         if (b.id === 'scanFood') return addFood(nowMeal(), day, { scan: true });
         if (b.dataset.item !== undefined) {
           const it = items[+b.dataset.item];
-          if (it.legacy !== undefined) { if (await ask('Remove this quick protein entry?', esc(it.n.p + ' g'), [{ label: 'Remove', value: true, danger: true }])) { g.protein.splice(it.legacy, 1); await saveGut(); window.goku.render(); } return; }
+          if (it.legacy !== undefined) { if (await ask('Delete this quick protein entry?', esc(it.n.p + ' g'), [{ label: 'Delete', value: true, danger: true }])) { g.protein.splice(it.legacy, 1); await saveGut(); window.goku.render(); } return; }
           return editItem(food, food.items.indexOf(it), day);
         }
         if (b.dataset.savemeal) return saveMeal(food.items.filter(it => it.meal === b.dataset.savemeal));
@@ -249,12 +250,12 @@ function mergeForPatterns(guts, foods) {
   return guts.map(e => ({ ...e, data: { ...e.data, foods: [...new Set([...(e.data.foods || []), ...(names[e.day] || [])])] } }));
 }
 const pctTxt = (n, d) => Math.round(n / d * 100) + '%';
-function patternCard(list) {
+function patternCard(list, well = true) {
   const head = '<section class="card"><p class="lbl">Pattern, not proof</p>';
   const ready = list.filter(g => g.ready);
   if (!ready.length) {
     const most = Math.max(0, ...list.map(g => g.days));
-    return `${head}<p class="sub">Once an answer in How You Feel Today has 14 days, including 3 bad ones (like bloating 6 or more, or energy 1 or 2), this lists the foods and supplements that show up more often on those days.
+    return `${head}<p class="sub">Once an answer in How You Feel Today has 14 days, including 3 bad ones (like bloating 6 or more${well ? ', or energy 1 or 2' : ''}), this lists the foods and supplements that show up more often on those days.
     So far: ${most} answered day${most === 1 ? '' : 's'}.</p></section>`;
   }
   return `${head}${ready.map(g => `<p class="lbl" style="margin-top:12px">${esc(g.bad[0].toUpperCase() + g.bad.slice(1))}</p>
@@ -335,10 +336,10 @@ function foodSheet(meal, day, { scan = false } = {}) {
       <span class="chain">${esc(prev.map(it => tidyName(it.name, it.src)).slice(0, 4).join(' · '))}${prev.length > 4 ? ` and ${prev.length - 4} more` : ''}</span></span><span class="num">${kcalOf(sumN(prev)) ?? ''}</span></button></li></ul>` : '';
     if (tab === 'recent') $('#fres').innerHTML = same + (recent.length ? `<ul class="list">${recent.map((it, i) => { const f = { ...it, kc: kcalOf(it.n) }; return row(f, 'r:' + i, amountText(it)); }).join('')}</ul>`
       : same ? '' : '<div class="empty"><p>Foods you log show up here for one-tap adding.</p></div>');
-    if (tab === 'mine') $('#fres').innerHTML = mine.length ? `<ul class="list">${mine.map((f, i) => row(f, 'm:' + i, sub(f))).join('')}</ul>`
+    if (tab === 'mine') $('#fres').innerHTML = mine.length ? `<ul class="list">${mine.map((f, i) => row(f, 'm:' + i, sub(f)).replace('</li>', `<button class="cta2 rowedit" data-editmine="${i}" aria-label="Edit ${esc(f.name)}">Edit</button></li>`)).join('')}</ul>`
       : '<div class="empty"><p>Foods you add from a label show up here.</p></div>';
     if (tab === 'meals') $('#fres').innerHTML = meals.length ? `<ul class="list">${meals.map((m, i) => `<li><button class="itemrow" data-pick="ml:${i}"><span><b>${esc(m.data.name)}</b><br>
-      <span class="chain">${m.data.items.length} foods</span></span><span class="num">${kcalOf(sumN(m.data.items))}</span></button></li>`).join('')}</ul>`
+      <span class="chain">${m.data.items.length} foods</span></span><span class="num">${kcalOf(sumN(m.data.items))}</span></button><button class="cta2 rowedit" data-editmeal="${i}" aria-label="Edit ${esc(m.data.name)}">Edit</button></li>`).join('')}</ul>`
       : '<div class="empty"><p>Save a breakfast you often eat as a meal, then add it here in one tap.</p></div>';
   };
   const pick = async key => {
@@ -367,6 +368,9 @@ function foodSheet(meal, day, { scan = false } = {}) {
     }
     if (b.dataset.ftab) { tab = b.dataset.ftab; return draw(); }
     if (b.dataset.fsugg) { q = b.dataset.fsugg; const i = $('#fq'); i.value = q + ' '; i.focus(); return draw(); }
+    // My foods and saved meals can be fixed or deleted (2.15).
+    if (b.dataset.editmine) return labelFood({ edit: mine[+b.dataset.editmine].mine }, async () => { mine = await myFoods(); draw(); }, async () => { mine = await myFoods(); draw(); });
+    if (b.dataset.editmeal) return editMeal(meals[+b.dataset.editmeal], async () => { meals = (await entries('meal')).reverse(); draw(); });
     if (b.dataset.pick) return pick(b.dataset.pick);
     if (b.dataset.tosupp) { // "creatine" in food search opens Supplements, already searched (2.8.2)
       close(); await window.goku.render();
@@ -419,7 +423,7 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
         : f.src === 'chain' ? `From ${esc(f.from)}. <a href="${esc(f.url)}" target="_blank" rel="noopener">See the chain's page</a>` : 'USDA FoodData Central.'}</p>
     </div>
     <button class="cta" id="ok">${onRemove ? 'Save' : 'Add to ' + esc(mealName(meal))}</button>
-    ${onRemove ? '<button class="cta2 danger" id="rm" style="width:100%;margin-top:8px">Remove</button>' : ''}`, { label: f.name });
+    ${onRemove ? '<button class="cta2 danger" id="rm" style="width:100%;margin-top:8px">Delete</button>' : ''}`, { label: f.name });
   const $ = s => el.querySelector(s);
   const amount = () => Math.max(0, +String($('#qty').value).replace(',', '.') || 0);
   const draw = () => {
@@ -459,7 +463,8 @@ function editItem(food, idx, day) {
     },
     onRemove: async () => {
       const [gone] = food.items.splice(idx, 1); await store();
-      toast(`${gone.name} removed`, 2400, ['Undo', async () => { food.items.splice(idx, 0, gone); await store(); }]);
+      toast(`${gone.name} deleted`, 2400, ['Undo', async () => { // put it back into the day as it is now (2.15), so water or food added since is kept
+        const cur = (await readDay(p, day)).food; cur.items = cur.items || []; cur.items.splice(Math.min(idx, cur.items.length), 0, gone); await saveDay(p, day, cur); window.goku.render(); }]);
     } });
 }
 
@@ -473,7 +478,7 @@ function quickAdd(meal, onDone, existing = null, onRemove = null) {
     </div>
     <p class="msg" id="qm" role="status"></p>
     <button class="cta" id="ok">${existing ? 'Save' : 'Add to ' + esc(mealName(meal))}</button>
-    ${onRemove ? '<button class="cta2 danger" id="rm" style="width:100%;margin-top:8px">Remove</button>' : ''}`, { label: 'Quick add' });
+    ${onRemove ? '<button class="cta2 danger" id="rm" style="width:100%;margin-top:8px">Delete</button>' : ''}`, { label: 'Quick add' });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
@@ -492,26 +497,32 @@ function quickAdd(meal, onDone, existing = null, onRemove = null) {
 }
 
 // A food typed in from its Nutrition Facts label, saved to My foods.
-export function labelFood(pre = {}, onSaved = () => {}) {
+export function labelFood(pre = {}, onSaved = () => {}, onDeleted = () => {}) {
+  // Editing a saved food (2.15): the form opens filled in with the label's per-serving numbers.
+  const ed = pre.edit || null, eg = ed?.data.servingG || 0, back = k => ed && ed.data.per?.[k] != null ? round(ed.data.per[k] * eg / 100, 1) : '';
+  if (ed) pre = { name: ed.data.name, brand: ed.data.brand, upc: ed.data.upc };
   const F = [['kcal', 'Calories', ''], ['f', 'Total fat', 'g'], ['sat', 'Saturated fat', 'g'], ['na', 'Sodium', 'mg'], ['c', 'Total carbohydrate', 'g'],
     ['fib', 'Dietary fiber', 'g'], ['sug', 'Total sugars', 'g'], ['p', 'Protein', 'g']];
-  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add from a label</h1><button class="cta2" id="x" data-close>Close</button></div>
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">${ed ? 'Edit food' : 'Add from a label'}</h1><button class="cta2" id="x" data-close>Close</button></div>
     <p class="sub" style="text-align:center">Copy the Nutrition Facts panel for one serving. It saves to My foods.</p>
     <div class="scroll">
       <label class="f"><span>Food name</span><input id="ln" maxlength="60" value="${esc(pre.name || '')}" placeholder="e.g. Caramel flan"></label>
       <label class="f"><span>Brand (optional)</span><input id="lb" maxlength="40" value="${esc(pre.brand || '')}"></label>
-      <div class="row" style="gap:8px"><label class="f" style="flex:1"><span>Serving size</span><input id="ls" maxlength="30" placeholder="e.g. 1 cup"></label>
-        <label class="f" style="width:90px"><span>Weight</span><input id="lg" inputmode="decimal" placeholder="g"></label>
-        <label class="f" style="width:70px"><span>Unit</span><select id="lu"><option>g</option><option>ml</option></select></label></div>
-      ${F.map(([k, n, u]) => `<label class="f"><span>${n}${u ? ' (' + u + ')' : ''}</span><input data-k="${k}" inputmode="decimal"></label>`).join('')}
+      <div class="row" style="gap:8px"><label class="f" style="flex:1"><span>Serving size</span><input id="ls" maxlength="30" placeholder="e.g. 1 cup" value="${ed ? esc(String(ed.data.serving || '').replace(/\s*\([^)]*\)\s*$/, '')) : ''}"></label>
+        <label class="f" style="width:90px"><span>Weight</span><input id="lg" inputmode="decimal" placeholder="g" value="${ed ? esc(eg) : ''}"></label>
+        <label class="f" style="width:70px"><span>Unit</span><select id="lu"><option>g</option><option${ed?.data.unit === 'ml' ? ' selected' : ''}>ml</option></select></label></div>
+      ${F.map(([k, n, u]) => `<label class="f"><span>${n}${u ? ' (' + u + ')' : ''}</span><input data-k="${k}" inputmode="decimal" value="${esc(back(k))}"></label>`).join('')}
       <label class="f"><span>Barcode (optional)</span><input id="lc" inputmode="numeric" maxlength="14" value="${esc(pre.upc || '')}"></label>
     </div>
     <p class="msg" id="lm" role="status"></p>
-    <button class="cta" id="ok">Save food</button>`, { label: 'Add from a label' });
+    <button class="cta" id="ok">Save</button>
+    ${ed ? '<button class="cta2 danger" id="delfood" style="width:100%;margin-top:8px">Delete</button>' : ''}`, { label: ed ? 'Edit food' : 'Add from a label' });
   const $ = s => el.querySelector(s);
+  const leave = discardGuard(el);
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.id === 'x') return close();
+    if (b.id === 'x') { if (await leave.ok()) close(); return; }
+    if (b.id === 'delfood') { if (await ask(`Delete ${ed.data.name}?`, 'Days you already logged keep it. It leaves My foods and barcode results.', [{ label: 'Delete', value: true, danger: true }])) { await deleteEntry(ed.id); close(); toast('Food deleted'); onDeleted(); } return; }
     if (b.id !== 'ok') return;
     const name = $('#ln').value.trim().slice(0, 60), g = +String($('#lg').value).replace(',', '.');
     if (!name || !(g > 0 && g <= 5000)) { $('#lm').textContent = 'Add the food name and the serving weight from the label (the number in g or ml).'; return; }
@@ -523,9 +534,28 @@ export function labelFood(pre = {}, onSaved = () => {}) {
     if (per.kcal == null) { $('#lm').textContent = 'Add the calories from the label.'; return; }
     const unit = $('#lu').value === 'ml' ? 'ml' : 'g';
     const serving = (($('#ls').value.trim().replace(/\|/g, '/').replace(/;/g, ',') || '1 serving') + ` (${round(g, 1)} ${unit})`).slice(0, 48);
-    const e2 = await saveEntry('myfood', { name, brand: $('#lb').value.trim().slice(0, 40), upc: $('#lc').value.replace(/\D/g, '').slice(0, 14), unit, serving, servingG: round(g, 1), per }, { day: '1970-01-01' });
-    close(); toast('Saved to My foods');
+    const e2 = await saveEntry('myfood', { name, brand: $('#lb').value.trim().slice(0, 40), upc: $('#lc').value.replace(/\D/g, '').slice(0, 14), unit, serving, servingG: round(g, 1), per }, ed ? { id: ed.id, day: ed.day, ts: ed.ts } : { day: '1970-01-01' });
+    close(); toast(ed ? 'Food saved' : 'Saved to My foods');
     onSaved({ i: 'my:' + e2.id, mine: e2, name, brand: e2.data.brand, per, unit, portions: `${serving}|${round(g, 1)}`, upc: e2.data.upc, src: 'mine' });
+  }));
+}
+
+// A saved meal can be renamed or deleted (2.15).
+function editMeal(m, onDone) {
+  const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Edit meal</h1><button class="cta2" id="x" data-close>Close</button></div>
+    <p class="sub" style="text-align:center">${m.data.items.length} foods, ${kcalOf(sumN(m.data.items))} calories.</p>
+    <label class="f" style="margin-top:12px"><span>Meal name</span><input id="mn" maxlength="40" value="${esc(m.data.name)}"></label>
+    <button class="cta" id="ok" style="margin-top:12px">Save</button>
+    <button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete</button>`, { label: 'Edit meal' });
+  el.addEventListener('click', guard(async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'x') return close();
+    if (b.id === 'del') { if (await ask(`Delete ${m.data.name}?`, 'Days you already logged keep their foods.', [{ label: 'Delete', value: true, danger: true }])) { await deleteEntry(m.id); close(); toast('Meal deleted'); onDone(); } return; }
+    if (b.id !== 'ok') return;
+    const name = el.querySelector('#mn').value.trim().slice(0, 40);
+    if (!name) return toast('Give the meal a name');
+    await saveEntry('meal', { ...m.data, name }, { id: m.id, day: m.day, ts: m.ts });
+    close(); toast('Meal saved'); onDone();
   }));
 }
 

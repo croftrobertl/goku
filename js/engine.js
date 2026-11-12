@@ -2,7 +2,7 @@
 import { w, W } from './skins.js';
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
 import * as db from './db.js';
-import { esc, toast, ask, overlay, stepper, unlockAudio, beep, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
+import { discardGuard, esc, toast, ask, overlay, stepper, unlockAudio, beep, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
 import { clock, prettyDay, weekStart, addDays, dayKey } from './time.js';
 import { metric, weight, weightUnit, toLb, length, lengthUnit, lengthStep, volume, volumeUnit, volumeSteps } from './units.js';
 import { coachCard, bindCoach, isMinor } from './coach.js';
@@ -131,7 +131,7 @@ export async function trainByFeel(circuit) {
     const [rounds, rest, cap, depth] = GRAVITY[g], ghost = ghostFor(sessions, g);
     el.querySelector('#tf').innerHTML = `<section class="card pickcard" style="margin-top:8px"><p class="lbl" style="text-align:left">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'} <span data-raw>· ${circuit.length} move${circuit.length === 1 ? '' : 's'}</span></p>
         <p class="big" style="font-size:1.6rem;margin:4px 0">${lvl(g)}</p><p>${capText(rounds, rest, cap)}</p>
-        <p class="sub">${depthText(depth)[0].toUpperCase() + depthText(depth).slice(1)}. ${ghost ? `Time to beat: ${sessionTotal(ghost)} reps on ${prettyDay(ghost.day)}.` : `Your first ${lvl(g)} workout sets the time to beat.`}</p></section>
+        <p class="sub">${depthText(depth)[0].toUpperCase() + depthText(depth).slice(1)}. ${ghost ? `Ghost to beat: ${sessionTotal(ghost)} reps on ${prettyDay(ghost.day)}.` : `Your first ${lvl(g)} workout sets the reps to beat.`}</p></section>
       <p class="lbl" style="margin-top:14px">Level</p>
       <div class="seg grav" role="group" aria-label="Level">${levels.map(x => `<button data-lv="${x}" aria-pressed="${x === g}">${lvl(x)}</button>`).join('')}</div>
       <p class="sub" style="text-align:center;margin-top:8px">${levels.map(x => `<span class="nw">${lvl(x)}: ${GRAVITY[x][0]} rounds, ${GRAVITY[x][1]} s rest</span>`).join('<br>')}</p>`;
@@ -150,7 +150,8 @@ export async function home() {
   const g = p.settings.gravity || 50;
   const [rounds, rest, cap, depth] = GRAVITY[g];
   const circuit = await todaysCircuit();
-  await musclesReady().catch(() => {}); // the circuit cards and body map draw from it; offline before first load, they fall back
+  // The circuit cards and body map draw from the muscle drawing. Home no longer waits for it (2.15): if it isn't loaded yet, it loads in the background and Home redraws once.
+  if (!document.getElementById('musbody')) musclesReady().then(() => { if (!window.goku.busy && !document.querySelector('.overlay')) window.goku.render(); }).catch(() => {});
   // One read of the log feeds every card below.
   const all = (await loggedEntries(p)).sort((a, b) => a.ts - b.ts);
   await syncWeigh(p, await entries('weigh', p)); // a weight from setup or the coach becomes a weigh-in
@@ -396,6 +397,11 @@ function openRunner(run) {
     const h = history.pop(); if (!h) return;
     Object.assign(run, { sets: h.sets, cur: h.cur, round: h.round, ex: h.ex, stage: h.stage, phase: h.phase, restUntil: h.restUntil });
     run.repTimes.length = h.reps;
+    if (h.load) { // a weight change is undone in the plan and the Library too, not only in this set
+      const planned = run.plan.find(x => x.id === h.load.exId)?.stages.find(x => x.label === h.load.label); if (planned) planned.load = h.load.load;
+      entries('exercise').then(list => { const ex = list.find(x => x.id === h.load.exId), own = ex?.data.stages.find(x => x.label === h.load.label);
+        if (own) { own.load = h.load.load; return saveEntry('exercise', ex.data, { id: ex.id, day: ex.day, ts: ex.ts }); } }).catch(() => {});
+    }
     bookRestCue(); save(); draw();
   };
 
@@ -535,6 +541,7 @@ function openRunner(run) {
       // so later rounds and the next session start from it.
       if (run.phase === 'rest') return;
       remember(); ensureSet();
+      history.at(-1).load = { exId: run.cur.exId, label: run.cur.stages[run.stage].label, load: run.cur.stages[run.stage].load ?? null }; // Undo puts this weight back everywhere (2.15)
       // Dumbbells use the step from Settings; barbell, machines and the rest go by 5 lb (2.5 kg) (2.8.2).
       const st = run.cur.stages[run.stage], step = isDumbbell(curEx()) ? toLb(stepShown(p), p) : toLb(metric(p) ? 2.5 : 5, p);
       const next = Math.max(0, round((st.load || 0) + (b.id === 'wUp' ? step : -step), 3)) || null;
@@ -713,9 +720,11 @@ function editExercise(ex, hist = '') {
     if (e.target.id === 'dbstep') { p.settings.dbStep = toLb(e.target.value, p); await saveProfile(p); }
     if (e.target.id === 'barw') { p.settings.bar = toLb(+e.target.value, p); await saveProfile(p); draw(); }
   });
+  const leave = discardGuard(el);
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.id === 'x') close();
+    if (b.id === 'x') { if (await leave.ok()) close(); return; }
+    if (b.id !== 'save' && b.id !== 'del') leave.touch(); // any other tap here changes the exercise
     if (b.dataset.plate) { const v = +b.dataset.plate, have = new Set(platesOf(p)); have.has(v) ? have.delete(v) : have.add(v);
       if (!have.size) return toast('Keep at least one plate');
       p.settings.plates = [...have]; p.settings.platesUnit = weightUnit(p); await saveProfile(p); return draw(); }
@@ -779,12 +788,12 @@ function editSession(s) {
   let day = s.day;
   const { el, close } = overlay(`<div class="row"><h1>Edit session</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="f"></div>
-    <button class="cta" id="save">Save changes</button>
+    <button class="cta" id="save">Save</button>
     <button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete session</button>`, { label: 'Edit session' });
   const draw = () => {
     el.querySelector('#f').innerHTML = `<div class="row" style="margin:8px 0"><span class="lbl" style="margin:0">Date</span>${dayPicker(day, today(), 'Session date')}</div>
       ${d.sets.map((set, i) => `<section class="card"><div class="row"><h2><span data-raw>${esc(set.name)}</span> · round ${esc(set.round)}</h2>
-        <button class="cta2" data-rmset="${i}" aria-label="Remove this set">Remove</button></div>
+        <button class="cta2" data-rmset="${i}" aria-label="Delete this set">Delete</button></div>
         ${set.stages.map((st, j) => `<div class="row" style="margin-top:6px"><span>${esc(st.label)}</span>${stepper(i + ':' + j, st.reps, 'reps for ' + st.label)}</div>
         <div class="row" style="margin-top:4px"><span class="sub">weight</span><span class="row" style="gap:6px"><input data-wl="${i}:${j}" value="${st.load ? esc(weight(st.load, p)) : ''}" inputmode="decimal" placeholder="none" aria-label="Weight for ${esc(st.label)} in ${weightUnit(p) === 'kg' ? 'kilograms' : 'pounds'}" style="width:80px"><span class="sub">${weightUnit(p)}</span></span></div>`).join('')}</section>`).join('')
         || '<p class="sub">No sets left. Save to keep an empty session, or delete it.</p>'}

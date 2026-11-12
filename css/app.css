@@ -812,3 +812,34 @@ details.fold > summary.lbl { text-align: left; }
 /* 2.10.1: the setup color fills the whole screen, home-bar area included, on iPhone */
 html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background: #ffd84d; }
 .gatehint { display: block; font-size: .8rem; font-weight: 400; color: var(--tx2); margin-top: 2px; text-decoration: none; }
+/* 2.15 polish (review 10) */
+/* On the Nutrition panel the card is the accent color, so its "Why?" and ring fill use the on-accent color to be seen. */
+.sum .why { color: var(--on-accent); }
+.sum .ring .rf { stroke: var(--on-accent); } .sum .ring .rt { stroke: rgba(0, 0, 0, .18); }
+/* Setup is always a yellow page, so its accent text and lines are dark whatever the phone's mode. */
+.overlay.capsule-setup { --accent-text: #141414; --accent-line: #141414; }
+/* Touch sizes: 44 points for everything tappable. "Why?" keeps its look and gets a bigger touch area. */
+.toast button { min-height: 44px; padding: 10px 8px; }
+.why { position: relative; } .why::after { content: ""; position: absolute; inset: -8px -6px; }
+.sugg button, .seg.mini button, .kirows .link, .cd { min-height: 44px; }
+/* Plain look: text boxes and outlined buttons keep a visible edge. */
+:root[data-skin="plain"] input, :root[data-skin="plain"] select, :root[data-skin="plain"] textarea,
+:root[data-skin="plain"] .cta2, :root[data-skin="plain"] .seg button, :root[data-skin="plain"] .pills button { border-color: var(--tx3); }
+/* Landscape iPhone: content stays clear of the notch. */
+:root { --safe-l: env(safe-area-inset-left, 0px); --safe-r: env(safe-area-inset-right, 0px); }
+.overlay { padding-left: calc(16px + var(--safe-l)); padding-right: calc(16px + var(--safe-r)); }
+@media (max-width: 899px) {
+  .app { padding-left: calc(16px + var(--safe-l)); padding-right: calc(16px + var(--safe-r)); }
+  .dock { padding-left: calc(16px + var(--safe-l)); padding-right: calc(16px + var(--safe-r)); }
+}
+/* Desktop: the side bar has room at the top and can scroll; the page centers in the space beside it. */
+@media (min-width: 900px) {
+  .dock { padding-top: 20px; overflow-y: auto; }
+  .app { margin-left: calc(232px + max(0px, (100vw - 232px - 1180px) / 2)); }
+}
+/* One alignment for card titles (2.15): left. Page titles and pick-one cards stay centered. */
+.card:not(.pick) > .lbl, .card:not(.pick) > summary.lbl, .card:not(.pick) > h2, .card:not(.pick) > .row > .lbl { text-align: left; }
+/* 2.15: a small Edit button at the end of a food or meal row */
+.list li:has(> .itemrow) > .rowedit { flex: none; margin-left: 8px; }
+.card:not(.pick) > .row:first-child:has(> .lbl:only-child), .card:not(.pick) > .row:first-child:has(> h2:only-child) { justify-content: flex-start; }
+.card:not(.pick) > .row:first-child:has(> .lbl + .why:last-child) { justify-content: space-between; }
