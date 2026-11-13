@@ -32,6 +32,16 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.16.0:* The redesigned screens from review 10. Pattern finder: one row per pattern, opening on tap.
+  Nutrition panel: the calorie ring and four equal tiles (protein, carbs, fat, fiber); protein no longer
+  has a bar of its own, and the percentage bar is gone. The phone's fifth tab is You (name and streak,
+  then History and the settings opened most) in place of More. Settings is eight groups with a search
+  box. Quick Add has a small close button and three groups: Food & Drink, Activity (Workout, Other
+  Sport, Rest Day) and Body (Check-In, Weigh-In). The workout screen puts the exercise name first, shows
+  round dots and the ghost as a race bar, and writes to the screen only when something changes. Today's
+  Workout lists the moves with last time's reps. Home shows this week at a glance. The welcome screen
+  has "I have a backup". On Gymnastics and practice-log profiles, the calorie target and waist size are
+  off until turned on in Settings, What the App Shows.
 - *2.15.0:* Fixes from review 10, no new screens. Bugs: a photo avatar chosen in Settings now saves; a sport
   typed in Log Activity counts without tapping a suggestion; Undo after deleting a food keeps water and
   food added since; a distance keeps its unit when units change; workout Undo also undoes a weight change
@@ -504,7 +514,7 @@ Proposed for M2 (each needs doctor sign-off first):
 - Missed or irregular periods, only if she chooses to track them.
 - Any headache, confusion or vision change after a fall or a hit to the head: same-day medical care.
 
-The gymnastics profile has no weight-loss goals, calorie deficits, body-weight trends, or "good vs. bad"
+Unless its owner turns on "Calorie target and waist size" in Settings, the gymnastics profile has no weight-loss goals, calorie deficits, body-weight trends, or "good vs. bad"
 food labels. Fueling is framed only as enough energy to train, grow and recover.
 
 ---

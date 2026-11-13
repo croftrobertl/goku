@@ -144,7 +144,7 @@ export function cleanBackup(prof, entries) {
         dbStep: num(prof.settings?.dbStep, 1, 50, 5),
         ...(num(prof.settings?.bar, 5, 100) ? { bar: num(prof.settings.bar, 5, 100) } : {}),
         ...(Array.isArray(prof.settings?.plates) ? { plates: [...new Set(prof.settings.plates.map(x => num(x, 0.5, 120)).filter(Boolean))].slice(0, 12), platesUnit: prof.settings.platesUnit === 'kg' ? 'kg' : 'lb' } : {}) }
-      : { weekPlan: plan, sharing: false }) },
+      : { weekPlan: plan, sharing: false, bodyGoals: prof.settings?.bodyGoals === true }) },
     lockRemember: [0, 1, 7, 30].includes(prof.lockRemember) ? prof.lockRemember : 7,
   };
   let skipped = 0;

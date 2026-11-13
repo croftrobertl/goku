@@ -93,7 +93,8 @@ export function onboard({ cancellable = false } = {}) {
           <h2>${v.label}</h2><p class="sub">${k === 'engine' ? 'Timed circuits, drop sets and ghost races, with an exercise library and a food log.' :
           'Daily readiness, a week planner, training load, a skill tree and a food log.'}</p></button>`).join('')}
         <button class="card pick" data-kind="custom" aria-pressed="${d.pick === 'custom'}"><h2>Custom</h2>
-          <p class="sub">Any sport or mix. A few questions build Goku around how you train.</p></button>`,
+          <p class="sub">Any sport or mix. A few questions build Goku around how you train.</p></button>
+        ${S.profiles.length ? '' : '<p style="text-align:center;margin-top:12px"><button class="link" id="restore">I have a backup</button></p>'}`,
       ...(d.pick === 'custom' ? [
         () => `<div class="lbl">${label()}</div><h1>What do you do?</h1><p class="sub" style="text-align:center">Pick everything that's part of your training.</p>
           <div class="pills" style="margin-top:12px">${SPORTS.map(([k, n]) => `<button data-sport="${k}" aria-pressed="${d.custom.sports.includes(k)}">${esc(n)}</button>`).join('')}</div>`,
@@ -170,6 +171,8 @@ export function onboard({ cancellable = false } = {}) {
         // setup shows its own colors; the open profile's theme and accent come back too (2.10.2)
         setSkin(was); const cur = profile(); if (cur) { setTheme(cur.settings?.theme, cur.settings?.mode); setAccent(cur.accent); }
         close(); resolve(null); return; }
+      // Restore on a new or wiped phone (2.16): the backup's own profile is added and asked for a passcode, with no throwaway profile.
+      if (b.id === 'restore') { const p = await (await import('./settings.js')).restoreFirst(); if (p) { close(); resolve(p); } return; }
       const qs = qAt(step);
       if (b.dataset.fullgym !== undefined) { d.about.equipment = fullGym(d) ? [] : [...GEAR]; draw(); return; }
       if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }

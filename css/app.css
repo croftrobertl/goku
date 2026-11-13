@@ -843,3 +843,32 @@ html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background:
 .list li:has(> .itemrow) > .rowedit { flex: none; margin-left: 8px; }
 .card:not(.pick) > .row:first-child:has(> .lbl:only-child), .card:not(.pick) > .row:first-child:has(> h2:only-child) { justify-content: flex-start; }
 .card:not(.pick) > .row:first-child:has(> .lbl + .why:last-child) { justify-content: space-between; }
+/* 2.16 (review 10): pattern rows; each opens on tap */
+.prow { border-top: 1px solid var(--line); padding: 4px 0; } .prow:first-of-type { border-top: 0; }
+.prow > summary > span:first-child { text-align: left; min-width: 0; }
+/* 2.16: Quick Add has a grab bar and a small close button; three groups */
+.qagrab { width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: -6px auto 10px; }
+.qasheet > .row > h2 { margin: 0; text-align: left; } .qax { width: 44px; min-height: 44px; padding: 0; flex: none; }
+.qagrid { grid-template-columns: repeat(3, 1fr); }
+/* 2.16: rows that open a page end with a chevron */
+.itemrow .chev { flex: none; font-size: 1.4rem; font-weight: 800; color: var(--accent-text); }
+/* 2.16 (review 10): the workout screen. Exercise name first, round dots, the ghost as a race bar, How beside the main button. */
+.rdots { display: flex; gap: 5px; justify-content: center; margin: 12px 0 4px; }
+.rdots i { width: 8px; height: 8px; border-radius: 4px; background: var(--line); } .rdots i.done { background: var(--accent-line); } .rdots i.now { width: 22px; background: var(--accent-line); }
+.tap .exname { font-size: 1.7rem; font-weight: 900; line-height: 1.1; overflow-wrap: anywhere; }
+.devstat:not(.warn) { display: none; } /* shown only when the screen may sleep or sound needs a tap */
+.ghost .grace { font-size: .9rem; } .ghost .grace[hidden], .gbar[hidden] { display: none; }
+.gbar { position: relative; height: 10px; border-radius: 5px; background: var(--line); margin-top: 6px; }
+.gbar > i:first-child { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--accent-line); max-width: 100%; }
+.gbar .gmark { position: absolute; top: -4px; width: 3px; height: 18px; margin-left: -1.5px; background: var(--tx); border-radius: 2px; }
+.runfoot { margin-top: 12px; gap: 8px; } .runfoot #howEx { flex: none; min-width: 72px; } .runfoot #howEx[hidden] { display: none; } .runfoot .cta { flex: 1; margin: 0; }
+/* 2.16 (review 10): this week at a glance on Home */
+.wkrow { display: flex; justify-content: space-between; width: 100%; background: none; border: 0; padding: 6px 6px 14px; color: var(--tx2); font: inherit; font-size: .75rem; font-weight: 700; min-height: 44px; }
+.wkrow span { display: grid; justify-items: center; gap: 4px; }
+.wkrow i { display: block; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); }
+.wkrow i.rest { border-style: dashed; border-color: var(--tx3); }
+.wkrow i.done { background: #f7941d; border-color: #141414; }
+:root[data-skin="encore"] .wkrow i.done, :root[data-skin="plain"] .wkrow i.done { background: var(--accent); border-color: var(--ink); }
+.wkrow i.now { box-shadow: 0 0 0 2.5px var(--bg), 0 0 0 5px var(--tx); }
+/* 2.16: the workout panel on Home is a centered poster, so its small title stays centered with the rest of it */
+.card.chamber > .lbl { text-align: center; }

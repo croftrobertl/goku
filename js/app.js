@@ -1,10 +1,11 @@
 // Boot, routing, profile switching, the update bar.
 import { w, W, setSkin, skinOf } from './skins.js';
+import { weighIn, weightOn } from './weight.js';
 import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, deleteEntry, kindLabel } from './state.js';
 import * as db from './db.js';
 import { showLock, isUnlocked, watchRelock } from './lock.js';
 import { onboard } from './onboarding.js';
-import { settingsView, backupAgeDays } from './settings.js';
+import { settingsView, backupAgeDays, youView, openSettingsGroup } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
 import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback, titleCase, startTitleCase } from './ui.js';
@@ -29,20 +30,31 @@ async function kiMenu(p, action, scr) {
       const add = document.getElementById('addSupp'); add ? add.click() : toast('Turn on Supplements in Nutrition first');
     }]);
   }
-  if (action) act.push([qaLabel(action[0]), ICON.bolt, action[1]]);
-  // The screen's own action and the main one can be the same thing (Home's circuit); it's listed once.
-  if (main && (!action || ![action[0], shortLabel(action[0])].includes(main[0]))) act.push([qaLabel(main[0]), ICON.bolt, main[1]]);
-  act.push(['Activity', ICON.run, () => logActivity()]);
+  // 2.16 (review 10): the main action only, named plainly; a page's own Add or Save button stays on its page.
+  const mainIsCheckin = !!main && /^check/i.test(main[0]); // a practice-log profile's main action is its check-in until that's done; it belongs under Body, once
+  if (main && !mainIsCheckin) act.push([main[0] === W('enter') || shortLabel(main[0]) === 'Train' ? 'Workout' : qaLabel(main[0]), ICON.bolt, main[1]]);
+  if (mainIsCheckin && p.kind === 'perf') act.push(['Session', ICON.bolt, () => perf.logSession()]); // logging a practice never waits for the check-in
+  act.push(['Other Sport', ICON.run, () => logActivity()]);
   act.push(['Rest Day', ICON.moon, async () => { const id = p.id + ':rest:' + today(); await saveEntry('rest', {}, { id, day: today() }); toast('Rest day logged. Recovery is training too.', 6000, ['Undo', async () => { await deleteEntry(id); render(); }]); render(); }]);
-  const items = [...food, ...act];
+  // Body: the daily check-in and a weigh-in are things you log too.
+  const body = [];
+  if (p.kind === 'perf') body.push(['Check-In', ICON.heart, mainIsCheckin ? main[1] : () => go('checkin')]);
+  else if (p.modules?.nutrition !== false && p.modules?.gut !== false) body.push(['Check-In', ICON.heart, async () => {
+    openNutritionDay(today()); await render();
+    const f = document.querySelector('details.feel'); if (f) { f.open = true; f.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80); }
+  }]);
+  if (weightOn(p)) body.push(['Weigh-In', ICON.scale, () => weighIn(p)]);
+  const items = [...food, ...act, ...body];
   const group = (name, list, start) => list.length ? `<p class="lbl qahead">${name}</p>
     <div class="qagrid">${list.map(([label, icon], i) => `<button class="cta2 qaitem" data-i="${start + i}">${icon}<span>${esc(label)}</span></button>`).join('')}</div>` : '';
-  const { el, close } = overlay(`<div class="qasheet"><h2>Quick Add</h2>${group('Food &amp; Drink', food, 0)}${group('Activity', act, food.length)}
-      <button class="cta" id="x" data-close>Close</button></div>`, { label: 'Quick Add' });
+  const { el, close } = overlay(`<div class="qasheet"><div class="qagrab" aria-hidden="true"></div>
+      <div class="row"><h2>Quick Add</h2><button class="cta2 qax" id="x" data-close aria-label="Close">✕</button></div>
+      ${group('Food &amp; Drink', food, 0)}${group('Activity', act, food.length)}${group('Body', body, food.length + act.length)}</div>`, { label: 'Quick Add' });
   el.classList.add('kiov');
   el.addEventListener('click', async e => {
     const b = e.target.closest('button');
-    if (!b || b.id === 'x' || e.target === el) return close();
+    if (!b) { if (!e.target.closest('.qasheet')) close(); return; } // a tap outside the panel closes it
+    if (b.id === 'x') return close();
     const it = items[+b.dataset.i]; if (!it) return; close(); await it[2]();
   });
 }
@@ -67,11 +79,14 @@ const ICON = {
   pill: svg('<rect x="3" y="9" width="18" height="7" rx="3.5"/><path d="M12 9v7"/>'),
   settings: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'),
   skills: svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
+  you: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.600 8 7"/>'),
   more: svg('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
   bolt: svg('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
   water: svg('<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>'),
   run: svg('<circle cx="15" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v5M6 12l3-4 4 1 3 4 3 1"/>'),
+  heart: svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.600-7 10-7 10z"/>'),
+  scale: svg('<rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8 9a5 5 0 0 1 8 0"/><path d="M12 9l1.5-2"/>'),
   moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
   close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
 };
@@ -159,10 +174,12 @@ async function drawNow() {
     : days >= 7 ? ['st-gold', `Gold aura · ${days}-day streak`] : ['', days ? `${days}-day streak` : 'Base form'];
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';
-  if (tab !== 'settings' && !list.some(([id]) => id === tab)) tab = tabs[p.id] = 'home';
+  if (tab !== 'settings' && tab !== 'you' && !list.some(([id]) => id === tab)) tab = tabs[p.id] = 'home';
+  // "You" (2.16): the phone's fifth tab lists the pages that don't fit in the bar (History, Skills) and the main settings.
+  const youPages = list.filter(x => !x[2] && ['history', 'skills'].includes(x[0]));
   // A screen that fails shows its error in the page (2.15); the bars and Settings keep working, so a backup can still be exported.
   let view;
-  try { view = tab === 'settings' ? await settingsView() : await scr[tab](); }
+  try { view = tab === 'settings' ? await settingsView() : tab === 'you' ? youView(days, youPages) : await scr[tab](); }
   catch (e) { console.error(e); view = { failed: true, html: `<section class="card" style="margin-top:24px"><h1>This screen hit a problem</h1>
     <p class="sub">${esc(e?.message || e)}</p><p class="note">Your data is untouched. Other screens still work, and Settings can export a backup.</p>
     ${tab === 'settings' ? '' : '<button class="cta" id="errSettings" style="margin-top:12px">Open Settings</button>'}</section>` }; }
@@ -179,7 +196,7 @@ async function drawNow() {
     </header>
     <main id="main">${view.html}${view.cta && !view.ctaShown ? `<button class="cta pagecta" id="pageCta">${esc(view.cta[0])}</button>` : ''}</main>`;
   try { view.bind?.($('#main')); } catch (e) { console.error(e); }
-  if (view.failed && $('#errSettings')) $('#errSettings').onclick = () => go('settings');
+  if (view.failed && $('#errSettings')) $('#errSettings').onclick = () => { openSettingsGroup('backup'); go('settings'); };
   drawnDay = today();
   // The page's own action at the bottom (2.8.2): Quick add stays a menu, so Save and Add are on the page too.
   if (view.cta && !view.ctaShown) $('#pageCta').onclick = () => view.cta[1]();
@@ -198,15 +215,10 @@ async function drawNow() {
       <button class="tb center" id="cta" aria-label="Quick add${action ? ': ' + esc(action[0]) + ' and more' : ''}" aria-haspopup="dialog"><span class="ki-btn">${ICON.plus}</span><span>Quick add</span></button>
       ${main.slice(2).map(t => tabBtn(t)).join('')}
       ${more.map(t => tabBtn(t, 'more-item')).join('')}
-      ${more.length ? `<button class="tb more-btn" id="moreTabs" ${inMore ? 'aria-current="page"' : ''} aria-label="More: ${esc(more.map(m => m[1]).join(', '))}">${ICON.more}<span>More</span></button>` : ''}</nav></div>`;
+      ${more.length ? `<button class="tb more-btn" data-tab="you" ${inMore || tab === 'you' ? 'aria-current="page"' : ''} aria-label="You: ${esc(more.map(m => m[1]).join(', '))}">${ICON.you}<span>You</span></button>` : ''}</nav></div>`;
   // The center button, "Quick add" since 2.8.1 (it was labelled with the first action), opens the Ki menu (2.3): this screen's action first, then quick logs.
   $('#cta').onclick = () => kiMenu(p, action, scr);
   if (!(await db.getMeta('kiHint'))) showKiHint();
-  if (more.length) $('#moreTabs').onclick = () => {
-    const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">More</h1><button class="cta2" id="x" data-close>Close</button></div>
-      <div class="moregrid">${more.map(([id, label]) => `<button class="card pick" data-go="${id}">${ICON[id] || ''}<b>${esc(label)}</b></button>`).join('')}</div>`, { label: 'More' });
-    el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; close(); if (b.dataset.go) go(b.dataset.go); });
-  };
   if (fk) document.querySelector(fk)?.focus({ preventScroll: true });
 }
 
@@ -235,7 +247,7 @@ async function chooseProfile() {
 
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.tab) go(b.dataset.tab);
+  if (b.dataset.tab) { if (b.dataset.tab === 'settings') openSettingsGroup(null); go(b.dataset.tab); }
   else if (b.dataset.hview && !b.closest('.overlay')) { setHomeView(b.dataset.hview); tabs[S.current] = 'home'; render().then(() => window.scrollTo(0, 0)); }
   else if (b.dataset.go && !b.closest('.overlay')) go(b.dataset.go);
   else if (b.dataset.ki !== undefined) { const v = toggleKi(); b.closest('.ki').classList.toggle('open', v); b.setAttribute('aria-expanded', v); }
@@ -243,7 +255,7 @@ document.addEventListener('click', e => {
     if (goku.busy) return toast('Finish your session first');
     if (S.profiles.length > 1) chooseProfile();
     else onboard({ cancellable: true }).then(np => np && open(np.id));
-  } else if (b.id === 'bk') go('settings');
+  } else if (b.id === 'bk') { openSettingsGroup('backup'); go('settings'); }
   else if (b.id === 'updLater') { update.dismissed = true; render(); }
   else if (b.id === 'updNow') applyUpdate();
   else if (b.dataset.why && WHY[b.dataset.why]) { const [t, html] = WHY[b.dataset.why](profile(), b.dataset.arg); ask(t, html, []); }

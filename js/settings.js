@@ -145,6 +145,45 @@ export function importFlow() {
   input.click();
 }
 
+// The profile a backup describes, built fresh for this phone (shared by Import → Add profile and the welcome screen's restore).
+function profileFromBackup(prof) {
+  const { lockRemember, ...rest } = prof, fresh = newProfile(prof.kind, prof.name);
+  return { ...fresh, ...Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)), accent: rest.accent || fresh.accent, modules: { ...fresh.modules, ...rest.modules },
+    settings: { ...fresh.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([, v]) => v !== null)) },
+    lock: { ...fresh.lock, remember: lockRemember } };
+}
+// "I have a backup" on the welcome screen (2.16): pick the file, see what's in it, set a passcode. Resolves with the profile, or null.
+export function restoreFirst() {
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'application/json,.json';
+    input.oncancel = () => resolve(null);
+    input.onchange = async () => {
+      const f = input.files[0]; if (!f) return resolve(null);
+      try {
+        if (f.size > 50 * 1024 * 1024) throw new Error('That file is too large to be a Goku backup.');
+        let obj;
+        try { obj = JSON.parse(await f.text()); } catch { throw new Error("This file isn't a Goku backup."); }
+        if (obj?.encrypted) {
+          const pass = await passphrase(false); if (!pass) return resolve(null);
+          try { obj = await decryptJSON(obj, pass); } catch { throw new Error("That passphrase didn't open this backup."); }
+        }
+        const { prof, entries, skipped, newer, madeBy } = parseExport(obj);
+        if (newer && !(await ask('This backup is from a newer Goku', `It was made by version ${esc(madeBy)}; this phone has ${esc(VERSION)}. Newer kinds of answers would be left out. Update Goku first if you can.`,
+          [{ label: 'Import anyway', value: true }]))) return resolve(null);
+        const days = entries.map(e => e.day).filter(d => d > '1970-01-01').sort();
+        if (!(await ask('Restore this backup?', `<b>${esc(prof.name)}</b> · ${esc(kindLabel(prof))}<br>${entries.length} entries${days.length ? `, from ${esc(days[0])} to ${esc(days.at(-1))}` : ''}
+          ${skipped ? `<br>${skipped} damaged entr${skipped === 1 ? 'y' : 'ies'} will be skipped.` : ''}<br><br>Next you choose a passcode for it on this phone.`, [{ label: 'Restore', value: true }]))) return resolve(null);
+        const p = profileFromBackup(prof);
+        await db.putMany('entries', entries); await saveProfile(p); await db.setMeta('seeded:' + p.id, true);
+        await showLock(p, { mode: 'create' });
+        resolve(p);
+      } catch (e) { await ask("Couldn't restore", esc(e.message || 'The file could not be read.'), []); resolve(null); }
+    };
+    input.click();
+  });
+}
+
 async function previewImport({ prof, entries, skipped, newer, madeBy }) {
   const cur = profile();
   if (newer && !(await ask('This backup is from a newer Goku', `It was made by version ${esc(madeBy)}; this phone has ${esc(VERSION)}. Newer kinds of answers would be left out. Update Goku first if you can.`,
@@ -175,10 +214,7 @@ async function previewImport({ prof, entries, skipped, newer, madeBy }) {
   const { lockRemember, ...rest } = prof;
   try {
     if (choice === 'add') {
-      const fresh = newProfile(prof.kind, prof.name);
-      const p = { ...fresh, ...Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)), accent: rest.accent || fresh.accent, modules: { ...fresh.modules, ...rest.modules },
-        settings: { ...fresh.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([, v]) => v !== null)) },
-        lock: { ...fresh.lock, remember: lockRemember } };
+      const p = profileFromBackup(prof);
       await db.putMany('entries', entries);
       await saveProfile(p);
       await db.setMeta('seeded:' + p.id, true);
@@ -280,7 +316,80 @@ function avatarSheet(p) {
 }
 
 // ---------- Settings screen ----------
+// Settings in groups (2.16, review 10): eight rows, each opening its own page, with a search box.
+// The full page is still built in one piece below; this picks which of its sections to show.
+const GROUPS = [
+  ['look', 'Profile and Look', /^(Profile|Skin|Theme)$/],
+  ['shows', 'What the App Shows', /^What the app shows$/],
+  ['training', 'Training', /^(Protein target|Duels|Sound)$/],
+  ['units', 'Units and Time', /^Units and time$/],
+  ['about', 'About You', /^About you$/],
+  ['backup', 'Backup and Health', /^(Backup|.* link · Apple Health)$/],
+  ['pass', 'Passcode and Profiles', /^(Passcode|Profiles on this phone)$/],
+  ['goku', 'About Goku', /^About$/],
+];
+let openGroup = null, findText = '';
+export const openSettingsGroup = g => { openGroup = g; findText = ''; };
+const plain = h => h.replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
 export async function settingsView() {
+  const p = profile(), full = await settingsFull();
+  const secs = (full.html.match(/<section class="card"[\s\S]*?<\/section>/g) || []).map(h => {
+    const label = plain(h.match(/<p class="lbl"[^>]*>([\s\S]*?)<\/p>/)?.[1] || '').trim();
+    return { h, label, g: GROUPS.find(([, , rx]) => rx.test(label))?.[0] || 'goku' };
+  });
+  if (openGroup && !GROUPS.some(g => g[0] === openGroup)) openGroup = null;
+  const age = backupAgeDays(p), mods = liveModules(p.kind), onN = mods.filter(([k]) => p.modules[k] !== false).length;
+  const asked = essentials(p).length;
+  const state = {
+    look: `${SKINS[skinOf(p)]?.name || ''} · ${themeName(p.settings.theme || 'capsule', THEMES[p.settings.theme] || THEMES.capsule)}`,
+    shows: `${onN} of ${mods.length} on`,
+    training: p.kind === 'engine' ? `${p.settings.proteinTarget ? p.settings.proteinTarget + ' g protein · ' : ''}Sound ${p.settings.sound !== false ? 'on' : 'off'}` : `Sound ${p.settings.sound !== false ? 'on' : 'off'}`,
+    units: `${p.units === 'metric' ? 'kg · cm · ml' : 'lb · in · oz'} · ${(p.tz || '').split('/').pop().replace(/_/g, ' ')}`,
+    about: `${asked} answers your coach uses`,
+    backup: age === null ? 'Never backed up' : age === 0 ? 'Backed up today' : `Backed up ${age} day${age === 1 ? '' : 's'} ago`,
+    pass: `${S.profiles.length} profile${S.profiles.length === 1 ? '' : 's'} on this phone`,
+    goku: `Version ${VERSION}`,
+  };
+  const row = ([id, name]) => `<li><button class="itemrow" data-sgroup="${id}"><span><b>${name}</b><br><span class="chain" data-raw="">${esc(state[id])}</span></span><span class="chev" aria-hidden="true">›</span></button></li>`;
+  const q = findText.trim().toLowerCase();
+  const hits = q ? secs.filter(x => plain(x.h).toLowerCase().includes(q)) : [];
+  const html = openGroup
+    ? `<div class="row"><button class="cta2" id="sback" aria-label="Back to Settings">‹ Settings</button></div><h1>${GROUPS.find(g => g[0] === openGroup)[1]}</h1>${secs.filter(x => x.g === openGroup).map(x => x.h).join('')}`
+    : `<h1>Settings</h1><input type="search" id="sfind" placeholder="Search settings" aria-label="Search settings" value="${esc(findText)}" style="width:100%;margin-bottom:12px">
+      ${q ? (hits.length ? hits.map(x => x.h).join('') : '<div class="empty"><p>Nothing in Settings matches that.</p></div>')
+        : `<section class="card"><ul class="list">${GROUPS.slice(0, 5).map(row).join('')}</ul></section><section class="card"><ul class="list">${GROUPS.slice(5).map(row).join('')}</ul></section>`}`;
+  return { html, bind(root) {
+    full.bind(root);
+    root.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.sgroup) { openGroup = b.dataset.sgroup; window.goku.render().then(() => window.scrollTo(0, 0)); }
+      if (b.id === 'sback') { openGroup = null; window.goku.render().then(() => window.scrollTo(0, 0)); }
+    });
+    let timer; root.querySelector('#sfind')?.addEventListener('input', e => { findText = e.target.value; clearTimeout(timer);
+      timer = setTimeout(async () => { await window.goku.render(); const i = document.querySelector('#sfind'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 250); });
+  } };
+}
+
+// "You" (2.16, review 10): the fifth tab on a phone. Your name and streak, then History and the settings people open most.
+export function youView(streakDays, pages = [['history', 'History']]) {
+  const SUBS = { history: 'Calendar, sessions and records', skills: 'Each skill from learning to competition-ready' };
+  const p = profile(), age = backupAgeDays(p), mods = liveModules(p.kind), onN = mods.filter(([k]) => p.modules[k] !== false).length;
+  const row = (go, name, sub) => `<li><button class="itemrow" data-you="${go}"><span><b>${name}</b><br><span class="chain" data-raw="">${esc(sub)}</span></span><span class="chev" aria-hidden="true">›</span></button></li>`;
+  return { html: `<h1>You</h1>
+    <section class="card"><div class="row"><span class="row" style="justify-content:flex-start;gap:12px">${avatarHTML(p, 48)}<span><b style="font-size:1.25rem">${esc(p.name)}</b><br><span class="sub">${esc(kindLabel(p))}</span></span></span>
+      <span style="text-align:right"><b class="num" style="font-size:1.25rem">${streakDays}</b><br><span class="sub">day streak</span></span></div></section>
+    <section class="card"><ul class="list">
+      ${pages.map(([id, name]) => row('page:' + id, esc(name), SUBS[id] || '')).join('')}
+      ${row('look', 'Look', `${SKINS[skinOf(p)]?.name || ''} · ${themeName(p.settings.theme || 'capsule', THEMES[p.settings.theme] || THEMES.capsule)}`)}
+      ${row('shows', 'What the App Shows', `${onN} of ${mods.length} on`)}
+      ${row('backup', 'Backup', age === null ? 'Never backed up' : age === 0 ? 'Backed up today' : `Backed up ${age} day${age === 1 ? '' : 's'} ago`)}
+      ${row('all', 'All Settings', 'Units, passcode, sound and more')}</ul></section>`,
+    bind(root) { root.addEventListener('click', e => { const b = e.target.closest('[data-you]'); if (!b) return; const k = b.dataset.you;
+      if (k.startsWith('page:')) return window.goku.go(k.slice(5));
+      openSettingsGroup(k === 'all' ? null : k); window.goku.go('settings'); }); } };
+}
+
+async function settingsFull() {
   const p = profile();
   const others = S.profiles.filter(x => x.id !== p.id);
   const age = backupAgeDays(p);
@@ -311,6 +420,8 @@ export async function settingsView() {
     <section class="card"><p class="lbl">What the app shows</p>
       ${liveModules(p.kind).map(([k, n, d]) => `<label class="toggle"><span><b>${n}</b><br><span class="sub">${d}</span></span>
         <input type="checkbox" data-mod="${k}" ${p.modules[k] !== false ? 'checked' : ''}></label>`).join('')}
+      ${p.kind === 'perf' ? `<label class="toggle"><span><b>Calorie target and waist size</b><br><span class="sub">Adds "Set a calorie target" and waist tracking to Nutrition. Off unless you turn it on.</span></span>
+        <input type="checkbox" data-body ${p.settings.bodyGoals === true || p.settings.kcalTarget || p.settings.trackWaist ? 'checked' : ''}></label>` : ''}
       ${soon.length ? `<p class="lbl" style="margin-top:14px">Coming soon</p><p class="sub">${soon.map(m => esc(m[1])).join(' · ')}</p>` : ''}
       <button class="cta2" id="editHome" style="width:100%;margin-top:12px">Arrange Home cards</button>
     </section>
@@ -378,6 +489,7 @@ export async function settingsView() {
       root.addEventListener('change', async e => {
         const t = e.target;
         if (t.id === 'nm' && t.value.trim()) { p.name = capName(t.value.slice(0, 24)); await saveProfile(p); window.goku.render(); }
+        if ('body' in t.dataset) { p.settings.bodyGoals = t.checked; if (!t.checked) { p.settings.kcalTarget = null; p.settings.trackWaist = false; } await saveProfile(p); window.goku.render(); }
         if ('duel' in t.dataset) { p.settings.duel = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.fb) { p.settings[t.dataset.fb] = t.checked; await saveProfile(p); window.goku.render(); }
         if (t.dataset.mod) { p.modules[t.dataset.mod] = t.checked; await saveProfile(p); window.goku.render(); }

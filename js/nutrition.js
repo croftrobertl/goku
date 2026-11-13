@@ -89,6 +89,8 @@ export async function nutritionView() {
   const items = [...food.items, ...legacyItems(gut)];
   const tot = sumN(items);
   const target = p.settings.kcalTarget || null;
+  // Calorie targets and waist size are off on Gymnastics and practice-log profiles until turned on in Settings (2.16, review 10); a target or waist already in use keeps showing.
+  const bodyOn = p.kind !== 'perf' || p.settings.bodyGoals === true || !!target || p.settings.trackWaist === true;
   const own = p.settings.proteinPer === 'meal' ? null : p.settings.proteinTarget;
   const range = fuelRanges(p, 0);
   const pGoal = own || range?.aim || null;
@@ -118,7 +120,7 @@ export async function nutritionView() {
         ${g.amWaist != null || g.pmWaist != null || p.settings.trackWaist ? `<p class="lbl" style="margin-top:12px">Waist (${lengthUnit(p) === 'cm' ? 'cm' : 'inches'})</p>
           <div class="waist"><span>Morning</span>${stepper('amWaist', length(g.amWaist, p) ?? 'none', 'morning waist')}
           <span>Evening</span>${stepper('pmWaist', length(g.pmWaist, p) ?? 'none', 'evening waist')}</div>`
-          : '<button class="link" id="trackWaist" style="margin-top:8px">Also track waist size</button>'}`;
+          : bodyOn ? '<button class="link" id="trackWaist" style="margin-top:8px">Also track waist size</button>' : ''}`;
 
   const mealCard = ([k, label]) => {
     const list = items.map((it, idx) => [it, idx]).filter(([it]) => (it.meal || 'snacks') === k);
@@ -137,17 +139,13 @@ export async function nutritionView() {
     <div class="cols"><div>
       <section class="card sum" style="margin-top:12px">
         <div class="ringd">${calRing(tot.kcal || 0, target, day === t ? 'today' : 'on ' + prettyDay(day))}
-        ${pGoal ? kiBar('Protein', tot.p || 0, pGoal, ' g', tot.p >= pGoal ? 'Protein goal met' : `${Math.round(pGoal - (tot.p || 0))} g to go`, true) : ''}
         <div class="macros">
-          <div class="mp"><b class="num">${pGoal ? `${Math.round(tot.p || 0)}<small>/${pGoal}</small>` : fmt(tot.p)}</b><span>Protein</span></div>
+          <div class="mp"><b class="num">${fmt(tot.p)}</b><span>Protein</span></div>
           <div class="mc"><b class="num">${fmt(tot.c)}</b><span>Carbs</span></div>
           <div class="mf"><b class="num">${fmt(tot.f)}</b><span>Fat</span></div>
           <div class="mfb"><b class="num">${fmt(tot.fib)}</b><span>Fiber</span></div></div>
-        ${macroK ? `<div class="split" role="img" aria-label="Calories from protein ${shares[0]}%, carbohydrate ${shares[1]}%, fat ${shares[2]}%">
-          <i class="sp" style="width:${shares[0]}%"></i><i class="sc" style="width:${shares[1]}%"></i><i class="sf" style="width:${shares[2]}%"></i></div>
-          <p class="sub" style="text-align:center">Protein ${shares[0]}% · Carbs ${shares[1]}% · Fat ${shares[2]}% of calories</p>` : ''}
         ${range ? `<p class="sub" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
-        <div class="row" style="justify-content:center;margin-top:8px;gap:8px"><button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>
+        <div class="row" style="justify-content:center;margin-top:8px;gap:8px">${bodyOn ? `<button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>` : ''}
           <button class="link" id="dayDetail">All nutrients ›</button></div></div>
         <div class="qadd"><button class="cta2" id="addFood">+ Food</button><button class="cta2" data-fl="${volumeSteps(p)[1][1]}">+ Water</button>
           <button class="cta2" id="scanFood">${BARCODE}<span>Scan</span></button></div>
@@ -258,11 +256,16 @@ function patternCard(list, well = true) {
     return `${head}<p class="sub">Once an answer in How You Feel Today has 14 days, including 3 bad ones (like bloating 6 or more${well ? ', or energy 1 or 2' : ''}), this lists the foods and supplements that show up more often on those days.
     So far: ${most} answered day${most === 1 ? '' : 's'}.</p></section>`;
   }
-  return `${head}${ready.map(g => `<p class="lbl" style="margin-top:12px">${esc(g.bad[0].toUpperCase() + g.bad.slice(1))}</p>
-    <p class="sub">Days with ${esc(g.rule)}: ${g.high} of your ${g.days} answered days.</p>
-    ${g.rows.length ? `<ul class="list">${g.rows.map(r => `<li><span><b>${esc(r.name)}</b><br><span class="chain">${r.h} of ${g.high} ${esc(g.bad)} (${pctTxt(r.h, g.high)}) · ${r.o} of ${g.other} other days (${pctTxt(r.o, g.other)})</span></span></li>`).join('')}</ul>`
+  // One row per pattern (2.16, review 10): how many days and the top matches; the details open on tap.
+  const cap = t => t[0].toUpperCase() + t.slice(1);
+  const gist = g => g.rows.length ? g.rows.slice(0, 2).map(r => r.name).join(', ') + (g.rows.length > 2 ? ` and ${g.rows.length - 2} more` : '')
+    : g.sleep && Math.abs(g.sleep.bad - g.sleep.other) >= 0.5 ? `${g.sleep.bad < g.sleep.other ? 'less' : 'more'} sleep the night before` : 'nothing stands out yet';
+  return `<section class="card"><p class="lbl">Patterns</p>${ready.map(g => `<details class="fold prow"><summary><span><b>${esc(cap(g.bad))}</b><br>
+      <span class="chain" data-raw="">${g.high} of ${g.days} days · ${esc(gist(g))}</span></span></summary>
+    <p class="sub">Days with ${esc(g.rule)}.</p>
+    ${g.rows.length ? `<ul class="list">${g.rows.map(r => `<li><span><b>${esc(r.name)}</b><br><span class="chain">${r.h} of ${g.high} ${esc(g.bad)} · ${r.o} of ${g.other} other days</span></span></li>`).join('')}</ul>`
       : `<p style="margin-top:6px">No food or supplement shows up more on ${esc(g.bad)} yet.</p>`}
-    ${g.sleep ? `<p class="sub" style="margin-top:6px">Sleep the night before: ${round(g.sleep.bad, 1)} h on ${esc(g.bad)}, ${round(g.sleep.other, 1)} h on other days.</p>` : ''}`).join('')}
+    ${g.sleep ? `<p class="sub" style="margin:6px 0 10px">Sleep the night before: ${round(g.sleep.bad, 1)} h on ${esc(g.bad)}, ${round(g.sleep.other, 1)} h on other days.</p>` : ''}</details>`).join('')}
     <p class="note">Showing up together isn't proof that one causes the other. Talk with your doctor or a dietitian before cutting foods out.</p></section>`;
 }
 

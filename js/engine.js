@@ -122,19 +122,21 @@ const depthText = d => d === 1 ? 'one stage per set' : d === 2 ? 'each set to fa
 const capText = (rounds, rest, cap) => `${rounds} rounds · ${rest} s rest · <span class="nw">up to ${cap} min</span>`;
 export async function trainByFeel(circuit) {
   const p = profile(), levels = [10, 20, 50, 100];
-  const sessions = await sessionsInOrder();
+  const sessions = await sessionsInOrder(), last = lastOf(sessions);
   let g = p.settings.gravity || 50;
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Today's workout</h1><button class="cta2" id="x" data-close>Close</button></div>
     <div class="scroll" id="tf"></div>
     <button class="cta" id="go">Start workout</button>`, { label: "Today's workout" });
   const draw = () => {
     const [rounds, rest, cap, depth] = GRAVITY[g], ghost = ghostFor(sessions, g);
-    el.querySelector('#tf').innerHTML = `<section class="card pickcard" style="margin-top:8px"><p class="lbl" style="text-align:left">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'} <span data-raw>· ${circuit.length} move${circuit.length === 1 ? '' : 's'}</span></p>
-        <p class="big" style="font-size:1.6rem;margin:4px 0">${lvl(g)}</p><p>${capText(rounds, rest, cap)}</p>
-        <p class="sub">${depthText(depth)[0].toUpperCase() + depthText(depth).slice(1)}. ${ghost ? `Ghost to beat: ${sessionTotal(ghost)} reps on ${prettyDay(ghost.day)}.` : `Your first ${lvl(g)} workout sets the reps to beat.`}</p></section>
-      <p class="lbl" style="margin-top:14px">Level</p>
-      <div class="seg grav" role="group" aria-label="Level">${levels.map(x => `<button data-lv="${x}" aria-pressed="${x === g}">${lvl(x)}</button>`).join('')}</div>
-      <p class="sub" style="text-align:center;margin-top:8px">${levels.map(x => `<span class="nw">${lvl(x)}: ${GRAVITY[x][0]} rounds, ${GRAVITY[x][1]} s rest</span>`).join('<br>')}</p>`;
+    // 2.16 (review 10): the level on top with one line about it, then the moves with last time's reps, so you know what you're about to do and what to beat.
+    const moveRow = e => { const st = e.data.stages.slice(0, depth), got = st.map(x => last[e.id + '|' + x.label]?.reps).filter(Boolean);
+      return `<li><span><b data-raw>${esc(e.data.name)}</b><br><span class="chain" data-raw>${got.length ? `Last time ${got.join(', ')} · beat ${got[0]}` : esc(st.map(x => x.label).join(' → ')) || 'New for you'}</span></span></li>`; };
+    el.querySelector('#tf').innerHTML = `<div class="seg grav" role="group" aria-label="Level" style="margin-top:8px">${levels.map(x => `<button data-lv="${x}" aria-pressed="${x === g}">${lvl(x)}</button>`).join('')}</div>
+      <p class="sub" style="text-align:center;margin-top:8px" data-raw>${lvl(g)}: ${capText(rounds, rest, cap)} · ${depthText(depth)}</p>
+      <section class="card" style="margin-top:10px"><p class="lbl">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'} <span class="sub" data-raw>· ${circuit.length} move${circuit.length === 1 ? '' : 's'}</span></p>
+        <ul class="list">${circuit.map(moveRow).join('')}</ul></section>
+      <p class="sub" style="text-align:center;margin-top:10px" data-raw>${ghost ? `Ghost to beat: ${sessionTotal(ghost)} reps in ${Math.round(minutes(ghost))} min on ${prettyDay(ghost.day)}.` : `Your first ${lvl(g)} workout sets the reps to beat.`}</p>`;
   };
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
@@ -195,6 +197,10 @@ export async function home() {
   const showProg = prog && p.coach?.progSeen !== prog.latest.id && !(fresh && feel.v === 'hard');
   const nextG = levels[levels.indexOf(g) + 1];
   const coachHTML = coachCard(p, ctx);
+  // This week at a glance (2.16, review 10): Sunday to Saturday. Trained, rest, today, still to come. A tap opens History.
+  const trainedDays = new Set(all.filter(e => e.type === 'session' || e.type === 'activity').map(e => e.day)), restDays = new Set(all.filter(e => e.type === 'rest').map(e => e.day));
+  const weekRow = `<button class="wkrow" data-go="history" aria-label="This week: ${[0, 1, 2, 3, 4, 5, 6].filter(i => trainedDays.has(addDays(wk, i))).length} training days so far. Open History">${[0, 1, 2, 3, 4, 5, 6].map(i => { const d = addDays(wk, i);
+    return `<span>${'SMTWTFS'[i]}<i class="${trainedDays.has(d) ? 'done' : restDays.has(d) ? 'rest' : ''}${d === t ? ' now' : ''}"></i></span>`; }).join('')}</button>`;
 
   return {
     cta: circuit.length ? [W('enter'), () => trainByFeel(circuit)] : null, ctaShown: true, // Enter the chamber is on the page already
@@ -259,7 +265,7 @@ export async function home() {
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
       <p class="note">Each set taken to failure counts once, drops included.</p>
     </section>` : ''}`]
-    ], { strip: kiGauge(p, all, t), rows: {
+    ], { strip: kiGauge(p, all, t) + weekRow, rows: {
       coach: ['Coach', /coachSetup/.test(coachHTML) ? 'Make Goku yours · about 3 minutes' : 'One quick question'],
       circuit: ['Circuit', circuit.length ? circuit.map(e => e.data.name).join(' · ') : 'Your library is empty'],
       activity: ['Also today', todayActs.length ? `${Math.round(minutesOf(todayActs))} min logged` : 'Soccer, runs, games'],
@@ -367,18 +373,20 @@ function openRunner(run) {
       <span class="num sub" id="clock">00:00</span>
       <span class="endwrap"><button class="cta2 kame" id="end" aria-label="Finish: hold to finish"><span>Finish</span></button><small class="endhint" aria-hidden="true">Hold to finish</small></span>
     </div>
-    <p class="sub" id="where" style="text-align:center;margin-top:8px"></p>
-    <p style="text-align:center"><button class="link" id="howEx" data-raw hidden></button></p>
+    <div class="rdots" id="rdots" aria-hidden="true"></div>
+    <p class="sub" id="where" style="text-align:center;margin:0"></p>
     <p class="devstat" id="dev" aria-live="polite"></p>
     <button class="tap" id="tap"><span>
-      <span class="lbl" id="stage" data-raw></span>
+      <span class="exname" id="ex" data-raw></span>
+      <span class="sub" id="stage" data-raw></span>
       <span class="reps num" id="reps" aria-live="polite">0</span>
-      <span class="sub" id="ex"></span><span class="sub lastline" id="last" data-raw></span></span></button>
+      <span class="sub lastline" id="last" data-raw></span></span></button>
     <div class="wrow" id="wrow" role="group" aria-label="Weight for this stage">
       <button class="cta2" id="wDown" aria-label="Less weight">−</button><b class="num" id="wval"></b><button class="cta2" id="wUp" aria-label="More weight">+</button></div>
     <p class="sub plates" id="plates" data-raw></p>
-    <div class="ghost" id="ghost"></div>
-    <button class="cta" id="next" data-raw style="margin-top:12px"></button>`, { label: 'Session in progress', id: 'runner' });
+    <div class="ghost" id="ghost"><div class="row grace" id="grace"><span><b>You</b> <span class="num" id="gyou">0</span></span><span>Ghost <span class="num" id="gghost">0</span></span></div>
+      <div class="gbar" id="gbar" aria-hidden="true"><i id="gfill"></i><i class="gmark" id="gmark"></i></div><span id="gnote" data-raw></span></div>
+    <div class="row runfoot"><button class="cta2" id="howEx" data-raw hidden>? How</button><button class="cta" id="next" data-raw></button></div>`, { label: 'Session in progress', id: 'runner' });
   const $ = s => el.querySelector(s);
 
   // Every change is written straight away; a failed write is retried once and reported.
@@ -433,31 +441,40 @@ function openRunner(run) {
       $('#dev').classList.toggle('warn', !awake() || (p.settings.sound !== false && !soundReady()));
     }
   }
+  // The screen redraws four times a second for the clock, so each line is written only when its text changes (2.16).
+  const put = (sel, v) => { const n = $(sel); if (n.textContent !== v) n.textContent = v; };
+  const attr = (sel, k, v) => { const n = $(sel); if (n.getAttribute(k) !== v) n.setAttribute(k, v); };
+  let dotsFor = '';
   function draw() {
     devStatus();
     const t = Date.now() - run.startedAt;
     const capLeft = run.cap * 60000 - t;
     if (capLeft <= 0 && !capBeeped) { capBeeped = true; beep(660, 260, 2); announce('Time cap reached. Finish when you are ready.'); }
-    $('#clock').textContent = clock(t) + (capLeft > 0 ? ' · cap ' + clock(capLeft) : ' · cap reached');
-    $('#where').textContent = `Round ${run.round} of ${run.rounds} · exercise ${run.ex + 1} of ${run.plan.length}`;
+    put('#clock', String(clock(t) + (capLeft > 0 ? ' · cap ' + clock(capLeft) : ' · cap reached')));
+    put('#where', String(`Round ${run.round} of ${run.rounds} · exercise ${run.ex + 1} of ${run.plan.length}`));
+    const dk = run.round + '/' + run.rounds;
+    if (dotsFor !== dk) { dotsFor = dk; $('#rdots').innerHTML = Array.from({ length: run.rounds }, (_, i) => `<i class="${i + 1 < run.round ? 'done' : i + 1 === run.round ? 'now' : ''}"></i>`).join(''); }
+    // You against the ghost as a race bar (2.16, review 10): your reps fill it, a mark shows where the ghost was at this minute.
     if (run.ghost) {
-      const g = run.ghost.filter(x => x <= t / 1000).length;
-      const diff = total() - g;
-      $('#ghost').innerHTML = diff >= 0 ? `Ghost: you're <b class="num">${diff}</b> reps ahead` : `Ghost: <b class="num">${-diff}</b> reps behind`;
-    } else $('#ghost').textContent = `No ${lvl(run.gravity)} ghost yet. This workout sets the pace for next time.`;
+      const g = run.ghost.filter(x => x <= t / 1000).length, me = total(), most = Math.max(run.ghost.length, me, 1);
+      put('#gyou', String(me)); put('#gghost', String(g)); put('#gnote', '');
+      const fw = Math.round(me / most * 1000) / 10 + '%', gw = Math.round(g / most * 1000) / 10 + '%';
+      if ($('#gfill').style.width !== fw) $('#gfill').style.width = fw;
+      if ($('#gmark').style.left !== gw) $('#gmark').style.left = gw;
+      attr('#ghost', 'aria-label', me >= g ? `You are ${me - g} reps ahead of your ghost` : `You are ${g - me} reps behind your ghost`);
+    } else { $('#grace').hidden = true; $('#gbar').hidden = true; put('#gnote', `No ${lvl(run.gravity)} ghost yet. This workout sets the pace for next time.`); }
     $('#undo').disabled = !history.length;
 
     if (run.phase === 'rest') {
       const left = run.restUntil - Date.now();
-      $('#reps').setAttribute('aria-live', 'off');
-      $('#stage').textContent = 'Rest · next: ' + curEx().name;
-      $('#reps').textContent = clock(left);
-      $('#ex').textContent = run.recNote ? run.recNote + '. Rest ends on its own.' : 'Breathe. Rest ends on its own.';
-      $('#wrow').hidden = true; $('#last').textContent = ''; $('#plates').textContent = '';
-      { const how = moveFor(curEx()); $('#howEx').hidden = !how; if (how) $('#howEx').textContent = `? Next: how to do ${curEx().name}`; }
-      $('#tap').setAttribute('aria-label', `Resting, ${Math.ceil(left / 1000)} seconds left`);
+      attr('#reps', 'aria-live', 'off');
+      put('#ex', 'Rest'); put('#stage', 'Next: ' + curEx().name);
+      put('#reps', String(clock(left)));
+      $('#wrow').hidden = true; put('#last', run.recNote ? run.recNote + '. Rest ends on its own.' : 'Breathe. Rest ends on its own.'); put('#plates', '');
+      { const how = moveFor(curEx()); $('#howEx').hidden = !how; if (how) attr('#howEx', 'aria-label', `How to do the next exercise, ${curEx().name}`); }
+      attr('#tap', 'aria-label', `Resting, ${Math.ceil(left / 1000)} seconds left`);
       $('#tap').classList.add('resting');
-      $('#next').textContent = 'Skip Rest';
+      put('#next', String('Skip Rest'));
       if (left <= 10000 && left > 0 && !said10) { said10 = true; announce('10 seconds of rest left'); }
       if (left <= 0) {
         if (!restBeeped) {
@@ -474,20 +491,20 @@ function openRunner(run) {
     ensureSet();
     const st = run.cur.stages[run.stage];
     $('#tap').classList.remove('resting');
-    $('#reps').setAttribute('aria-live', 'polite');
-    $('#stage').textContent = run.cur.stages.length > 1 ? `Stage ${run.stage + 1} of ${run.cur.stages.length} · ${st.label}` : st.label;
-    $('#reps').textContent = st.reps;
-    $('#ex').textContent = curEx().name;
+    attr('#reps', 'aria-live', 'polite');
+    put('#stage', String(run.cur.stages.length > 1 ? `Stage ${run.stage + 1} of ${run.cur.stages.length} · ${st.label}` : st.label));
+    put('#reps', String(st.reps));
+    put('#ex', String(curEx().name));
     $('#wrow').hidden = false;
-    $('#wval').textContent = st.load ? `${weight(st.load, p)} ${weightUnit(p)}` : 'Bodyweight';
+    put('#wval', String(st.load ? `${weight(st.load, p)} ${weightUnit(p)}` : 'Bodyweight'));
     $('#wDown').disabled = !st.load;
     const prev = run.last?.[curEx().id + '|' + st.label];
-    $('#last').textContent = prev ? `Last time: ${prev.reps} reps${prev.load ? ` at ${weight(prev.load, p)} ${weightUnit(p)}` : ''} · Beat it with ${prev.reps + 1}` : '';
-    $('#plates').textContent = st.load && isBarbell(curEx()) ? plateText(st.load, p) : '';
+    put('#last', prev ? `Last time ${prev.reps}${prev.load ? ` at ${weight(prev.load, p)} ${weightUnit(p)}` : ''} · beat it with ${prev.reps + 1}` : st.reps ? '' : 'Tap anywhere to count');
+    put('#plates', String(st.load && isBarbell(curEx()) ? plateText(st.load, p) : ''));
     const how = moveFor(curEx()); // the catalog drawing and steps, when this exercise has them
-    $('#howEx').hidden = !how; if (how) $('#howEx').textContent = `? How to do ${curEx().name}`;
-    $('#tap').setAttribute('aria-label', `Add one rep. ${st.reps} so far`);
-    $('#next').textContent = run.stage < run.cur.stages.length - 1 ? 'Drop to ' + run.cur.stages[run.stage + 1].label : 'Set Done';
+    $('#howEx').hidden = !how; if (how) attr('#howEx', 'aria-label', `How to do ${curEx().name}`);
+    attr('#tap', 'aria-label', `Add one rep. ${st.reps} so far`);
+    put('#next', String(run.stage < run.cur.stages.length - 1 ? 'Drop to ' + run.cur.stages[run.stage + 1].label : 'Set Done'));
   }
 
   function endSet() {
