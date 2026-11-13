@@ -10,7 +10,7 @@ import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from 
 import { fuelRanges } from './fuel.js';
 import { whyBtn } from './why.js';
 import { feelPatterns } from './insights.js';
-import { loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, lookupBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
+import { splitMeal, chainOf, startPortion, loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, lookupBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
 import { scanBarcode } from './scan.js';
 import { suppCard, bindSupps, recentSupps, suppNamed } from './supplements.js';
 
@@ -30,6 +30,7 @@ const wellScale = (g, [k, label, lo, hi]) => `<div class="q"><p class="lbl">${la
   <div class="seg" role="group" aria-label="${label}">${[1, 2, 3, 4, 5].map(v => `<button data-well="${k}" data-v="${v}" aria-pressed="${g[k] === v}">${v}</button>`).join('')}</div>
   <div class="row note ends" style="margin-top:4px"><span>${lo}</span><span>${hi}</span></div></div>`;
 
+let chainSort = 'best'; // how a restaurant's menu is sorted in food search; kept while the app is open
 let navDay = null, navFor = null, hist = null; // navFor: the profile the chosen day belongs to
 export const forgetHistory = () => { hist = null; };
 export const resetNutritionDay = () => { navDay = null; hist = null; };
@@ -312,23 +313,61 @@ function foodSheet(meal, day, { scan = false } = {}) {
   const $ = s => el.querySelector(s);
   const row = (f, key, sub) => `<li><button class="itemrow" data-pick="${esc(key)}"><span><b>${esc(f.name)}</b>${f.brand ? ` <span class="sub">${esc(f.brand)}</span>` : ''}<br>
     <span class="chain">${esc(sub)}</span></span><span class="num">${f.kc ?? ''}</span></button></li>`;
-  const firstPortion = f => { const ps = portionsOf(f); return ps[defaultPortion(ps)]; };
+  const firstPortion = f => { const ps = portionsOf(f); return ps[startPortion(f, ps)]; };
   const sub = f => { const po = firstPortion(f); const k = kcalOf(scale(f.per, po.g)); f.kc = k == null ? '' : k; return po.label; };
   let shown = [], amt = { q: '', qty: null, unit: '' };
+  // Type a whole meal (2.17): each part is matched and shown for checking; nothing is added until Add All.
+  let multi = []; const fixed = new Map(); // fixed: a part's food or amount after the user changed it
+  const matchPart = (text, list) => {
+    if (fixed.has(text)) return fixed.get(text);
+    // Plain foods first: "toast" means bread, not a restaurant's Texas Toast, unless the part names the restaurant or brand.
+    const a = parseAmount(text), found = search(list, a.q, 40), plainFirst = !chainOf(list, a.q);
+    const alts = (plainFirst ? [...found.filter(f => !['chain', 'brand'].includes(f.src)), ...found.filter(f => ['chain', 'brand'].includes(f.src))] : found).slice(0, 5), f = alts[0];
+    if (!f) return { text, alts: [], n: 0, item: null };
+    const ps = portionsOf(f), pi = portionFor(ps, a.unit);
+    return { text, alts, n: 0, item: itemFrom(f, a.qty || 1, ps[pi >= 0 ? pi : startPortion(f, ps)], meal) };
+  };
+  const drawMulti = parts => {
+    multi = parts.map(t => matchPart(t, [...mine, ...all]));
+    const ok = multi.filter(m => m.item), tot = sumN(ok.map(m => m.item));
+    $('#fsugg').innerHTML = '';
+    $('#fstat').textContent = ok.length ? `Found ${ok.length} of ${multi.length} foods · ${kcalOf(tot) ?? 0} cal. Check each one, then add them together.` : 'None of those matched. Try one food at a time.';
+    $('#fres').innerHTML = `<ul class="list">${multi.map((m, i) => m.item ? `<li><button class="itemrow" data-mrow="${i}"><span><span class="chain" data-raw>“${esc(m.text)}”</span><br><b>${esc(tidyName(m.item.name, m.item.src))}</b>${m.item.brand ? ` <span class="sub">${esc(m.item.brand)}</span>` : ''}<br>
+        <span class="chain" data-raw>${esc(amountText(m.item))} · tap to change the amount</span></span><span class="num">${kcalOf(m.item.n) ?? ''}</span></button>
+        ${m.alts.length > 1 ? `<button class="cta2 rowedit" data-mswap="${i}" aria-label="Not ${esc(m.item.name)}? Show another match for ${esc(m.text)}">Swap</button>` : ''}</li>`
+      : `<li><span><span class="chain" data-raw>“${esc(m.text)}”</span><br><b>No match</b><br><span class="chain">Left out. Search it on its own, or add it from its label.</span></span></li>`).join('')}</ul>
+      ${ok.length ? `<button class="cta" id="addAll" style="margin-top:12px">Add ${ok.length === 1 ? 'It' : `All ${ok.length}`} to ${esc(mealName(meal))}</button>` : ''}`;
+  };
   const draw = () => {
     $('#tabs').innerHTML = q ? '' : [['recent', 'Recent'], ['mine', 'My foods'], ['meals', 'Meals']].map(([k, n]) => `<button data-ftab="${k}" aria-pressed="${tab === k}">${n}</button>`).join('');
     if (q) {
       if (!all) { $('#fstat').textContent = failed ? "The food list couldn't load. Check your connection once, then it works offline." : 'Loading the food list…'; if (failed) { failed = false; loadFoods().then(list => { all = list; draw(); }).catch(() => { failed = true; draw(); }); } return; }
       if (q.length < 2) { $('#fstat').textContent = 'Keep typing…'; $('#fsugg').innerHTML = ''; $('#fres').innerHTML = ''; return; } // one letter matches nearly all 125,000 foods
+      const parts = splitMeal([...mine, ...all], q);
+      if (parts.length > 1) return drawMulti(parts);
       amt = parseAmount(q);
       shown = search([...mine, ...all], amt.q, 60);
+      // A restaurant's menu can be sorted (2.17): by what fits the calories left today, by protein, or by name.
+      const chain = chainOf([...mine, ...all], amt.q), sortable = chain && shown.filter(f => f.src === 'chain' && f.brand === chain).length > 1;
+      const eaten = sumN(thisDay), kLeft = p.kind !== 'perf' && p.settings.kcalTarget ? p.settings.kcalTarget - (eaten.kcal || 0) : null;
+      const pLeft = p.settings.proteinTarget && p.settings.proteinPer !== 'meal' ? Math.max(0, p.settings.proteinTarget - (eaten.p || 0)) : null;
+      if (sortable && chainSort !== 'best') {
+        const own = shown.filter(f => f.src === 'chain' && f.brand === chain).map(f => { const po = firstPortion(f), n = scale(f.per, po.g); return { f, k: n.kcal ?? 0, pr: n.p ?? 0 }; });
+        if (chainSort === 'fits' && kLeft != null) own.sort((a, b) => (a.k <= kLeft ? 0 : 1) - (b.k <= kLeft ? 0 : 1) || (a.k <= kLeft ? b.pr - a.pr || a.k - b.k : a.k - b.k));
+        else if (chainSort === 'az') own.sort((a, b) => a.f.name.localeCompare(b.f.name));
+        else own.sort((a, b) => b.pr - a.pr);
+        shown = Object.assign([...own.map(x => x.f), ...shown.filter(f => !(f.src === 'chain' && f.brand === chain))], { suggest: shown.suggest });
+      }
+      const sortPills = sortable ? `<div class="pills sugg" role="group" aria-label="Sort ${esc(chain)}'s menu" style="margin:0 0 8px">${[['best', 'Best match'], ...(kLeft != null ? [['fits', "Fits what's left"]] : []), ['protein', 'Most protein'], ['az', 'A–Z']]
+        .map(([k, n]) => `<button data-csort="${k}" aria-pressed="${(chainSort === 'fits' && kLeft == null ? 'best' : chainSort) === k}" data-raw>${n}</button>`).join('')}</div>
+        ${chainSort === 'fits' && kLeft != null ? `<p class="sub" style="margin:0 0 8px" data-raw>You have ${Math.max(0, Math.round(kLeft)).toLocaleString('en-US')} cal left${pLeft != null ? ` and ${Math.round(pLeft)} g of protein to go` : ''} today. What fits is listed first, most protein on top.</p>` : ''}` : '';
       // A spelling fix is only ever offered as a suggestion; what you typed is what's searched.
       $('#fsugg').innerHTML = [...(shown.suggest ? [[`Did you mean ${shown.suggest}?`, shown.suggest]] : []), ...suggestFoods(amt.q).map(s => [s, s])]
         .map(([label, s]) => `<button data-fsugg="${esc(s)}">${esc(label)}</button>`).join('');
       $('#fstat').textContent = shown.length ? `${shown.length >= 60 ? 'Top 60' : shown.length} match${shown.length === 1 ? '' : 'es'}` : `No “${q}” in the food list yet.`;
       const sp = p.modules?.nutrition !== false ? suppNamed(amt.q) : null;
-      $('#fres').innerHTML = (sp ? `<ul class="list"><li><button class="itemrow" data-tosupp="${esc(sp.name)}"><span><b>${esc(sp.name)} is a supplement</b><br>
-        <span class="chain">Log it under Supplements</span></span><span class="sub">Open</span></button></li></ul>` : '') + (shown.length ? `<ul class="list">${shown.map((f, i) => row(f, 's:' + i, (f.src === 'brand' ? '' : f.src === 'mine' ? 'My food · ' : '') + sub(f))).join('')}</ul>`
+      $('#fres').innerHTML = sortPills + (sp ? `<ul class="list"><li><button class="itemrow" data-tosupp="${esc(sp.name)}"><span><b>${esc(sp.name)} is a supplement</b><br>
+        <span class="chain">Log it under Supplements</span></span><span class="sub">Open</span></button></li></ul>` : '') + (shown.length ? `<ul class="list">${shown.map((f, i) => row(f, 's:' + i, (f.src === 'brand' ? '' : f.src === 'mine' ? 'My food · ' : '') + sub(f) + (sortable && chainSort !== 'best' && f.src === 'chain' && f.brand === chain ? ` · ${Math.round(scale(f.per, firstPortion(f).g).p ?? 0)} g protein` : ''))).join('')}</ul>`
         : sp ? '' : '<div class="empty"><p>Try fewer words, or add it from its label below.</p></div>');
       return;
     }
@@ -370,6 +409,14 @@ function foodSheet(meal, day, { scan = false } = {}) {
       await addItems(day, prev); toast(`${mealName(meal)} added: ${prev.length} food${prev.length === 1 ? '' : 's'}`); close(); return window.goku.render();
     }
     if (b.dataset.ftab) { tab = b.dataset.ftab; return draw(); }
+    if (b.dataset.csort) { chainSort = b.dataset.csort; return draw(); }
+    if (b.dataset.mswap) { const m = multi[+b.dataset.mswap]; m.n = (m.n + 1) % m.alts.length; // the next-best match, at the amount already shown
+      const f = m.alts[m.n], a = parseAmount(m.text), ps = portionsOf(f), pi = portionFor(ps, a.unit);
+      m.item = itemFrom(f, a.qty || 1, ps[pi >= 0 ? pi : startPortion(f, ps)], meal); fixed.set(m.text, m); return draw(); }
+    if (b.dataset.mrow) { const m = multi[+b.dataset.mrow], f = m.alts[m.n] || m.item;
+      return serving({ ...f }, { meal, qty: m.item.qty, portionLabel: m.item.pl, onDone: async item => { m.item = item; fixed.set(m.text, m); draw(); } }); }
+    if (b.id === 'addAll') { const items = multi.filter(m => m.item).map(m => ({ ...m.item, meal }));
+      await addItems(day, items); toast(`${items.length} food${items.length === 1 ? '' : 's'} added to ${mealName(meal)}`); close(); return window.goku.render(); }
     if (b.dataset.fsugg) { q = b.dataset.fsugg; const i = $('#fq'); i.value = q + ' '; i.focus(); return draw(); }
     // My foods and saved meals can be fixed or deleted (2.15).
     if (b.dataset.editmine) return labelFood({ edit: mine[+b.dataset.editmine].mine }, async () => { mine = await myFoods(); draw(); }, async () => { mine = await myFoods(); draw(); });
@@ -409,7 +456,7 @@ function foodSheet(meal, day, { scan = false } = {}) {
 // When editing a logged food (move: { day }), its meal and day can change too (2.8); onDone then gets (item, { meal, day }).
 function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = null, move = null }) {
   const ps = portionsOf(f);
-  let pi = portionLabel ? Math.max(0, ps.findIndex(x => x.label === portionLabel)) : defaultPortion(ps);
+  let pi = portionLabel ? Math.max(0, ps.findIndex(x => x.label === portionLabel)) : startPortion(f, ps);
   if (portionLabel && ps.findIndex(x => x.label === portionLabel) < 0) ps.unshift({ label: portionLabel, g: f.pg || 100 }), pi = 0;
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left" data-raw>${esc(f.name)}</h1><button class="cta2" id="x" data-close>Back</button></div>
     ${f.brand ? `<p class="sub" style="text-align:center">${esc(f.brand)}</p>` : ''}

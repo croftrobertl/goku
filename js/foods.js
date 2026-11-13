@@ -53,6 +53,8 @@ export function portionsOf(f) {
 }
 
 // The serving to offer first: a medium one, else one whole item, else the first listed.
+// An everyday food's first serving was picked by hand (tools/everyday-foods.txt), so it's the one to offer (2.17: butter opened at 1 cup).
+export const startPortion = (f, ps) => f.src === 'common' && ps.length ? 0 : defaultPortion(ps);
 export function defaultPortion(ps) {
   const i = ps.findIndex(x => /\bmedium\b/i.test(x.label));
   if (i >= 0) return i;
@@ -93,6 +95,25 @@ export const search = (list, q, limit = 60) => {
   }
   return exactFirst(db ? foodVocab() : new Map(), q, groups => ranked(list, groups, limit));
 };
+// A whole meal typed at once (2.17): "2 eggs, toast with butter, coffee" becomes its parts. Commas always split;
+// "and", "with" and "plus" split too, unless the list has that dish ("rice and beans", "macaroni and cheese").
+export function splitMeal(list, q) {
+  const out = [];
+  for (const chunk of String(q).split(/[,;]+/).map(s => s.trim()).filter(Boolean)) {
+    const parts = chunk.split(/\s+(?:and|with|plus|&|\+)\s+/i).map(s => s.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      const said = words(parseAmount(chunk).q).join(' ');
+      // One dish, not two foods, when a top match names every word before its first comma and joins them itself ("Beans and white rice").
+      const need = words(said).filter(w => !/^(and|with|plus)$/.test(w));
+      const dish = f => { const head = words(f.name.split(',')[0]); return need.every(w => head.some(h => h.replace(/s$/, '') === w.replace(/s$/, ''))) && head.some(h => /^(and|with)$/.test(h)); };
+      if (!search(list, parseAmount(chunk).q, 5).some(dish)) { out.push(...parts); continue; }
+    }
+    out.push(chunk);
+  }
+  return out.filter(s => s.length >= 2);
+}
+// The restaurant chain a search names (2.17), for sorting its menu.
+export const chainOf = (list, q) => chainIn(list, q)?.name || null;
 // The chain a query names, if any: "mcdonalds", "mcdonald's", "chick fil a", "dunkin".
 const squash = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
 let chains = null;

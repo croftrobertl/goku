@@ -32,6 +32,14 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.17.0:* Two food ideas from review 10. Type a whole meal at once: "2 eggs, toast with butter, coffee"
+  is split into foods (commas always split; "and" and "with" split unless the list has that dish, like
+  rice and beans), each matched to a plain food first and shown with its amount for checking. Swap shows
+  the next match, a tap changes the amount, and nothing is saved until Add All. A restaurant's menu can
+  be sorted: best match, fits what's left (items within today's remaining calories first, most protein
+  on top; needs a calorie target, and is off on practice-log profiles), most protein, or A to Z. It only
+  sorts the chain's own published numbers. Everyday foods now open at their hand-picked serving (butter
+  opened at 1 cup), and Toast joins the everyday list.
 - *2.16.0:* The redesigned screens from review 10. Pattern finder: one row per pattern, opening on tap.
   Nutrition panel: the calorie ring and four equal tiles (protein, carbs, fat, fiber); protein no longer
   has a bar of its own, and the percentage bar is gone. The phone's fifth tab is You (name and streak,
