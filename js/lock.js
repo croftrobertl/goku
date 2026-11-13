@@ -10,7 +10,9 @@ const MAX_TRIES = 5, WAIT_MS = 30000;
 const RELOCK_AFTER_HIDDEN_MS = 2 * 60000; // "Always ask" relocks after 2 minutes away
 
 const sessionUnlocked = new Set(); // in memory only, so a reload asks again
-export const isUnlocked = p => !!p.lock.pin && !p.lock.needsNewPin && (p.lock.until > Date.now() || sessionUnlocked.has(p.id));
+// A phone's only profile may go without a passcode (2.18, review 11); once a second profile exists, each is asked to create one.
+export const noPinOk = p => p.lock.noPin === true && !p.lock.pin && S.profiles.length <= 1;
+export const isUnlocked = p => noPinOk(p) || (!!p.lock.pin && !p.lock.needsNewPin && (p.lock.until > Date.now() || sessionUnlocked.has(p.id)));
 export const lockNow = p => { p.lock.until = 0; sessionUnlocked.delete(p.id); };
 
 let active = null; // { id, promise } — never two lock screens at once
@@ -49,6 +51,7 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
       <div class="row" style="justify-content:center;gap:16px;flex-wrap:wrap">
         ${cancellable ? '<button class="link" id="cancel" data-close>Cancel</button>' : ''}
         ${!cancellable && S.profiles.length > 1 ? '<button class="link" id="sw">Switch profile</button>' : ''}
+        <button class="link" id="later" hidden>Add a passcode later</button>
         <button class="link" id="forgot">Forgot passcode?</button>
       </div>`, { label: 'Passcode', id: 'lock' });
     const $ = s => el.querySelector(s);
@@ -65,6 +68,8 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
       $('#rem').style.display = m === 'confirm' || verifying ? 'none' : '';
       el.querySelectorAll('[data-rem]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.rem === L.remember));
       $('#forgot').style.display = m === 'unlock' && !verifying ? '' : 'none';
+      // Only for the phone's one profile, and only when it has no passcode yet.
+      $('#later').hidden = !(m === 'create' && !L.pin && !L.needsNewPin && S.profiles.length <= 1);
     }
     // The spoken "Enter the same 6 digits again" is cleared, so it isn't read out after setup (2.8.2).
     const end = ok => { active = null; const live = document.getElementById('sr-live'); if (live) live.textContent = ''; close(); document.removeEventListener('keydown', onKey); resolve(ok); };
@@ -75,7 +80,7 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
       if (m === 'confirm') {
         if (entry !== first) { m = 'create'; entry = first = ''; draw(); msg("Those didn't match. Start again."); return; }
         const wasReset = L.needsNewPin && L.resetBy ? { by: L.resetBy, at: L.resetAt } : null;
-        L.pin = await hashPin(entry); L.needsNewPin = false; delete L.resetBy; delete L.resetAt;
+        L.pin = await hashPin(entry); L.needsNewPin = false; delete L.resetBy; delete L.resetAt; delete L.noPin;
         await unlocked();
         if (wasReset) await ask('Your passcode was reset', `It was reset on ${esc(new Date(wasReset.at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }))} from ${esc(wasReset.by)}'s profile. Your data is untouched.`, []);
         return;
@@ -110,6 +115,7 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
       if (b.dataset.key) press(b.dataset.key);
       else if (b.dataset.rem) { L.remember = +b.dataset.rem; draw(); }
       else if (b.id === 'cancel') end(false);
+      else if (b.id === 'later') { L.noPin = true; sessionUnlocked.add(p.id); saveProfile(p).then(() => end(true)); }
       else if (b.id === 'sw') { end(false); onSwitch?.(); }
       else if (b.id === 'forgot') msg(S.profiles.length > 1
         ? 'Ask someone with another profile on this phone to open Settings and tap "Reset passcode" next to your name.'

@@ -872,3 +872,17 @@ html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background:
 .wkrow i.now { box-shadow: 0 0 0 2.5px var(--bg), 0 0 0 5px var(--tx); }
 /* 2.16: the workout panel on Home is a centered poster, so its small title stays centered with the rest of it */
 .card.chamber > .lbl { text-align: center; }
+/* 2.18: Starter workouts have no ghost */
+.ghost[hidden] { display: none; }
+/* 2.18 (review 11): setup for anyone. Goal cards, the coach chat, the plan screen. */
+.card.pick.goalpick { text-align: left; padding: 12px 16px; margin-top: 8px; } .goalpick b { font-size: 1.05rem; }
+.doorlinks { text-align: center; margin-top: 12px; }
+.chatrow { display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; } .chatrow.mine { justify-content: flex-end; margin-top: 10px; }
+.chatface { flex: none; }
+.bubble { background: #fff; color: #141414; border: 2.5px solid #141414; border-radius: 16px 16px 16px 4px; padding: 10px 14px; text-align: left; max-width: 78%; }
+.chatrow.mine .bubble { background: #141414; color: #ffd84d; font-weight: 700; border-radius: 16px 16px 4px 16px; }
+.chatreplies { justify-content: flex-end; margin-top: 14px; } .chatcount { text-align: center; }
+.list li.planline { align-items: flex-start; } .planline > span { text-align: left; } .plank { font-size: .75rem; font-weight: 800; letter-spacing: .04em; color: var(--tx3); }
+.safetyq { text-align: center; }
+/* A sample profile says so on every screen */
+.demobar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--s2); border: 2px dashed var(--ink); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; font-size: .9rem; }

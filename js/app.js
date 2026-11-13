@@ -189,6 +189,7 @@ async function drawNow() {
   const showUpd = update && !update.dismissed && !goku.busy;
   $('#app').innerHTML = `${showUpd ? `<div class="updbar" role="status"><span>A new version of Goku is ready.</span>
       <span class="row" style="gap:8px"><button class="cta2" id="updLater">Later</button><button class="cta" id="updNow" style="width:auto;min-height:44px;padding:0 16px">Update</button></span></div>` : ''}
+    ${p.demo ? '<div class="demobar" role="status"><span>This is a sample with made-up data.</span><button class="cta2" id="demoEnd">Start my own</button></div>' : ''}
     <header class="top">
       <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch or add a profile' : 'Add a profile'}">
         <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name)}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">⇄</span></button>
@@ -256,6 +257,7 @@ document.addEventListener('click', e => {
     if (S.profiles.length > 1) chooseProfile();
     else onboard({ cancellable: true }).then(np => np && open(np.id));
   } else if (b.id === 'bk') { openSettingsGroup('backup'); go('settings'); }
+  else if (b.id === 'demoEnd') import('./demo.js').then(m => m.endDemo(profile()));
   else if (b.id === 'updLater') { update.dismissed = true; render(); }
   else if (b.id === 'updNow') applyUpdate();
   else if (b.dataset.why && WHY[b.dataset.why]) { const [t, html] = WHY[b.dataset.why](profile(), b.dataset.arg); ask(t, html, []); }

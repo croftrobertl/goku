@@ -19,13 +19,15 @@ import { homeLayout, bindRows } from './homelayout.js';
 import { pickMove, showMove, howBtn, moveFor, addMove, moveData } from './movepicker.js';
 import { GROUPS as MOVE_GROUPS } from './moves.js';
 import { figureSVG } from './figure.js';
+import { planId, onHold, trainOff, starterOn, starterSets, moveGoal, holdCard, moveCard, starterCard, starterReady, comebackNote, MOVE_TARGET, MOVE_STEP } from './plan.js';
 import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
 import { calendarCard, bindCalendar } from './calendar.js';
 import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
 
-export const tabs = p => [['home', 'Home'], ['library', 'Library'], ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', W('saga'), 'hidden']];
+export const tabs = p => [['home', 'Home'], ...(trainOff(p) ? [] : [['library', 'Library']]), // no Library on Food Only, or while workouts wait for a doctor's OK (2.18)
+  ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', W('saga'), 'hidden']];
 
 // gravity: [rounds, rest seconds, time cap minutes, drop stages used]
 export const GRAVITY = { 10: [3, 90, 14, 1], 20: [4, 75, 16, 2], 50: [4, 45, 20, 99], 100: [5, 30, 24, 99] };
@@ -96,7 +98,7 @@ export async function todaysCircuit() {
 const byDay = (a, b) => a.day.localeCompare(b.day) || a.ts - b.ts;
 async function sessionsInOrder() { return (await entries('session')).sort(byDay); }
 // The ghost is your latest session at the same gravity, so a ×10 day never races a ×100 day.
-const ghostFor = (sessions, g) => sessions.filter(s => s.data.gravity === g).pop() || null;
+const ghostFor = (sessions, g) => sessions.filter(s => s.data.gravity === g && !s.data.starter).pop() || null; // a Starter workout has no clock, so it's never a ghost
 
 const sessionTotal = s => s.data.sets.reduce((a, set) => a + set.stages.reduce((b, st) => b + st.reps, 0), 0);
 const minutes = s => Math.max(1, (s.data.endedAt - s.data.startedAt) / 60000);
@@ -110,7 +112,10 @@ async function recentSleep(p) {
 // ---------- Home ----------
 // The tab bar's center button on screens without their own action: start today's circuit.
 export async function mainAction() {
+  const p = profile();
+  if (trainOff(p)) return null;
   const circuit = await todaysCircuit();
+  if (starterOn(p)) return circuit.length ? ['Train', () => startRun(circuit, { starter: true })] : null;
   return circuit.length ? ['Train', () => trainByFeel(circuit)] : null;
 }
 
@@ -197,6 +202,7 @@ export async function home() {
   const showProg = prog && p.coach?.progSeen !== prog.latest.id && !(fresh && feel.v === 'hard');
   const nextG = levels[levels.indexOf(g) + 1];
   const coachHTML = coachCard(p, ctx);
+  const weekMin = sessions.filter(s => s.day >= wk).reduce((a, s) => a + minutes(s), 0) + minutesOf(allActs.filter(a => a.day >= wk)); // Move More counts workouts and anything logged
   // This week at a glance (2.16, review 10): Sunday to Saturday. Trained, rest, today, still to come. A tap opens History.
   const trainedDays = new Set(all.filter(e => e.type === 'session' || e.type === 'activity').map(e => e.day)), restDays = new Set(all.filter(e => e.type === 'rest').map(e => e.day));
   const weekRow = `<button class="wkrow" data-go="history" aria-label="This week: ${[0, 1, 2, 3, 4, 5, 6].filter(i => trainedDays.has(addDays(wk, i))).length} training days so far. Open History">${[0, 1, 2, 3, 4, 5, 6].map(i => { const d = addDays(wk, i);
@@ -216,7 +222,7 @@ export async function home() {
       <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}`],
       ['nudge', `${nudge && !showProg ? `<section class="card coach"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ${lvl(nudge)}${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ${lvl(nudge)}</button></section>` : ''}`],
-      ['chamber', `<section class="card chamber" aria-labelledby="h-today">
+      ['chamber', trainOff(p) ? (onHold(p) ? holdCard() : '') : (planId(p) === 'move' ? moveCard(p, weekMin) : '') + (starterOn(p) ? starterCard(p, circuit, sessions, weekCount) : `<section class="card chamber" aria-labelledby="h-today">
       <p class="lbl">Today's workout</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
       <p class="sub">${lvl(g)} · ${circuit.length} move${circuit.length === 1 ? '' : 's'} · ${capText(rounds, rest, cap)}</p>
@@ -225,8 +231,9 @@ export async function home() {
       ${lastCircuit.length ? '<button class="cta2" id="sameLast" style="width:100%;margin-top:8px">Same As Last Time</button>' : ''}
       ${ghost ? `<div class="ghost">Ghost: your last ${lvl(g)} workout (${prettyDay(ghost.day)}) · <b class="num">${sessionTotal(ghost)}</b> reps in ${round(minutes(ghost))} min. Beat it.</div>`
         : `<div class="ghost">Your first ${lvl(g)} workout becomes your ghost. Next ${lvl(g)} workout, you race it live.</div>`}
-    </section>`],
-      ['circuit', `<section class="card">
+      ${comebackNote(p, sessions, t)}
+    </section>`)],
+      ['circuit', trainOff(p) ? '' : `<section class="card">
       <div class="row"><h2>Circuit</h2>${on(p, 'shuffle') ? '<button class="cta2" id="shuffle">Shuffle</button>' : ''}</div>
       ${circuit.length ? `<ol class="fan" aria-label="Today's circuit, ${circuit.length} exercises">${circuit.map((e, i) => { const m = moveFor(e.data);
         // Fanned cards (2.3): a hand of exercise cards, each with its drawing and a "?" for how-to.
@@ -279,6 +286,15 @@ export async function home() {
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
         if (b.dataset.how) return showMove(b.dataset.how);
         if (b.id === 'enterChamber') return trainByFeel(circuit);
+        // Starting points (2.18)
+        if (b.id === 'startStarter') return startRun(circuit, { starter: true });
+        if (b.id === 'logMove') return logActivity();
+        if (b.id === 'cleared') { if (await ask('Cleared by your doctor?', 'Workouts turn on. Start gently, and stop if anything feels wrong.', [{ label: 'Yes, turn workouts on', value: true }])) { p.plan = { ...p.plan, hold: false }; await saveProfile(p); window.goku.render(); } return; }
+        if (b.id === 'raiseMove') { p.plan = { ...p.plan, minGoal: Math.min(MOVE_TARGET, moveGoal(p) + MOVE_STEP) }; await saveProfile(p); toast(`Goal: ${moveGoal(p)} minutes a week`); return window.goku.render(); }
+        if (b.id === 'moreSets') { if (starterSets(p) < 3) { p.plan = { ...p.plan, sets: starterSets(p) + 1 }; toast(`${starterSets(p)} sets from now on`); }
+          else { p.plan = { ...p.plan, id: planId(p) === 'move' ? 'move' : 'comeback', workouts: 'circuit' }; p.settings.gravity = 10; toast('Timed circuits at Easy from now on'); }
+          await saveProfile(p); return window.goku.render(); }
+        if (b.id === 'stepUp') { p.settings.gravity = 20; p.plan = { ...p.plan, id: 'strength' }; await saveProfile(p); toast('Medium from now on'); return window.goku.render(); }
         if (b.id === 'sameLast') return trainByFeel(lastCircuit);
         if (b.id === 'addLoad') return window.goku.go('library');
         if (b.id === 'progLater') return window.goku.render();
@@ -314,18 +330,20 @@ function lastOf(sessions) {
 }
 let starting = false;
 
-async function startRun(circuit) {
+async function startRun(circuit, { starter = false } = {}) {
   if (starting || window.goku.busy || document.getElementById('runner')) return;
   starting = true;
   try {
     unlockAudio();
     const p = profile();
-    const g = p.settings.gravity || 50;
-    const [rounds, rest, cap, depth] = GRAVITY[g];
-    const past = await sessionsInOrder(), ghost = ghostFor(past, g);
+    const g = starter ? 10 : p.settings.gravity || 50;
+    const [rounds, rest, cap, depth] = starter ? [starterSets(p), 0, 0, 1] : GRAVITY[g];
+    const past = await sessionsInOrder(), ghost = starter ? null : ghostFor(past, g);
     const run = {
+      ...(starter ? { starter: true } : {}),
       startedAt: Date.now(), gravity: g, rounds, rest, cap, round: 1, ex: 0, stage: 0, phase: 'set', restUntil: 0,
-      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, moveId: e.data.moveId, stages: e.data.stages.slice(0, depth), ...(e.data.rest ? { rest: e.data.rest } : {}) })),
+      // A Starter workout uses each move's easiest version (the last stage of its chain: knees, chair squat), not the hardest.
+      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, moveId: e.data.moveId, stages: starter ? e.data.stages.slice(-1) : e.data.stages.slice(0, depth), ...(e.data.rest ? { rest: e.data.rest } : {}) })),
       best: Object.fromEntries(Object.entries(records(await sessionsInOrder())).map(([k, v]) => [k, v.reps])),
       sets: [], cur: null, repTimes: [], ghost: ghost?.data.repTimes || null, last: lastOf(past),
     };
@@ -355,7 +373,7 @@ async function saveRun(run, endedAt) {
   if (run.cur && run.cur.stages.some(s => s.reps)) run.sets.push(run.cur);
   run.cur = null;
   if (run.sets.length) {
-    await saveEntry('session', { gravity: run.gravity, startedAt: run.startedAt, endedAt, sets: run.sets, repTimes: run.repTimes },
+    await saveEntry('session', { gravity: run.gravity, startedAt: run.startedAt, endedAt, sets: run.sets, repTimes: run.repTimes, ...(run.starter ? { starter: true } : {}) },
       { ts: run.startedAt, day: dayKey(run.startedAt, profile().dayEndsAt, profile().tz) });
   }
   await db.setMeta(runKey(), null);
@@ -449,13 +467,14 @@ function openRunner(run) {
     devStatus();
     const t = Date.now() - run.startedAt;
     const capLeft = run.cap * 60000 - t;
-    if (capLeft <= 0 && !capBeeped) { capBeeped = true; beep(660, 260, 2); announce('Time cap reached. Finish when you are ready.'); }
-    put('#clock', String(clock(t) + (capLeft > 0 ? ' · cap ' + clock(capLeft) : ' · cap reached')));
-    put('#where', String(`Round ${run.round} of ${run.rounds} · exercise ${run.ex + 1} of ${run.plan.length}`));
+    if (!run.starter && capLeft <= 0 && !capBeeped) { capBeeped = true; beep(660, 260, 2); announce('Time cap reached. Finish when you are ready.'); }
+    put('#clock', run.starter ? clock(t) : clock(t) + (capLeft > 0 ? ' · cap ' + clock(capLeft) : ' · cap reached')); // a Starter workout has no time cap
+    put('#where', run.starter ? `Set ${run.round} of ${run.rounds} · move ${run.ex + 1} of ${run.plan.length}` : `Round ${run.round} of ${run.rounds} · exercise ${run.ex + 1} of ${run.plan.length}`);
     const dk = run.round + '/' + run.rounds;
     if (dotsFor !== dk) { dotsFor = dk; $('#rdots').innerHTML = Array.from({ length: run.rounds }, (_, i) => `<i class="${i + 1 < run.round ? 'done' : i + 1 === run.round ? 'now' : ''}"></i>`).join(''); }
     // You against the ghost as a race bar (2.16, review 10): your reps fill it, a mark shows where the ghost was at this minute.
-    if (run.ghost) {
+    if (run.starter) { if (!$('#ghost').hidden) $('#ghost').hidden = true; }
+    else if (run.ghost) {
       const g = run.ghost.filter(x => x <= t / 1000).length, me = total(), most = Math.max(run.ghost.length, me, 1);
       put('#gyou', String(me)); put('#gghost', String(g)); put('#gnote', '');
       const fw = Math.round(me / most * 1000) / 10 + '%', gw = Math.round(g / most * 1000) / 10 + '%';
@@ -499,7 +518,8 @@ function openRunner(run) {
     put('#wval', String(st.load ? `${weight(st.load, p)} ${weightUnit(p)}` : 'Bodyweight'));
     $('#wDown').disabled = !st.load;
     const prev = run.last?.[curEx().id + '|' + st.label];
-    put('#last', prev ? `Last time ${prev.reps}${prev.load ? ` at ${weight(prev.load, p)} ${weightUnit(p)}` : ''} · beat it with ${prev.reps + 1}` : st.reps ? '' : 'Tap anywhere to count');
+    if (run.starter) put('#last', st.reps >= 12 ? 'That\'s 12. Set done when you are.' : st.reps >= 8 ? 'In the 8 to 12 range. Stop when another rep would be hard.' : '8 to 12 reps. Stop when another rep would be hard.');
+    else put('#last', prev ? `Last time ${prev.reps}${prev.load ? ` at ${weight(prev.load, p)} ${weightUnit(p)}` : ''} · beat it with ${prev.reps + 1}` : st.reps ? '' : 'Tap anywhere to count');
     put('#plates', String(st.load && isBarbell(curEx()) ? plateText(st.load, p) : ''));
     const how = moveFor(curEx()); // the catalog drawing and steps, when this exercise has them
     $('#howEx').hidden = !how; if (how) attr('#howEx', 'aria-label', `How to do ${curEx().name}`);
@@ -516,6 +536,7 @@ function openRunner(run) {
     run.ex++;
     if (run.ex >= run.plan.length) { run.ex = 0; run.round++; }
     if (run.round > run.rounds) { if (run.recNote) toast(run.recNote); return finish(); }
+    if (run.starter) { run.phase = 'set'; save(); return draw(); } // Starter: rest as long as you need, no clock
     run.phase = 'rest'; run.restUntil = Date.now() + restS * 1000;
     bookRestCue(); save(); draw();
   }
@@ -774,7 +795,7 @@ export async function historyView() {
     html: `<h1>History</h1>
       <div style="margin-top:12px">${calendarCard(p, all, t)}${ballsCard(milestones(p, all, t))}</div>
       <section class="card"><p class="lbl">Sessions</p>
-      ${sessions.length ? `<ul class="list">${sessions.map(s => `<li><span>${prettyDay(s.day)} · ${lvl(s.data.gravity)}<br>
+      ${sessions.length ? `<ul class="list">${sessions.map(s => `<li><span>${prettyDay(s.day)} · ${s.data.starter ? 'Starter' : lvl(s.data.gravity)}<br>
         <span class="chain">${s.data.sets.length} set${s.data.sets.length === 1 ? '' : 's'} · ${round(minutes(s))} min</span></span>
         <span class="row" style="gap:8px"><span class="num">${sessionTotal(s)} reps</span>
         <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('')}</ul>`

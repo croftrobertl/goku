@@ -32,6 +32,22 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.18.0:* Setup for anyone (review 11). The first screen asks "What brings you here?" with six plain
+  goals. "Not sure yet" opens a short tap-to-answer chat with the coach (Goku has no AI; the coach is a
+  set of rules). Goku then shows where it would start you and why, with a Change link. Setup keeps every
+  screen but puts goals first; look, name and avatar come after the plan. New starting points on the
+  Strength side (js/plan.js, `p.plan`): Starter Workouts (one set of 8 to 12 reps of each move's easiest
+  version, no timer, ghost or drops; a second and third set are offered after 12 on every move twice
+  in a row), Move More (weekly minutes from 60 toward 150, plus workouts), Food Only (no training
+  screens) and Comeback (circuits from Easy, a step up after two solid weeks). Settings, Training has
+  the same chooser. One health question: a yes keeps workouts off until "My doctor cleared me" on Home.
+  Sources: CDC, Adult Activity: An Overview (Dec. 20, 2023) and What Counts as Physical Activity for
+  Adults (Dec. 6, 2023); CDC, Child Activity: An Overview and Adding Physical Activity as an Adult (both
+  Dec. 4, 2025); NHLBI, Physical Activity and Your Heart: Risks (Mar. 24, 2022). A phone's only profile
+  can skip the passcode; a second profile makes each set one. "Just look around first" opens a sample
+  profile with made-up data that is erased on leaving. "Get better at my sport" with only Gymnastics
+  and a practice log is the Gymnastics and Vaulting setup as before; its sport search covers every
+  sport Log Activity knows. Time zone comes from the phone, with the list one tap away.
 - *2.17.0:* Two food ideas from review 10. Type a whole meal at once: "2 eggs, toast with butter, coffee"
   is split into foods (commas always split; "and" and "with" split unless the list has that dish, like
   rice and beans), each matched to a plain food first and shown with its amount for checking. Swap shows

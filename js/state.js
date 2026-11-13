@@ -1,4 +1,5 @@
 // App state: the list of profiles and which one is open.
+import { ACTIVITIES } from './activity.js';
 import * as db from './db.js';
 import { dayKey, zoneOf } from './time.js';
 
@@ -40,7 +41,7 @@ export const SPORTS = [['strength', 'Strength or gym'], ['run', 'Running'], ['so
 export const STYLES = [['guided', 'Guided workouts', 'Follow timed circuits on your phone, with rest timers and a ghost to race.'],
   ['sessions', 'Log my practices', "Log what you did and how hard it was, check in on how you feel, and plan your week."],
   ['both', 'Both', 'Guided circuits, plus logging your other sports and practices.']];
-const sportName = id => SPORTS.find(s => s[0] === id)?.[1];
+const sportName = id => SPORTS.find(s => s[0] === id)?.[1] || ACTIVITIES.find(a => a[0] === id)?.[1]; // 2.18: setup's sport search offers every sport Log Activity knows
 const join = list => list.length > 2 ? list.slice(0, -1).join(', ') + ' and ' + list.at(-1) : list.join(' and ');
 export const kindLabel = p => p.custom?.sports?.length ? join(p.custom.sports.slice(0, 3).map(sportName).filter(Boolean).map((n, i) => i ? n.toLowerCase() : n)) + (p.custom.sports.length > 3 ? ' and more' : '')
   : p.custom ? 'Custom' : KINDS[p.kind].label;

@@ -5,6 +5,7 @@ import { encryptJSON, decryptJSON } from './crypto.js';
 import { showLock, lockNow } from './lock.js';
 import { onboard, ACCENTS, ACCENT_NAMES } from './onboarding.js';
 import { cleanBackup } from './validate.js';
+import { planId, onHold } from './plan.js';
 import { esc, ask, overlay, toast, guard } from './ui.js';
 import { VERSION } from './version.js';
 import { dayKey } from './time.js';
@@ -321,7 +322,7 @@ function avatarSheet(p) {
 const GROUPS = [
   ['look', 'Profile and Look', /^(Profile|Skin|Theme)$/],
   ['shows', 'What the App Shows', /^What the app shows$/],
-  ['training', 'Training', /^(Protein target|Duels|Sound)$/],
+  ['training', 'Training', /^(Starting point|Protein target|Duels|Sound)$/],
   ['units', 'Units and Time', /^Units and time$/],
   ['about', 'About You', /^About you$/],
   ['backup', 'Backup and Health', /^(Backup|.* link · Apple Health)$/],
@@ -425,6 +426,13 @@ async function settingsFull() {
       ${soon.length ? `<p class="lbl" style="margin-top:14px">Coming soon</p><p class="sub">${soon.map(m => esc(m[1])).join(' · ')}</p>` : ''}
       <button class="cta2" id="editHome" style="width:100%;margin-top:12px">Arrange Home cards</button>
     </section>
+    ${p.kind === 'engine' ? `<section class="card"><p class="lbl">Starting point</p>
+      <p class="sub">What Home and the workouts are built around. Setup's coach picked one; switch any time.</p>
+      ${[['strength', 'Circuits', 'Timed circuits with a rest timer and a ghost to race.'], ['comeback', 'Comeback', 'Timed circuits from Easy, with a step up after two solid weeks.'], ['starter', 'Starter Workouts', 'One set of 8 to 12 reps of each move. No timer.'],
+        ['move', 'Move More', 'A weekly minutes goal that builds toward 150, plus workouts.'], ['food', 'Food Only', 'Nutrition, check-ins and weight. No training screens.']]
+        .map(([id, n, d]) => `<button class="card pick" data-plan="${id}" aria-pressed="${planId(p) === id}" style="text-align:left;padding:10px 14px;margin-top:8px"><b>${n}</b><br><span class="sub">${d}</span></button>`).join('')}
+      ${onHold(p) ? '<p class="sub" style="margin-top:10px">Workouts are waiting for your doctor\'s OK. Tap “My doctor cleared me” on Home when you have it.</p>' : ''}
+    </section>` : ''}
     ${p.kind === 'engine' ? `<section class="card"><p class="lbl">Protein target</p>
       <div class="row"><input id="pt" inputmode="numeric" value="${p.settings.proteinTarget ?? ''}" placeholder="grams" aria-label="Protein target in grams" style="width:120px">
       <div class="seg" style="margin:0;flex:1"><button data-per="day" aria-pressed="${p.settings.proteinPer === 'day'}">Per day</button><button data-per="meal" aria-pressed="${p.settings.proteinPer === 'meal'}">Per meal</button></div></div>
@@ -525,6 +533,11 @@ async function settingsFull() {
         else if (b.id === 'editHome') editHome(p);
         else if (b.dataset.mode) { p.settings.mode = b.dataset.mode; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.per) { p.settings.proteinPer = b.dataset.per; await saveProfile(p); window.goku.render(); }
+        // Starting point (2.18): the doctor hold stays until it's cleared on Home; a first move to gentler plans starts at Easy.
+        else if (b.dataset.plan) { const id = b.dataset.plan; if (id === planId(p)) return;
+          p.plan = { id, ...(p.plan?.hold ? { hold: true } : {}), ...(id === 'move' ? { minGoal: p.plan?.minGoal || 60 } : {}), ...(id === 'starter' ? { sets: p.plan?.sets || 1 } : {}) };
+          if (id === 'comeback') p.settings.gravity = 10;
+          await saveProfile(p); toast(`${({ strength: 'Circuits', comeback: 'Comeback', starter: 'Starter Workouts', move: 'Move More', food: 'Food Only' })[id]} from now on`); window.goku.render(); }
         else if (b.dataset.rem) {
           p.lock.remember = +b.dataset.rem;
           p.lock.until = p.lock.remember ? Date.now() + p.lock.remember * DAY : 0;

@@ -54,13 +54,13 @@ export const QUESTIONS = [
   { id: 'units', essential: true, title: 'Units and time', type: 'units',
     help: 'Used for every weight, length and drink amount, and for when your training day starts.' },
   { id: 'birthYear', essential: true, title: 'What year were you born?', type: 'number', key: 'birthYear', min: 1920, max: () => yearNow() - 5,
-    help: p => p.kind === 'perf' ? 'Sets your sleep target and how fueling advice is worded.' : 'Sets age-appropriate sleep and fueling guidance.' },
+    help: p => (p.kind === 'perf' ? 'Sets your sleep target and how fueling advice is worded.' : 'Sets age-appropriate sleep and fueling guidance.') + ' It stays on this phone.' },
   { id: 'body', essential: true, title: 'Height and weight', type: 'body',
     help: p => p.kind === 'perf' ? 'Only used to size your fueling ranges. Your weight is never shown on any screen, chart or summary.'
-      : 'Sizes your protein and carbohydrate ranges. Skip it if you like.' },
+      : 'Sizes your protein and carbohydrate ranges. It stays on this phone. Skip it if you like.' },
   { id: 'experience', essential: true, kinds: ['engine'], title: 'How long have you trained seriously?', type: 'choice', key: 'experience',
-    options: [['0', 'Less than a year'], ['1', '1–3 years'], ['3', '3–5 years'], ['5', '5–10 years'], ['10', 'More than 10 years']],
-    help: () => 'Sets your starting workout level.' },
+    options: [['new', 'New to it'], ['back', 'Getting back into it'], ['0', 'Less than a year'], ['1', '1–3 years'], ['3', '3–5 years'], ['5', '5–10 years'], ['10', 'More than 10 years']],
+    help: () => 'Sets your starting workout. New to it starts with Starter Workouts; getting back into it starts at Easy.' },
   { id: 'goal', essential: true, title: 'What matters most right now?', type: 'choice', key: 'goal', options: goalsFor,
     help: 'Shapes your starting plan and what the coach checks in about.' },
   { id: 'equipment', essential: true, kinds: ['engine'], title: 'What equipment do you have?', type: 'multi', key: 'equipment', options: EQUIPMENT,
@@ -145,8 +145,9 @@ export function questionHTML(q, p) {
     const list = [...new Set([tz, ...TZS])];
     body = `<div class="seg" role="group" aria-label="Units"><button data-units="imperial" aria-pressed="${p.units !== 'metric'}">lb · in · oz</button>
       <button data-units="metric" aria-pressed="${p.units === 'metric'}">kg · cm · ml</button></div>
-      <label class="f"><span>Time zone</span><select id="q-tz">${list.map(z => `<option ${z === tz ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label>
-      <p class="note">${p.tz ? '' : 'Detected from this phone. '}Your training day starts at 3 AM in this zone; change that in Settings.</p>`;
+      <details class="fold tzfold"><summary>Time zone: ${esc(tz.split('/').pop().replace(/_/g, ' '))}${p.tz ? '' : ' (from this phone)'}</summary>
+      <label class="f"><span>Time zone</span><select id="q-tz">${list.map(z => `<option ${z === tz ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label></details>
+      <p class="note">Your training day starts at 3 AM in this zone; change that in Settings.</p>`;
   } else if (q.type === 'body') {
     body = `${q.onlyWeight ? '' : `<label class="f"><span>Height (${lengthUnit(p)})</span>
       <input id="q-h" inputmode="decimal" value="${esc(length(a.heightIn, p) ?? '')}" placeholder="${lengthUnit(p) === 'cm' ? '170' : '67'}"></label>`}

@@ -25,7 +25,7 @@ function cleanAbout(a) {
   const o = {
     birthYear: int(a.birthYear, 1900, 2100) ?? undefined, heightIn: num(a.heightIn, 20, 110) ?? undefined,
     weightLb: num(a.weightLb, 30, 800) ?? undefined, weightAt: num(a.weightAt, 0, 1e14) ?? undefined,
-    experience: oneOf(a.experience, ['0', '1', '3', '5', '10']), goal: typeof a.goal === 'string' && /^\w{1,20}$/.test(a.goal) ? a.goal : undefined,
+    experience: oneOf(a.experience, ['new', 'back', '0', '1', '3', '5', '10']), goal: typeof a.goal === 'string' && /^\w{1,20}$/.test(a.goal) ? a.goal : undefined,
     equipment: pick(a.equipment, GEAR), days: oneOf(a.days, ['2', '3', '4', '5', '6', '7']),
     diet: oneOf(a.diet, ['any', 'pescatarian', 'vegetarian', 'vegan']),
     allergies: pick(a.allergies, ['dairy', 'gluten', 'peanuts', 'nuts', 'eggs', 'soy', 'fish', 'shellfish']),
@@ -47,7 +47,7 @@ function cleanCoach(c) {
 }
 function cleanCustom(c) {
   if (!c || typeof c !== 'object') return undefined;
-  const sports = Array.isArray(c.sports) ? [...new Set(c.sports.filter(s => SPORTS.some(x => x[0] === s)))] : [];
+  const sports = Array.isArray(c.sports) ? [...new Set(c.sports.filter(s => SPORTS.some(x => x[0] === s) || (typeof s === 'string' && /^[a-z]{2,16}$/.test(s))))].slice(0, 20) : []; // 2.18: any sport Log Activity knows
   return { sports, style: STYLES.some(x => x[0] === c.style) ? c.style : 'both' };
 }
 function cleanAvatar(v) {
@@ -84,7 +84,7 @@ const DATA = {
     : { gravity: [10, 20, 50, 100].includes(d.gravity) ? d.gravity : 50, startedAt: num(d.startedAt, 0, 1e14, 0), endedAt: num(d.endedAt, 0, 1e14, 0),
       sets: Array.isArray(d.sets) ? d.sets.slice(0, 500).map(s => ({ exId: ID.test(s?.exId) ? s.exId : '', name: str(s?.name, 40), slot: str(s?.slot, 12),
         round: int(s?.round, 1, 100, 1), stages: stages(s?.stages) })) : [],
-      repTimes: nums(d.repTimes, 20000, 0, 1e6) }),
+      repTimes: nums(d.repTimes, 20000, 0, 1e6), ...(d.starter === true ? { starter: true } : {}) }),
   gut: d => ({ amWaist: num(d.amWaist, 10, 100), pmWaist: num(d.pmWaist, 10, 100), bloat: int(d.bloat, 0, 10), foods: strs(d.foods, 100, 40),
     fluidsOz: num(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500),
     ...(Array.isArray(d.supps) ? { supps: d.supps.slice(0, 50).filter(x => x && typeof x === 'object' && str(x.name, 40).trim()).map(x => ({ name: str(x.name, 40).trim(), dose: num(x.dose, 0, 100000),
@@ -146,6 +146,9 @@ export function cleanBackup(prof, entries) {
         ...(Array.isArray(prof.settings?.plates) ? { plates: [...new Set(prof.settings.plates.map(x => num(x, 0.5, 120)).filter(Boolean))].slice(0, 12), platesUnit: prof.settings.platesUnit === 'kg' ? 'kg' : 'lb' } : {}) }
       : { weekPlan: plan, sharing: false, bodyGoals: prof.settings?.bodyGoals === true }) },
     lockRemember: [0, 1, 7, 30].includes(prof.lockRemember) ? prof.lockRemember : 7,
+    // The starting point from setup (2.18)
+    ...(prof.kind === 'engine' && ['strength', 'starter', 'move', 'food', 'comeback'].includes(prof.plan?.id) ? { plan: { id: prof.plan.id, ...(prof.plan.hold === true ? { hold: true } : {}), ...(int(prof.plan.sets, 1, 3) ? { sets: int(prof.plan.sets, 1, 3) } : {}),
+      ...(int(prof.plan.minGoal, 30, 150) ? { minGoal: int(prof.plan.minGoal, 30, 150) } : {}), ...(prof.plan.workouts === 'circuit' ? { workouts: 'circuit' } : {}) } } : {}),
   };
   let skipped = 0;
   const out = [];
