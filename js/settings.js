@@ -1,5 +1,5 @@
 // Settings, profile management, and backup (export / import).
-import { S, profile, saveProfile, KINDS, newProfile, capName, liveModules, soonModules, kindLabel } from './state.js';
+import { S, profile, saveProfile, KINDS, newProfile, capName, liveModules, soonModules, kindLabel, today } from './state.js';
 import * as db from './db.js';
 import { encryptJSON, decryptJSON } from './crypto.js';
 import { showLock, lockNow } from './lock.js';
@@ -372,22 +372,59 @@ export async function settingsView() {
 }
 
 // "You" (2.16, review 10): the fifth tab on a phone. Your name and streak, then History and the settings people open most.
-export function youView(streakDays, pages = [['history', 'History']]) {
+export async function youView(streakDays, pages = [['history', 'History']]) {
   const SUBS = { history: 'Calendar, sessions and records', skills: 'Each skill from learning to competition-ready' };
   const p = profile(), age = backupAgeDays(p), mods = liveModules(p.kind), onN = mods.filter(([k]) => p.modules[k] !== false).length;
   const row = (go, name, sub) => `<li><button class="itemrow" data-you="${go}"><span><b>${name}</b><br><span class="chain" data-raw="">${esc(sub)}</span></span><span class="chev" aria-hidden="true">›</span></button></li>`;
+  const goals = await goalsCard(p);
   return { html: `<h1>You</h1>
     <section class="card"><div class="row"><span class="row" style="justify-content:flex-start;gap:12px">${avatarHTML(p, 48)}<span><b style="font-size:1.25rem">${esc(p.name)}</b><br><span class="sub">${esc(kindLabel(p))}</span></span></span>
       <span style="text-align:right"><b class="num" style="font-size:1.25rem">${streakDays}</b><br><span class="sub">day streak</span></span></div></section>
+    ${goals}
     <section class="card"><ul class="list">
       ${pages.map(([id, name]) => row('page:' + id, esc(name), SUBS[id] || '')).join('')}
       ${row('look', 'Look', `${SKINS[skinOf(p)]?.name || ''} · ${themeName(p.settings.theme || 'capsule', THEMES[p.settings.theme] || THEMES.capsule)}`)}
       ${row('shows', 'What the App Shows', `${onN} of ${mods.length} on`)}
       ${row('backup', 'Backup', age === null ? 'Never backed up' : age === 0 ? 'Backed up today' : `Backed up ${age} day${age === 1 ? '' : 's'} ago`)}
       ${row('all', 'All Settings', 'Units, passcode, sound and more')}</ul></section>`,
-    bind(root) { root.addEventListener('click', e => { const b = e.target.closest('[data-you]'); if (!b) return; const k = b.dataset.you;
+    bind(root) { root.addEventListener('click', async e => {
+      const gb = e.target.closest('[data-goal]'); // My Goals: each Edit opens where that target is set
+      if (gb) { const k = gb.dataset.goal;
+        if (k === 'days' || k === 'sleep') return; // handled by the app's data-setup handler
+        if (k === 'kcal') return (await import('./nutrition.js')).setTarget(p);
+        if (k === 'weight') return window.goku.go('saga');
+        openSettingsGroup('training'); return window.goku.go('settings'); }
+      const b = e.target.closest('[data-you]'); if (!b) return; const k = b.dataset.you;
       if (k.startsWith('page:')) return window.goku.go(k.slice(5));
       openSettingsGroup(k === 'all' ? null : k); window.goku.go('settings'); }); } };
+}
+
+// My Goals (2.19, review 12): every target in one list with progress; each Edit opens where that target is set.
+// Only goals that apply to this profile show; one that isn't set says so and offers Set.
+async function goalsCard(p) {
+  const { entries } = await import('./state.js'), { addDays, weekStart } = await import('./time.js');
+  const t = today(), wk = weekStart(t), eng = p.kind === 'engine', bodyOn = eng || p.settings.bodyGoals === true;
+  const { planId, moveGoal } = await import('./plan.js');
+  const food = (await entries('food', p)).find(e => e.day === t)?.data.items || [], sum = k => Math.round(food.reduce((a, i) => a + (i.n?.[k] || 0), 0));
+  const sessions = eng ? (await entries('session', p)).filter(s => s.day >= wk) : [], acts = (await entries('activity', p)).filter(a => a.day >= wk);
+  const guts = (await entries('gut', p)).filter(g => g.day >= addDays(t, -7) && g.data.sleepH != null);
+  const svg = d => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const IC = { bolt: svg('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'), run: svg('<circle cx="15" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v5M6 12l3-4 4 1 3 4"/>'), drop: svg('<path d="M12 3c-3 4-6 6.5-6 10a6 6 0 0 0 12 0c0-3.5-3-6-6-10z"/>'),
+    flame: svg('<path d="M12 22c4 0 7-3 7-7 0-5-5-7-5-12-3 2-6 6-6 9 0 1 .3 2 .8 2.8C7.5 14 7 13 7 12c-2 1.5-2 3-2 3 0 4 3 7 7 7z"/>'), scale: svg('<rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8 9a5 5 0 0 1 8 0"/><path d="M12 9l1.5-2"/>'), moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>') };
+  const rows = [];
+  const row = (k, icon, name, sub, pct, set, extra = '') => rows.push(`<li class="goal"><span class="gic">${icon}</span><span class="gtx"><b>${name}</b><br><span class="chain" data-raw>${esc(sub)}</span>
+    ${pct != null ? `<span class="gbar"><i style="width:${Math.round(Math.min(1, pct) * 100)}%"></i></span>` : ''}</span><button class="cta2 rowedit" data-goal="${k}" ${extra} aria-label="${set ? 'Edit' : 'Set'} ${name}">${set ? 'Edit' : 'Set'}</button></li>`);
+  if (eng && planId(p) !== 'food') { const d = +p.about?.days || 0; row('days', IC.bolt, 'Workouts', d ? `${d} a week · ${sessions.length} so far this week` : 'Not set', d ? sessions.length / d : null, !!d, 'data-setup="days"'); }
+  if (eng && planId(p) === 'move') { const m = Math.round(sessions.reduce((a, s) => a + Math.max(1, (s.data.endedAt - s.data.startedAt) / 60000), 0) + acts.reduce((a, x) => a + (x.data.minutes || 0), 0)), g = moveGoal(p);
+    row('move', IC.run, 'Move minutes', `${g} a week · ${m} so far this week`, m / g, true); }
+  if (eng) { const g = p.settings.proteinTarget; row('protein', IC.drop, 'Protein', g ? `${g} g ${p.settings.proteinPer === 'meal' ? 'a meal' : 'a day'} · ${sum('p')} g today` : 'Not set · a range sized for you shows in Nutrition', g && p.settings.proteinPer !== 'meal' ? sum('p') / g : null, !!g); }
+  if (bodyOn && p.modules.nutrition !== false) { const g = p.settings.kcalTarget; row('kcal', IC.flame, 'Calories', g ? `${g.toLocaleString('en-US')} a day · ${sum('kcal').toLocaleString('en-US')} today` : 'Not set', g ? sum('kcal') / g : null, !!g); }
+  if (eng && (await import('./weight.js')).weightOn(p)) { const { arcsOf, arcProgress } = await import('./saga.js');
+    const a = (await arcsOf(p)).filter(x => !x.data.done && x.data.link?.type === 'weight').pop(), pr = a ? arcProgress(a, { weighs: await entries('weigh', p) }) : null;
+    row('weight', IC.scale, 'Weight', pr ? pr.label : 'Not set', pr ? pr.pct : null, !!a); }
+  if (eng) { const h = p.about?.sleepH, got = guts.length ? Math.round(guts.reduce((a, g) => a + g.data.sleepH, 0) / guts.length * 10) / 10 : null;
+    row('sleep', IC.moon, 'Sleep', h ? `${h} h a night${got != null ? ` · ${got} h this past week` : ''}` : 'Not set', h && got != null ? got / h : null, !!h, 'data-setup="sleep"'); }
+  return rows.length ? `<section class="card goals"><p class="lbl">My Goals</p><ul class="list">${rows.join('')}</ul></section>` : '';
 }
 
 async function settingsFull() {

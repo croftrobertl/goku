@@ -93,8 +93,19 @@ export const search = (list, q, limit = 60) => {
     const more = rest.length ? exactFirst(db ? foodVocab() : new Map(), q, groups => ranked(list, groups, limit)).filter(f => !own.includes(f)) : [];
     return [...own, ...more].slice(0, limit);
   }
-  return exactFirst(db ? foodVocab() : new Map(), q, groups => ranked(list, groups, limit));
+  return plainFirst(exactFirst(db ? foodVocab() : new Map(), q, groups => ranked(list, groups, limit)), q);
 };
+// Plain foods first (2.19, review 12): "chicken" listed nine restaurant items before chicken breast, because a chain item
+// whose name holds every typed word gets a boost (so "big mac" finds McDonald's). When a plain food's name, up to its
+// first comma, also holds every word, it comes first. "big mac" has no such plain food, so it's unchanged.
+const PLAIN = ['common', 'sr', 'fndds', 'fdn', 'mine'];
+function plainFirst(res, q) {
+  const ws = words(q); if (!ws.length || !res.length) return res;
+  const has = (head, w) => head.some(h => h === w || h.startsWith(w) || w.startsWith(h) && h.length >= 3);
+  const top = res.filter(f => PLAIN.includes(f.src) && ws.every(w => has(words(f.name.split(',')[0]), w)));
+  if (!top.length) return res;
+  return Object.assign([...top, ...res.filter(f => !top.includes(f))], { suggest: res.suggest });
+}
 // A whole meal typed at once (2.17): "2 eggs, toast with butter, coffee" becomes its parts. Commas always split;
 // "and", "with" and "plus" split too, unless the list has that dish ("rice and beans", "macaroni and cheese").
 export function splitMeal(list, q) {

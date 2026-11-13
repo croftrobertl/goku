@@ -886,3 +886,28 @@ html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background:
 .safetyq { text-align: center; }
 /* A sample profile says so on every screen */
 .demobar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--s2); border: 2px dashed var(--ink); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; font-size: .9rem; }
+/* 2.19 (review 12): the Nutrition day row. Four weeks, today on the right; swipe for older days. */
+.dayrow { display: flex; gap: 2px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 6px -4px 10px; padding: 0 4px; scrollbar-width: none; }
+.dayrow::-webkit-scrollbar { display: none; }
+.dcell { flex: 0 0 calc((100% - 12px) / 7); scroll-snap-align: end; display: grid; justify-items: center; gap: 3px; background: none; border: 0; color: var(--tx2); font: inherit; font-size: .72rem; font-weight: 700; min-height: 44px; padding: 0; }
+.dring { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; color: var(--tx); }
+.dring svg { position: absolute; inset: 0; width: 38px; height: 38px; transform: rotate(-90deg); }
+.dring .dt { fill: none; stroke: var(--line); stroke-width: 3; } .dring .df { fill: none; stroke: var(--accent-line); stroke-width: 3; stroke-linecap: round; }
+.dring b { position: relative; font-size: .85rem; }
+.dcell[aria-pressed="true"] .dring { background: var(--accent); color: var(--on-accent); } .dcell[aria-pressed="true"] .dt { stroke: rgba(0, 0, 0, .18); } .dcell[aria-pressed="true"] .df { stroke: var(--on-accent); }
+/* 2.19: food search filter chips, one row that scrolls sideways */
+.fkinds { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; gap: 6px; margin: 0 0 8px; scrollbar-width: none; }
+.fkinds::-webkit-scrollbar { display: none; } .fkinds button { flex: none; } .fkinds .cnt { opacity: .7; font-weight: 600; }
+/* 2.19 (review 12): this week vs last week, and two weeks of check-ins on Stats */
+.compare .cmp { display: flex; gap: 10px; align-items: baseline; } .compare .cmp .sub { font-size: .8rem; }
+.compare .chg { min-width: 58px; text-align: right; font-weight: 800; font-size: .85rem; color: var(--tx2); } .compare .chg.up { color: var(--ok); } .compare .chg.down { color: var(--warn); }
+.fg { display: grid; grid-template-columns: 64px repeat(14, minmax(0, 1fr)); gap: 6px 2px; align-items: center; font-size: .75rem; color: var(--tx2); }
+.fgl { text-align: left; }
+.fd { display: block; justify-self: center; width: 100%; max-width: 14px; aspect-ratio: 1; border-radius: 50%; }
+.fd.none { background: transparent; } .fd.good { background: var(--ok); } .fd.mid { max-width: 8px; background: var(--warn); } .fd.hard { border: 2.5px solid var(--care); background: transparent; }
+.fgdays button { background: none; border: 0; color: var(--tx2); font: inherit; font-size: .65rem; font-weight: 700; min-height: 44px; padding: 0; }
+/* 2.19 (review 12): My Goals on the You tab */
+.goals li.goal { justify-content: flex-start; gap: 12px; }
+.goals .gic { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--s2); color: var(--accent-text); display: grid; place-items: center; }
+.goals .gtx { flex: 1; min-width: 0; text-align: left; } .goals .rowedit { flex: none; }
+.goals .gbar { display: block; height: 6px; border-radius: 3px; background: var(--line); margin-top: 6px; } .goals .gbar i { display: block; height: 100%; border-radius: 3px; background: var(--accent-line); }

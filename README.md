@@ -32,6 +32,16 @@ used to dictate.
   editor shows pair totals and raises loads by your dumbbell step.
 - *Level up:* after you beat your ghost twice in a row at one gravity, the coach offers the next
   level or more load.
+- *2.19.0:* Ideas from the Dribbble audit (review 12). Nutrition's ‹ Today › switcher is now a row of
+  days, four weeks long with today on the right, each with a ring showing how much of the calorie target
+  was logged (or whether anything was, with no target). Food search puts plain foods first unless you
+  name a restaurant ("chicken" had nine restaurant items before chicken breast; "big mac" is unchanged),
+  and a long result list gets filter chips: Basic foods, Restaurants, Brands, My foods, with counts.
+  Stats gains This Week vs Last Week (the same days of each week: workouts, minutes, reps, protein,
+  sleep, weight trend) and Check-Ins · Last 2 Weeks (one dot per answer per day; shape as well as color:
+  full dot good, small dot in between, ring hard; tap a day to open it). The You tab gains My Goals:
+  workouts, move minutes, protein, calories, weight and sleep with progress, each with Edit or Set.
+  The Stats cards are on Strength-side profiles for now.
 - *2.18.0:* Setup for anyone (review 11). The first screen asks "What brings you here?" with six plain
   goals. "Not sure yet" opens a short tap-to-answer chat with the coach (Goku has no AI; the coach is a
   set of rules). Goku then shows where it would start you and why, with a Change link. Setup keeps every

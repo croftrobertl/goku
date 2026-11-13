@@ -179,7 +179,7 @@ async function drawNow() {
   const youPages = list.filter(x => !x[2] && ['history', 'skills'].includes(x[0]));
   // A screen that fails shows its error in the page (2.15); the bars and Settings keep working, so a backup can still be exported.
   let view;
-  try { view = tab === 'settings' ? await settingsView() : tab === 'you' ? youView(days, youPages) : await scr[tab](); }
+  try { view = tab === 'settings' ? await settingsView() : tab === 'you' ? await youView(days, youPages) : await scr[tab](); }
   catch (e) { console.error(e); view = { failed: true, html: `<section class="card" style="margin-top:24px"><h1>This screen hit a problem</h1>
     <p class="sub">${esc(e?.message || e)}</p><p class="note">Your data is untouched. Other screens still work, and Settings can export a backup.</p>
     ${tab === 'settings' ? '' : '<button class="cta" id="errSettings" style="margin-top:12px">Open Settings</button>'}</section>` }; }

@@ -43,6 +43,18 @@ const saveDay = (p, day, food, keep = false) => {
   return food.items.length || food.water ? saveEntry('food', food, { id: foodId(p, day), day }) : db.del('entries', foodId(p, day));
 };
 const gutId = (p, day) => p.id + ':gut:' + day;
+// The last four weeks of days (2.19, review 12), today at the right end; swipe for older days. Each ring shows how much
+// of the calorie target that day logged, or, with no target, whether anything was logged.
+async function dayRow(p, day, t, target) {
+  const kc = {};
+  for (const e of await entries('food', p)) if (e.day >= addDays(t, -27)) kc[e.day] = (e.data.items || []).length ? Math.round(sumN(e.data.items).kcal || 0) || 1 : 0;
+  const cell = d => { const k = kc[d] || 0, pct = target ? Math.min(1, k / target) : k ? 1 : 0, r = 15, c = 2 * Math.PI * r, wd = new Date(d + 'T12:00:00Z');
+    const on = d === day, name = wd.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    return `<button class="dcell" data-nday="${d}" aria-pressed="${on}" aria-label="${esc(name)}${d === t ? ', today' : ''}${k ? target ? `, ${k} of ${target} calories` : ', food logged' : ', nothing logged'}">
+      <span aria-hidden="true">${'SMTWTFS'[wd.getUTCDay()]}</span><span class="dring"><svg viewBox="0 0 38 38" aria-hidden="true"><circle class="dt" cx="19" cy="19" r="${r}"/>${pct ? `<circle class="df" cx="19" cy="19" r="${r}" stroke-dasharray="${(c * pct).toFixed(1)} ${c.toFixed(1)}"/>` : ''}</svg><b>${+d.slice(8)}</b></span></button>`; };
+  return `<div class="dayrow" role="group" aria-label="Nutrition day">${Array.from({ length: 28 }, (_, i) => cell(addDays(t, i - 27))).join('')}</div>`;
+}
+
 async function readDay(p, day) {
   const food = (await db.get('entries', foodId(p, day)))?.data || { items: [], water: null };
   const gut = (await db.get('entries', gutId(p, day)))?.data || null;
@@ -136,7 +148,7 @@ export async function nutritionView() {
   };
 
   return {
-    html: `<div class="row"><h1 style="margin:0">Nutrition</h1>${dayPicker(day, t, 'Nutrition day')}</div>
+    html: `<h1 style="margin:0;text-align:left">Nutrition</h1>${await dayRow(p, day, t, target)}
     <div class="cols"><div>
       <section class="card sum" style="margin-top:12px">
         <div class="ringd">${calRing(tot.kcal || 0, target, day === t ? 'today' : 'on ' + prettyDay(day))}
@@ -172,6 +184,7 @@ export async function nutritionView() {
       ${sources([esc(SOURCE_NOTE)])}
     </div></div>`,
     bind(root) {
+      { const r = root.querySelector('.dayrow'), on = r?.querySelector('[aria-pressed="true"]'); if (r) r.scrollLeft = on ? on.offsetLeft - r.clientWidth + on.offsetWidth + 4 : r.scrollWidth; } // today, or the chosen day, at the right edge
       bindSupps(root, g, async () => { await saveGut(); window.goku.render(); }, recent);
       // Water taps skip the busy guard and save once the tapping stops, so eight quick taps add eight glasses.
       let waterT = null;
@@ -182,6 +195,7 @@ export async function nutritionView() {
       });
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b || b.closest('.overlay') || b.closest('.supps') || b.dataset.fl) return;
+        if (b.dataset.nday && b.closest('.dayrow')) { navDay = b.dataset.nday; return window.goku.render(); }
         if (b.dataset.dayshift) { navDay = addDays(day, +b.dataset.dayshift); if (navDay < addDays(t, -60)) navDay = addDays(t, -60); return window.goku.render(); }
         if (b.id === 'addFood') return addFood(nowMeal(), day);
         if (b.id === 'scanFood') return addFood(nowMeal(), day, { scan: true });
@@ -315,7 +329,7 @@ function foodSheet(meal, day, { scan = false } = {}) {
     <span class="chain">${esc(sub)}</span></span><span class="num">${f.kc ?? ''}</span></button></li>`;
   const firstPortion = f => { const ps = portionsOf(f); return ps[startPortion(f, ps)]; };
   const sub = f => { const po = firstPortion(f); const k = kcalOf(scale(f.per, po.g)); f.kc = k == null ? '' : k; return po.label; };
-  let shown = [], amt = { q: '', qty: null, unit: '' };
+  let shown = [], amt = { q: '', qty: null, unit: '' }, fkind = 'all';
   // Type a whole meal (2.17): each part is matched and shown for checking; nothing is added until Add All.
   let multi = []; const fixed = new Map(); // fixed: a part's food or amount after the user changed it
   const matchPart = (text, list) => {
@@ -346,7 +360,13 @@ function foodSheet(meal, day, { scan = false } = {}) {
       const parts = splitMeal([...mine, ...all], q);
       if (parts.length > 1) return drawMulti(parts);
       amt = parseAmount(q);
-      shown = search([...mine, ...all], amt.q, 60);
+      // Filter chips (2.19, review 12): narrow a long list to basic foods, restaurants, brands or your own foods.
+      const wide = search([...mine, ...all], amt.q, 400), kindOf = f => f.src === 'chain' ? 'rest' : f.src === 'brand' ? 'brand' : f.src === 'mine' ? 'mine' : 'basic';
+      const counts = { basic: 0, rest: 0, brand: 0, mine: 0 }; for (const f of wide) counts[kindOf(f)]++;
+      if (fkind !== 'all' && !counts[fkind]) fkind = 'all';
+      shown = Object.assign((fkind === 'all' ? wide : wide.filter(f => kindOf(f) === fkind)).slice(0, 60), { suggest: wide.suggest });
+      const chips = wide.length > 8 && Object.values(counts).filter(Boolean).length > 1 ? `<div class="pills fkinds" role="group" aria-label="Show">${[['all', 'All'], ['basic', 'Basic foods'], ['rest', 'Restaurants'], ['brand', 'Brands'], ['mine', 'My foods']]
+        .filter(([k]) => k === 'all' || counts[k]).map(([k, n]) => `<button data-fkind="${k}" aria-pressed="${fkind === k}" data-raw>${n}${k === 'all' ? '' : ` <span class="cnt">${counts[k] >= 400 ? '400+' : counts[k]}</span>`}</button>`).join('')}</div>` : '';
       // A restaurant's menu can be sorted (2.17): by what fits the calories left today, by protein, or by name.
       const chain = chainOf([...mine, ...all], amt.q), sortable = chain && shown.filter(f => f.src === 'chain' && f.brand === chain).length > 1;
       const eaten = sumN(thisDay), kLeft = p.kind !== 'perf' && p.settings.kcalTarget ? p.settings.kcalTarget - (eaten.kcal || 0) : null;
@@ -366,7 +386,7 @@ function foodSheet(meal, day, { scan = false } = {}) {
         .map(([label, s]) => `<button data-fsugg="${esc(s)}">${esc(label)}</button>`).join('');
       $('#fstat').textContent = shown.length ? `${shown.length >= 60 ? 'Top 60' : shown.length} match${shown.length === 1 ? '' : 'es'}` : `No “${q}” in the food list yet.`;
       const sp = p.modules?.nutrition !== false ? suppNamed(amt.q) : null;
-      $('#fres').innerHTML = sortPills + (sp ? `<ul class="list"><li><button class="itemrow" data-tosupp="${esc(sp.name)}"><span><b>${esc(sp.name)} is a supplement</b><br>
+      $('#fres').innerHTML = chips + sortPills + (sp ? `<ul class="list"><li><button class="itemrow" data-tosupp="${esc(sp.name)}"><span><b>${esc(sp.name)} is a supplement</b><br>
         <span class="chain">Log it under Supplements</span></span><span class="sub">Open</span></button></li></ul>` : '') + (shown.length ? `<ul class="list">${shown.map((f, i) => row(f, 's:' + i, (f.src === 'brand' ? '' : f.src === 'mine' ? 'My food · ' : '') + sub(f) + (sortable && chainSort !== 'best' && f.src === 'chain' && f.brand === chain ? ` · ${Math.round(scale(f.per, firstPortion(f).g).p ?? 0)} g protein` : ''))).join('')}</ul>`
         : sp ? '' : '<div class="empty"><p>Try fewer words, or add it from its label below.</p></div>');
       return;
@@ -399,7 +419,7 @@ function foodSheet(meal, day, { scan = false } = {}) {
       await addItems(day, [item]); toast(`${item.name} added`); close(); window.goku.render();
     } });
   };
-  el.addEventListener('input', e => { if (e.target.id === 'fq') { q = e.target.value.trim(); clearTimeout(el._t); el._t = setTimeout(draw, 120); } });
+  el.addEventListener('input', e => { if (e.target.id === 'fq') { q = e.target.value.trim(); fkind = 'all'; /* a new search starts unfiltered */ clearTimeout(el._t); el._t = setTimeout(draw, 120); } });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
@@ -410,6 +430,7 @@ function foodSheet(meal, day, { scan = false } = {}) {
     }
     if (b.dataset.ftab) { tab = b.dataset.ftab; return draw(); }
     if (b.dataset.csort) { chainSort = b.dataset.csort; return draw(); }
+    if (b.dataset.fkind) { fkind = b.dataset.fkind; return draw(); }
     if (b.dataset.mswap) { const m = multi[+b.dataset.mswap]; m.n = (m.n + 1) % m.alts.length; // the next-best match, at the amount already shown
       const f = m.alts[m.n], a = parseAmount(m.text), ps = portionsOf(f), pi = portionFor(ps, a.unit);
       m.item = itemFrom(f, a.qty || 1, ps[pi >= 0 ? pi : startPortion(f, ps)], meal); fixed.set(m.text, m); return draw(); }
@@ -625,7 +646,7 @@ async function saveMeal(items) {
   }));
 }
 
-function setTarget(p) {
+export function setTarget(p) {
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Calorie target</h1><button class="cta2" id="x" data-close>Close</button></div>
     <p class="sub" style="text-align:center">Optional. Goku doesn't pick a number for you: needs depend on age, growth, size and training. A doctor or registered dietitian can help you choose one.</p>
     <label class="f" style="margin-top:12px"><span>Calories a day</span><input id="kt" inputmode="numeric" value="${p.settings.kcalTarget ?? ''}"></label>

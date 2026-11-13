@@ -25,6 +25,7 @@ import { calendarCard, bindCalendar } from './calendar.js';
 import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
+import { compareCard, feelGrid } from './compare.js';
 
 export const tabs = p => [['home', 'Home'], ...(trainOff(p) ? [] : [['library', 'Library']]), // no Library on Food Only, or while workouts wait for a doctor's OK (2.18)
   ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', W('saga'), 'hidden']];
@@ -251,7 +252,9 @@ export async function home() {
       ${todayActs.length ? `<ul class="list">${activityRows(todayActs)}</ul>` : '<p class="sub">Soccer, runs, games or anything else. It feeds your fuel ranges and body map.</p>'}</section>`],
       ['senzu', bodyMapCard(body)],
       ['trend', `${trendCard(p, all, t)}`],
+      ['compare', compareCard(p, all, weighs, t)],
       ['weight', weightCard(p, weighs, t)],
+      ['feelgrid', on(p, 'nutrition') && on(p, 'gut') ? feelGrid(all.filter(e => e.type === 'gut'), t) : ''],
       ['stats', `<div class="grid">
       <section class="card"><p class="lbl">Last session</p>
         ${last ? `<p class="big num">${round(sessionTotal(last) / minutes(last), 1)}</p><p class="sub">reps per minute</p>` : '<p class="sub" style="margin-top:8px">No sessions yet</p>'}
@@ -285,6 +288,7 @@ export async function home() {
         const b = e.target.closest('button'); if (!b || b.closest('.coach')) return;
         if (b.dataset.prog) { p.coach = { ...(p.coach || {}), progSeen: b.dataset.prog }; if (!b.dataset.g) await saveProfile(p); }
         if (b.dataset.how) return showMove(b.dataset.how);
+        if (b.dataset.nday) return openNutritionDay(b.dataset.nday); // the check-in grid on Stats
         if (b.id === 'enterChamber') return trainByFeel(circuit);
         // Starting points (2.18)
         if (b.id === 'startStarter') return startRun(circuit, { starter: true });

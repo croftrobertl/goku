@@ -8,7 +8,7 @@ import { W, skinOf } from './skins.js';
 export const CARDS = {
   engine: [['risk', 'Streak at risk', true], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
     ['nudge', 'Coach nudge', true], ['chamber', "Today's workout", false], ['circuit', 'Circuit', true], ['fuelnow', 'Fuel now', true], ['scouter', 'Scouter', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
-    ['activity', 'Other training', true], ['senzu', 'Body map', true], ['trend', 'Training trend', true], ['weight', 'Weight trend', true], ['stats', 'Last session and food', true],
+    ['activity', 'Other training', true], ['senzu', 'Body map', true], ['compare', 'This week vs last week', true], ['trend', 'Training trend', true], ['weight', 'Weight trend', true], ['feelgrid', 'Check-ins, last 2 weeks', true], ['stats', 'Last session and food', true],
     ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['hardsets', 'Hard sets', true]],
   perf: [['risk', 'Streak at risk', true], ['ready', 'Scouter and readiness', false], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
     ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['fuelnow', 'Fuel now', true], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
@@ -28,7 +28,7 @@ const hidden = p => new Set((p.settings.homeHidden || []).filter(id => CARDS[p.k
 
 // Home (2.5) starts simple: a Today / Stats switch, with the game cards on their own Saga screen.
 // Within each, the person's order holds. Cards not listed here are Today cards.
-const STATS = ['week', 'recap', 'streak', 'senzu', 'trend', 'weight', 'hardsets', 'stats', 'skills', 'timing'];
+const STATS = ['week', 'recap', 'streak', 'compare', 'senzu', 'trend', 'weight', 'feelgrid', 'hardsets', 'stats', 'skills', 'timing'];
 const SAGA = ['saga', 'balls', 'wish', 'duel', 'scouter'];
 const sectionOf = id => SAGA.includes(id) ? 'saga' : STATS.includes(id) ? 'stats' : 'today';
 let view = 'today'; // which Home section is on screen: today, stats, or saga (the Saga screen)
