@@ -34,6 +34,8 @@ function capsule(step, total) {
   const arms = last ? '<path d="M18 60l-10-14M102 60l10-14" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : first ? '<path d="M103 56l11-12" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : '';
   // The skin picks the guide (2.8): Encore's is a mic buddy, Plain has none.
   if (skin().mascot === 'none') return '';
+  // Dragon Ball skin (2.21, review 22): Goku pointing at you is the coach. The mini chat face uses the same picture.
+  if (skin().mascot === 'star') return `<div class="mascot coachpic" aria-hidden="true"><img src="img/pose/${first ? 'wave' : last ? 'cheer' : 'coach'}.png" alt="" width="96" height="96"></div>`; // 2.21: waves hello, points the way, cheers at the end
   if (skin().mascot === 'mic') {
     const micEyes = step % 3 === 1 && !last ? '<path d="M44 40h9M67 40h9" stroke="#3a2a5c" stroke-width="4" stroke-linecap="round"/>'
       : '<circle cx="48" cy="40" r="4.5" fill="#3a2a5c"/><circle cx="72" cy="40" r="4.5" fill="#3a2a5c"/><circle cx="49.5" cy="38.5" r="1.4" fill="#fff"/><circle cx="73.5" cy="38.5" r="1.4" fill="#fff"/>';
@@ -121,7 +123,8 @@ export function onboard({ cancellable = false } = {}) {
       return { nutrition: true, gut: true, hypertrophy: lifts, shuffle: lifts, soccer: false, fuel: pl.id !== 'food', weight: goal() === 'lose' && !isMinor(d) };
     }
 
-    const mini = () => capsule(2, 9).replace('width="104" height="96"', 'width="44" height="40"').replace('class="mascot"', 'class="chatface"');
+    const mini = () => skin().mascot === 'star' ? '<img class="chatface coachface" src="img/pose/think.png" alt="" aria-hidden="true" width="56" height="56">'
+      : capsule(2, 9).replace('width="104" height="96"', 'width="44" height="40"').replace('class="mascot"', 'class="chatface"');
     const say = t => `<div class="chatrow">${mini()}<div class="bubble">${esc(t)}</div></div>`;
     const me = t => `<div class="chatrow mine"><div class="bubble">${esc(t)}</div></div>`;
     const qStep = (title, qs) => ({ qs, html: () => `${label('Your coach')}<h1>${esc(title)}</h1>${screenHTML(qs, d).replace(`<h2>${esc(title)}</h2>`, '')}` });
@@ -208,7 +211,8 @@ export function onboard({ cancellable = false } = {}) {
 
     function draw() {
       const st = cur();
-      $('#ob').innerHTML = (['door', 'chat', 'plan'].includes(st.key) ? '' : capsule(step, steps.length)) + st.html();
+      // The Dragon Ball coach waves hello on the first screen too (2.21); other skins keep the first screen clear.
+      $('#ob').innerHTML = (['chat', 'plan'].includes(st.key) || (st.key === 'door' && skin().mascot !== 'star') ? '' : capsule(step, steps.length)) + st.html();
       $('.q[data-qid="equipment"] .pills')?.insertAdjacentHTML('afterbegin', `<button data-fullgym aria-pressed="${fullGym(d)}">Full gym</button>`);
       el.classList.add('capsule-setup');
       el.style.setProperty('--step', STEP_COLOR);

@@ -1,5 +1,5 @@
 // "Density Engine" profile: gravity-chamber circuits, rep counter, exercise library.
-import { w, W } from './skins.js';
+import { w, W, skinOf } from './skins.js';
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
 import * as db from './db.js';
 import { discardGuard, esc, toast, ask, overlay, stepper, unlockAudio, beep, soundReady, awake, keepAwake, round, guard, announce, dayPicker } from './ui.js';
@@ -10,7 +10,7 @@ import { fuelCard, fuelRanges, timingCard, fuelNowCard } from './fuel.js';
 import { logActivity, minutesOf, activityRows, editActivityById } from './activity.js';
 import { loggedEntries, records, recordFor, progression, GROUPS, liftHistory } from './insights.js';
 import { openNutritionDay, nutritionDays, dayTotals } from './nutrition.js';
-import { streakCard, recapCard, bindShared, riskCard, kiGauge } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard, restCard, kiGauge } from './homecards.js';
 import { trendCard } from './trend.js';
 import { weightCard, bindWeight, syncWeigh, weightOn } from './weight.js';
 import { scouterCard } from './scouter.js';
@@ -270,6 +270,7 @@ export async function home() {
       ['fuel', `${on(p, 'fuel') ? fuelCard(p, (sessMin || cap) + minutesOf(todayActs), { planned: sessMin ? 0 : cap }) : ''}`],
       ['timing', `${on(p, 'fuel') ? timingCard(p, trainedToday || cap, { open: trainedToday > 0 }) : ''}`],
       ['risk', riskCard(p, all, t)],
+      ['restday', restCard(p, all, t)],
       ['fuelnow', on(p, 'fuel') ? fuelNowCard(p, { lastEnd: Math.max(0, ...[...sessions.filter(s => s.day === t), ...todayActs].map(e => e.ts)) }) : ''],
       ['saga', sagaCard(arcs, t, { sessions, weighs })],
       ['hardsets', `${on(p, 'hypertrophy') ? `<section class="card">
@@ -356,6 +357,7 @@ async function startRun(circuit, { starter = false } = {}) {
     };
     await db.setMeta(runKey(), run);
     openRunner(run);
+    moment('img/pose/letstrain.png', "Let's train!", 1600); // 2.21: Goku cheers you in, then the first move
   } finally { starting = false; }
 }
 
@@ -386,7 +388,21 @@ async function saveRun(run, endedAt) {
   await db.setMeta(runKey(), null);
   const reps = run.sets.reduce((a, s) => a + s.stages.reduce((b, x) => b + x.reps, 0), 0);
   toast(run.sets.length ? `Saved · ${reps} reps in ${Math.max(1, round((endedAt - run.startedAt) / 60000))} min` : 'Nothing logged, so nothing saved');
+  if (run.sets.length) moment('img/pose/yougotthis.png', 'You got this!', 2200);
   window.goku.render();
+}
+
+// Coach moments (2.21, review 22): a Goku pose shown for a moment over the screen, Dragon Ball skin only.
+// A tap closes it early; it never blocks anything underneath for long.
+function moment(src, label, ms) {
+  if (skinOf(profile()) !== 'dbz') return;
+  const d = document.createElement('div');
+  d.className = 'moment'; d.setAttribute('role', 'status');
+  d.innerHTML = `<img src="${src}" alt="${esc(label)}">`;
+  document.body.append(d);
+  let gone = false;
+  const end = () => { if (gone) return; gone = true; d.classList.add('out'); setTimeout(() => d.remove(), 260); };
+  d.addEventListener('click', end); setTimeout(end, ms);
 }
 
 function openRunner(run) {

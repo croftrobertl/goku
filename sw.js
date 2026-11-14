@@ -1,12 +1,12 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.20.0';
+const CACHE_VERSION = '2.21.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './js/app.js', './js/auras.js', './js/db.js', './js/time.js', './js/crypto.js', './js/ui.js', './js/state.js', './js/validate.js',
   './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/trend.js', './js/weight.js', './js/plan.js', './js/demo.js', './js/compare.js', './js/skills.js', './js/milestones.js', './js/homelayout.js', './js/duel.js', './js/figure.js', './js/moves.js', './js/movepicker.js', './js/foods.js', './js/fuzzy.js', './js/scouter.js', './js/saga.js', './js/calendar.js', './js/muscles.js', './js/supplements.js', './data/interactions.json', './data/everyday.json', './data/restaurants.json', './js/nutrition.js', './js/scan.js', './js/health.js', './js/skins.js', './js/version.js',
-  './img/ic/home.svg', './img/ic/library.svg', './img/ic/week.svg', './img/ic/food.svg', './img/ic/protein.svg', './img/ic/history.svg', './img/ic/settings.svg', './img/ic/skills.svg', './img/ic/you.svg', './img/ic/water.svg', './img/ic/supplements.svg', './img/ic/workout.svg', './img/ic/sport.svg', './img/ic/rest.svg', './img/ic/checkin.svg', './img/ic/weigh.svg', './img/ic/calories.svg',
+  './img/ic/home.png', './img/ic/library.png', './img/ic/week.png', './img/ic/food.png', './img/ic/protein.png', './img/ic/history.png', './img/ic/settings.png', './img/ic/skills.png', './img/ic/you.png', './img/ic/water.png', './img/ic/supplements.png', './img/ic/workout.png', './img/ic/sport.png', './img/ic/rest.png', './img/ic/checkin.png', './img/ic/weigh.png', './img/ic/calories.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png', './icons/favicon-48.png', './icons/favicon-192.png',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
 ];
@@ -24,7 +24,7 @@ const UPC_VERSION = 'upc-2026-11-05';
 const UPC = 'goku-upc-' + UPC_VERSION;
 const ART_VERSION = 'art-2026-11-04';
 const ART = 'goku-art-' + ART_VERSION;
-const ART_FILES = ['./img/muscles.svg', ...['0077', '0075', '0162', '0055', '0018', '0033', '0056', '0198', '0042', '0020', '0086', '0087', '0224', '0227',
+const ART_FILES = ['./img/muscles.svg', ...['goku', 'gokusleep', 'vegeta', 'gohan', 'piccolo', 'krillin', 'trunks', 'roshi', 'bulma', 'tien', 'yamcha', 'frieza', 'cell', 'buu', 'android18', 'broly', 'beerus', 'whis', 'jiren'].map(n => `./img/char/${n}.png`), ...['coach', 'wave', 'think', 'cheer', 'letstrain', 'yougotthis', 'restday', 'recharge', 'protips', 'senzu', 'scouter', 'shenron'].map(n => `./img/pose/${n}.png`), ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => [`./img/balls/lit-${n}.png`, `./img/balls/dim-${n}.png`]), ...['ss1', 'ss2', 'ss3', 'god', 'blue', 'ui'].map(n => `./img/aura/${n}.png`), ...['0077', '0075', '0162', '0055', '0018', '0033', '0056', '0198', '0042', '0020', '0086', '0087', '0224', '0227',
   '0261', '0105', '0122', '0152', '0129', '0115', '0121', '0137', '0109', '0118', '0107', '0099', '0281', '0101', '0113', '0291', '0284', '0287', '0021', '0032',
   '0004', '0024', '0025', '0046', '0048', '0061', '0066', '0091', '0092', '0103', '0114', '0116', '0117', '0119', '0123', '0124', '0127', '0138',
   '0142', '0156', '0157', '0181', '0183', '0204', '0205', '0212', '0239', '0282', '0286', '0288']

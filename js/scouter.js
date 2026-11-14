@@ -74,8 +74,8 @@ export async function maybeOver9000(p, all, today) {
   const { overlay } = await import('./ui.js'), { saveProfile } = await import('./state.js');
   p.coach = { ...(p.coach || {}), over9000: today };
   await saveProfile(p);
-  const { el, close } = overlay(`<div class="nine" role="document"><div class="lens"><div class="tick" aria-hidden="true"></div><div class="lbl2">POWER LEVEL</div>
-      <div class="read9 num">${pl.total.toLocaleString('en-US')}</div></div>
+  const { el, close } = overlay(`<div class="nine" role="document"><img class="broke" src="img/pose/scouter.png" alt="A scouter cracking apart" width="300" height="300">
+    <div class="lens"><div class="lbl2">POWER LEVEL</div><div class="read9 num">${pl.total.toLocaleString('en-US')}</div></div>
     <h1 class="big9">It's over 9,000!</h1><p class="sub9">Your power level just passed 9,000. Every workout, meal and check-in got you here.</p>
     <button class="btn9" data-close>Keep Training</button></div>`, { label: "It's over 9,000" });
   el.classList.add('ov9000');

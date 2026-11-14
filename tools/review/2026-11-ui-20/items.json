@@ -1,0 +1,1261 @@
+{
+ "batch": "2026-11-ui-20",
+ "title": "Goku Rendered Icons",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Pick the Best Render of Each Icon",
+   "why": "I cut your 10 ChatGPT sheets into single icons, kept their transparent backgrounds (and removed the fake checkerboard on one sheet), and grouped them by icon. That gives 8 to 11 versions of each of the 17 icons. I left out the blue-and-white pill, since you picked the Senzu pouch.\n\nEach picture shows one version large, on a light screen (left) and a dark one (right). Under it is the same icon at its real size in the app: the tab bar and a Quick Add tile. Tap any picture to see it full screen.\n\nMy pick for each is marked. If none are right, choose \"Keep the current drawing\".",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "home",
+   "area": "Icons",
+   "title": "Home (Kame House)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s9-01",
+     "label": "Sheet 9 · my pick",
+     "desc": "",
+     "img": "home-s9-01.png",
+     "rec": true
+    },
+    {
+     "id": "s1-01",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "home-s1-01.png"
+    },
+    {
+     "id": "s2-01",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "home-s2-01.png"
+    },
+    {
+     "id": "s3-01",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "home-s3-01.png"
+    },
+    {
+     "id": "s4-01",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "home-s4-01.png"
+    },
+    {
+     "id": "s5-01",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "home-s5-01.png"
+    },
+    {
+     "id": "s6-01",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "home-s6-01.png"
+    },
+    {
+     "id": "s7-01",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "home-s7-01.png"
+    },
+    {
+     "id": "s8-01",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "home-s8-01.png"
+    },
+    {
+     "id": "s10-01",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "home-s10-01.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "library",
+   "area": "Icons",
+   "title": "Library (turtle shell)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s9-02",
+     "label": "Sheet 9 · my pick",
+     "desc": "",
+     "img": "library-s9-02.png",
+     "rec": true
+    },
+    {
+     "id": "s1-02",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "library-s1-02.png"
+    },
+    {
+     "id": "s2-02",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "library-s2-02.png"
+    },
+    {
+     "id": "s3-02",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "library-s3-02.png"
+    },
+    {
+     "id": "s4-02",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "library-s4-02.png"
+    },
+    {
+     "id": "s5-02",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "library-s5-02.png"
+    },
+    {
+     "id": "s6-02",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "library-s6-02.png"
+    },
+    {
+     "id": "s7-02",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "library-s7-02.png"
+    },
+    {
+     "id": "s8-02",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "library-s8-02.png"
+    },
+    {
+     "id": "s10-02",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "library-s10-02.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "food",
+   "area": "Icons",
+   "title": "Nutrition and Food (rice bowl)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s2-03",
+     "label": "Sheet 2 · my pick",
+     "desc": "",
+     "img": "food-s2-03.png",
+     "rec": true
+    },
+    {
+     "id": "s1-03",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "food-s1-03.png"
+    },
+    {
+     "id": "s3-03",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "food-s3-03.png"
+    },
+    {
+     "id": "s4-03",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "food-s4-03.png"
+    },
+    {
+     "id": "s5-03",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "food-s5-03.png"
+    },
+    {
+     "id": "s6-03",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "food-s6-03.png"
+    },
+    {
+     "id": "s7-03",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "food-s7-03.png"
+    },
+    {
+     "id": "s8-03",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "food-s8-03.png"
+    },
+    {
+     "id": "s9-03",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "food-s9-03.png"
+    },
+    {
+     "id": "s10-03",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "food-s10-03.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "protein",
+   "area": "Icons",
+   "title": "Protein (meat on the bone)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s10-04",
+     "label": "Sheet 10 · my pick",
+     "desc": "",
+     "img": "protein-s10-04.png",
+     "rec": true
+    },
+    {
+     "id": "s1-04",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "protein-s1-04.png"
+    },
+    {
+     "id": "s2-04",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "protein-s2-04.png"
+    },
+    {
+     "id": "s3-04",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "protein-s3-04.png"
+    },
+    {
+     "id": "s4-04",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "protein-s4-04.png"
+    },
+    {
+     "id": "s5-04",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "protein-s5-04.png"
+    },
+    {
+     "id": "s6-04",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "protein-s6-04.png"
+    },
+    {
+     "id": "s7-04",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "protein-s7-04.png"
+    },
+    {
+     "id": "s8-04",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "protein-s8-04.png"
+    },
+    {
+     "id": "s9-04",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "protein-s9-04.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "skills",
+   "area": "Icons",
+   "title": "Skills (Dragon Ball)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s2-05",
+     "label": "Sheet 2 · my pick",
+     "desc": "",
+     "img": "skills-s2-05.png",
+     "rec": true
+    },
+    {
+     "id": "s1-05",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "skills-s1-05.png"
+    },
+    {
+     "id": "s3-05",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "skills-s3-05.png"
+    },
+    {
+     "id": "s4-05",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "skills-s4-05.png"
+    },
+    {
+     "id": "s5-05",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "skills-s5-05.png"
+    },
+    {
+     "id": "s6-05",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "skills-s6-05.png"
+    },
+    {
+     "id": "s7-05",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "skills-s7-05.png"
+    },
+    {
+     "id": "s8-05",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "skills-s8-05.png"
+    },
+    {
+     "id": "s9-05",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "skills-s9-05.png"
+    },
+    {
+     "id": "s10-05",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "skills-s10-05.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "supplements",
+   "area": "Icons",
+   "title": "Supplements (Senzu pouch)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s4-06",
+     "label": "Sheet 4 · my pick",
+     "desc": "",
+     "img": "supplements-s4-06.png",
+     "rec": true
+    },
+    {
+     "id": "s1-06",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "supplements-s1-06.png"
+    },
+    {
+     "id": "s2-06",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "supplements-s2-06.png"
+    },
+    {
+     "id": "s3-06",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "supplements-s3-06.png"
+    },
+    {
+     "id": "s5-06",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "supplements-s5-06.png"
+    },
+    {
+     "id": "s6-06",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "supplements-s6-06.png"
+    },
+    {
+     "id": "s7-06",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "supplements-s7-06.png"
+    },
+    {
+     "id": "s8-06",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "supplements-s8-06.png"
+    },
+    {
+     "id": "s9-06",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "supplements-s9-06.png"
+    },
+    {
+     "id": "s10-06",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "supplements-s10-06.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "workout",
+   "area": "Icons",
+   "title": "Workout (stopwatch)",
+   "why": "Large on light and dark; real size in the app underneath. One version (sheet 5) is a stopwatch with a blue and orange ring.",
+   "options": [
+    {
+     "id": "s7-07",
+     "label": "Sheet 7 · my pick",
+     "desc": "",
+     "img": "workout-s7-07.png",
+     "rec": true
+    },
+    {
+     "id": "s2-11",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "workout-s2-11.png"
+    },
+    {
+     "id": "s3-07",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "workout-s3-07.png"
+    },
+    {
+     "id": "s4-07",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "workout-s4-07.png"
+    },
+    {
+     "id": "s5-07",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "workout-s5-07.png"
+    },
+    {
+     "id": "s5-13",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "workout-s5-13.png"
+    },
+    {
+     "id": "s6-08",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "workout-s6-08.png"
+    },
+    {
+     "id": "s8-07",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "workout-s8-07.png"
+    },
+    {
+     "id": "s9-10",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "workout-s9-10.png"
+    },
+    {
+     "id": "s10-07",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "workout-s10-07.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "sport",
+   "area": "Icons",
+   "title": "Other Sport (soccer ball)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s6-09",
+     "label": "Sheet 6 · my pick",
+     "desc": "",
+     "img": "sport-s6-09.png",
+     "rec": true
+    },
+    {
+     "id": "s2-12",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "sport-s2-12.png"
+    },
+    {
+     "id": "s3-08",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "sport-s3-08.png"
+    },
+    {
+     "id": "s4-08",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "sport-s4-08.png"
+    },
+    {
+     "id": "s5-08",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "sport-s5-08.png"
+    },
+    {
+     "id": "s7-08",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "sport-s7-08.png"
+    },
+    {
+     "id": "s8-08",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "sport-s8-08.png"
+    },
+    {
+     "id": "s10-08",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "sport-s10-08.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "rest",
+   "area": "Icons",
+   "title": "Rest Day and Sleep (Nimbus)",
+   "why": "Large on light and dark; real size in the app underneath. Some versions have the Zs you asked for; the ones without are plain clouds.",
+   "options": [
+    {
+     "id": "s4-09",
+     "label": "Sheet 4 · my pick",
+     "desc": "",
+     "img": "rest-s4-09.png",
+     "rec": true
+    },
+    {
+     "id": "s1-07",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "rest-s1-07.png"
+    },
+    {
+     "id": "s2-07",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "rest-s2-07.png"
+    },
+    {
+     "id": "s3-09",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "rest-s3-09.png"
+    },
+    {
+     "id": "s3-10",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "rest-s3-10.png"
+    },
+    {
+     "id": "s5-09",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "rest-s5-09.png"
+    },
+    {
+     "id": "s6-07",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "rest-s6-07.png"
+    },
+    {
+     "id": "s7-09",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "rest-s7-09.png"
+    },
+    {
+     "id": "s8-09",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "rest-s8-09.png"
+    },
+    {
+     "id": "s9-07",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "rest-s9-07.png"
+    },
+    {
+     "id": "s10-09",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "rest-s10-09.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "checkin",
+   "area": "Icons",
+   "title": "Check-In (heart)",
+   "why": "Large on light and dark; real size in the app underneath. One version (sheet 2) has no pulse line.",
+   "options": [
+    {
+     "id": "s1-08",
+     "label": "Sheet 1 · my pick",
+     "desc": "",
+     "img": "checkin-s1-08.png",
+     "rec": true
+    },
+    {
+     "id": "s2-13",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "checkin-s2-13.png"
+    },
+    {
+     "id": "s3-11",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "checkin-s3-11.png"
+    },
+    {
+     "id": "s4-10",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "checkin-s4-10.png"
+    },
+    {
+     "id": "s5-10",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "checkin-s5-10.png"
+    },
+    {
+     "id": "s6-12",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "checkin-s6-12.png"
+    },
+    {
+     "id": "s7-10",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "checkin-s7-10.png"
+    },
+    {
+     "id": "s8-10",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "checkin-s8-10.png"
+    },
+    {
+     "id": "s9-14",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "checkin-s9-14.png"
+    },
+    {
+     "id": "s10-10",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "checkin-s10-10.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "weigh",
+   "area": "Icons",
+   "title": "Weigh-In (scale)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s1-09",
+     "label": "Sheet 1 · my pick",
+     "desc": "",
+     "img": "weigh-s1-09.png",
+     "rec": true
+    },
+    {
+     "id": "s2-14",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "weigh-s2-14.png"
+    },
+    {
+     "id": "s3-12",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "weigh-s3-12.png"
+    },
+    {
+     "id": "s4-11",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "weigh-s4-11.png"
+    },
+    {
+     "id": "s5-11",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "weigh-s5-11.png"
+    },
+    {
+     "id": "s6-13",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "weigh-s6-13.png"
+    },
+    {
+     "id": "s7-11",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "weigh-s7-11.png"
+    },
+    {
+     "id": "s8-11",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "weigh-s8-11.png"
+    },
+    {
+     "id": "s9-15",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "weigh-s9-15.png"
+    },
+    {
+     "id": "s10-11",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "weigh-s10-11.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "calories",
+   "area": "Icons",
+   "title": "Calories (ki blast)",
+   "why": "Large on light and dark; real size in the app underneath. Some are a spiky blast, some a glowing ball with stars like the one you picked.",
+   "options": [
+    {
+     "id": "s1-10",
+     "label": "Sheet 1 · my pick",
+     "desc": "",
+     "img": "calories-s1-10.png",
+     "rec": true
+    },
+    {
+     "id": "s2-09",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "calories-s2-09.png"
+    },
+    {
+     "id": "s3-13",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "calories-s3-13.png"
+    },
+    {
+     "id": "s4-12",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "calories-s4-12.png"
+    },
+    {
+     "id": "s5-12",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "calories-s5-12.png"
+    },
+    {
+     "id": "s6-10",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "calories-s6-10.png"
+    },
+    {
+     "id": "s7-12",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "calories-s7-12.png"
+    },
+    {
+     "id": "s8-12",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "calories-s8-12.png"
+    },
+    {
+     "id": "s9-09",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "calories-s9-09.png"
+    },
+    {
+     "id": "s10-12",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "calories-s10-12.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "history",
+   "area": "Icons",
+   "title": "History (clock)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s10-13",
+     "label": "Sheet 10 · my pick",
+     "desc": "",
+     "img": "history-s10-13.png",
+     "rec": true
+    },
+    {
+     "id": "s1-11",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "history-s1-11.png"
+    },
+    {
+     "id": "s3-14",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "history-s3-14.png"
+    },
+    {
+     "id": "s4-13",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "history-s4-13.png"
+    },
+    {
+     "id": "s6-11",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "history-s6-11.png"
+    },
+    {
+     "id": "s7-13",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "history-s7-13.png"
+    },
+    {
+     "id": "s8-13",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "history-s8-13.png"
+    },
+    {
+     "id": "s9-16",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "history-s9-16.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "settings",
+   "area": "Icons",
+   "title": "Settings (gear)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s1-12",
+     "label": "Sheet 1 · my pick",
+     "desc": "",
+     "img": "settings-s1-12.png",
+     "rec": true
+    },
+    {
+     "id": "s2-17",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "settings-s2-17.png"
+    },
+    {
+     "id": "s3-15",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "settings-s3-15.png"
+    },
+    {
+     "id": "s4-14",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "settings-s4-14.png"
+    },
+    {
+     "id": "s5-14",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "settings-s5-14.png"
+    },
+    {
+     "id": "s6-16",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "settings-s6-16.png"
+    },
+    {
+     "id": "s7-14",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "settings-s7-14.png"
+    },
+    {
+     "id": "s8-14",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "settings-s8-14.png"
+    },
+    {
+     "id": "s9-11",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "settings-s9-11.png"
+    },
+    {
+     "id": "s10-14",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "settings-s10-14.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "week",
+   "area": "Icons",
+   "title": "Week (calendar)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s1-13",
+     "label": "Sheet 1 · my pick",
+     "desc": "",
+     "img": "week-s1-13.png",
+     "rec": true
+    },
+    {
+     "id": "s2-16",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "week-s2-16.png"
+    },
+    {
+     "id": "s3-16",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "week-s3-16.png"
+    },
+    {
+     "id": "s4-15",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "week-s4-15.png"
+    },
+    {
+     "id": "s5-15",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "week-s5-15.png"
+    },
+    {
+     "id": "s6-14",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "week-s6-14.png"
+    },
+    {
+     "id": "s7-15",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "week-s7-15.png"
+    },
+    {
+     "id": "s8-15",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "week-s8-15.png"
+    },
+    {
+     "id": "s9-12",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "week-s9-12.png"
+    },
+    {
+     "id": "s10-15",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "week-s10-15.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "water",
+   "area": "Icons",
+   "title": "Water (drop)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s4-16",
+     "label": "Sheet 4 · my pick",
+     "desc": "",
+     "img": "water-s4-16.png",
+     "rec": true
+    },
+    {
+     "id": "s1-14",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "water-s1-14.png"
+    },
+    {
+     "id": "s2-15",
+     "label": "Sheet 2",
+     "desc": "",
+     "img": "water-s2-15.png"
+    },
+    {
+     "id": "s3-17",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "water-s3-17.png"
+    },
+    {
+     "id": "s5-16",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "water-s5-16.png"
+    },
+    {
+     "id": "s6-15",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "water-s6-15.png"
+    },
+    {
+     "id": "s7-16",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "water-s7-16.png"
+    },
+    {
+     "id": "s8-16",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "water-s8-16.png"
+    },
+    {
+     "id": "s9-13",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "water-s9-13.png"
+    },
+    {
+     "id": "s10-16",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "water-s10-16.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "you",
+   "area": "Icons",
+   "title": "You (悟 symbol)",
+   "why": "Large on light and dark; real size in the app underneath.",
+   "options": [
+    {
+     "id": "s2-08",
+     "label": "Sheet 2 · my pick",
+     "desc": "",
+     "img": "you-s2-08.png",
+     "rec": true
+    },
+    {
+     "id": "s1-15",
+     "label": "Sheet 1",
+     "desc": "",
+     "img": "you-s1-15.png"
+    },
+    {
+     "id": "s3-18",
+     "label": "Sheet 3",
+     "desc": "",
+     "img": "you-s3-18.png"
+    },
+    {
+     "id": "s4-17",
+     "label": "Sheet 4",
+     "desc": "",
+     "img": "you-s4-17.png"
+    },
+    {
+     "id": "s5-17",
+     "label": "Sheet 5",
+     "desc": "",
+     "img": "you-s5-17.png"
+    },
+    {
+     "id": "s6-17",
+     "label": "Sheet 6",
+     "desc": "",
+     "img": "you-s6-17.png"
+    },
+    {
+     "id": "s7-17",
+     "label": "Sheet 7",
+     "desc": "",
+     "img": "you-s7-17.png"
+    },
+    {
+     "id": "s8-17",
+     "label": "Sheet 8",
+     "desc": "",
+     "img": "you-s8-17.png"
+    },
+    {
+     "id": "s9-08",
+     "label": "Sheet 9",
+     "desc": "",
+     "img": "you-s9-08.png"
+    },
+    {
+     "id": "s10-17",
+     "label": "Sheet 10",
+     "desc": "",
+     "img": "you-s10-17.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    }
+   ]
+  }
+ ],
+ "bigPreviews": true
+}

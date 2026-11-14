@@ -61,6 +61,8 @@ h1{font:800 1.55rem/1.15 var(--display);letter-spacing:-.015em;margin:6px 0 8px;
 .opt .pv{width:96px;border:0;padding:0;background:none}
 .opt .pv img{display:block;width:96px;border-radius:8px;border:1px solid var(--line);background:var(--sunk)}
 .opt .pv.none{width:0}
+.bigpv .opt{grid-template-columns:minmax(0,1fr)}
+.bigpv .opt .pv,.bigpv .opt .pv img{width:100%}
 .opt h3{margin:0 0 4px;font:700 1.02rem/1.25 var(--body);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .opt p{margin:0;color:var(--muted);font-size:.92rem;white-space:pre-line}
 .letter{font:800 .95rem var(--display);color:var(--accent)}
@@ -145,8 +147,9 @@ const D = JSON.parse(document.getElementById("data").textContent);
 const IMG = D.images || {};
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const LETTERS = "ABCDEFGH";
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const KEY = "review:" + D.batch;
+if (D.bigPreviews) document.documentElement.classList.add("bigpv"); // pages where the picture is the choice (icons): full-width pictures
 
 // answers: { [itemId]: { status: open|approved|changes|skipped, choice, note, at } }
 let A = {};

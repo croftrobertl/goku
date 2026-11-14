@@ -1,5 +1,5 @@
 // Home cards both profile types share: the streak with Senzu saves and the weekly arc recap.
-import { w, W } from './skins.js';
+import { w, W, skinOf } from './skins.js';
 import { saveEntry, saveProfile, deleteEntry } from './state.js';
 import { esc, round, toast } from './ui.js';
 import { prettyDay, weekday, minutesNow, clockOf } from './time.js';
@@ -13,10 +13,8 @@ import { readiness, sleepTargetFor } from './perf-score.js';
 import { powerLevel } from './scouter.js';
 
 // A Senzu bean, drawn small (2.5: no emoji in the interface).
-// A Senzu bean (2.20, review 19): a shiny green bean with its seam, matching the Supplements pouch.
-const BEAN = '<svg class="senzu" viewBox="0 0 24 18" aria-hidden="true"><defs><radialGradient id="szb" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#e9ffc8"/><stop offset=".5" stop-color="#97dd66"/><stop offset="1" stop-color="#43a032"/></radialGradient></defs>'
-  + '<ellipse cx="12" cy="9" rx="9.5" ry="6.8" transform="rotate(-12 12 9)" fill="url(#szb)" stroke="#1b1f2e" stroke-width="1.4"/><path d="M6.5 7c2-2 5-2.6 7.5-1.8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>'
-  + '<path d="M18.5 10.5c-1 1.7-2.6 2.5-4.2 2.5" fill="none" stroke="#3c8f2e" stroke-width="1.3" stroke-linecap="round"/></svg>';
+// A Senzu bean (2.21): Rob's render.
+const BEAN = '<img class="sbean" src="img/pose/senzu.png" alt="" aria-hidden="true" width="24" height="24">';
 
 // Rest days that count each week: the days you don't plan to train (at least 1; 2 with no plan).
 const offDay = d => d.gym + d.vault === 0;
@@ -28,6 +26,28 @@ export function restAllowance(p) {
 
 // The last streak seen per profile, so the header can show the aura stage on any tab.
 export const streakSeen = {};
+
+// Rest day card (2.21, review 22), Dragon Ball skin. After a rest day is logged: Goku asleep on the Nimbus.
+// Before, when today looks like a recovery day, Relax & Recharge with a button to log the rest.
+//   Gymnastics: a planned rest day, or readiness under 50 in today's check-in.
+//   Strength: today's check-in says energy 1–2 or soreness 4–5.
+export function restCard(p, all, today) {
+  if (skinOf(p) !== 'dbz') return '';
+  const day = all.filter(e => e.day === today), has = t => day.some(e => e.type === t);
+  if (has('session') || has('activity')) return ''; // trained after all: no rest card
+  if (has('rest')) return `<section class="card restcard"><img src="img/pose/restday.png" alt="Rest day" width="220" height="220">
+    <p class="sub" style="text-align:center">Rest day logged. Recovery is training too.</p></section>`;
+  const s = streak(all, today, restAllowance(p)); if (!s.restLeft) return '';
+  const plan = p.kind === 'perf' ? p.settings.weekPlan || [] : [];
+  const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
+  const ci = day.find(e => e.type === 'checkin')?.data, g = day.find(e => e.type === 'gut')?.data;
+  const tired = p.kind === 'perf' ? !!ci && readiness(ci, sleepTargetFor(p)) < 50 : !!g && (g.energy <= 2 || g.soreness >= 4);
+  if (!plannedRest && !tired) return '';
+  return `<section class="card restcard"><img src="img/pose/recharge.png" alt="" aria-hidden="true" width="200" height="200">
+    <p style="text-align:center;font-weight:700">${plannedRest ? 'Today is a planned rest day.' : 'Your check-in says your body could use a break.'}</p>
+    <p class="sub" style="text-align:center">Relax and recharge. A rest day keeps your streak going.</p>
+    <button class="cta2" data-restday style="margin-top:8px;width:100%">Log a rest day</button></section>`;
+}
 
 export function streakCard(p, all, today) {
   const s = streak(all, today, restAllowance(p));

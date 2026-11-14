@@ -1,0 +1,78 @@
+{
+ "batch": "2026-11-ui-21",
+ "title": "Goku Ki Blast and Shell",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "calories",
+   "area": "Calories",
+   "title": "Ki Blast, Fired in One Direction",
+   "why": "Your note: it should look like it's shooting somewhere, not sitting still. I took the blast you picked (sheet 10) and gave it a trail of its own flames fading behind it, so it reads as moving. Three angles.",
+   "now": [
+    {
+     "img": "ki-now.png",
+     "caption": "Your pick, still"
+    }
+   ],
+   "bigPreviews": true,
+   "options": [
+    {
+     "id": "a",
+     "label": "Shooting up and to the left",
+     "desc": "",
+     "img": "ki-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Shooting straight left",
+     "desc": "",
+     "img": "ki-b.png"
+    },
+    {
+     "id": "c",
+     "label": "Shooting steeply upward",
+     "desc": "",
+     "img": "ki-c.png"
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": "Say what's off in the note."
+    }
+   ]
+  },
+  {
+   "id": "library",
+   "area": "Library",
+   "title": "Master Roshi's Shell in Purple",
+   "why": "Your note: make it purple like Master Roshi's. I checked: fan sources and official merchandise call his shell purple, but none gives an exact official color, so here are two purples on your sheet-8 shell. Only the green changed; the shading, plate lines and cream rim are as drawn.",
+   "now": [
+    {
+     "img": "shell-now.png",
+     "caption": "Your pick, green"
+    }
+   ],
+   "options": [
+    {
+     "id": "violet",
+     "label": "Bright violet",
+     "desc": "Closer to how it looks on screen in the anime.",
+     "img": "shell-violet.png",
+     "rec": true
+    },
+    {
+     "id": "royal",
+     "label": "Deep purple",
+     "desc": "",
+     "img": "shell-royal.png"
+    },
+    {
+     "id": "again",
+     "label": "Try another purple",
+     "desc": "Say lighter, darker, bluer or redder in the note."
+    }
+   ]
+  }
+ ]
+}

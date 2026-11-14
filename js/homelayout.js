@@ -7,11 +7,11 @@ import { W, skinOf } from './skins.js';
 // [id, name, can hide?] in the default order.
 export const CARDS = {
   engine: [['risk', 'Streak at risk', true], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true], ['levelup', 'Level up', true],
-    ['nudge', 'Coach nudge', true], ['chamber', "Today's workout", false], ['circuit', 'Circuit', true], ['fuelnow', 'Fuel now', true], ['scouter', 'Scouter', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
+    ['nudge', 'Coach nudge', true], ['chamber', "Today's workout", false], ['restday', 'Rest day', true], ['circuit', 'Circuit', true], ['fuelnow', 'Fuel now', true], ['scouter', 'Scouter', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
     ['activity', 'Other training', true], ['senzu', 'Body map', true], ['compare', 'This week vs last week', true], ['trend', 'Training trend', true], ['weight', 'Weight trend', true], ['feelgrid', 'Check-ins, last 2 weeks', true], ['stats', 'Last session and food', true],
     ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['hardsets', 'Hard sets', true]],
   perf: [['risk', 'Streak at risk', true], ['ready', 'Scouter and readiness', false], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
-    ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['fuelnow', 'Fuel now', true], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
+    ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['restday', 'Rest day', true], ['fuelnow', 'Fuel now', true], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
     ['today', 'Today', true], ['skills', 'Skill tree', true], ['compare', 'This week vs last week', true], ['trend', 'Training trend', true], ['feelgrid', 'Check-ins, last 2 weeks', true], ['fuel', 'Fuel ranges', true],
     ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['longday', 'Long day tip', true]],
 };

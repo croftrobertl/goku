@@ -1,0 +1,309 @@
+{
+ "batch": "2026-11-ui-22",
+ "title": "Goku Faces and Coach",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Faces and Coach Poses",
+   "why": "I cut your two new sheets into separate pictures and removed their white backgrounds.\n\nThe faces come two ways: as drawn, with hair breaking out past the circle, or trimmed neatly to the circle. Both are shown in the real app below.\n\nThe coach poses have their words (Setup Coach, Let's Train! and so on) painted into the picture. That's great for a big moment, but those words can never change, and they repeat what the app already says. So each pose also comes without its banner.\n\nI can't draw better versions than ChatGPT; my own drawings are the ones you called homemade. What I can do is cut, trim and fit these, and suggest where each one goes. For the other 13 fighters, ask ChatGPT for the same style and I'll fit them the same way.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "style",
+   "area": "Avatars",
+   "title": "Hair Out, or Inside the Circle?",
+   "why": "Your Goku face in the real app: the profile chip (with the Super Saiyan 3 flames) and the You card.",
+   "now": [
+    {
+     "img": "mock-avatar-circle.png",
+     "caption": "Inside the circle"
+    }
+   ],
+   "options": [
+    {
+     "id": "hair",
+     "label": "Hair breaks out of the circle",
+     "desc": "More personality; it pokes past the edge.",
+     "img": "mock-avatar-hair.png",
+     "rec": true
+    },
+    {
+     "id": "circle",
+     "label": "Trimmed to the circle",
+     "desc": "Neater; every avatar is the same round shape."
+    }
+   ]
+  },
+  {
+   "id": "faces",
+   "area": "Avatars",
+   "title": "Goku, Vegeta, Piccolo and Master Roshi",
+   "why": "These replace the kanji emblems for these four fighters. The other 14 fighters keep their emblems until their faces arrive.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Use all four",
+     "desc": "",
+     "img": "faces-a.png",
+     "rec": true
+    },
+    {
+     "id": "some",
+     "label": "Use some",
+     "desc": "Say which in the note.",
+     "img": "faces-b.png"
+    },
+    {
+     "id": "no",
+     "label": "Not yet",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "sleep",
+   "area": "Avatars",
+   "title": "Where Should Goku Asleep Go?",
+   "why": "He isn't a fighter to pick, so he needs a spot of his own.",
+   "options": [
+    {
+     "id": "rest",
+     "label": "On the Rest Day card",
+     "desc": "The card you see after logging a rest day.",
+     "img": "face-sleep.png",
+     "rec": true
+    },
+    {
+     "id": "sleep",
+     "label": "On the sleep question in the check-in",
+     "desc": ""
+    },
+    {
+     "id": "none",
+     "label": "Don't use him",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "coach",
+   "area": "Setup",
+   "title": "The Setup Coach",
+   "why": "Goku pointing at you replaces the capsule mascot in the setup chat. Shown in the real setup screen.",
+   "now": [
+    {
+     "img": "mock-coach-notext.png",
+     "caption": "In the setup chat"
+    }
+   ],
+   "options": [
+    {
+     "id": "notext",
+     "label": "Pointing pose, no banner",
+     "desc": "",
+     "img": "coach-notext.png",
+     "rec": true
+    },
+    {
+     "id": "text",
+     "label": "Pointing pose with \"Setup Coach\"",
+     "desc": "The words get small in the chat bubble.",
+     "img": "coach-text.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the capsule mascot",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "banners",
+   "area": "Coach poses",
+   "title": "Banners On the Big Moments?",
+   "why": "For the moments below, the painted words could be the headline, since they fit (Let's Train!, You Got This!, Rest Day). Or every pose goes without words, and the app writes its own.",
+   "options": [
+    {
+     "id": "moments",
+     "label": "Words on the big moments only",
+     "desc": "Let's Train!, You Got This! and Rest Day keep their banners; the rest go without.",
+     "rec": true
+    },
+    {
+     "id": "none",
+     "label": "No painted words anywhere",
+     "desc": ""
+    },
+    {
+     "id": "all",
+     "label": "Words everywhere",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "letstrain",
+   "area": "Coach poses",
+   "title": "Let's Train!",
+   "why": "Proposed spot: At the top of the workout screen when you tap Enter the Chamber, before the first move. I'll show it in the real screen before publishing.",
+   "now": [
+    {
+     "img": "letstrain-text.png",
+     "caption": "With its banner"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it there",
+     "desc": "",
+     "img": "letstrain-notext.png",
+     "rec": true
+    },
+    {
+     "id": "other",
+     "label": "Use it somewhere else",
+     "desc": "Say where in the note."
+    },
+    {
+     "id": "no",
+     "label": "Don't use it",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "yougotthis",
+   "area": "Coach poses",
+   "title": "You Got This!",
+   "why": "Proposed spot: On the screen after you finish a workout, above your reps and the ghost result. I'll show it in the real screen before publishing.",
+   "now": [
+    {
+     "img": "yougotthis-text.png",
+     "caption": "With its banner"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it there",
+     "desc": "",
+     "img": "yougotthis-notext.png",
+     "rec": true
+    },
+    {
+     "id": "other",
+     "label": "Use it somewhere else",
+     "desc": "Say where in the note."
+    },
+    {
+     "id": "no",
+     "label": "Don't use it",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "restday",
+   "area": "Coach poses",
+   "title": "Rest Day",
+   "why": "Proposed spot: On the card that appears after you log a rest day. I'll show it in the real screen before publishing.",
+   "now": [
+    {
+     "img": "restday-text.png",
+     "caption": "With its banner"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it there",
+     "desc": "",
+     "img": "restday-notext.png",
+     "rec": true
+    },
+    {
+     "id": "other",
+     "label": "Use it somewhere else",
+     "desc": "Say where in the note."
+    },
+    {
+     "id": "no",
+     "label": "Don't use it",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "recharge",
+   "area": "Coach poses",
+   "title": "Relax & Recharge",
+   "why": "Proposed spot: On Home on a planned rest day, or when your check-in says you need recovery. I'll show it in the real screen before publishing.",
+   "now": [
+    {
+     "img": "recharge-text.png",
+     "caption": "With its banner"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it there",
+     "desc": "",
+     "img": "recharge-notext.png",
+     "rec": true
+    },
+    {
+     "id": "other",
+     "label": "Use it somewhere else",
+     "desc": "Say where in the note."
+    },
+    {
+     "id": "no",
+     "label": "Don't use it",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "protips",
+   "area": "Coach poses",
+   "title": "Pro Tips",
+   "why": "Proposed spot: At the top of the \"Why?\" explanation sheets. I'll show it in the real screen before publishing.",
+   "now": [
+    {
+     "img": "protips-text.png",
+     "caption": "With its banner"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it there",
+     "desc": "",
+     "img": "protips-notext.png",
+     "rec": true
+    },
+    {
+     "id": "other",
+     "label": "Use it somewhere else",
+     "desc": "Say where in the note."
+    },
+    {
+     "id": "no",
+     "label": "Don't use it",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

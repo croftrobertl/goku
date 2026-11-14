@@ -9,7 +9,7 @@ import { AREAS } from './validate.js';
 import { coachCard, bindCoach, ageOf } from './coach.js';
 import { fuelCard, timingCard, fuelNowCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
-import { streakCard, recapCard, bindShared, riskCard, kiGauge } from './homecards.js';
+import { streakCard, recapCard, bindShared, riskCard, restCard, kiGauge } from './homecards.js';
 import { trendCard } from './trend.js';
 import { scouterCard } from './scouter.js';
 import { sagaCard, bindSaga, arcsOf } from './saga.js';
@@ -98,6 +98,7 @@ export async function home() {
         : `<div class="scread"><h2 id="h-ready">No reading yet today</h2><p class="sub">Six quick questions about sleep, energy and how your body feels, about 30 seconds.</p>
           <button class="cta2" data-ci="${t}" style="margin-top:8px">Check in</button></div>` })],
       ['risk', riskCard(p, all, t)],
+      ['restday', restCard(p, all, t)],
       ['fuelnow', on(p, 'fuel') ? fuelNowCard(p, { at: planned.at ?? null, minutes: planned.gym + planned.vault, lastEnd: Math.max(0, ...todays.map(s => s.ts)) }) : ''],
       ['balls', `${newBallsCard(p, milestones(p, all, t, skills))}`],
       ['wish', wishCard(p, milestones(p, all, t, skills))],

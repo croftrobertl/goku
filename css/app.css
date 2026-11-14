@@ -960,13 +960,13 @@ nav.tabs .tb:not([aria-current]) .ic { opacity: .6; filter: saturate(.55); }
 .qaitem .ic { width: 32px; height: 32px; margin: 0 auto; }
 .goals .gic .ic { width: 26px; height: 26px; }
 .gball { flex: none; }
-.senzu { width: 24px; height: 18px; margin-left: 3px; vertical-align: -3px; }
+.sbean { display: inline-block; width: 24px; height: 24px; margin-left: 2px; vertical-align: -6px; }
 /* Super Saiyan forms (2.20): the flames sit behind the avatar and never take taps. */
 .aura { position: relative; isolation: isolate; }
 .aura .saura { position: absolute; left: 0; top: 0; z-index: -1; pointer-events: none; overflow: visible; }
 @media (prefers-reduced-motion: no-preference) {
-  .aura .sflame { transform-origin: 60px 80px; animation: flick 1.6s ease-in-out infinite; }
-  @keyframes flick { 50% { transform: scale(1.04, 1.08); } }
+  .aura .saura { transform-origin: 50% 64%; animation: flick 1.6s ease-in-out infinite; }
+  @keyframes flick { 50% { transform: scale(1.03, 1.06); } }
 }
 /* "It's over 9,000!" (2.20): a scouter readout, the line and one button, in its own colors in every theme. */
 .overlay.ov9000 { background: radial-gradient(circle at 50% 30%, #13301f, #050a07 70%); color: #eafff1; }
@@ -981,3 +981,30 @@ nav.tabs .tb:not([aria-current]) .ic { opacity: .6; filter: saturate(.55); }
 .ov9000 .sub9 { max-width: 300px; text-align: center; color: #cfe9d9; font-weight: 600; line-height: 1.4; margin: 0; }
 .ov9000 .btn9 { width: 100%; max-width: 330px; height: 52px; margin-top: auto; border-radius: 14px; background: #ffe46b; color: #141a2b; border: 3px solid #141a2b; font: 900 17px -apple-system, system-ui, sans-serif; }
 @media (prefers-reduced-motion: no-preference) { .ov9000 .big9 { animation: pop9 .5s cubic-bezier(.2, 1.6, .4, 1) both .25s; } @keyframes pop9 { from { transform: rotate(-3deg) scale(.4); opacity: 0; } } }
+/* Drawn faces (2.21): the hair breaks out past the circle, so the picture is a little bigger than its slot. */
+.av-face { overflow: visible !important; background: none; position: relative; }
+.av-face img { position: absolute; width: 124%; height: 124%; left: -12%; top: -16%; max-width: none; border-radius: 0; object-fit: contain; }
+/* Coach moments (2.21): Let's Train! and You Got This! appear for a moment, then fade. A tap closes them. */
+.moment { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(8, 10, 20, .45); }
+.moment img { width: min(78vw, 340px); height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, .35)); }
+.moment.out { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .moment { transition: opacity .25s ease; }
+  .moment img { animation: momentin .35s cubic-bezier(.2, 1.4, .4, 1) both; }
+  @keyframes momentin { from { transform: scale(.6); opacity: 0; } }
+}
+.coachpic img { width: 96px; height: 96px; object-fit: contain; }
+.coachface { flex: none; width: 56px; height: 56px; object-fit: contain; }
+.tipspic { display: block; width: 120px; height: 120px; object-fit: contain; margin: 0 auto 8px; }
+.restcard img { display: block; width: 150px; height: auto; max-width: 70%; margin: 0 auto 6px; }
+/* 2.21: Shenron on the wish card; the cracked scouter on the over-9,000 screen (the lens is now a slim readout under it). */
+.wish .shenron { display: block; width: min(240px, 70%); height: auto; margin: 4px auto 10px; }
+.ov9000 .broke { width: min(300px, 80vw); height: auto; margin-top: -10px; }
+.ov9000 .lens { height: 96px; max-width: 300px; }
+.ov9000 .lens .lbl2 { top: 10px; }
+.ov9000 .lens .read9 { top: 28px; font-size: 44px; }
+.ov9000 .big9 { margin-top: 4px; }
+.chip .chipname, .chip > .sub { position: relative; z-index: 1; } /* the name stays in front of the aura flames */
+/* The aura's flames tuck behind the banners above the profile chip, with a little room to rise (2.21). */
+.top:has(.saura) { margin-top: 12px; }
+.demobar, .updbar { position: relative; z-index: 2; }

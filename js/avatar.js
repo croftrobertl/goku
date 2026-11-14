@@ -1,5 +1,5 @@
-// Avatars. No official artwork is used or shipped: a character avatar is an original inked
-// emblem in that character's signature color with a kanji that fits them, labeled with their
+// Avatars. A character avatar is a drawn face (Goku, Vegeta, Piccolo, Roshi; renders Rob made, review 22)
+// or, until a face exists, an inked emblem in that character's color with a fitting kanji, labeled with their
 // name. A fighter is only the avatar; the app's colors come from the theme.
 // A photo the person picks is resized here and stored only on this phone.
 import { skin } from './skins.js';
@@ -43,10 +43,18 @@ const emblem = (fill, kanji, px) => `<svg viewBox="0 0 40 40" width="${px}" heig
     <text x="20" y="24.6" text-anchor="middle" font-size="13" font-weight="700" fill="#141414"
       font-family="'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', system-ui, sans-serif">${esc(kanji)}</text></svg>`;
 
+// Drawn faces (2.21, review 22): fighters with a face show it, hair breaking out past the circle; the rest keep their emblem.
+// Goku sleeps through a logged rest day.
+const FACES = new Set(CHARACTERS.map(c => c[0])); // all 18 fighters (2.21, reviews 22-23)
+const resting = new Set(); // profile ids with a rest day logged today
+export const setResting = (id, on) => { if (on) resting.add(id); else resting.delete(id); };
+const face = (id, name, px) => `<span class="av av-art av-face" style="width:${px}px;height:${px}px" title="${esc(name)}"><img src="img/char/${id}.png" alt="" width="${px}" height="${px}"></span>`;
+
 // The avatar for a profile, sized in pixels. Falls back to the plain initial in the accent color.
 export function avatarHTML(p, px = 36) {
   const a = p.avatar || {};
   const c = a.type === 'char' && CHARACTERS.find(x => x[0] === a.id);
+  if (c && FACES.has(c[0])) return face(c[0] === 'goku' && resting.has(p.id) ? 'gokusleep' : c[0], c[1], px);
   if (c) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(c[1])}">${emblem(c[2], c[3], px)}</span>`;
   const bead = a.type === 'beads' && BRACELETS.find(x => x[0] === a.id);
   if (bead) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(bead[1])} bracelet">${bracelet(bead[2], initials(p.name), px)}</span>`;
@@ -80,7 +88,7 @@ export function avatarPicker(p) {
   // The skin's own set comes first (2.8). Fighters are Dragon Ball's only (2.8.2): Encore and Plain don't list them,
   // though a fighter picked before keeps showing as the avatar.
   const dbz = skin().avatars === 'fighters';
-  return `<p class="sub">${dbz ? 'Pick an avatar, an aura, or your own photo. Character names are labels only; every drawing is original, not official art.' : 'Pick an avatar, an aura, or your own photo.'} Your colors stay with your theme.</p>
+  return `<p class="sub">${dbz ? 'Pick a fighter, an aura, or your own photo. Goku is fan-made; Dragon Ball belongs to its creators.' : 'Pick an avatar, an aura, or your own photo.'} Your colors stay with your theme.</p>
     ${dbz ? fighters + bracelets : bracelets}
     <p class="lbl" style="margin-top:12px">Auras</p>
     <div class="avgrid">

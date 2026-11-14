@@ -1,0 +1,196 @@
+{
+ "batch": "2026-11-ui-23",
+ "title": "Goku New Art",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Your New Art, in the App",
+   "why": "Everything you sent is cut out and in its spot. These are screenshots from the real app. Pick \"Use it\" or say what to change.\n\nFixed while fitting: the aura was first too big and covered your name, and now tucks behind the banner; the Senzu beans first stacked up instead of sitting in a row; and the avatar picker said \"every drawing is original, not official art\", which is no longer true, so it now says Goku is fan-made.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "faces",
+   "area": "Avatars",
+   "title": "All 18 Fighters",
+   "why": "Every fighter now has a face, in the avatar picker and wherever your avatar shows.",
+   "options": [
+    {
+     "id": "use",
+     "label": "Use them",
+     "desc": "",
+     "img": "faces.png",
+     "rec": true
+    },
+    {
+     "id": "change",
+     "label": "Change some",
+     "desc": "Say which in the note."
+    }
+   ]
+  },
+  {
+   "id": "aura",
+   "area": "Streak",
+   "title": "Super Saiyan Aura (Your Renders)",
+   "why": "Your Super Saiyan 3 ring around the Goku face on the 28-day sample, behind the banner above it.",
+   "now": [
+    {
+     "img": "now-auras.png",
+     "caption": "My drawings before"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use them",
+     "desc": "",
+     "img": "aura.png",
+     "rec": true
+    },
+    {
+     "id": "change",
+     "label": "Change",
+     "desc": "Say what in the note."
+    }
+   ]
+  },
+  {
+   "id": "balls",
+   "area": "Dragon Balls",
+   "title": "Dragon Balls",
+   "why": "Your glass balls in the Saga card.",
+   "now": [
+    {
+     "img": "now-dragonballs.png",
+     "caption": "My drawings before"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use them",
+     "desc": "",
+     "img": "balls.png",
+     "rec": true
+    },
+    {
+     "id": "change",
+     "label": "Change",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "shenron",
+   "area": "Shenron's wish",
+   "title": "Shenron on the Wish Card",
+   "why": "When all seven are gathered. Shown on the wish card, which is dark.",
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it",
+     "desc": "",
+     "img": "shenron.png",
+     "rec": true
+    },
+    {
+     "id": "change",
+     "label": "Change",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "senzu",
+   "area": "Streak",
+   "title": "Senzu Beans",
+   "why": "Your bean on the Streak card, one per saved bean.",
+   "now": [
+    {
+     "img": "now-senzu.png",
+     "caption": "My drawing before"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it",
+     "desc": "",
+     "img": "senzu.png",
+     "rec": true
+    },
+    {
+     "id": "change",
+     "label": "Change",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "nine",
+   "area": "Power level",
+   "title": "Over 9,000 with the Broken Scouter",
+   "why": "Your cracking scouter above a slimmer power-level readout.",
+   "now": [
+    {
+     "img": "now-over9000.png",
+     "caption": "Before"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use it",
+     "desc": "",
+     "img": "nine.png",
+     "rec": true
+    },
+    {
+     "id": "change",
+     "label": "Change",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "setup",
+   "area": "Setup",
+   "title": "Goku Waves Hello, Then Thinks",
+   "why": "Goku waves on the first setup screen (new; it had no coach before), thinks beside each coach question, points on the middle steps, and cheers on the last one.",
+   "now": [
+    {
+     "img": "coach-before.png",
+     "caption": "Before: pointing in the chat"
+    }
+   ],
+   "options": [
+    {
+     "id": "use",
+     "label": "Use them",
+     "desc": "",
+     "img": "wave.png",
+     "rec": true
+    },
+    {
+     "id": "nofirst",
+     "label": "Use them, but no coach on the first screen",
+     "desc": ""
+    },
+    {
+     "id": "change",
+     "label": "Change",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

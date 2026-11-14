@@ -9,6 +9,7 @@ import { settingsView, backupAgeDays, youView, openSettingsGroup } from './setti
 import * as engine from './engine.js';
 import * as perf from './perf.js';
 import { formFor, auraSVG } from './auras.js';
+import { setResting } from './avatar.js';
 import { maybeOver9000 } from './scouter.js';
 import { loggedEntries } from './insights.js';
 import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback, titleCase, startTitleCase, GLY } from './ui.js';
@@ -72,8 +73,8 @@ function showKiHint() {
 }
 
 // Tab icons: simple outline drawings in the panel style.
-// Full-color Dragon Ball icons (2.20, reviews 14-18): each is its own file in img/ic, so a better rendering can replace it.
-const pic = n => `<img class="ic" src="img/ic/${n}.svg" alt="" aria-hidden="true" width="28" height="28" draggable="false">`;
+// Full-color Dragon Ball icons (2.21, reviews 20-21): renders Rob picked, one 120 px PNG each in img/ic.
+const pic = n => `<img class="ic" src="img/ic/${n}.png" alt="" aria-hidden="true" width="28" height="28" draggable="false">`;
 const svg = d => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const ICON = {
   home: pic('home'),
@@ -173,6 +174,9 @@ async function drawNow() {
   setSkin(skinOf(p));
   setFeedback(p);
   const scr = SCREENS[p.kind];
+  { // Goku sleeps on a rest day (2.21), and wakes up if you train after all
+    const t0 = today(), mine = (await loggedEntries(p).catch(() => [])).filter(e => e.day === t0);
+    setResting(p.id, mine.some(e => e.type === 'rest') && !mine.some(e => e.type === 'session' || e.type === 'activity')); }
   const charged = await poweredUp(p).catch(() => false);
   // Transformation stages (2.2): the streak powers the aura up; a wish can make it eternal.
   const days = streakSeen[p.id] || 0;
@@ -273,7 +277,7 @@ document.addEventListener('click', e => {
   else if (b.id === 'demoEnd') import('./demo.js').then(m => m.endDemo(profile()));
   else if (b.id === 'updLater') { update.dismissed = true; render(); }
   else if (b.id === 'updNow') applyUpdate();
-  else if (b.dataset.why && WHY[b.dataset.why]) { const [t, html] = WHY[b.dataset.why](profile(), b.dataset.arg); ask(t, html, []); }
+  else if (b.dataset.why && WHY[b.dataset.why]) { const [t, html] = WHY[b.dataset.why](profile(), b.dataset.arg); ask(t, (skinOf(profile()) === 'dbz' ? '<img class="tipspic" src="img/pose/protips.png" alt="" aria-hidden="true" width="120" height="120">' : '') + html, []); } // Pro Tips Goku (2.21)
   else if (b.dataset.setup) setupFlow(profile(), async p => { await saveProfile(p); render(); }, { only: b.dataset.setup });
 });
 

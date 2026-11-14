@@ -11,26 +11,12 @@ export const FORMS = [
 ];
 export const formFor = days => FORMS.filter(f => days >= f[0]).pop() || null;
 
-// Flame tongues around a circle of radius 28 centered at (60, 66), longest at the top.
-function flame(amp, seed) {
-  const pts = [], n = 22;
-  for (let i = 0; i <= n * 2; i++) {
-    const t = i / (n * 2) * Math.PI * 2, up = Math.max(0, -Math.sin(t)), side = Math.abs(Math.cos(t));
-    const r = i % 2 ? 30 + amp * (0.25 + up + side * .25) * (0.8 + .4 * Math.abs(Math.sin(i * 1.7 + seed))) : 28;
-    pts.push([60 + r * Math.cos(t), 66 + r * Math.sin(t) - (i % 2 ? amp * .35 * (1 - up) : 0)]);
-  }
-  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-  for (let i = 1; i < pts.length; i++) { const [x, y] = pts[i], [px, py] = pts[i - 1]; d += ` Q${((x + px) / 2).toFixed(1)} ${(Math.min(y, py) - 2).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`; }
-  return d + 'z';
-}
-
-// The aura for an avatar of `px` pixels. The flames are kept a little shorter than the review drawing so
-// they stay inside the header.
+// Rob's aura renders (2.21): one ring per form. RING gives each ring's empty middle (center and radius, as
+// fractions of the picture), measured by tools/review/renders/cut3.py, so the avatar sits right in the hole.
+const RING = {"ss1": [0.5125, 0.632, 0.217], "ss2": [0.4994, 0.6279, 0.2066], "ss3": [0.4947, 0.6842, 0.1772], "god": [0.4946, 0.6347, 0.2133], "blue": [0.5107, 0.6393, 0.206], "ui": [0.5015, 0.619, 0.2116]};
+const FILE = ['ss1', 'ss2', 'ss3', 'god', 'blue', 'ui'];
 export function auraSVG(form, px) {
-  const [, , c0, c1, c2, amp0, bolt, ui] = form, amp = amp0 * .7, size = Math.round(px * 120 / 56), k = FORMS.indexOf(form);
-  return `<svg class="saura" viewBox="0 0 120 120" width="${size}" height="${size}" aria-hidden="true" style="margin:${-(size - px) / 2 - px * .1}px 0 0 ${-(size - px) / 2}px">
-    <defs><radialGradient id="sag${k}" cx=".5" cy=".58" r=".6"><stop offset=".45" stop-color="${c0}"/><stop offset=".75" stop-color="${c1}"/><stop offset="1" stop-color="${c2}" stop-opacity=".85"/></radialGradient></defs>
-    <path d="${flame(amp + 4, k)}" fill="${c1}" opacity=".35"/><path class="sflame" d="${flame(amp, k + 1)}" fill="url(#sag${k})" stroke="${c2}" stroke-width="1.2" stroke-linejoin="round"/>
-    ${ui ? '<path d="M40 30c4 6 2 10-2 14M82 26c-3 7 0 11 4 15M60 18c-2 6 1 9 3 12" fill="none" stroke="#6f86c9" stroke-width="2" stroke-linecap="round" opacity=".8"/>' : ''}
-    ${bolt ? `<path d="M30 40l6 7-4 2 6 8M88 34l-5 8 4 1-6 9M92 84l-7 4 3 3-8 3" fill="none" stroke="${bolt}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>` : ''}</svg>`;
+  const name = FILE[FORMS.indexOf(form)], [cx, cy, r] = RING[name];
+  const size = Math.round(px * .44 / r), left = Math.round(px / 2 - cx * size), top = Math.round(px / 2 - cy * size);
+  return `<img class="saura" src="img/aura/${name}.png" alt="" aria-hidden="true" width="${size}" height="${size}" style="left:${left}px;top:${top}px">`;
 }

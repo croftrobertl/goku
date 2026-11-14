@@ -413,7 +413,7 @@ export async function goalsCard(p) {
   const food = (await entries('food', p)).find(e => e.day === t)?.data.items || [], sum = k => Math.round(food.reduce((a, i) => a + (i.n?.[k] || 0), 0));
   const sessions = eng ? (await entries('session', p)).filter(s => s.day >= wk) : [], acts = (await entries('activity', p)).filter(a => a.day >= wk);
   const guts = (await entries('gut', p)).filter(g => g.day >= addDays(t, -7) && g.data.sleepH != null);
-  const pic = n => `<img class="ic" src="img/ic/${n}.svg" alt="" aria-hidden="true" width="26" height="26">`;
+  const pic = n => `<img class="ic" src="img/ic/${n}.png" alt="" aria-hidden="true" width="26" height="26">`;
   const IC = { bolt: pic('workout'), run: pic('sport'), drumstick: pic('protein'), flame: pic('calories'), scale: pic('weigh'), moon: pic('rest') };
   const rows = [];
   const row = (k, icon, name, sub, pct, set, extra = '') => rows.push(`<li class="goal"><span class="gic">${icon}</span><span class="gtx"><b>${name}</b><br><span class="chain" data-raw>${esc(sub)}</span>
