@@ -29,6 +29,6 @@ export const skinId = () => cur;
 // The current skin's word for an idea; Cap() for the start of a sentence.
 export const w = key => SKINS[cur].words[key] ?? SKINS.dbz.words[key];
 // Theme names (2.8.2): Dragon Ball places only in the Dragon Ball skin; the colors are the same.
-const PLAIN_THEMES = { capsule: 'Navy', kame: 'Beach', namek: 'Green', saiyan: 'Gold', destroyer: 'Night', chamber: 'Graphite', eternal: 'Emerald' };
+const PLAIN_THEMES = { capsule: 'Navy', kame: 'Beach', namek: 'Green', saiyan: 'Gold', destroyer: 'Night', chamber: 'Graphite', eternal: 'Emerald', turtle: 'Orange' };
 export const themeName = (id, t) => cur === 'dbz' ? t.name : PLAIN_THEMES[id] || t.name;
 export const W = key => { const s = w(key); return s[0].toUpperCase() + s.slice(1); };

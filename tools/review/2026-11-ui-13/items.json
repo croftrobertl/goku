@@ -1,0 +1,18 @@
+{
+ "batch": "2026-11-ui-13",
+ "title": "Goal Icons",
+ "items": [
+  {
+   "id": "protein-icon",
+   "area": "You · My Goals",
+   "title": "A Protein Icon That Isn't a Drop",
+   "why": "In My Goals, Protein uses a water drop, the same one Water uses in Quick Add, and at this size it looks a lot like the Calories flame just below it. A different shape for Protein would make the three easy to tell apart. These are drawn in Goku's own outline style. Calories and Water stay as they are.",
+   "now": [{ "img": "protein-now.png", "caption": "Now: the drop" }],
+   "options": [
+    { "id": "drumstick", "label": "Drumstick", "desc": "Reads as food with protein. The same icon would go wherever Protein shows an icon.", "img": "protein-drumstick.png", "rec": true },
+    { "id": "shaker", "label": "Shaker bottle", "desc": "A protein-shake bottle. Clear, but it hints at supplements.", "img": "protein-shaker.png" },
+    { "id": "keep", "label": "Keep the drop", "desc": "" }
+   ]
+  }
+ ]
+}

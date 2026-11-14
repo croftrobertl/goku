@@ -1,0 +1,308 @@
+{
+ "batch": "2026-11-ui-15",
+ "title": "Goku Icons, Round Two",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Icons, Round Two",
+   "why": "These are the nine icons you asked to change, with your notes. Each one shows your earlier pick as \"Your last pick\", then two new drawings.\n\nYour own rule is no copyrighted images, so these are original nods to Dragon Ball drawn from scratch: an island house rather than the Kame House design, a spiky-haired figure rather than Goku himself, and a capsule with a button rather than the Capsule Corp logo.\n\nAlready approved and going into 2.20: drumstick for Protein, stopwatch for Workout, heart with a pulse for Check-In, clock with a back arrow for History, gear for Settings, calendar with days for Week, and drawn arrows. Library and Water stay as they are.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "home",
+   "area": "Home",
+   "title": "Home",
+   "why": "Your note: make it look like the Kame House.",
+   "now": [
+    {
+     "img": "home-prev.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "A small house on an island with a palm tree",
+     "desc": "",
+     "img": "home-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "A square house with a round window on an island",
+     "desc": "",
+     "img": "home-b.png"
+    },
+    {
+     "id": "prev",
+     "label": "Keep the house",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "moon",
+   "area": "Rest Day and Sleep",
+   "title": "Rest Day and Sleep",
+   "why": "Your note: a sleeping Kid Goku, or something else Dragon Ball themed.",
+   "now": [
+    {
+     "img": "moon-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "A sound-asleep face with Zs",
+     "desc": "",
+     "img": "moon-a.png"
+    },
+    {
+     "id": "b",
+     "label": "A flying cloud with a Z",
+     "desc": "",
+     "img": "moon-b.png",
+     "rec": true
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "nutrition",
+   "area": "Nutrition and Food",
+   "title": "Nutrition and Food",
+   "why": "Your note: Kid Goku eating tons of food.",
+   "now": [
+    {
+     "img": "nutrition-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "A mountain of food on a plate",
+     "desc": "",
+     "img": "nutrition-a.png"
+    },
+    {
+     "id": "b",
+     "label": "A heaped bowl with chopsticks",
+     "desc": "",
+     "img": "nutrition-b.png",
+     "rec": true
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "pill",
+   "area": "Supplements",
+   "title": "Supplements",
+   "why": "Your note: more like a Capsule Corporation capsule.",
+   "now": [
+    {
+     "img": "pill-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "A capsule with a button on top",
+     "desc": "",
+     "img": "pill-a.png"
+    },
+    {
+     "id": "b",
+     "label": "The same capsule with a number 1",
+     "desc": "",
+     "img": "pill-b.png",
+     "rec": true
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "run",
+   "area": "Other Sport and Move Minutes",
+   "title": "Other Sport and Move Minutes",
+   "why": "Your note: more like a soccer ball, not a globe.",
+   "now": [
+    {
+     "img": "run-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "Soccer ball",
+     "desc": "",
+     "img": "run-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Soccer ball with speed lines",
+     "desc": "",
+     "img": "run-b.png"
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "scale",
+   "area": "Weigh-In and Weight",
+   "title": "Weigh-In and Weight",
+   "why": "Your note: an old-school scale that is instantly recognizable.",
+   "now": [
+    {
+     "img": "scale-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "Balance scale",
+     "desc": "",
+     "img": "scale-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Bathroom scale with a big dial",
+     "desc": "",
+     "img": "scale-b.png"
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "skills",
+   "area": "Skills",
+   "title": "Skills",
+   "why": "Your note: a Kamehameha wave or something Dragon Ball themed.",
+   "now": [
+    {
+     "img": "skills-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "An energy ball with a wave",
+     "desc": "",
+     "img": "skills-a.png"
+    },
+    {
+     "id": "b",
+     "label": "A dragon ball with a star",
+     "desc": "",
+     "img": "skills-b.png",
+     "rec": true
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "you",
+   "area": "You",
+   "title": "You",
+   "why": "Your note: a silhouette with trademark spiky hair.",
+   "now": [
+    {
+     "img": "you-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "Spiky-haired figure",
+     "desc": "",
+     "img": "you-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Spiky-haired figure in a circle",
+     "desc": "",
+     "img": "you-b.png"
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "flame",
+   "area": "Calories",
+   "title": "Calories",
+   "why": "Your note: improve the quality of the gauge.",
+   "now": [
+    {
+     "img": "flame-prev.png",
+     "caption": "Your last pick"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "Gauge, cleaner",
+     "desc": "",
+     "img": "flame-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Gauge in a circle",
+     "desc": "",
+     "img": "flame-b.png"
+    },
+    {
+     "id": "prev",
+     "label": "Your last pick",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

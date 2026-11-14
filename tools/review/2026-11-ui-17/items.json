@@ -1,0 +1,205 @@
+{
+ "batch": "2026-11-ui-17",
+ "title": "Dragon Ball Audit",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Dragon Ball, Without the Old Rule",
+   "why": "You dropped the rule against copyrighted images, so I went through Goku for every place that held back on Dragon Ball because of it: the avatars, the setup coach, Shenron's wish, the streak auras, the Senzu beans and Dragon Balls, the theme list, and the notes that say \"no official artwork\".\n\nNothing has been changed. Where a picture helps, I drew a sample from scratch. Icons are in their own review (round three), so they are not repeated here.\n\nAudit of the audit is the last item.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "avatars",
+   "area": "Avatars",
+   "title": "Character Faces Instead of Kanji Emblems",
+   "why": "Today a fighter avatar is a colored ring with a kanji, because faces weren't allowed. Now each fighter could be a small drawing of the character's face. Shown: four samples drawn in the same style as the new icons. All 18 fighters would get one.",
+   "now": [
+    {
+     "img": "avatars-now.png",
+     "caption": "Now: kanji emblems"
+    }
+   ],
+   "options": [
+    {
+     "id": "faces",
+     "label": "Faces for all 18 fighters",
+     "desc": "The kanji emblems go away.",
+     "img": "avatars-new.png",
+     "rec": true
+    },
+    {
+     "id": "both",
+     "label": "Faces, and keep the emblems as a choice",
+     "desc": "Each person picks a face or an emblem."
+    },
+    {
+     "id": "keep",
+     "label": "Keep the emblems",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "mascot",
+   "area": "Setup coach",
+   "title": "Goku on the Flying Nimbus as the Setup Coach",
+   "why": "The coach that talks you through setup is an original capsule mascot, because characters weren't allowed. It could be Kid Goku riding the Nimbus. Shown: a first sample. A finished version would get a few poses (waving, thinking, cheering) for different steps.",
+   "now": [
+    {
+     "img": "mascot-now.png",
+     "caption": "Now: the capsule mascot"
+    }
+   ],
+   "options": [
+    {
+     "id": "goku",
+     "label": "Goku on the Nimbus",
+     "desc": "Dragon Ball skin only; Encore and Plain keep theirs.",
+     "img": "mascot-new.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep the capsule mascot",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "shenron",
+   "area": "Shenron's wish",
+   "title": "Draw Shenron on the Wish Card",
+   "why": "When all seven Dragon Balls are gathered, the wish card only uses words. It could show Shenron rising out of the seven balls. My first sketch wasn't good enough to show you, so I'd bring two or three drawn options in the next round.",
+   "options": [
+    {
+     "id": "draw",
+     "label": "Yes, show me Shenron drawings",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Leave the card as words",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "auras",
+   "area": "Streak",
+   "title": "Name the Aura Stages After Super Saiyan Forms",
+   "why": "Today the streak turns your avatar's aura gold at 7 days and blue at 30. These could be the real forms: Super Saiyan at 7 days, Super Saiyan 2 at 14, Super Saiyan 3 at 21, Super Saiyan God (red) at 30, Super Saiyan Blue at 60, Ultra Instinct (silver) at 100. The name shows when you hold or tap the avatar. I'd show the auras as pictures before building.",
+   "options": [
+    {
+     "id": "forms",
+     "label": "Yes, show me the forms",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep gold and blue",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "nine",
+   "area": "Power level",
+   "title": "\"It's Over 9,000!\"",
+   "why": "Your power level (the sample is at 7,571) climbs as you train. The first time it passes 9,000, Goku could show a one-time scouter moment with the famous line. It's a short quote, shown once.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Yes, add the moment",
+     "desc": "I'd show you a mockup first.",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "No",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "balls",
+   "area": "Dragon Balls and Senzu beans",
+   "title": "Match the Game Art to the New Icons",
+   "why": "The seven milestone Dragon Balls and the Senzu beans on the streak card are simple shapes today. If you pick full-color icons, these would use the same drawings: glossy orange balls with red stars, and green Senzu beans.",
+   "options": [
+    {
+     "id": "match",
+     "label": "Match them to the icon style",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep them as they are",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "theme",
+   "area": "Themes",
+   "title": "A Turtle School Theme",
+   "why": "The themes already have Dragon Ball names (Capsule, Kame House, Namek, Super Saiyan, Destroyer, Time Chamber, Eternal Dragon). One that's missing is Goku's own gi: orange with deep blue. I'd show you the colors on real screens first.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Yes, show me a Turtle School theme",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "No",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "notice",
+   "area": "Public site",
+   "title": "A Fan-Made Notice",
+   "why": "Goku is a public website, and with real Dragon Ball art it should say plainly that it's fan-made. One line in Settings and in the README: \"Goku is a fan-made app. Dragon Ball belongs to Akira Toriyama, Bird Studio, Shueisha and Toei Animation. Goku is not affiliated with them.\" It also replaces the README's \"no official artwork\" lines. A notice like this doesn't prevent a takedown, but it is the normal courtesy for fan work.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Add the notice",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "No notice",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "audit",
+   "area": "Audit of the audit",
+   "title": "What I Checked and Left Out",
+   "why": "Checked: the avatars, setup mascot, wish card, aura stages, power level, milestones, Senzu beans, themes, skin words, README and code notes. The skin words already use Dragon Ball names, so nothing changes there.\n\nLeft out on purpose:\n• Copying official art, logos, sound effects, music or voice clips. You allowed Dragon Ball, but everything in Goku stays drawn or written here, so it can't break and nothing is lifted.\n• Encore and Plain skins. They stay free of Dragon Ball.\n• Health wording and sources. These still need cited sources, unchanged by this rule.\n\nRisk, said once: the more character art Goku shows, the likelier a takedown notice is if Toei ever looks. Your data is safe either way, because it lives on each phone.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  }
+ ]
+}

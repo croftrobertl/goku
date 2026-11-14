@@ -4,6 +4,9 @@ An offline training tracker that installs from Safari to the iPhone Home Screen.
 There are no accounts, no servers, no analytics and no network requests while you use it.
 Everything you enter stays on the device it was entered on.
 
+Goku is a fan-made app. Dragon Ball belongs to Akira Toriyama, Bird Studio, Shueisha and Toei Animation.
+Goku is not affiliated with them. All of its art is drawn for Goku; none is copied from official artwork.
+
 - **Strength and conditioning profile:** gravity-chamber density circuits with drop-set chains, a
   whole-screen rep counter, ghost races against your last session, and a gut and bloating log.
 - **Gymnastics and vaulting profile:** daily readiness check-in, week planner, session load
@@ -329,7 +332,7 @@ used to dictate.
   adds nothing. **The shortcut recipe hasn't been run on a real iPhone yet.**
 
 **Avatars.** Pick a fighter (an original inked emblem in a Dragon Ball character's colors with a
-kanji that fits them, labeled with their name; no official artwork is included; a fighter is only
+kanji that fits them, labeled with their name; drawn for Goku, not copied from official artwork; a fighter is only
 the avatar, the theme sets the colors), a power-up aura around your own initial,
 or a photo from your phone (resized to 192 px, kept on the phone and in backups only).
 

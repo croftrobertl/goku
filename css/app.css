@@ -911,3 +911,73 @@ html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background:
 .goals .gic { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--s2); color: var(--accent-text); display: grid; place-items: center; }
 .goals .gtx { flex: 1; min-width: 0; text-align: left; } .goals .rowedit { flex: none; }
 .goals .gbar { display: block; height: 6px; border-radius: 3px; background: var(--line); margin-top: 6px; } .goals .gbar i { display: block; height: 100%; border-radius: 3px; background: var(--accent-line); }
+
+/* Gentle Motion (2.20, review 10): sheets slide up a little and tabs fade in, about a sixth of a second.
+   Off when the phone's Reduce Motion setting is on. Opacity and transform only, so nothing shifts the layout. */
+@media (prefers-reduced-motion: no-preference) {
+  .overlay > .inner { animation: sheetup .2s ease-out; }
+  .overlay.kiov > .inner, .overlay:has(.qasheet) > .inner { animation: none; }
+  @keyframes sheetup { from { transform: translateY(24px); opacity: 0; } }
+  main.fadein { animation: tabfade .17s ease-out; }
+  @keyframes tabfade { from { opacity: 0; } }
+}
+/* My Goals beside Today's Progress on desktop (2.20, review 10). With it there the column is too tall to stay pinned,
+   so it scrolls with the page instead of getting a scroll bar of its own. */
+.tgoals { display: none; }
+@media (min-width: 900px) {
+  .tgoals { display: block; margin-top: 16px; }
+  .today .tside:has(.tgoals) { position: static; }
+}
+/* Drawn arrows and signs (2.20, review 14). Inline ones are SVGs (GLY in ui.js); the ones CSS adds after a row
+   or a Show/Hide fold are the same chevron drawn with a mask, so they take the text color and stay centered. */
+.gly { width: 1em; height: 1em; flex: none; vertical-align: -.14em; }
+.cta2 > .gly:only-child, .daypick button > .gly { display: block; width: 20px; height: 20px; margin: 0 auto; }
+.itemrow .chev .gly { width: 20px; height: 20px; vertical-align: middle; }
+.chip .sub .gly { width: 18px; height: 18px; }
+:root { --chev-r: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
+  --chev-d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); }
+.hrow > summary::after, .librow::after, .moregrid .card.pick::after { content: ''; flex: none; width: 18px; height: 18px; font-size: 0; padding: 0;
+  background: currentColor; -webkit-mask: var(--chev-r) center / contain no-repeat; mask: var(--chev-r) center / contain no-repeat; }
+.librow::after { margin-left: auto; color: var(--tx2); }
+/* "Show" / "Hide" with a drawn arrow after it: the summary is a flex row, so the arrow (::before) is ordered last. */
+details.fold > summary::after, .gravd > summary::after, .tcustom > summary::after, .hit details > summary::after { content: "Show"; margin-left: auto; }
+details.fold[open] > summary::after, .gravd[open] > summary::after, .tcustom[open] > summary::after, .hit details[open] > summary::after { content: "Hide"; }
+details.fold > summary::before, .gravd > summary::before, .tcustom > summary::before, .hit details > summary::before,
+.scdet > summary::before { content: ''; order: 99; flex: none; width: 13px; height: 13px; margin-left: -6px; background: var(--accent-text);
+  -webkit-mask: var(--chev-d) center / contain no-repeat; mask: var(--chev-d) center / contain no-repeat; }
+details.fold[open] > summary::before, .gravd[open] > summary::before, .tcustom[open] > summary::before, .hit details[open] > summary::before, .scdet[open] > summary::before { transform: rotate(180deg); }
+.scdet > summary::after { content: none; }
+.scdet > summary::before { background: #39ff88; margin-left: 0; }
+.ki .kitap { display: inline-flex; align-items: center; gap: 4px; }
+.ki .kitap::after { content: " · Show"; white-space: pre; }
+.ki.open .kitap::after { content: " · Hide"; }
+.ki .kitap::before { content: ''; order: 99; width: 12px; height: 12px; background: var(--accent-text); -webkit-mask: var(--chev-d) center / contain no-repeat; mask: var(--chev-d) center / contain no-repeat; }
+.ki.open .kitap::before { transform: rotate(180deg); }
+/* Full-color icons (2.20, review 16): the open tab is full color, the others are softened so the open one stands out. */
+img.ic { display: block; object-fit: contain; -webkit-user-drag: none; user-select: none; }
+nav.tabs .tb .ic { width: 28px; height: 28px; transition: opacity .15s ease; }
+nav.tabs .tb:not([aria-current]) .ic { opacity: .6; filter: saturate(.55); }
+.qaitem .ic { width: 32px; height: 32px; margin: 0 auto; }
+.goals .gic .ic { width: 26px; height: 26px; }
+.gball { flex: none; }
+.senzu { width: 24px; height: 18px; margin-left: 3px; vertical-align: -3px; }
+/* Super Saiyan forms (2.20): the flames sit behind the avatar and never take taps. */
+.aura { position: relative; isolation: isolate; }
+.aura .saura { position: absolute; left: 0; top: 0; z-index: -1; pointer-events: none; overflow: visible; }
+@media (prefers-reduced-motion: no-preference) {
+  .aura .sflame { transform-origin: 60px 80px; animation: flick 1.6s ease-in-out infinite; }
+  @keyframes flick { 50% { transform: scale(1.04, 1.08); } }
+}
+/* "It's over 9,000!" (2.20): a scouter readout, the line and one button, in its own colors in every theme. */
+.overlay.ov9000 { background: radial-gradient(circle at 50% 30%, #13301f, #050a07 70%); color: #eafff1; }
+.ov9000 .nine { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 48px 8px 32px; min-height: 100%; }
+.ov9000 .lens { position: relative; width: 100%; max-width: 360px; height: 180px; border-radius: 18px 60px 18px 18px; background: linear-gradient(160deg, rgba(90,255,150,.55), rgba(20,170,80,.35)); border: 3px solid #0d2a18; box-shadow: inset 0 0 30px rgba(180,255,210,.35), 0 0 30px rgba(60,255,140,.35); }
+.ov9000 .lens::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0 2px, transparent 2px 5px); }
+.ov9000 .lbl2 { position: absolute; left: 0; right: 0; top: 20px; text-align: center; font: 800 13px ui-monospace, Menlo, monospace; letter-spacing: 3px; color: #b8ffd2; }
+.ov9000 .read9 { position: absolute; left: 0; right: 0; top: 50px; text-align: center; font: 800 60px ui-monospace, 'SF Mono', Menlo, monospace; color: #e9fff0; text-shadow: 0 0 12px #3dff8f, 0 0 2px #fff; }
+.ov9000 .tick { position: absolute; right: 16px; top: 16px; width: 32px; height: 32px; border: 3px solid #b8ffd2; border-radius: 50%; }
+.ov9000 .tick::after { content: ''; position: absolute; inset: 8px; background: #ff4b4b; border-radius: 50%; box-shadow: 0 0 10px #ff4b4b; }
+.ov9000 .big9 { margin: 18px 0 0; text-align: center; font: 900 40px/1.05 -apple-system, system-ui, sans-serif; color: #ffe46b; text-shadow: 3px 3px 0 #b3261e, 0 0 18px rgba(255,200,60,.5); transform: rotate(-3deg); text-transform: uppercase; }
+.ov9000 .sub9 { max-width: 300px; text-align: center; color: #cfe9d9; font-weight: 600; line-height: 1.4; margin: 0; }
+.ov9000 .btn9 { width: 100%; max-width: 330px; height: 52px; margin-top: auto; border-radius: 14px; background: #ffe46b; color: #141a2b; border: 3px solid #141a2b; font: 900 17px -apple-system, system-ui, sans-serif; }
+@media (prefers-reduced-motion: no-preference) { .ov9000 .big9 { animation: pop9 .5s cubic-bezier(.2, 1.6, .4, 1) both .25s; } @keyframes pop9 { from { transform: rotate(-3deg) scale(.4); opacity: 0; } } }

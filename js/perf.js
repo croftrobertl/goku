@@ -18,7 +18,8 @@ import { duelCard } from './duel.js';
 import { skillSummary, skillList } from './skills.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
-import { calendarCard, bindCalendar } from './calendar.js';
+import { perfCompareCard, feelGrid, PERF_Q } from './compare.js';
+import { calendarCard, bindCalendar, shownMonth, monthWord } from './calendar.js';
 import { activityName, activityRows, editActivityById } from './activity.js';
 
 // Check-in has no tab of its own (the big button and Home's readiness card open it), so five tabs fit.
@@ -86,6 +87,8 @@ export async function home() {
   const comp = p.about?.comp && p.about.comp >= t ? daysBetween(t, p.about.comp) : null;
   const coachHTML = coachCard(p, {});
 
+  // My Goals beside Today's Progress on a desktop-wide screen (2.20); the phone has it on You.
+  const goalsSide = matchMedia('(min-width: 900px)').matches ? await (await import('./settings.js')).goalsCard(p) : '';
   return {
     cta: c ? ['Log a session', () => logSession()] : ['Check in · 30 s', () => openCheckin(t)], ctaShown: !c, // the scouter has its own Check in button
     html: homeLayout(p, [
@@ -130,17 +133,20 @@ export async function home() {
         <p class="note">Load = minutes × effort (0–10).</p>
       </section>`],
       ['skills', `${on(p, 'skills') ? skillSummary(skills) : ''}`],
+      ['compare', perfCompareCard(p, all, t)],
       ['trend', `${trendCard(p, all, t)}`],
+      ['feelgrid', feelGrid(all.filter(e => e.type === 'checkin'), t, { q: PERF_Q, sleepTarget: sleepTarget(p), attr: 'ci', where: 'as a check-in' })],
       ['fuel', `${on(p, 'fuel') ? fuelCard(p, fuelMin, { title: fuelMin ? 'Fuel today' : 'Fuel · rest day' }) : ''}`],
       ['timing', `${on(p, 'fuel') ? timingCard(p, fuelMin) : ''}`],
       ['saga', sagaCard(arcs, t, { skills })],
       ['longday', `${on(p, 'fuel') && planned.gym + planned.vault >= 240 ? `<section class="card"><p class="lbl">Long day</p>
         <p>Pack a snack for the break, a water bottle, and something to eat soon after you finish.</p></section>` : ''}`]
-    ], { strip: kiGauge(p, all, t), rows: {
+    ], { strip: kiGauge(p, all, t), side: goalsSide, rows: {
       coach: ['Coach', /coachSetup/.test(coachHTML) ? 'Make Goku yours · about 3 minutes' : 'One quick question'],
       fuelnow: ['Fuel now'], fuel: ['Fuel', 'Ranges for today'], longday: ['Long day', 'A tip for today'] } }),
     bind(root) {
       bindRows(root);
+      root.querySelector('.tgoals')?.addEventListener('click', async e => { const m = await import('./settings.js'); m.goalClick(e, p); });
       bindCoach(root, p, {}, async x => { await saveProfile(x); window.goku.render(); });
       bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p);
       root.addEventListener('click', e => {
@@ -371,30 +377,48 @@ export async function historyView() {
   const acts = (await entries('activity')).reverse(); // logged through Quick Add or brought in from Health (2.15: listed here so they can be fixed)
   const p = profile(), all = await loggedEntries(p), t = today(), skills = on(p, 'skills') ? await skillList() : [];
   const balls = milestones(p, all, t, skills);
-  return {
-    html: `<h1>History</h1>
-    <div style="margin-top:12px">${calendarCard(p, all, t, skills)}${ballsCard(balls)}</div>
-    <section class="card"><p class="lbl">Check-ins</p>
-      ${cs.length ? `<ul class="list">${cs.map(c => `<li><span>${prettyDay(c.day)}<br><span class="chain">${esc(c.data.sleepH)} h sleep${c.data.sore.length ? ' · sore: ' + c.data.sore.map(esc).join(', ') : ''}</span></span>
-        <span class="row" style="gap:8px"><span class="num">${readiness(c.data, sleepTarget(profile()))}</span><button class="cta2" data-ci="${esc(c.day)}" aria-label="Edit check-in from ${prettyDay(c.day)}">Edit</button></span></li>`).join('')}</ul>`
-        : '<div class="empty"><h2>No check-ins yet</h2><p>Your daily check-ins show up here, with the readiness score for each day.</p></div>'}
-    </section>
-    <section class="card"><p class="lbl">Sessions</p>
-      ${ss.length ? `<ul class="list">${ss.map(s => `<li><span>${prettyDay(s.day)} · ${esc(kindName(profile(), s))}<br>
+  const cal = calendarCard(p, all, t, skills), ym = shownMonth(), mon = monthWord(ym), inM = x => x.day.startsWith(ym); // the lists follow the calendar (2.20)
+  const ciRows = (list, inDay) => list.map(c => `<li><span>${inDay ? 'Readiness' : prettyDay(c.day)}<br><span class="chain">${esc(c.data.sleepH)} h sleep${c.data.sore.length ? ' · sore: ' + c.data.sore.map(esc).join(', ') : ''}</span></span>
+        <span class="row" style="gap:8px"><span class="num">${readiness(c.data, sleepTarget(p))}</span><button class="cta2" data-ci="${esc(c.day)}" aria-label="Edit check-in from ${prettyDay(c.day)}">Edit</button></span></li>`).join('');
+  const ssRows = (list, inDay) => list.map(s => `<li><span>${inDay ? '' : prettyDay(s.day) + ' · '}${esc(kindName(p, s))}<br>
         <span class="chain">${esc(s.data.minutes)} min · effort ${esc(s.data.effort)}</span></span>
         <span class="row" style="gap:8px"><span class="num">${s.data.minutes * s.data.effort}</span>
-        <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('')}</ul>`
+        <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('');
+  const mC = cs.filter(inM), mS = ss.filter(inM), mA = acts.filter(inM);
+  const act = (b, close) => {
+    if (b.dataset.ci) { close?.(); openCheckin(b.dataset.ci); }
+    if (b.dataset.edit) { close?.(); logSession(ss.find(s => s.id === b.dataset.edit)); }
+    if (b.dataset.act) { close?.(); editActivityById(b.dataset.act); }
+    if (b.dataset.nday) { close?.(); import('./nutrition.js').then(m => m.openNutritionDay(b.dataset.nday)); }
+  };
+  // One day, everything together: training, food and the check-in.
+  const openDay = day => {
+    const dS = ss.filter(s => s.day === day), dA = acts.filter(a => a.day === day), dC = cs.filter(c => c.day === day);
+    const food = all.find(e => e.type === 'food' && e.day === day), n = food?.data.items?.length || 0;
+    const { el, close } = overlay(`<div class="row"><h1>${prettyDay(day)}</h1><button class="cta2" data-close>Close</button></div>
+      <div class="scroll"><section class="card"><p class="lbl">Training</p>${dS.length || dA.length ? `<ul class="list">${ssRows(dS, true)}${activityRows(dA)}</ul>` : '<p class="sub">No training logged.</p>'}</section>
+      ${on(p, 'nutrition') ? `<section class="card"><p class="lbl">Food</p><div class="row"><span class="${n ? '' : 'sub'}">${n ? `${n} food${n === 1 ? '' : 's'} logged` : 'No foods logged.'}</span><button class="cta2" data-nday="${esc(day)}" aria-label="Open nutrition for ${prettyDay(day)}">Open</button></div></section>` : ''}
+      <section class="card"><p class="lbl">Check-In</p>${dC.length ? `<ul class="list">${ciRows(dC, true)}</ul>` : '<p class="sub">No check-in.</p>'}</section></div>`, { label: prettyDay(day) });
+    el.addEventListener('click', e => { const b = e.target.closest('button'); if (b) act(b, close); });
+  };
+  return {
+    html: `<h1>History</h1>
+    <div style="margin-top:12px">${cal}${ballsCard(balls)}</div>
+    <section class="card"><p class="lbl">Check-ins · ${mon}</p>
+      ${mC.length ? `<ul class="list">${ciRows(mC)}</ul>`
+        : cs.length ? `<div class="empty"><p>No check-ins in ${mon}.</p></div>`
+        : '<div class="empty"><h2>No check-ins yet</h2><p>Your daily check-ins show up here, with the readiness score for each day.</p></div>'}
+    </section>
+    <section class="card"><p class="lbl">Sessions · ${mon}</p>
+      ${mS.length ? `<ul class="list">${ssRows(mS)}</ul>`
+        : ss.length ? `<div class="empty"><p>No sessions in ${mon}.</p></div>`
         : '<div class="empty"><p>Log sessions from Home or Week. Each one adds to your training load.</p></div>'}
     </section>
-    ${acts.length ? `<section class="card"><p class="lbl">Other training</p><ul class="list">${activityRows(acts.slice(0, 60))}</ul></section>` : ''}`,
+    ${mA.length ? `<section class="card"><p class="lbl">Other training · ${mon}</p><ul class="list">${activityRows(mA)}</ul></section>` : ''}
+    <p class="note">Tap a day on the calendar to see everything from that day.</p>`,
     bind(root) {
-      bindCalendar(root, p, all, t, skills);
-      root.addEventListener('click', e => {
-        const b = e.target.closest('button'); if (!b) return;
-        if (b.dataset.ci) openCheckin(b.dataset.ci);
-        if (b.dataset.edit) logSession(ss.find(s => s.id === b.dataset.edit));
-        if (b.dataset.act) editActivityById(b.dataset.act);
-      });
+      bindCalendar(root, p, all, t, skills, { onMonth: () => window.goku.render(), onDay: openDay });
+      root.addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.closest('#cal')) act(b); });
     },
   };
 }

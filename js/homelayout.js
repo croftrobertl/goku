@@ -12,7 +12,7 @@ export const CARDS = {
     ['sleep', 'Sleep note', true], ['fuel', 'Fuel ranges', true], ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['hardsets', 'Hard sets', true]],
   perf: [['risk', 'Streak at risk', true], ['ready', 'Scouter and readiness', false], ['balls', 'Dragon Ball news', true], ['wish', "Shenron's wish", true], ['recap', 'Arc recap', true], ['coach', 'Coach questions', true],
     ['comp', 'Competition countdown', true], ['care', 'Care check', false], ['fuelnow', 'Fuel now', true], ['week', 'This week', true], ['duel', 'Duel', true], ['streak', 'Streak', true],
-    ['today', 'Today', true], ['skills', 'Skill tree', true], ['trend', 'Training trend', true], ['fuel', 'Fuel ranges', true],
+    ['today', 'Today', true], ['skills', 'Skill tree', true], ['compare', 'This week vs last week', true], ['trend', 'Training trend', true], ['feelgrid', 'Check-ins, last 2 weeks', true], ['fuel', 'Fuel ranges', true],
     ['timing', 'Fuel timing', true], ['saga', 'Saga map', true], ['longday', 'Long day tip', true]],
 };
 
@@ -48,8 +48,9 @@ export function bindRows(root) {
 // cards: [[id, html]]; strip: the Ki gauge; rows: {id: [label, summary?]} for the cards shown
 // as one-line rows on Today (summary defaults to the card's heading).
 // Returns the markup for the current section, in the person's order, without hidden cards.
+// side: My Goals under the gauge, desktop only (2.20, review 10).
 // On desktop, Today is the panel and rows on the left and the Ki gauge as a scouter column.
-export function homeLayout(p, cards, { strip = '', rows = {} } = {}) {
+export function homeLayout(p, cards, { strip = '', rows = {}, side = '' } = {}) {
   const html = Object.fromEntries(cards), off = hidden(p);
   let ids = order(p).filter(id => !off.has(id) && html[id]?.trim() && sectionOf(id) === view);
   if (view === 'today') ids = [...ids.filter(id => !rows[id]), ...ids.filter(id => rows[id])]; // panels first, then the rows
@@ -58,7 +59,7 @@ export function homeLayout(p, cards, { strip = '', rows = {} } = {}) {
     : `<p class="sub" style="text-align:center;margin-top:16px">${view === 'stats' ? 'Your stats show up here once you log a few days.' : 'Nothing here yet.'}</p>`;
   if (view === 'saga') return body;
   return `<div class="seg hview" role="group" aria-label="Home view"><button data-hview="today" aria-pressed="${view === 'today'}">Today</button><button data-hview="stats" aria-pressed="${view === 'stats'}">Stats</button></div>
-    ${view === 'today' ? `<div class="today"><aside class="tside">${strip}</aside><div class="tmain">${body}</div></div>` : body}`;
+    ${view === 'today' ? `<div class="today"><aside class="tside">${strip}${side ? `<div class="tgoals">${side}</div>` : ''}</aside><div class="tmain">${body}</div></div>` : body}`;
 }
 
 export function editHome(p, onDone = () => window.goku.render()) {

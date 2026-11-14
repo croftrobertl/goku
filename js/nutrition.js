@@ -4,7 +4,7 @@
 // Symptom check-ins (the old Gut log) live in the same day's 'gut' entry.
 import * as db from './db.js';
 import { profile, saveProfile, entries, saveEntry, deleteEntry, today, on } from './state.js';
-import { esc, toast, overlay, stepper, round, guard, ask, dayPicker, sources, discardGuard } from './ui.js';
+import { esc, toast, overlay, stepper, round, guard, ask, dayPicker, sources, discardGuard, GLY } from './ui.js';
 import { addDays, prettyDay } from './time.js';
 import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from './units.js';
 import { fuelRanges } from './fuel.js';
@@ -159,7 +159,7 @@ export async function nutritionView() {
           <div class="mfb"><b class="num">${fmt(tot.fib)}</b><span>Fiber</span></div></div>
         ${range ? `<p class="sub" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
         <div class="row" style="justify-content:center;margin-top:8px;gap:8px">${bodyOn ? `<button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>` : ''}
-          <button class="link" id="dayDetail">All nutrients ›</button></div></div>
+          <button class="link" id="dayDetail">All nutrients ${GLY.right}</button></div></div>
         <div class="qadd"><button class="cta2" id="addFood">+ Food</button><button class="cta2" data-fl="${volumeSteps(p)[1][1]}">+ Water</button>
           <button class="cta2" id="scanFood">${BARCODE}<span>Scan</span></button></div>
       </section>

@@ -2,7 +2,7 @@
 // trained, rest, something else logged, a new record (engine) or skill stage (gymnastics),
 // and the days a Senzu bean saved the streak.
 import { w, W } from './skins.js';
-import { esc } from './ui.js';
+import { esc, GLY } from './ui.js';
 import { addDays, weekStart, prettyDay } from './time.js';
 import { streak } from './insights.js';
 import { restAllowance } from './homecards.js';
@@ -49,8 +49,8 @@ function grid(p, by, t) {
   }
   const days = Object.keys(by).filter(d => d.startsWith(ym));
   const trained = days.filter(d => by[d].has('train')).length;
-  return `<div class="row"><button class="cta2" data-cal="-1" aria-label="Previous month">‹</button><h2 style="margin:0">${monthName(ym)}</h2>
-      <button class="cta2" data-cal="1" aria-label="Next month"${ym >= t.slice(0, 7) ? ' disabled' : ''}>›</button></div>
+  return `<div class="row"><button class="cta2" data-cal="-1" aria-label="Previous month">${GLY.left}</button><h2 style="margin:0">${monthName(ym)}</h2>
+      <button class="cta2" data-cal="1" aria-label="Next month"${ym >= t.slice(0, 7) ? ' disabled' : ''}>${GLY.right}</button></div>
     <div class="calgrid" role="group" aria-label="${monthName(ym)}">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(x => `<span class="cw" aria-hidden="true">${x}</span>`).join('')}${cells.join('')}</div>
     <p class="sub" id="calday" role="status" style="text-align:center">${trained} training day${trained === 1 ? '' : 's'} · ${days.length} day${days.length === 1 ? '' : 's'} with anything logged</p>`;
 }
@@ -63,14 +63,23 @@ export function calendarCard(p, all, t, skills = []) {
       <span class="ck"><span class="reck" aria-hidden="true">★</span>${p.kind === 'perf' ? 'skill stage' : 'record'}</span> <span class="ck"><span class="cd bn" aria-hidden="true"><i class="bean"></i></span>${W('beanSave')}</span></p></section>`;
 }
 
-export function bindCalendar(root, p, all, t, skills = []) {
+// History's lists follow the month on the calendar (2.20, review 10).
+export const shownMonth = () => shown;
+export const monthWord = ym => new Date(ym + '-01T12:00:00Z').toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+
+// onMonth: the month changed (History redraws its lists). onDay: a day with something logged was tapped.
+export function bindCalendar(root, p, all, t, skills = [], { onMonth, onDay } = {}) {
   const card = root.querySelector('#cal'); if (!card) return;
   const by = states(p, all, t, skills);
   card.addEventListener('click', e => {
     const nav = e.target.closest('[data-cal]');
-    if (nav) { const key = card.querySelector('.calkey').outerHTML; shown = shift(shown, +nav.dataset.cal); card.innerHTML = grid(p, by, t) + key; card.querySelector(`[data-cal="${nav.dataset.cal}"]`)?.focus(); return; }
+    if (nav) {
+      shown = shift(shown, +nav.dataset.cal);
+      if (onMonth) return onMonth();
+      const key = card.querySelector('.calkey').outerHTML; card.innerHTML = grid(p, by, t) + key; card.querySelector(`[data-cal="${nav.dataset.cal}"]`)?.focus(); return; }
     const d = e.target.closest('[data-cd]'); if (!d) return;
     const w = words(by[d.dataset.cd] || new Set(), p.kind);
+    if (onDay && by[d.dataset.cd]) return onDay(d.dataset.cd);
     card.querySelector('#calday').textContent = `${prettyDay(d.dataset.cd)}: ${w.length ? w.join(', ') : 'nothing logged'}`;
   });
 }

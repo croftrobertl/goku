@@ -21,7 +21,7 @@ import { GROUPS as MOVE_GROUPS } from './moves.js';
 import { figureSVG } from './figure.js';
 import { planId, onHold, trainOff, starterOn, starterSets, moveGoal, holdCard, moveCard, starterCard, starterReady, comebackNote, MOVE_TARGET, MOVE_STEP } from './plan.js';
 import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
-import { calendarCard, bindCalendar } from './calendar.js';
+import { calendarCard, bindCalendar, shownMonth, monthWord } from './calendar.js';
 import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
@@ -209,6 +209,8 @@ export async function home() {
   const weekRow = `<button class="wkrow" data-go="history" aria-label="This week: ${[0, 1, 2, 3, 4, 5, 6].filter(i => trainedDays.has(addDays(wk, i))).length} training days so far. Open History">${[0, 1, 2, 3, 4, 5, 6].map(i => { const d = addDays(wk, i);
     return `<span>${'SMTWTFS'[i]}<i class="${trainedDays.has(d) ? 'done' : restDays.has(d) ? 'rest' : ''}${d === t ? ' now' : ''}"></i></span>`; }).join('')}</button>`;
 
+  // My Goals beside Today's Progress on a desktop-wide screen (2.20); the phone has it on You.
+  const goalsSide = matchMedia('(min-width: 900px)').matches ? await (await import('./settings.js')).goalsCard(p) : '';
   return {
     cta: circuit.length ? [W('enter'), () => trainByFeel(circuit)] : null, ctaShown: true, // Enter the chamber is on the page already
     html: homeLayout(p, [
@@ -275,13 +277,14 @@ export async function home() {
       ${GROUPS.filter(([id]) => SLOTS.includes(id) || sets[id]).map(([id, name]) => `<div class="row" style="margin-top:8px"><span>${name}</span><span class="num sub">${sets[id] || 0}</span></div>`).join('')}
       <p class="note">Each set taken to failure counts once, drops included.</p>
     </section>` : ''}`]
-    ], { strip: kiGauge(p, all, t) + weekRow, rows: {
+    ], { strip: kiGauge(p, all, t) + weekRow, side: goalsSide, rows: {
       coach: ['Coach', /coachSetup/.test(coachHTML) ? 'Make Goku yours · about 3 minutes' : 'One quick question'],
       circuit: ['Circuit', circuit.length ? circuit.map(e => e.data.name).join(' · ') : 'Your library is empty'],
       activity: ['Also today', todayActs.length ? `${Math.round(minutesOf(todayActs))} min logged` : 'Soccer, runs, games'],
       fuelnow: ['Fuel now'], fuel: ['Fuel', 'Ranges for today'] } }),
     bind(root) {
       bindRows(root);
+      root.querySelector('.tgoals')?.addEventListener('click', async e => { const m = await import('./settings.js'); m.goalClick(e, p); });
       bindCoach(root, p, ctx, async x => { await saveProfile(x); window.goku.render(); });
       bindShared(root, p, t); bindBalls(root, p); bindSaga(root, arcs); bindWish(root, p); bindBodyMap(root); bindWeight(root, p, weighs);
       root.addEventListener('click', guard(async e => {
@@ -795,25 +798,47 @@ export async function historyView() {
   const days = on(profile(), 'nutrition') ? await nutritionDays(profile()) : [];
   const acts = (await entries('activity')).sort((a, b) => b.day.localeCompare(a.day));
   const p = profile(), all = await loggedEntries(p), t = today();
-  return {
-    html: `<h1>History</h1>
-      <div style="margin-top:12px">${calendarCard(p, all, t)}${ballsCard(milestones(p, all, t))}</div>
-      <section class="card"><p class="lbl">Sessions</p>
-      ${sessions.length ? `<ul class="list">${sessions.map(s => `<li><span>${prettyDay(s.day)} · ${s.data.starter ? 'Starter' : lvl(s.data.gravity)}<br>
+  const cal = calendarCard(p, all, t), ym = shownMonth(), mon = monthWord(ym), inM = x => x.day.startsWith(ym); // the lists follow the calendar (2.20)
+  const sesRows = (list, inDay) => list.map(s => `<li><span>${inDay ? '' : prettyDay(s.day) + ' · '}${s.data.starter ? 'Starter' : lvl(s.data.gravity)}<br>
         <span class="chain">${s.data.sets.length} set${s.data.sets.length === 1 ? '' : 's'} · ${round(minutes(s))} min</span></span>
         <span class="row" style="gap:8px"><span class="num">${sessionTotal(s)} reps</span>
-        <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('')}</ul>`
+        <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('');
+  const dayRows = (list, inDay) => list.map(d => `<li><span>${inDay ? 'Logged' : prettyDay(d.day)}<br><span class="chain">${d.n ? `${d.kcal} cal · ${d.n} food${d.n === 1 ? '' : 's'}` : 'no foods logged'}${d.bloat != null ? ` · bloating ${esc(d.bloat)}` : ''}</span></span>
+        <button class="cta2" data-nday="${esc(d.day)}" aria-label="Open nutrition for ${prettyDay(d.day)}">Open</button></li>`).join('');
+  const mS = sessions.filter(inM), mD = days.filter(inM), mA = acts.filter(inM);
+  // One day, everything together: training, food and the check-in.
+  const openDay = day => {
+    const ss = sessions.filter(s => s.day === day), as = acts.filter(a => a.day === day), fd = days.find(d => d.day === day);
+    const g = all.find(e => e.type === 'gut' && e.day === day)?.data;
+    const ci = g ? [g.sleepH != null && `${esc(g.sleepH)} h sleep`, g.energy != null && `energy ${esc(g.energy)} of 5`, g.mood != null && `mood ${esc(g.mood)} of 5`].filter(Boolean).join(' · ') : '';
+    const { el, close } = overlay(`<div class="row"><h1>${prettyDay(day)}</h1><button class="cta2" data-close>Close</button></div>
+      <div class="scroll"><section class="card"><p class="lbl">Training</p>${ss.length || as.length ? `<ul class="list">${sesRows(ss, true)}${activityRows(as)}</ul>` : '<p class="sub">No training logged.</p>'}</section>
+      ${on(p, 'nutrition') ? `<section class="card"><p class="lbl">Food</p>${fd?.n ? `<ul class="list">${dayRows([fd], true)}</ul>` : `<div class="row"><span class="sub">No foods logged.</span><button class="cta2" data-nday="${esc(day)}">Open</button></div>`}</section>
+      <section class="card"><p class="lbl">Check-In</p>${ci ? `<p>${ci}</p>` : '<p class="sub">No check-in.</p>'}</section>` : ''}</div>`, { label: prettyDay(day) });
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.edit) { close(); editSession(sessions.find(s => s.id === b.dataset.edit)); }
+      if (b.dataset.nday) { close(); openNutritionDay(b.dataset.nday); }
+      if (b.dataset.act) { close(); editActivityById(b.dataset.act); }
+    });
+  };
+  return {
+    html: `<h1>History</h1>
+      <div style="margin-top:12px">${cal}${ballsCard(milestones(p, all, t))}</div>
+      <section class="card"><p class="lbl">Sessions · ${mon}</p>
+      ${mS.length ? `<ul class="list">${sesRows(mS)}</ul>`
+        : sessions.length ? `<div class="empty"><p>No sessions in ${mon}.</p></div>`
         : `<div class="empty"><h2>No sessions yet</h2><p>${esc(W('enter'))} from Home. Each finished session lands here and becomes your next ghost.</p></div>`}
       </section>
-      ${on(profile(), 'nutrition') ? `<section class="card"><p class="lbl">Nutrition days</p>
-      ${days.length ? `<ul class="list">${days.slice(0, 60).map(d => `<li><span>${prettyDay(d.day)}<br><span class="chain">${d.n ? `${d.kcal} cal · ${d.n} food${d.n === 1 ? '' : 's'}` : 'no foods logged'}${d.bloat != null ? ` · bloating ${esc(d.bloat)}` : ''}</span></span>
-        <button class="cta2" data-nday="${esc(d.day)}" aria-label="Open nutrition for ${prettyDay(d.day)}">Open</button></li>`).join('')}</ul>`
+      ${on(profile(), 'nutrition') ? `<section class="card"><p class="lbl">Nutrition days · ${mon}</p>
+      ${mD.length ? `<ul class="list">${dayRows(mD)}</ul>`
+        : days.length ? `<div class="empty"><p>Nothing logged in Nutrition in ${mon}.</p></div>`
         : '<div class="empty"><p>Days you log food or a check-in in Nutrition show up here.</p></div>'}</section>` : ''}
-      <section class="card"><p class="lbl">Other training</p>
-      ${acts.length ? `<ul class="list">${activityRows(acts.slice(0, 60))}</ul>` : '<div class="empty"><p>Log soccer, runs and other training from Home.</p></div>'}</section>
-      <p class="note">Your best for each exercise is in the Library. Your training trend is on Home.</p>`,
+      <section class="card"><p class="lbl">Other training · ${mon}</p>
+      ${mA.length ? `<ul class="list">${activityRows(mA)}</ul>` : acts.length ? `<div class="empty"><p>No other training in ${mon}.</p></div>` : '<div class="empty"><p>Log soccer, runs and other training from Home.</p></div>'}</section>
+      <p class="note">Tap a day on the calendar to see everything from that day. Your best for each exercise is in the Library.</p>`,
     bind(root) {
-      bindCalendar(root, p, all, t);
+      bindCalendar(root, p, all, t, [], { onMonth: () => window.goku.render(), onDay: openDay });
       root.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.edit) editSession(sessions.find(s => s.id === b.dataset.edit));

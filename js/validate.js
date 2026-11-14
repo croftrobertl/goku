@@ -43,7 +43,8 @@ function cleanCoach(c) {
   const seen = k => (k === 'recapSeen' ? DAY.test(c[k] || '') : ID.test(c[k] || '')) ? { [k]: c[k] } : {};
   const balls = Array.isArray(c.balls) ? [...new Set(c.balls.filter(n => Number.isInteger(n) && n >= 1 && n <= 7))].sort() : null;
   const wish = ['theme', 'aura', 'title'].includes(c.wish) ? { wish: c.wish } : {};
-  return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen'), ...(balls ? { balls } : {}), ...wish };
+  const over = DAY.test(c.over9000 || '') ? { over9000: c.over9000 } : {}; // 2.20: the over-9,000 moment, shown once
+  return { asked, ...(feel ? { feel } : {}), ...seen('recapSeen'), ...seen('progSeen'), ...(balls ? { balls } : {}), ...wish, ...over };
 }
 function cleanCustom(c) {
   if (!c || typeof c !== 'object') return undefined;

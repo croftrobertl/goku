@@ -8,7 +8,10 @@ import { onboard } from './onboarding.js';
 import { settingsView, backupAgeDays, youView, openSettingsGroup } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
-import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback, titleCase, startTitleCase } from './ui.js';
+import { formFor, auraSVG } from './auras.js';
+import { maybeOver9000 } from './scouter.js';
+import { loggedEntries } from './insights.js';
+import { $, esc, toast, ask, overlay, setAccent, setTheme, setFeedback, titleCase, startTitleCase, GLY } from './ui.js';
 
 // One word under the center button: "Enter chamber" → Train, "Check in · 30 s" → Check in.
 const SHORT = { 'Enter chamber': 'Train', 'Log a session': 'Log', 'Add exercise': 'Add', 'Add a skill': 'Add', 'Add food': 'Add' };
@@ -48,7 +51,7 @@ async function kiMenu(p, action, scr) {
   const group = (name, list, start) => list.length ? `<p class="lbl qahead">${name}</p>
     <div class="qagrid">${list.map(([label, icon], i) => `<button class="cta2 qaitem" data-i="${start + i}">${icon}<span>${esc(label)}</span></button>`).join('')}</div>` : '';
   const { el, close } = overlay(`<div class="qasheet"><div class="qagrab" aria-hidden="true"></div>
-      <div class="row"><h2>Quick Add</h2><button class="cta2 qax" id="x" data-close aria-label="Close">✕</button></div>
+      <div class="row"><h2>Quick Add</h2><button class="cta2 qax" id="x" data-close aria-label="Close">${GLY.close}</button></div>
       ${group('Food &amp; Drink', food, 0)}${group('Activity', act, food.length)}${group('Body', body, food.length + act.length)}</div>`, { label: 'Quick Add' });
   el.classList.add('kiov');
   el.addEventListener('click', async e => {
@@ -69,25 +72,27 @@ function showKiHint() {
 }
 
 // Tab icons: simple outline drawings in the panel style.
+// Full-color Dragon Ball icons (2.20, reviews 14-18): each is its own file in img/ic, so a better rendering can replace it.
+const pic = n => `<img class="ic" src="img/ic/${n}.svg" alt="" aria-hidden="true" width="28" height="28" draggable="false">`;
 const svg = d => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const ICON = {
-  home: svg('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'),
-  library: svg('<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>'),
-  week: svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
-  nutrition: svg('<path d="M12 7c-3-3-8-1-8 4 0 5 4 10 8 10s8-5 8-10c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-4"/>'),
-  history: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
-  pill: svg('<rect x="3" y="9" width="18" height="7" rx="3.5"/><path d="M12 9v7"/>'),
-  settings: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'),
-  skills: svg('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
-  you: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.600 8 7"/>'),
+  home: pic('home'),
+  library: pic('library'),
+  week: pic('week'),
+  nutrition: pic('food'),
+  history: pic('history'),
+  pill: pic('supplements'),
+  settings: pic('settings'),
+  skills: pic('skills'),
+  you: pic('you'),
   more: svg('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
-  bolt: svg('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
+  bolt: pic('workout'),
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
-  water: svg('<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>'),
-  run: svg('<circle cx="15" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v5M6 12l3-4 4 1 3 4 3 1"/>'),
-  heart: svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.600-7 10-7 10z"/>'),
-  scale: svg('<rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8 9a5 5 0 0 1 8 0"/><path d="M12 9l1.5-2"/>'),
-  moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
+  water: pic('water'),
+  run: pic('sport'),
+  heart: pic('checkin'),
+  scale: pic('weigh'),
+  moon: pic('rest'),
   close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
 };
 import { prettyDay } from './time.js';
@@ -157,6 +162,7 @@ function focusKey() {
   return (step ? `[data-step="${CSS.escape(step.dataset.step)}"] ` : '') + `[${attr.name}="${CSS.escape(attr.value)}"]`;
 }
 
+let lastShown = null; // the profile and tab on screen, so only a real tab change fades in
 async function draw() { db.memoOn(); try { await drawNow(); } finally { db.memoOff(); } }
 async function drawNow() {
   const p = profile();
@@ -170,8 +176,10 @@ async function drawNow() {
   const charged = await poweredUp(p).catch(() => false);
   // Transformation stages (2.2): the streak powers the aura up; a wish can make it eternal.
   const days = streakSeen[p.id] || 0;
-  const [stage, stageName] = p.coach?.wish === 'aura' ? ['st-eternal', 'Eternal aura'] : days >= 30 ? ['st-blue', `Blue aura · ${days}-day streak`]
-    : days >= 7 ? ['st-gold', `Gold aura · ${days}-day streak`] : ['', days ? `${days}-day streak` : 'Base form'];
+  // Dragon Ball skin (2.20): the Super Saiyan forms, drawn as flames. Other skins keep the gold and blue rings.
+  const form = skinOf(p) === 'dbz' && p.coach?.wish !== 'aura' ? formFor(days) : null;
+  const [stage, stageName] = p.coach?.wish === 'aura' ? ['st-eternal', 'Eternal aura'] : form ? ['st-form', `${form[1]} · ${days}-day streak`]
+    : days >= 30 ? ['st-blue', `Blue aura · ${days}-day streak`] : days >= 7 ? ['st-gold', `Gold aura · ${days}-day streak`] : ['', days ? `${days}-day streak` : 'Base form'];
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';
   if (tab !== 'settings' && tab !== 'you' && !list.some(([id]) => id === tab)) tab = tabs[p.id] = 'home';
@@ -192,11 +200,16 @@ async function drawNow() {
     ${p.demo ? '<div class="demobar" role="status"><span>This is a sample with made-up data.</span><button class="cta2" id="demoEnd">Start my own</button></div>' : ''}
     <header class="top">
       <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch or add a profile' : 'Add a profile'}">
-        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name)}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">⇄</span></button>
+        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${form ? auraSVG(form, 36) : ''}${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name)}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">${GLY.swap}</span></button>
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}${view.cta && !view.ctaShown ? `<button class="cta pagecta" id="pageCta">${esc(view.cta[0])}</button>` : ''}</main>`;
+  // Gentle Motion (2.20, review 10): a short fade when the tab changes, never on a redraw of the same tab.
+  const shown = p.id + ':' + tab;
+  if (lastShown && lastShown !== shown) $('#main').classList.add('fadein');
+  lastShown = shown;
   try { view.bind?.($('#main')); } catch (e) { console.error(e); }
+  if (tab === 'home' && !view.failed) loggedEntries(p).then(all => maybeOver9000(p, all, today())).catch(() => {});
   if (view.failed && $('#errSettings')) $('#errSettings').onclick = () => { openSettingsGroup('backup'); go('settings'); };
   drawnDay = today();
   // The page's own action at the bottom (2.8.2): Quick add stays a menu, so Save and Add are on the page too.

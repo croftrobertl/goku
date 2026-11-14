@@ -1,0 +1,157 @@
+{
+ "batch": "2026-11-ui-19",
+ "title": "Goku Dragon Ball Art",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Shenron, Auras, Over 9,000 and More",
+   "why": "These are the pictures you asked for in the audit, each redrawn with care so it doesn't look cheap: the seven Dragon Balls, the Senzu beans on the streak card, the Super Saiyan aura forms, the over-9,000 moment, Shenron for the wish card, and the Turtle School theme on real screens.\n\nThe fan-made notice is plain text, so it goes in as written: \"Goku is a fan-made app. Dragon Ball belongs to Akira Toriyama, Bird Studio, Shueisha and Toei Animation. Goku is not affiliated with them.\"",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "balls",
+   "area": "Dragon Balls",
+   "title": "Glass Dragon Balls",
+   "why": "The seven milestone balls as amber glass with red stars floating inside, a window shine and a warm glow at the bottom. Balls not yet gathered are frosted grey with grey stars.",
+   "now": [
+    {
+     "img": "balls-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "new",
+     "label": "Use these",
+     "desc": "",
+     "img": "balls-new.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "beans",
+   "area": "Streak",
+   "title": "Senzu Beans on the Streak Card",
+   "why": "Each saved Senzu bean drawn as a shiny green bean, matching the new Supplements icon.",
+   "options": [
+    {
+     "id": "new",
+     "label": "Use these",
+     "desc": "",
+     "img": "beans-new.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "auras",
+   "area": "Streak",
+   "title": "Super Saiyan Aura Forms",
+   "why": "Your avatar's aura grows with your streak, with the form's name shown when you hold the avatar. Gold flames for Super Saiyan; lightning added at Super Saiyan 2; taller flames at 3; red for God at 30 days; blue at 60; silver Ultra Instinct at 100. The flames move gently unless Reduce Motion is on. The 悟 emblem stands in for anyone's avatar here.",
+   "options": [
+    {
+     "id": "new",
+     "label": "Use these forms",
+     "desc": "",
+     "img": "auras.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "nine",
+   "area": "Power level",
+   "title": "\"It's Over 9,000!\"",
+   "why": "The one-time moment when your power level first passes 9,000: a scouter readout, the line, and one button. It shows once per profile.",
+   "options": [
+    {
+     "id": "new",
+     "label": "Use this",
+     "desc": "",
+     "img": "nine.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "shenron",
+   "area": "Shenron's wish",
+   "title": "Shenron Rising from the Dragon Balls",
+   "why": "For the wish card when all seven are gathered: Shenron's long green body with a pale belly and back fins, antler horns, red eyes, whiskers and little clawed arms, rising out of the seven balls.",
+   "options": [
+    {
+     "id": "new",
+     "label": "Use this Shenron",
+     "desc": "",
+     "img": "shenron.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Closer, but try again",
+     "desc": "Say what's off in the note."
+    },
+    {
+     "id": "none",
+     "label": "Leave the card as words",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "theme",
+   "area": "Themes",
+   "title": "Turtle School Theme",
+   "why": "Goku's gi as a theme: orange buttons and highlights, cream pages in light mode, deep navy in dark. Shown on Home, light on a phone and dark on a desktop. Text contrast would be checked by the theme test before release.",
+   "now": [
+    {
+     "img": "turtle-light.png",
+     "caption": "Light, phone"
+    }
+   ],
+   "options": [
+    {
+     "id": "add",
+     "label": "Add Turtle School",
+     "desc": "",
+     "img": "turtle-dark.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

@@ -229,14 +229,19 @@ document.addEventListener('touchend', e => {
   s.b.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); // SVG has no .click()
 }, { passive: false });
 
+
+// Drawn arrows and signs (2.20, review 14): they stay centered and match the other icons, unlike typed ‹ › ⇄ ✕.
+const gly = d => `<svg class="gly" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+export const GLY = { left: gly('<path d="M15 5l-7 7 7 7"/>'), right: gly('<path d="M9 5l7 7-7 7"/>'), swap: gly('<path d="M4 8h14l-3-3M20 16H6l3 3"/>'), close: gly('<path d="M6 6l12 12M18 6L6 18"/>') };
+
 // ---------- Day picker: ‹ Wed, Oct 28 › for logging past days ----------
 export function dayPicker(day, todayKey, label = 'Day') {
   const d = new Date(day + 'T12:00:00Z');
   const txt = day === todayKey ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
   return `<div class="daypick" role="group" aria-label="${esc(label)}">
-    <button type="button" data-dayshift="-1" aria-label="Previous day">‹</button>
+    <button type="button" data-dayshift="-1" aria-label="Previous day">${GLY.left}</button>
     <span class="num" aria-live="polite">${esc(txt)}</span>
-    <button type="button" data-dayshift="1" aria-label="Next day" ${day >= todayKey ? 'disabled' : ''}>›</button></div>`;
+    <button type="button" data-dayshift="1" aria-label="Next day" ${day >= todayKey ? 'disabled' : ''}>${GLY.right}</button></div>`;
 }
 
 // Title Case for headings, labels, buttons and tabs (2.9, review 5). Small words stay lowercase

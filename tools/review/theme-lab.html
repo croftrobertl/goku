@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Dragon Ball theme lab (review 17 audit): character avatars, mascot and Shenron, drawn from scratch. #<id> or #sheet. -->
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body { margin: 0; background: #f2f4fa; font: 600 14px -apple-system, system-ui, sans-serif; color: #141a2b; }
+  .wrap { display: flex; gap: 18px; align-items: center; justify-content: center; padding: 16px; flex-wrap: wrap; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .av { width: 72px; height: 72px; border-radius: 50%; border: 2.5px solid #141a2b; overflow: hidden; background: #fff; }
+  .av svg { width: 100%; height: 100%; display: block; }
+  .big svg { width: 150px; height: 150px; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; border: 2.5px solid #141a2b; border-radius: 999px; padding: 4px 16px 4px 4px; background: #fff; }
+  .chip .av { width: 40px; height: 40px; border-width: 2px; }
+</style></head><body><div class="wrap" id="w"></div>
+<script>
+const INK = '#1b1f2e', SW = `stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
+const face = (skin, extra = '') => `<ellipse cx="11" cy="31" rx="2.8" ry="3.6" fill="${skin}" ${SW}/><ellipse cx="37" cy="31" rx="2.8" ry="3.6" fill="${skin}" ${SW}/><path d="M12 23c0 12 5 21 12 21s12-9 12-21z" fill="${skin}" ${SW}/>${extra}`;
+const eyes = (brow = 'M16 27l5 1.5M32 27l-5 1.5') => `<path d="${brow}" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/><path d="M18 31h3M27 31h3" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`;
+const A = {
+  goku: ['Goku', '#ffb06b', face('#ffd9b3', eyes('M16.5 28l4.5 1M31.5 28l-4.5 1') + `<path d="M21 38c2 1.3 4 1.3 6 0" fill="none" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`) +
+    `<path d="M11 27 L3.5 22 L10 19.5 L2.5 11.5 L12 12.5 L10 3.5 L18.5 10 L22.5 1.5 L26.5 9.5 L34 2.5 L33 12 L43 8.5 L38 16.5 L46 18 L38.5 23.5 L38 28 L35.5 22.5 L31.5 25 L29.5 19.5 L25.5 24 L22 18.5 L18.5 24 L15.5 20.5 L13.5 27z" fill="#141414" ${SW}/>`],
+  vegeta: ['Vegeta', '#4f86f0', face('#ffd2a6', eyes('M15.5 26.5l6 2.5M32.5 26.5l-6 2.5') + `<path d="M21 38.5h6" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`) +
+    `<path d="M12 26 L10 14 L13 15 L12 5 L16 9 L17 1 L21 7 L24 0 L27 7 L31 1 L32 9 L36 5 L35 15 L38 14 L36 26 L33 18 L28 20 L24 13 L20 20 L15 18z" fill="#141414" ${SW}/>`],
+  piccolo: ['Piccolo', '#4cb85a', face('#7fd16b', eyes('M15.5 27l5.5 2M32.5 27l-5.5 2') + `<path d="M21 38.5h6" stroke="${INK}" stroke-width="2" stroke-linecap="round"/><path d="M12 30l-6-3M36 30l6-3" stroke="${INK}" stroke-width="2"/>`) +
+    `<path d="M10 24c0-11 6-18 14-18s14 7 14 18z" fill="#f4f6fb" ${SW}/><path d="M10 22h28" stroke="#7a3fc0" stroke-width="3.2"/><path d="M19 11c-1-4-3-7-6-9M29 11c1-4 3-7 6-9" fill="none" stroke="#5fb34e" stroke-width="2.4" stroke-linecap="round"/>`],
+  roshi: ['Master Roshi', '#f08a3a', face('#ffd9b3', `<rect x="14" y="27" width="8.5" height="5" rx="2" fill="#141414"/><rect x="25.5" y="27" width="8.5" height="5" rx="2" fill="#141414"/><path d="M22.5 29h3" stroke="#141414" stroke-width="1.6"/>`) +
+    `<path d="M14 35c2 7 5 12 10 12s8-5 10-12c-3 2-6 2.5-10 2.5S17 37 14 35z" fill="#fff" ${SW}/><path d="M18 35.5c2-1.2 4-1.2 6-.3 2-.9 4-.9 6 .3" fill="none" stroke="${INK}" stroke-width="1.6"/>
+    <path d="M13 24c0-10 5-15 11-15s11 5 11 15" fill="#ffd9b3" ${SW}/><ellipse cx="20" cy="14" rx="3" ry="1.6" fill="#fff" opacity=".7"/>`],
+};
+const avatar = k => `<svg viewBox="0 0 48 48"><rect width="48" height="48" fill="${A[k][1]}"/>${A[k][2]}</svg>`;
+const SHENRON = `<svg viewBox="0 0 120 120"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fd27a"/><stop offset="1" stop-color="#1f8a45"/></linearGradient></defs>
+  <path d="M8 112c10-18 30-16 38-30s-6-28 6-40 30-6 38 4" fill="none" stroke="#1b1f2e" stroke-width="16" stroke-linecap="round"/>
+  <path d="M8 112c10-18 30-16 38-30s-6-28 6-40 30-6 38 4" fill="none" stroke="url(#sg)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M14 104c8-10 22-12 30-20M40 66c-4-8-2-16 6-22" fill="none" stroke="#e8d27a" stroke-width="3" stroke-dasharray="3 4" stroke-linecap="round"/>
+  <path d="M74 30c4-12 18-18 30-12 8 4 12 12 10 18l-8 4 2 8-10-2-6 8c-8 2-16-2-20-10-1-5 0-10 2-14z" fill="url(#sg)" stroke="#1b1f2e" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M84 20c-6-8-6-14-2-18M96 17c2-8 6-12 12-12" fill="none" stroke="#c9a23a" stroke-width="3.4" stroke-linecap="round"/>
+  <ellipse cx="98" cy="28" rx="4" ry="2.6" fill="#e3262f" stroke="#1b1f2e" stroke-width="1.6"/>
+  <path d="M110 40c6 2 8 8 6 12M106 44c4 4 4 10 0 13" fill="none" stroke="#1b1f2e" stroke-width="2" stroke-linecap="round"/></svg>`;
+const NIMBUS_GOKU = `<svg viewBox="0 0 120 120"><g transform="translate(33 2) scale(1.12)">${A.goku[2]}<path d="M6 66c0-12 7-20 18-20s18 8 18 20z" fill="#f58a1f" stroke="#1b1f2e" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M18 46l6 9 6-9" fill="#2f5fd0" stroke="#1b1f2e" stroke-width="2" stroke-linejoin="round"/><path d="M8 62h32" stroke="#2f5fd0" stroke-width="3"/>
+  <path d="M8 58c-5-3-8-9-6-14l5 2" fill="#ffd9b3" stroke="#1b1f2e" stroke-width="2" stroke-linejoin="round"/><path d="M40 58c5-3 8-9 6-14l-5 2" fill="#ffd9b3" stroke="#1b1f2e" stroke-width="2" stroke-linejoin="round"/></g>
+  <path d="M18 98c-10 0-12-12-3-15-1-9 9-14 17-9 4-8 16-10 22-3 6-5 18-3 19 6 6-3 16 0 16 8 9 0 12 11 3 14-2 6-10 8-16 5-5 5-15 5-19 0-6 4-16 4-20 0-6 3-15 3-19-6z" fill="#ffd84a" stroke="#1b1f2e" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+const [mode] = location.hash.slice(1).split(':');
+const w = document.getElementById('w');
+if (mode === 'avatars') w.innerHTML = Object.keys(A).map(k => `<div class="cell"><div class="av">${avatar(k)}</div><small>${A[k][0]}</small></div>`).join('')
+  + `<div class="cell"><div class="chip"><div class="av">${avatar('goku')}</div>Sample</div><small>In the profile chip</small></div>`;
+else if (mode === 'shenron') w.innerHTML = `<div class="cell big">${SHENRON}</div>`;
+else if (mode === 'mascot') w.innerHTML = `<div class="cell big">${NIMBUS_GOKU}</div>`;
+</script></body></html>

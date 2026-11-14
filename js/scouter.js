@@ -3,14 +3,18 @@
 //   Training  up to 4,000: training days against your weekly goal
 //   Fuel      up to 2,500: days your protein goal was met (or days with food logged)
 //   Recovery  up to 2,500: average readiness (gymnastics), or days you showed up (strength)
+//   Streak    up to 1,000 (2.20): 25 for each streak day past 7, so a perfect week on a long streak goes over 9,000
 import { w, W } from './skins.js';
+import { streak } from './insights.js';
+import { restAllowance } from './homecards.js';
 import { addDays } from './time.js';
 import { dayProtein, proteinGoal } from './nutrition.js';
 import { readiness, sleepTargetFor } from './perf-score.js';
 import { esc } from './ui.js';
 import { whyBtn } from './why.js';
 
-export const MAX_POWER = 9000;
+export const MAX_POWER = 10000; // 9,000 from the week plus the streak bonus (2.20)
+const GAUGE = 9000; // the gauge fills at 9,000; past that, it's over 9,000
 
 export function powerLevel(p, all, today) {
   const from = addDays(today, -6), week = all.filter(e => e.day >= from && e.day <= today);
@@ -29,15 +33,16 @@ export function powerLevel(p, all, today) {
   const recovery = Math.round(p.kind === 'perf' && checks.length
     ? checks.reduce((a, c) => a + readiness(c.data, sleepTargetFor(p)), 0) / checks.length / 100 * Math.min(1, checks.length / 4) * 2500
     : Math.min(1, new Set(week.map(e => e.day)).size / 7) * 2500);
-  return { total: training + fuel + recovery, training, fuel, recovery, trained, goalDays, fedDays, goal, checks: checks.length };
+  const run = streak(all, today, restAllowance(p)).days, bonus = Math.min(1000, Math.max(0, run - 7) * 25);
+  return { total: training + fuel + recovery + bonus, training, fuel, recovery, bonus, run, trained, goalDays, fedDays, goal, checks: checks.length };
 }
 
-const tier = n => n >= 8000 ? 'Over 8,000' : n >= 6000 ? 'Elite' : n >= 4000 ? 'Strong' : n >= 2000 ? 'Rising' : 'Warming up';
+const tier = n => n > 9000 ? 'Over 9,000!' : n >= 8000 ? 'Over 8,000' : n >= 6000 ? 'Elite' : n >= 4000 ? 'Strong' : n >= 2000 ? 'Rising' : 'Warming up';
 
 // The gauge card. extra = HTML shown inside (readiness for gymnastics).
 export function scouterCard(p, all, today, { extra = '', title = W('scouter') } = {}) {
   const pl = powerLevel(p, all, today);
-  const R = 92, C = 2 * Math.PI * R, pct = pl.total / MAX_POWER;
+  const R = 92, C = 2 * Math.PI * R, pct = Math.min(1, pl.total / GAUGE);
   const ticks = Array.from({ length: 36 }, (_, i) => { const a = i * 10 * Math.PI / 180, r1 = 104, r2 = i % 3 ? 108 : 113;
     return `<line x1="${(120 + Math.sin(a) * r1).toFixed(1)}" y1="${(120 - Math.cos(a) * r1).toFixed(1)}" x2="${(120 + Math.sin(a) * r2).toFixed(1)}" y2="${(120 - Math.cos(a) * r2).toFixed(1)}"/>`; }).join('');
   // Compact (2.3): a slim strip with the reading; tap it to open the gauge and the breakdown.
@@ -55,6 +60,25 @@ export function scouterCard(p, all, today, { extra = '', title = W('scouter') } 
     <ul class="list scl">
       <li><span>Training · ${pl.trained} of ${pl.goalDays} days, last 7 days</span><b class="num">${pl.training.toLocaleString('en-US')}</b></li>
       <li><span>Fuel · ${pl.fedDays} of 7 days${pl.goal ? ' at your protein goal' : ' with food logged'}</span><b class="num">${pl.fuel.toLocaleString('en-US')}</b></li>
-      <li><span>Recovery · ${p.kind === 'perf' && pl.checks ? `readiness, ${pl.checks} check-ins` : 'days you showed up'}</span><b class="num">${pl.recovery.toLocaleString('en-US')}</b></li></ul>
+      <li><span>Recovery · ${p.kind === 'perf' && pl.checks ? `readiness, ${pl.checks} check-ins` : 'days you showed up'}</span><b class="num">${pl.recovery.toLocaleString('en-US')}</b></li>
+      <li><span>Streak bonus · ${pl.run > 7 ? `${pl.run - 7} day${pl.run === 8 ? '' : 's'} past a week` : 'starts after 7 days in a row'}</span><b class="num">${pl.bonus.toLocaleString('en-US')}</b></li></ul>
     <p class="note" style="text-align:center">A game score from your last 7 days, not a health measure. ${whyBtn('power')}</p></details></section>`;
+}
+
+// "It's over 9,000!" (2.20, review 19): once per profile, the first time the reading passes 9,000.
+// Dragon Ball skin only. The moment is remembered in p.coach.over9000 so it never repeats.
+export async function maybeOver9000(p, all, today) {
+  if (p.coach?.over9000 || p.settings?.skin && p.settings.skin !== 'dbz' || document.querySelector('.overlay')) return;
+  const pl = powerLevel(p, all, today);
+  if (pl.total <= 9000) return;
+  const { overlay } = await import('./ui.js'), { saveProfile } = await import('./state.js');
+  p.coach = { ...(p.coach || {}), over9000: today };
+  await saveProfile(p);
+  const { el, close } = overlay(`<div class="nine" role="document"><div class="lens"><div class="tick" aria-hidden="true"></div><div class="lbl2">POWER LEVEL</div>
+      <div class="read9 num">${pl.total.toLocaleString('en-US')}</div></div>
+    <h1 class="big9">It's over 9,000!</h1><p class="sub9">Your power level just passed 9,000. Every workout, meal and check-in got you here.</p>
+    <button class="btn9" data-close>Keep Training</button></div>`, { label: "It's over 9,000" });
+  el.classList.add('ov9000');
+  el.querySelector('.btn9').focus();
+  el.querySelector('.btn9').addEventListener('click', close);
 }

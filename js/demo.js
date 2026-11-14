@@ -18,7 +18,7 @@ export async function startDemo() {
   const circuit = await todaysCircuit(); // builds the starter library for this profile
   const now = Date.now(), day = ts => dayKey(ts, p.dayEndsAt, p.tz);
   const meals = [['breakfast', 'Oatmeal, cooked', 300, 10, 54, 5], ['breakfast', 'Banana', 105, 1, 27, 0], ['lunch', 'Chicken breast, grilled', 280, 52, 0, 6], ['lunch', 'Rice, white, cooked', 240, 4, 53, 0],
-    ['dinner', 'Salmon, cooked', 360, 39, 0, 22], ['dinner', 'Broccoli, cooked', 55, 4, 11, 1], ['snacks', 'Greek yogurt, plain', 130, 17, 6, 4]];
+    ['dinner', 'Salmon, cooked', 360, 39, 0, 22], ['dinner', 'Broccoli, cooked', 55, 4, 11, 1], ['snacks', 'Greek yogurt, plain', 130, 17, 6, 4], ['snacks', 'Protein shake', 180, 35, 6, 3]];
   for (let i = 27; i >= 0; i--) { // today too, part-way through the day
     const ts = now - i * 86400000, dy = day(ts);
     if (i % 7 !== 2 && i % 7 !== 5 && i % 2) {

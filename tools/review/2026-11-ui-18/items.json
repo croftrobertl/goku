@@ -1,0 +1,186 @@
+{
+ "batch": "2026-11-ui-18",
+ "title": "Goku Redraws and Faces",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Redraws and Faces",
+   "why": "Your round-three picks are set: full color, Kame House, rice bowl, Dragon Ball, soccer ball, heart, ki blast, stopwatch, gold scale, clock, gear, calendar, drop, and the 悟 gi symbol for You.\n\nThis page has the four icons you asked me to redo, plus a much more careful pass at the character faces and the setup coach. Shenron, the Super Saiyan auras, the over-9,000 moment, the Dragon Balls and Senzu beans, and the Turtle School theme come in the next page.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "shell",
+   "area": "Library",
+   "title": "Turtle Shell, Redrawn",
+   "why": "Your note: it was too round to read as a shell. Now it's seen from the side: a domed shell with hexagon plates and the pale rim underneath.",
+   "now": [
+    {
+     "img": "shell-prev.png",
+     "caption": "Before"
+    }
+   ],
+   "options": [
+    {
+     "id": "new",
+     "label": "This shell",
+     "desc": "",
+     "img": "shell3.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "meat",
+   "area": "Protein",
+   "title": "Meat on the Bone, Redrawn",
+   "why": "Your note: it looked like a wrapped candy. Now it's a big roasted chunk with grill marks and one bone sticking out with knuckle ends.",
+   "now": [
+    {
+     "img": "meat-prev.png",
+     "caption": "Before"
+    }
+   ],
+   "options": [
+    {
+     "id": "new",
+     "label": "This meat",
+     "desc": "",
+     "img": "meat2.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "senzu",
+   "area": "Supplements",
+   "title": "Senzu Beans, Redrawn",
+   "why": "Your note: it looked like a mystery kidney bean. Two ideas: three shiny Senzu beans together, or Korin's cloth pouch with a bean on top.",
+   "now": [
+    {
+     "img": "senzu-prev.png",
+     "caption": "Before"
+    }
+   ],
+   "options": [
+    {
+     "id": "beans",
+     "label": "Three Senzu beans",
+     "desc": "",
+     "img": "senzu3.png",
+     "rec": true
+    },
+    {
+     "id": "bag",
+     "label": "Senzu pouch",
+     "desc": "",
+     "img": "senzuBag.png"
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "nimbus",
+   "area": "Rest Day and Sleep",
+   "title": "Flying Nimbus with Two Zs",
+   "why": "Your note: add another Z.",
+   "now": [
+    {
+     "img": "nimbus-prev.png",
+     "caption": "Before"
+    }
+   ],
+   "options": [
+    {
+     "id": "new",
+     "label": "Nimbus with Zz",
+     "desc": "",
+     "img": "nimbus2.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "faces",
+   "area": "Avatars",
+   "title": "Character Faces, Careful Pass",
+   "why": "Your note: the first faces looked lame and cheap. These are redrawn at twice the detail with cel shading: Goku's real hairline with his bangs, Vegeta's widow's peak and armor, Piccolo's ears, antennae and turban, Roshi's shades and beard. Each is shown large and at the size it appears in the app.\n\nHonest note: these are still drawn by hand in code, so they're clean but simple. If you like where they're going, I'll do all 18 fighters to this standard. You picked the 悟 symbol for the You icon, which stays either way.",
+   "now": [
+    {
+     "img": "faces-prev.png",
+     "caption": "Before"
+    }
+   ],
+   "options": [
+    {
+     "id": "go",
+     "label": "Do all 18 fighters like this",
+     "desc": "",
+     "img": "faces.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Closer, but try again",
+     "desc": "Say what's off in the note."
+    },
+    {
+     "id": "emblems",
+     "label": "Stop and keep the kanji emblems",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "mascot",
+   "area": "Setup coach",
+   "title": "Goku on the Flying Nimbus, Careful Pass",
+   "why": "The setup coach with the redrawn Goku riding a shaded Nimbus. A finished set would add a few poses for different steps.",
+   "options": [
+    {
+     "id": "go",
+     "label": "Use this coach",
+     "desc": "",
+     "img": "mascot.png",
+     "rec": true
+    },
+    {
+     "id": "again",
+     "label": "Try again",
+     "desc": "Say what's off in the note."
+    },
+    {
+     "id": "keep",
+     "label": "Keep the capsule mascot",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

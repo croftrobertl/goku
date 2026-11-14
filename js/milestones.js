@@ -74,11 +74,17 @@ const star = (x, y, r) => {
   const pts = Array.from({ length: 10 }, (_, i) => { const a = Math.PI / 5 * i - Math.PI / 2, d = i % 2 ? r * .45 : r; return `${(x + d * Math.cos(a)).toFixed(1)},${(y + d * Math.sin(a)).toFixed(1)}`; });
   return `<polygon points="${pts.join(' ')}"/>`;
 };
+// Glass Dragon Balls (2.20, review 19): amber glass with red stars floating inside, a window shine and a warm
+// glow at the bottom. Balls not yet gathered are frosted grey. Inline colors, so they look the same in every theme.
 export function ballSVG(stars, lit, px = 40) {
-  const r = stars > 4 ? 3.6 : 4.6;
-  return `<svg class="ball ${lit ? 'lit' : ''}" viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
-    <circle cx="20" cy="20" r="18"/><ellipse cx="14" cy="11" rx="5" ry="3" class="shine"/>
-    <g class="stars">${SPOTS[stars - 1].map(([x, y]) => star(x, y, r)).join('')}</g></svg>`;
+  const r = stars > 4 ? 3.7 : 4.6, id = `gb${lit ? 1 : 0}`;
+  const g = lit ? ['#fff4c8', '#ffc04a', '#f08a10', '#b45400'] : ['#f4f6fb', '#d9dee9', '#b4bccd', '#8c95a8'];
+  return `<svg class="gball ${lit ? 'lit' : ''}" viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
+    <defs><radialGradient id="${id}" cx=".4" cy=".36" r=".7"><stop offset="0" stop-color="${g[0]}"/><stop offset=".35" stop-color="${g[1]}"/><stop offset=".85" stop-color="${g[2]}"/><stop offset="1" stop-color="${g[3]}"/></radialGradient></defs>
+    <circle cx="20" cy="20" r="18" fill="url(#${id})" stroke="#1b1f2e" stroke-width="1.6"/>
+    <g fill="${lit ? '#e3262f' : '#9aa3b6'}" stroke="${lit ? '#9b1018' : '#7d869a'}" stroke-width=".6">${SPOTS[stars - 1].map(([x, y]) => star(x, y, r)).join('')}</g>
+    <path d="M8.5 15a12 12 0 0 1 9-8.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".85"/><circle cx="9" cy="19.5" r="1.2" fill="#fff" opacity=".8"/>
+    <path d="M14 33a12 12 0 0 0 16-2" fill="none" stroke="${lit ? '#ffe39a' : '#eef1f7'}" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>`;
 }
 
 export function ballsCard(list) {

@@ -69,8 +69,9 @@ export const WHY = {
   power: p => [`How the ${w('power').toLowerCase()} works`, `<p>It's a game score Goku made up to make a week of good habits feel like charging up. It isn't a health, fitness or body measure, and it doesn't compare you with anyone.</p>
     <ul class="list" style="margin-top:8px"><li><span>Training: days you trained in the last 7, against your weekly goal</span><b>up to 4,000</b></li>
     <li><span>Fuel: days you reached your protein goal (or logged food, if there's no goal)</span><b>up to 2,500</b></li>
-    <li><span>Recovery: ${p.kind === 'perf' ? 'your average readiness from check-ins' : 'days you logged anything at all'}</span><b>up to 2,500</b></li></ul>
-    <p class="note">The highest reading is 9,000. Rest days count toward showing up, so resting never lowers it.</p>`],
+    <li><span>Recovery: ${p.kind === 'perf' ? 'your average readiness from check-ins' : 'days you logged anything at all'}</span><b>up to 2,500</b></li>
+    <li><span>Streak bonus: 25 for each day your streak runs past 7 days</span><b>up to 1,000</b></li></ul>
+    <p class="note">A perfect week reads 9,000; the streak bonus is how you go over 9,000, up to 10,000. Rest days count toward showing up, so resting never lowers it.</p>`],
   weekgoal: p => ['Your weekly goal', `<p>You told the coach you can train <b>${esc(p.about?.days)}</b> days a week. Sessions from Sunday to Saturday count toward it.</p>
     <p class="note">Change it in Settings → About you.</p>`],
 };

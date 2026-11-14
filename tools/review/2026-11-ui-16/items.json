@@ -1,0 +1,479 @@
+{
+ "batch": "2026-11-ui-16",
+ "title": "Goku Icons, Round Three",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Real Dragon Ball Icons",
+   "why": "Your rule against copyrighted images is gone, so these icons go for the real thing: the Kame House, a Dragon Ball, a Senzu bean, Kid Goku asleep, a scouter, meat on the bone. I drew them all from scratch in full color with Goku's ink outline. Nothing is copied from official art.\n\nFirst pick the style for the whole app. Then each icon offers its Dragon Ball version and your outline pick from the earlier rounds. Your earlier outline picks are kept either way, so nothing is lost.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "style",
+   "area": "The whole app",
+   "title": "Outline or Full Color?",
+   "why": "Outline is today's look: one color that follows your theme, with the open tab in your accent color. Full color draws each icon in its own colors, like stickers, which is the only way a Dragon Ball looks orange and a Senzu bean looks green. In full color the open tab is the bold one and the others are faded.",
+   "now": [
+    {
+     "img": "bar-outline.png",
+     "caption": "Outline (today)"
+    }
+   ],
+   "options": [
+    {
+     "id": "color",
+     "label": "Full color",
+     "desc": "Dragon Ball icons in their real colors.",
+     "img": "bar-color.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Outline",
+     "desc": "Keep one color. The outline picks below are used."
+    },
+    {
+     "id": "mix",
+     "label": "Full color for Dragon Ball things only",
+     "desc": "Dragon Ball icons in color; plain ones (clock, gear, calendar, drop) stay outline."
+    }
+   ]
+  },
+  {
+   "id": "home",
+   "area": "Home",
+   "title": "Home",
+   "why": "The Kame House: pink walls, red roof, round windows, on the island with a palm tree.",
+   "options": [
+    {
+     "id": "kame",
+     "label": "Kame House",
+     "desc": "",
+     "img": "kame.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-home.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "library",
+   "area": "Library",
+   "title": "Library",
+   "why": "Master Roshi's turtle shell, the weighted shell Goku trains in.",
+   "options": [
+    {
+     "id": "shell",
+     "label": "Turtle shell",
+     "desc": "",
+     "img": "shell.png",
+     "rec": true
+    },
+    {
+     "id": "dumbbell",
+     "label": "Dumbbell in color",
+     "desc": "",
+     "img": "dumbbell.png"
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-library.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "food",
+   "area": "Nutrition and Food",
+   "title": "Nutrition and Food",
+   "why": "A heaped rice bowl with chopsticks, the way Goku eats.",
+   "options": [
+    {
+     "id": "bowl",
+     "label": "Rice bowl",
+     "desc": "",
+     "img": "bowl.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-food.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "protein",
+   "area": "Protein",
+   "title": "Protein",
+   "why": "Meat on the bone, Goku's favorite.",
+   "options": [
+    {
+     "id": "meat",
+     "label": "Meat on the bone",
+     "desc": "",
+     "img": "meat.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-protein.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "skills",
+   "area": "Skills",
+   "title": "Skills",
+   "why": "Redone as a proper four-star Dragon Ball: an orange glass ball with red stars and a shine.",
+   "options": [
+    {
+     "id": "dragonball",
+     "label": "Dragon Ball",
+     "desc": "",
+     "img": "dragonball.png",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "you",
+   "area": "You",
+   "title": "You",
+   "why": "Redone. Goku's head with his spiky hair, or the 悟 symbol from his gi.",
+   "options": [
+    {
+     "id": "gokuHead",
+     "label": "Goku",
+     "desc": "",
+     "img": "gokuHead.png",
+     "rec": true
+    },
+    {
+     "id": "goSymbol",
+     "label": "悟 gi symbol",
+     "desc": "",
+     "img": "goSymbol.png"
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-you.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "rest",
+   "area": "Rest Day and Sleep",
+   "title": "Rest Day and Sleep",
+   "why": "Kid Goku fast asleep, or the Flying Nimbus.",
+   "options": [
+    {
+     "id": "sleepGoku",
+     "label": "Goku asleep",
+     "desc": "",
+     "img": "sleepGoku.png",
+     "rec": true
+    },
+    {
+     "id": "nimbus",
+     "label": "Flying Nimbus",
+     "desc": "",
+     "img": "nimbus.png"
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-rest.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "supplements",
+   "area": "Supplements",
+   "title": "Supplements",
+   "why": "Redone as a Senzu bean.",
+   "options": [
+    {
+     "id": "senzu",
+     "label": "Senzu bean",
+     "desc": "",
+     "img": "senzu.png",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "sport",
+   "area": "Other Sport and Move Minutes",
+   "title": "Other Sport and Move Minutes",
+   "why": "Redone as a real soccer ball: a black center patch with black patches around the edge.",
+   "options": [
+    {
+     "id": "soccer",
+     "label": "Soccer ball",
+     "desc": "",
+     "img": "soccer.png",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "checkin",
+   "area": "Check-In",
+   "title": "Check-In",
+   "why": "A scouter reading your power, or a heart with a pulse.",
+   "options": [
+    {
+     "id": "scouter",
+     "label": "Scouter",
+     "desc": "",
+     "img": "scouter.png",
+     "rec": true
+    },
+    {
+     "id": "heart",
+     "label": "Heart in color",
+     "desc": "",
+     "img": "heart.png"
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-checkin.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "calories",
+   "area": "Calories",
+   "title": "Calories",
+   "why": "Redone without a gauge: a ki blast (energy) or a flame.",
+   "options": [
+    {
+     "id": "kiBlast",
+     "label": "Ki blast",
+     "desc": "",
+     "img": "kiBlast.png"
+    },
+    {
+     "id": "flame",
+     "label": "Flame",
+     "desc": "",
+     "img": "flame.png",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "workout",
+   "area": "Workout",
+   "title": "Workout",
+   "why": "Your stopwatch, in color.",
+   "options": [
+    {
+     "id": "stopwatch",
+     "label": "Stopwatch in color",
+     "desc": "",
+     "img": "stopwatch.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-workout.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "weigh",
+   "area": "Weigh-In and Weight",
+   "title": "Weigh-In and Weight",
+   "why": "Your balance scale, in gold.",
+   "options": [
+    {
+     "id": "scale",
+     "label": "Scale in color",
+     "desc": "",
+     "img": "scale.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-scale.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "history",
+   "area": "History",
+   "title": "History",
+   "why": "Your back-arrow clock, in color.",
+   "options": [
+    {
+     "id": "clock",
+     "label": "Clock in color",
+     "desc": "",
+     "img": "clock.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-history.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "settings",
+   "area": "Settings",
+   "title": "Settings",
+   "why": "Your gear, in color.",
+   "options": [
+    {
+     "id": "gear",
+     "label": "Gear in color",
+     "desc": "",
+     "img": "gear.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-settings.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "week",
+   "area": "Week",
+   "title": "Week",
+   "why": "Your calendar, in color.",
+   "options": [
+    {
+     "id": "calendar",
+     "label": "Calendar in color",
+     "desc": "",
+     "img": "calendar.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-week.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  },
+  {
+   "id": "water",
+   "area": "Water",
+   "title": "Water",
+   "why": "The drop, in color.",
+   "options": [
+    {
+     "id": "drop",
+     "label": "Drop in color",
+     "desc": "",
+     "img": "drop.png",
+     "rec": true
+    },
+    {
+     "id": "outline",
+     "label": "Your outline pick",
+     "desc": ""
+    }
+   ],
+   "now": [
+    {
+     "img": "o-water.png",
+     "caption": "Your outline pick"
+    }
+   ]
+  }
+ ]
+}

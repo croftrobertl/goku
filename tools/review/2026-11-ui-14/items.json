@@ -1,0 +1,558 @@
+{
+ "batch": "2026-11-ui-14",
+ "title": "Goku Icons",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Every Icon in Goku",
+   "why": "You picked the drumstick for Protein. Here is every other icon Goku uses, one at a time, each shown where it appears: the tab bar, a Quick Add tile, a My Goals circle, and large.\n\nThe options are drawn in Goku's own outline style, so nothing is copied. \"Keep\" is fine for most; I recommend changes only for Settings, History, Other Sport, Calories and the arrows. Nothing changes until you pick.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "home",
+   "area": "Home",
+   "title": "Home",
+   "why": "The Home tab, on the phone and the desktop sidebar. The house is clear and standard.",
+   "now": [
+    {
+     "img": "home-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Rounded house",
+     "desc": "",
+     "img": "home-a.png"
+    },
+    {
+     "id": "b",
+     "label": "House with a heart",
+     "desc": "",
+     "img": "home-b.png"
+    }
+   ]
+  },
+  {
+   "id": "library",
+   "area": "Library",
+   "title": "Library",
+   "why": "The Library tab (Strength). The dumbbell says \"exercises\" well.",
+   "now": [
+    {
+     "img": "library-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Dumbbell with plates",
+     "desc": "",
+     "img": "library-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Books",
+     "desc": "",
+     "img": "library-b.png"
+    }
+   ]
+  },
+  {
+   "id": "week",
+   "area": "Week",
+   "title": "Week",
+   "why": "The Week tab (Gymnastics). A plain calendar. A check could hint at planned days done.",
+   "now": [
+    {
+     "img": "week-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Calendar with a check",
+     "desc": "",
+     "img": "week-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Calendar with days",
+     "desc": "",
+     "img": "week-b.png"
+    }
+   ]
+  },
+  {
+   "id": "nutrition",
+   "area": "Nutrition and Food",
+   "title": "Nutrition and Food",
+   "why": "The Nutrition tab and the Food tile in Quick Add. The apple reads as food and matches Goku's simple style.",
+   "now": [
+    {
+     "img": "nutrition-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Fork and knife",
+     "desc": "",
+     "img": "nutrition-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Bowl",
+     "desc": "",
+     "img": "nutrition-b.png"
+    }
+   ]
+  },
+  {
+   "id": "history",
+   "area": "History",
+   "title": "History",
+   "why": "History on desktop and in the You list. A plain clock reads as \"time\" or a timer more than \"the past\".",
+   "now": [
+    {
+     "img": "history-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": ""
+    },
+    {
+     "id": "a",
+     "label": "Clock with a back arrow",
+     "desc": "",
+     "img": "history-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Calendar with a clock",
+     "desc": "",
+     "img": "history-b.png"
+    }
+   ]
+  },
+  {
+   "id": "settings",
+   "area": "Settings",
+   "title": "Settings",
+   "why": "Settings on desktop and in the You list. The current icon is a circle with eight lines around it, which looks more like a sun than a gear.",
+   "now": [
+    {
+     "img": "settings-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": ""
+    },
+    {
+     "id": "a",
+     "label": "Gear",
+     "desc": "",
+     "img": "settings-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Sliders",
+     "desc": "",
+     "img": "settings-b.png"
+    }
+   ]
+  },
+  {
+   "id": "skills",
+   "area": "Skills",
+   "title": "Skills",
+   "why": "The Skills page (Gymnastics). The star works, but it is also Goku's \"new record\" mark on the calendar.",
+   "now": [
+    {
+     "img": "skills-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Medal",
+     "desc": "",
+     "img": "skills-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Skill tree",
+     "desc": "",
+     "img": "skills-b.png"
+    }
+   ]
+  },
+  {
+   "id": "you",
+   "area": "You",
+   "title": "You",
+   "why": "The You tab on the phone. A person outline is the usual sign for \"you\".",
+   "now": [
+    {
+     "img": "you-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Person in a circle",
+     "desc": "",
+     "img": "you-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Profile card",
+     "desc": "",
+     "img": "you-b.png"
+    }
+   ]
+  },
+  {
+   "id": "water",
+   "area": "Water",
+   "title": "Water",
+   "why": "The Water tile in Quick Add. With Protein moving to the drumstick, the drop now means only water.",
+   "now": [
+    {
+     "img": "water-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Glass",
+     "desc": "",
+     "img": "water-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Bottle",
+     "desc": "",
+     "img": "water-b.png"
+    }
+   ]
+  },
+  {
+   "id": "pill",
+   "area": "Supplements",
+   "title": "Supplements",
+   "why": "The Supplements tile in Quick Add. A flat capsule. Tilting it is the more common way to draw one.",
+   "now": [
+    {
+     "img": "pill-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Tilted capsule",
+     "desc": "",
+     "img": "pill-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Round tablet",
+     "desc": "",
+     "img": "pill-b.png"
+    }
+   ]
+  },
+  {
+   "id": "bolt",
+   "area": "Workout",
+   "title": "Workout",
+   "why": "The Workout tile in Quick Add and Workouts in My Goals. The lightning bolt fits Goku's energy theme.",
+   "now": [
+    {
+     "img": "bolt-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Stopwatch",
+     "desc": "",
+     "img": "bolt-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Dumbbell (same as Library)",
+     "desc": "",
+     "img": "bolt-b.png"
+    }
+   ]
+  },
+  {
+   "id": "run",
+   "area": "Other Sport and Move Minutes",
+   "title": "Other Sport and Move Minutes",
+   "why": "The Other Sport tile in Quick Add and Move Minutes in My Goals. The runner's arms and legs are hard to read at small sizes.",
+   "now": [
+    {
+     "img": "run-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": ""
+    },
+    {
+     "id": "a",
+     "label": "Ball",
+     "desc": "",
+     "img": "run-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Cleaner runner",
+     "desc": "",
+     "img": "run-b.png",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "moon",
+   "area": "Rest Day and Sleep",
+   "title": "Rest Day and Sleep",
+   "why": "The Rest Day tile in Quick Add and Sleep in My Goals. The moon works for both.",
+   "now": [
+    {
+     "img": "moon-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Moon with a star",
+     "desc": "",
+     "img": "moon-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Bed",
+     "desc": "",
+     "img": "moon-b.png"
+    }
+   ]
+  },
+  {
+   "id": "heart",
+   "area": "Check-In",
+   "title": "Check-In",
+   "why": "The Check-In tile in Quick Add. A heart for \"how you feel\".",
+   "now": [
+    {
+     "img": "heart-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Heart with a pulse",
+     "desc": "",
+     "img": "heart-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Face",
+     "desc": "",
+     "img": "heart-b.png"
+    }
+   ]
+  },
+  {
+   "id": "scale",
+   "area": "Weigh-In and Weight",
+   "title": "Weigh-In and Weight",
+   "why": "The Weigh-In tile in Quick Add and Weight in My Goals. A bathroom scale with a dial.",
+   "now": [
+    {
+     "img": "scale-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "a",
+     "label": "Scale with a display",
+     "desc": "",
+     "img": "scale-a.png"
+    },
+    {
+     "id": "b",
+     "label": "Round dial",
+     "desc": "",
+     "img": "scale-b.png"
+    }
+   ]
+  },
+  {
+   "id": "flame",
+   "area": "Calories",
+   "title": "Calories",
+   "why": "Calories in My Goals. At small sizes the flame looks a lot like a drop. A flame with an inner flame reads more clearly.",
+   "now": [
+    {
+     "img": "flame-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep it",
+     "desc": ""
+    },
+    {
+     "id": "a",
+     "label": "Flame with an inner flame",
+     "desc": "",
+     "img": "flame-a.png",
+     "rec": true
+    },
+    {
+     "id": "b",
+     "label": "Gauge",
+     "desc": "",
+     "img": "flame-b.png"
+    }
+   ]
+  },
+  {
+   "id": "glyphs",
+   "area": "Arrows and small signs",
+   "title": "Arrows Drawn, Not Typed",
+   "why": "The month arrows, the profile switch, the Show arrow and the close button are typed characters (‹ › ⇄ ▾ ✕). Typed characters sit a little off-center in their buttons and change with the font. Drawn icons stay centered and match the other icons. The Chi-Chi pass would check centering either way.",
+   "now": [
+    {
+     "img": "glyphs-now.png",
+     "caption": "Now: typed characters"
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "Draw them",
+     "desc": "Same shapes, drawn to match the other icons.",
+     "img": "glyphs-a.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep the characters",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

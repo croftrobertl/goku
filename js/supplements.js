@@ -2,7 +2,7 @@
 // what's been taken against the person's medicines. The interaction text is NIH's, word for word
 // (data/interactions.json, built by tools/build-interactions.py). Goku never says a pair is safe.
 import { profile, saveProfile, entries, today } from './state.js';
-import { esc, overlay, guard, toast, ask } from './ui.js';
+import { esc, overlay, guard, toast, ask, GLY } from './ui.js';
 import { addDays } from './time.js';
 import { vocabulary, exactFirst, complete, dist, words } from './fuzzy.js';
 import { isMinor } from './coach.js';
@@ -165,7 +165,7 @@ export function pickSupplement(g, save, recent) {
     const mine = q.trim() ? [] : recent, stacks = q.trim() ? [] : profile().settings.stacks || [];
     const typed = q.trim() && !list.length ? q.trim().slice(0, 40) : ''; // only when nothing matched (2.8.2)
     $('#sres').innerHTML = `${stacks.length ? `<p class="lbl">Stacks</p><ul class="list">${stacks.map((st, i) => `<li><button class="itemrow" data-stack="${i}"><span><b>${esc(st.name)}</b><br><span class="chain">${esc(st.items.map(x => x.name).join(', '))}</span></span><span class="sub">Log all</span></button>
-        <button class="cta2" data-rmstack="${i}" aria-label="Delete ${esc(st.name)}">×</button></li>`).join('')}</ul>` : ''}
+        <button class="cta2" data-rmstack="${i}" aria-label="Delete ${esc(st.name)}">${GLY.close}</button></li>`).join('')}</ul>` : ''}
       ${mine.length ? `<p class="lbl">Yours</p><ul class="list">${mine.map((s, i) => `<li><button class="itemrow" data-mine="${i}"><span><b>${esc(s.name)}</b><br><span class="chain">${esc(amountText(s))}</span></span><span class="sub">Add</span></button></li>`).join('')}</ul>` : ''}
       ${list.length ? `${mine.length ? '<p class="lbl" style="margin-top:12px">All</p>' : ''}<ul class="list">${list.map(s => `<li><button class="itemrow" data-name="${esc(s.name)}"><span><b>${esc(s.name)}</b></span></button></li>`).join('')}</ul>` : ''}
       ${suggest ? `<ul class="list"><li><button class="itemrow" data-sq="${esc(suggest)}"><span>Did you mean <b>${esc(suggest)}</b>?</span></button></li></ul>` : ''}
@@ -304,7 +304,7 @@ export async function checkInteractions(p = profile()) {
     const unknownMeds = meds.filter(med => !KNOWN_MEDS.has(norm(med)) && !allItems.some(x => hits(med, x.m)));
     el.querySelector('#ib').innerHTML = `
       <p class="lbl">Your medicines</p>
-      <div class="pills">${meds.map((m, i) => `<button data-rmmed="${i}" aria-label="Remove ${esc(m)}">${esc(m)} ×</button>`).join('')}</div>
+      <div class="pills">${meds.map((m, i) => `<button data-rmmed="${i}" aria-label="Remove ${esc(m)}">${esc(m)} ${GLY.close}</button>`).join('')}</div>
       <div class="supp"><input id="med" placeholder="Add a medicine, e.g. Synthroid" maxlength="60" autocomplete="off" aria-label="Add a medicine"><button class="cta2" id="addMed">Add</button></div>
       <div class="pills sugg" id="medsugg"></div>
       <p class="note">Saved on this phone and in your backups.${isMinor(p) ? ' Ask a parent to help you list them.' : ''}</p>

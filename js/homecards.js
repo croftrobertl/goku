@@ -13,7 +13,10 @@ import { readiness, sleepTargetFor } from './perf-score.js';
 import { powerLevel } from './scouter.js';
 
 // A Senzu bean, drawn small (2.5: no emoji in the interface).
-const BEAN = '<svg class="bean" viewBox="0 0 20 14" aria-hidden="true"><path d="M3 8c0-4 4-6 8-6s6 2 6 4-2 3-4 3-3 3-6 3-4-1-4-4z"/></svg>';
+// A Senzu bean (2.20, review 19): a shiny green bean with its seam, matching the Supplements pouch.
+const BEAN = '<svg class="senzu" viewBox="0 0 24 18" aria-hidden="true"><defs><radialGradient id="szb" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#e9ffc8"/><stop offset=".5" stop-color="#97dd66"/><stop offset="1" stop-color="#43a032"/></radialGradient></defs>'
+  + '<ellipse cx="12" cy="9" rx="9.5" ry="6.8" transform="rotate(-12 12 9)" fill="url(#szb)" stroke="#1b1f2e" stroke-width="1.4"/><path d="M6.5 7c2-2 5-2.6 7.5-1.8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>'
+  + '<path d="M18.5 10.5c-1 1.7-2.6 2.5-4.2 2.5" fill="none" stroke="#3c8f2e" stroke-width="1.3" stroke-linecap="round"/></svg>';
 
 // Rest days that count each week: the days you don't plan to train (at least 1; 2 with no plan).
 const offDay = d => d.gym + d.vault === 0;

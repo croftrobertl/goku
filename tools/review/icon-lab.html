@@ -1,0 +1,120 @@
+<!doctype html>
+<!-- Icon lab (2.20): draws one icon choice the way Goku shows it, for review screenshots.
+     Open icon-lab.html#<item>:<option>. Each place shows the icon at its real size: the tab bar, a Quick Add tile and a My Goals chip. -->
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body { margin: 0; background: #f2f4fa; font: 600 14px -apple-system, system-ui, sans-serif; color: #141a2b; }
+  .wrap { display: flex; gap: 22px; align-items: center; justify-content: center; padding: 18px 12px; }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 74px; color: #5aa3ff; font-size: 13px; }
+  .tab svg { width: 28px; height: 28px; }
+  .tab span { color: #141a2b; font-weight: 800; }
+  .tile { width: 110px; height: 74px; border: 2.5px solid #141a2b; border-radius: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .tile svg { width: 30px; height: 30px; }
+  .chip { width: 46px; height: 46px; border-radius: 50%; background: #e5e9f4; color: #3d6db8; display: flex; align-items: center; justify-content: center; }
+  .chip svg { width: 22px; height: 22px; }
+  .big { width: 96px; height: 96px; border: 2px dashed #c5cbe0; border-radius: 18px; display: flex; align-items: center; justify-content: center; }
+  .big svg { width: 64px; height: 64px; }
+  .glyphs { display: flex; gap: 14px; }
+  .gbtn { width: 48px; height: 48px; border: 2.5px solid #141a2b; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; }
+  .gbtn svg { width: 22px; height: 22px; }
+</style></head><body><div class="wrap" id="w"></div>
+<script>
+const s = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+// [label, now, A, B]; drawn in Goku's outline style. "now" is copied from js/app.js and js/settings.js.
+const I = {
+  home: ['Home', '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    '<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/>',
+    '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M12 17.5s-3-1.8-3-4a1.6 1.6 0 0 1 3-.8 1.6 1.6 0 0 1 3 .8c0 2.2-3 4-3 4z"/>'],
+  library: ['Library', '<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>',
+    '<path d="M2.5 10v4M5.5 7v10M18.5 7v10M21.5 10v4M5.5 12h13"/><rect x="4" y="7" width="3" height="10" rx="1"/><rect x="17" y="7" width="3" height="10" rx="1"/>',
+    '<rect x="4" y="4" width="4.5" height="16" rx="1"/><rect x="10" y="4" width="4.5" height="16" rx="1"/><path d="M16.2 5.2l3.4-.9 3 14.6-3.4.9z"/>'],
+  week: ['Week', '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8.5 15.5l2.2 2.2 4.8-4.8"/>',
+    '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h0M12 14h0M16.5 14h0M7.5 17.5h0M12 17.5h0"/>'],
+  nutrition: ['Nutrition', '<path d="M12 7c-3-3-8-1-8 4 0 5 4 10 8 10s8-5 8-10c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-4"/>',
+    '<path d="M4 3v5a3.5 3.5 0 0 0 7 0V3M7.5 3v5M7.5 11.5V21"/><path d="M19.5 21V3C16.8 4.4 15 7 15 11v3h4.5"/>',
+    '<path d="M3.5 11h17a8.5 8.5 0 0 1-17 0z"/><path d="M9 8c0-2 1.5-2 1.5-4M13.5 8c0-2 1.5-2 1.5-4"/>'],
+  history: ['History', '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/><path d="M12 7.5V12l3 2"/>',
+    '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 13v2.5l1.8 1.2"/>'],
+  settings: ['Settings', '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    '<path d="M19.1 10.6 L21.5 10.8 L21.5 13.2 L19.1 13.4 L18.0 16.0 L19.6 17.9 L17.9 19.6 L16.0 18.0 L13.4 19.1 L13.2 21.5 L10.8 21.5 L10.6 19.1 L8.0 18.0 L6.1 19.6 L4.4 17.9 L6.0 16.0 L4.9 13.4 L2.5 13.2 L2.5 10.8 L4.9 10.6 L6.0 8.0 L4.4 6.1 L6.1 4.4 L8.0 6.0 L10.6 4.9 L10.8 2.5 L13.2 2.5 L13.4 4.9 L16.0 6.0 L17.9 4.4 L19.6 6.1 L18.0 8.0z"/><circle cx="12" cy="12" r="3"/>',
+    '<path d="M4 6h9M18 6h2M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15.5" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/>'],
+  skills: ['Skills', '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>',
+    '<circle cx="12" cy="15" r="5.5"/><path d="M8.6 10.7 6 3h4l2 5 2-5h4l-2.6 7.7"/>',
+    '<circle cx="12" cy="5" r="2.2"/><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="M12 7.2V12M12 12l-4.6 5.2M12 12l4.6 5.2"/>'],
+  you: ['You', '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+    '<circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 19a6.5 6.5 0 0 1 11.6 0"/>',
+    '<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="2.3"/><path d="M5.8 16.2a3.6 3.6 0 0 1 6.4 0M14.5 10h3.5M14.5 13.5h3.5"/>'],
+  water: ['Water', '<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
+    '<path d="M5 3h14l-1.6 16.2a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z"/><path d="M6 10h12"/>',
+    '<path d="M9.5 2.5h5M10 2.5v3.2L8 8.5V20a1.5 1.5 0 0 0 1.5 1.5h5A1.5 1.5 0 0 0 16 20V8.5l-2-2.8V2.5"/><path d="M8 13h8"/>'],
+  pill: ['Supplements', '<rect x="3" y="9" width="18" height="7" rx="3.5"/><path d="M12 9v7"/>',
+    '<rect x="2.5" y="8.5" width="19" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/>',
+    '<circle cx="12" cy="12" r="8.5"/><path d="M7.5 12h9"/>'],
+  bolt: ['Workout', '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+    '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.8M10 2.5h4M18.4 6.6l1.6-1.6"/>',
+    '<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>'],
+  run: ['Other Sport', '<circle cx="15" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v5M6 12l3-4 4 1 3 4 3 1"/>',
+    '<circle cx="12" cy="12" r="9"/><path d="M12 3a13 13 0 0 1 0 18M3 12h18M5.6 6a11 11 0 0 0 12.8 0M5.6 18a11 11 0 0 1 12.8 0"/>',
+    '<circle cx="14.5" cy="4" r="2"/><path d="M7 20.5l2.8-5.2 3.4 2.4-.6 3.8M12 9.5l-2.8 5.8M5 11l3.2-3.3 4.4.6 2.6 3.7 3.8 1"/>'],
+  moon: ['Rest Day · Sleep', '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+    '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/><path d="M16.5 3.5v3M15 5h3"/>',
+    '<path d="M3 19V6M3 14h18v5M21 14a3.5 3.5 0 0 0-3.5-3.5H11V14"/><circle cx="7" cy="11.3" r="1.8"/>'],
+  heart: ['Check-In', '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+    '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M7.5 12h2.5l1.2-2.2 1.8 4 1.2-1.8h2.3"/>',
+    '<circle cx="12" cy="12" r="9"/><path d="M8.3 14.2a4.5 4.5 0 0 0 7.4 0M9 9.5h0M15 9.5h0"/>'],
+  scale: ['Weigh-In · Weight', '<rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8 9a5 5 0 0 1 8 0"/><path d="M12 9l1.5-2"/>',
+    '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><rect x="9" y="7" width="6" height="3.2" rx="1"/><path d="M8 17h0M16 17h0"/>',
+    '<circle cx="12" cy="12" r="9"/><path d="M7.5 11.5a5 5 0 0 1 9 0M12 11.5l1.8-2.2"/>'],
+  flame: ['Calories', '<path d="M12 22c4 0 7-3 7-7 0-5-5-7-5-12-3 2-6 6-6 9 0 1 .3 2 .8 2.8C7.5 14 7 13 7 12c-2 1.5-2 3-2 3 0 4 3 7 7 7z"/>',
+    '<path d="M12 21.5c-3.9 0-7-2.8-7-6.6 0-3.5 2.3-5.4 3.6-7.6.3 1.9 1.2 3 2.4 3.6.4-3.4 1.7-5.9 4-7.4-.3 3 1.7 4.6 2.8 6.4a7.3 7.3 0 0 1 1.2 5c0 3.8-3.1 6.6-7 6.6z"/><path d="M12 21.5a2.8 2.8 0 0 1-2.8-2.8c0-1.9 1.6-2.6 2.8-4.2 1.2 1.6 2.8 2.3 2.8 4.2a2.8 2.8 0 0 1-2.8 2.8z"/>',
+    '<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l3.5-4.5M4 17h2M18 17h2M12 9v1.5M7 11.5l1 1M17 11.5l-1 1"/>'],
+};
+
+// Round 2 (review 15): Dragon Ball nods, drawn from scratch (no copied character art or logos).
+const R2 = {
+  home: ['Home',
+    '<path d="M1.5 21h21"/><path d="M3 21c1-3.2 15-3.2 18 0"/><path d="M5.5 18.2V13h6.5v5"/><path d="M4.3 13.2 8.75 9.6l4.45 3.6"/><path d="M17 18.6c0-3.4.4-6.4 1.6-9"/><path d="M18.6 9.6c-1-1.6-3-2.1-4.6-1.3M18.6 9.6c.2-1.9 1.7-3 3.5-2.9M18.6 9.6c1.7-.3 3 .7 3.4 2.2"/>',
+    '<path d="M1.5 21h21"/><path d="M3 21c1.5-3 16.5-3 18 0"/><path d="M6.5 18.6V11h11v7.6"/><path d="M4.8 11.3 12 5.5l7.2 5.8"/><circle cx="12" cy="14.6" r="1.8"/>'],
+  moon: ['Rest Day',
+    '<circle cx="10.5" cy="13.5" r="7"/><path d="M6.8 12.6q1.2 1.1 2.4 0M11.8 12.6q1.2 1.1 2.4 0"/><circle cx="10.5" cy="16.6" r=".9"/><path d="M15.5 2.5h3.5l-3.5 4h3.5M20 7h2.2L20 9.5h2.2"/>',
+    '<path d="M6.5 19h11a4 4 0 0 0 .6-8 5.5 5.5 0 0 0-10.4-1.5A4.3 4.3 0 0 0 6.5 19z"/><path d="M15 2.5h4l-4 4.5h4"/>'],
+  nutrition: ['Food',
+    '<path d="M2.5 19.5h19"/><path d="M4.5 19.5c-.5-2 .5-3.5 2-3.8.2-2 2-3.2 3.6-2.6.8-2 3.4-2.4 4.6-.8 1.6-.6 3.4.6 3.4 2.6 1.6.4 2.4 2 1.9 4.6"/><path d="M9 9.5c0-1.6 1.2-1.6 1.2-3.2M13.5 9.5c0-1.6 1.2-1.6 1.2-3.2"/>',
+    '<path d="M3 12.5h18a9 9 0 0 1-18 0z"/><path d="M5 12.5c1-3 3-4.5 5-3.5 1-2.5 4-2.5 5 0 2-1 4 .5 4 3.5"/><path d="M15.5 2.5l-4 7M19.5 3.5l-5.5 6"/>'],
+  pill: ['Supplements',
+    '<rect x="3" y="8.5" width="18" height="10" rx="5"/><path d="M12 8.5v10"/><path d="M10.5 8.5V6.5h3v2"/>',
+    '<rect x="3" y="8.5" width="18" height="10" rx="5"/><path d="M12 8.5v10"/><path d="M10.5 8.5V6.5h3v2"/><path d="M6.8 12l1.2-1v5"/>'],
+  run: ['Other Sport',
+    '<circle cx="12" cy="12" r="9"/><path d="M12 8.2l3.2 2.3-1.2 3.8h-4l-1.2-3.8z"/><path d="M12 8.2V3.2M15.2 10.5l4.5-1.6M14 14.3l2.8 4M10 14.3l-2.8 4M8.8 10.5 4.3 8.9"/>',
+    '<circle cx="14" cy="12" r="7.5"/><path d="M14.0 9.0 L16.9 11.1 L15.8 14.4 L12.2 14.4 L11.1 11.1z"/><path d="M14.0 9.0L14.0 4.5M16.9 11.1L21.1 9.7M15.8 14.4L18.4 18.1M12.2 14.4L9.6 18.1M11.1 11.1L6.9 9.7"/><path d="M2 9h3M1.5 12h3.5M2 15h3"/>'],
+  scale: ['Weigh-In',
+    '<path d="M12 3.5v16M7 20.5h10M5 6.5h14"/><path d="M5 6.5 2.5 13h5zM19 6.5 16.5 13h5z"/><path d="M2.5 13a2.5 1.6 0 0 0 5 0M16.5 13a2.5 1.6 0 0 0 5 0"/>',
+    '<rect x="3.5" y="5" width="17" height="15" rx="4"/><path d="M7 11a5 5 0 0 1 10 0z"/><path d="M12 11l1.6-2.4"/><path d="M8 16.5h8"/>'],
+  skills: ['Skills',
+    '<circle cx="6" cy="12" r="3.6"/><path d="M9.8 12H21.5M9.4 9.4 21 6.5M9.4 14.6 21 17.5"/>',
+    '<circle cx="12" cy="12" r="9"/><path d="M12.0 7.8 L13.1 10.5 L16.0 10.7 L13.7 12.6 L14.5 15.4 L12.0 13.8 L9.5 15.4 L10.3 12.6 L8.0 10.7 L10.9 10.5z"/>'],
+  you: ['You',
+    '<path fill="currentColor" stroke-width="1.2" d="M8.2 11.6 5 9.8l2.4-1.2-2.8-3 4 .6-.2-3.4 3 2.6 2.2-3 1 3.6 4-1.8-1.6 3.6 3 1-3.6 1.6-.6 1.2Q12 9.4 8.2 11.6z"/><circle cx="12" cy="12.8" r="3.8"/><path d="M4.5 21.5c.5-3.6 3.6-5.4 7.5-5.4s7 1.8 7.5 5.4"/>',
+    '<circle cx="12" cy="12" r="10"/><path fill="currentColor" stroke-width="1" d="M9 11.3 7.2 10.1l1.6-.7-1.7-2 2.5.4-.1-2.2 1.9 1.7 1.4-2 .7 2.3 2.6-1.1-1 2.3 1.9.7-2.3 1-.4.8Q12 9.9 9 11.3z"/><circle cx="12" cy="12.3" r="2.6"/><path d="M6.8 19.3a6 6 0 0 1 10.4 0"/>'],
+  flame: ['Calories',
+    '<path d="M3 16.5a9 9 0 0 1 18 0"/><path d="M3 16.5h18"/><path d="M12 16.5l4-5"/><circle cx="12" cy="16.5" r="1.3"/><path d="M6.6 11.1l1 1M12 7.5V9M17.4 11.1l-1 1"/>',
+    '<circle cx="12" cy="12" r="9.5"/><path d="M6.5 15.5a5.5 5.5 0 0 1 11 0"/><path d="M12 15.5l3.2-3.8"/><circle cx="12" cy="15.5" r="1.3"/>'],
+};
+const GL = ['Arrows and small signs', '‹ › ⇄ ▾ ✕',
+  [s('<path d="M15 5l-7 7 7 7"/>'), s('<path d="M9 5l7 7-7 7"/>'), s('<path d="M4 8h14l-3-3M20 16H6l3 3"/>'), s('<path d="M6 9l6 6 6-6"/>'), s('<path d="M6 6l12 12M18 6L6 18"/>')]];
+const [item, opt] = location.hash.slice(1).split(':');
+if (item === 'sheet') { document.getElementById('w').style.flexWrap = 'wrap';
+  document.getElementById('w').innerHTML = Object.entries(R2).map(([k, v]) => [1, 2].map(i => `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:120px"><div class="big">${s(v[i])}</div><div class="tab" style="width:auto">${s(v[i])}</div><small>${k} ${'ab'[i - 1]}</small></div>`).join('')).join(''); throw 0; }
+if (item === 'r2') { const [, it2, o2] = location.hash.slice(1).split(':'); const ic = s(R2[it2][o2 === 'a' ? 1 : 2]), name = R2[it2][0];
+  document.getElementById('w').innerHTML = `<div class="tab">${ic}<span>${name}</span></div><div class="tile">${ic}<span>${name}</span></div><div class="chip">${ic}</div><div class="big">${ic}</div>`; throw 0; }
+const w = document.getElementById('w');
+if (item === 'glyphs') {
+  w.innerHTML = `<div class="glyphs">${opt === 'now' ? GL[1].split(' ').map(g => `<div class="gbtn">${g}</div>`).join('') : GL[2].map(g => `<div class="gbtn">${g}</div>`).join('')}</div>`;
+} else {
+  const d = I[item][{ now: 1, a: 2, b: 3 }[opt]], ic = s(d), name = I[item][0].split(' · ')[0];
+  w.innerHTML = `<div class="tab">${ic}<span>${name}</span></div><div class="tile">${ic}<span>${name}</span></div><div class="chip">${ic}</div><div class="big">${ic}</div>`;
+}
+window.ITEMS = Object.fromEntries(Object.entries(I).map(([k, v]) => [k, v[0]]));
+</script></body></html>
