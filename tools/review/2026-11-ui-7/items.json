@@ -1,0 +1,28 @@
+{
+ "batch": "2026-11-ui-7",
+ "title": "Trend Lines for Other Stats",
+ "items": [
+  {
+   "id": "trend-lines",
+   "area": "Home · Stats",
+   "title": "Trend Lines Beyond Weight",
+   "why": "Your note on review 6: trend lines would help other stats too. These are the stats Goku already records over time:\n\n• Strength: reps per minute per workout, calories, protein, training minutes\n• Gymnastics: readiness, training load, calories, protein\n\nGymnastics never shows weight, as before. Numbers in the mockups are made up.",
+   "options": [
+    {"id": "spark", "label": "A small line inside each Stats tile", "desc": "Last Session gets its last 8 workouts; Food Today its last 7 days, with the average. Nothing new to tap.", "img": "trend-a.png", "rec": true},
+    {"id": "card", "label": "One Trends card with a picker", "desc": "One bigger chart; tap Reps/Min, Calories, Protein or Minutes to switch. Labels would be shortened to fit.", "img": "trend-b.png"},
+    {"id": "both", "label": "Both", "desc": "Small lines in the tiles, plus the Trends card for a closer look."},
+    {"id": "leave", "label": "Weight only for now", "desc": ""}
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "2.10.0",
+   "title": "Your Review 6 Picks Are Built",
+   "why": "Built and tested in a local phone-size browser, not yet published: the workout-name fix, the weight trend with goal tracking, the last-time line, plate math (bar and plates are set in the exercise editor), one level picker, and the five small fixes. Also fixed: “Fuel Timing for When You Train” is now “Fuel Timing”, which review 5 had asked for and 2.9.0 missed.\n\nStill not checked on an iPhone or the simulator.",
+   "options": [
+    {"id": "now", "label": "Publish 2.10.0 now", "desc": "Trend lines from the item above come in the next version.", "rec": true},
+    {"id": "wait", "label": "Wait and publish it with the trend lines", "desc": ""}
+   ]
+  }
+ ]
+}

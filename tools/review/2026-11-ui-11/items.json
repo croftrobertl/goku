@@ -1,0 +1,279 @@
+{
+ "batch": "2026-11-ui-11",
+ "title": "Setup for Anyone",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What I Found in Setup",
+   "why": "I went through setup as a brand-new person and read its code. Nothing was changed.\n\n• The first screen asks “What do you train?” and offers two narrow choices (your setup and the gymnastics one) plus Custom. Someone who wants to lose weight, eat better, walk more, or who doesn't know yet has no obvious door.\n• The descriptions use insider words: “drop sets”, “ghost races”, “skill tree”.\n• Setup is 12 screens plus a passcode typed twice. Look, color and avatar come before anything about goals.\n• A passcode is required. There's no way to skip it.\n• At the end you land on Home with no explanation of what Goku chose for you or why.\n• Guided workouts are timed circuits where you do as many reps as you can each set (Easy drops the extra stages, but there's no fixed-rep beginner format).\n• Custom offers 12 sports. Log Activity now knows 51.\n• “What Should the App Show?” is seven switches with names like “Home Hypertrophy Tracker” and “Soccer Engine Pack”, all on.\n• The Protein Target screen asks for a number most new people won't have.\n\nThe next items are the choices, biggest first.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "door",
+   "area": "The first screen",
+   "title": "The Front Door",
+   "why": "Your idea was to keep the three choices and add a fourth, “Not Sure”. Picture A shows it. On an iPhone-sized screen the fourth card lands below the fold, where the people who need it most may not see it.\n\nB turns the door into goals, so nobody has to know Goku's categories. C puts the guided path first and keeps your three choices one tap away.",
+   "now": [
+    {
+     "img": "door-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "two",
+     "label": "C: Two doors",
+     "desc": "“Build My Plan” (Goku asks and suggests) and “I Know What I Want” (Strength, Gymnastics, Custom). The goal list from B becomes the first question inside Build My Plan.",
+     "img": "door-c.png",
+     "rec": true
+    },
+    {
+     "id": "four",
+     "label": "A: Your idea, a fourth card",
+     "desc": "Strength, Gymnastics, Custom, then “Not Sure? Let Goku Suggest”. I'd shorten the cards so all four fit.",
+     "img": "door-a.png"
+    },
+    {
+     "id": "goals",
+     "label": "B: Goals instead of categories",
+     "desc": "Six plain goals, with “Not sure yet” as one of them. Strength and Gymnastics become results, not choices.",
+     "img": "door-b.png"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "ask",
+   "area": "The “Not Sure” path",
+   "title": "How Goku Asks Its Questions",
+   "why": "About six questions: what you want help with, how active you are now, equipment, days you can give it, how you eat, anything a coach should know. Three ways to ask them.\n\nOne limit to know: Goku works offline with no AI behind it, so the “trainer” is a set of rules I'd write. It can ask and suggest. It can't understand typed sentences or hold a real conversation. The chat picture is tap-to-answer only.",
+   "options": [
+    {
+     "id": "quiz",
+     "label": "One big question per screen",
+     "desc": "Matches the rest of setup, quickest to tap through, progress dots on top.",
+     "img": "ask-quiz.png",
+     "rec": true
+    },
+    {
+     "id": "chat",
+     "label": "A chat with your coach",
+     "desc": "The star-ball buddy asks in speech bubbles and you tap replies. Friendlier and more like a person, a little slower.",
+     "img": "ask-chat.png"
+    },
+    {
+     "id": "persona",
+     "label": "“Which sounds most like you?”",
+     "desc": "One tap on a sentence, then Goku fills in the rest and asks only what it still needs.",
+     "img": "ask-persona.png"
+    }
+   ]
+  },
+  {
+   "id": "plan",
+   "area": "The “Not Sure” path",
+   "title": "How Goku Gives Its Suggestion",
+   "why": "A trainer doesn't just hand you a program. They say what they'd start you on and why. The activity amounts come from the CDC's guidelines, which I checked on its site: adults need 150 minutes of moderate activity a week and at least 2 days of muscle-strengthening; ages 6 to 17 need 60 minutes or more a day. The words in the pictures are examples.",
+   "options": [
+    {
+     "id": "one",
+     "label": "One plan, with reasons",
+     "desc": "Four lines (move, strength, food, check-in), each with why and a Change link.",
+     "img": "plan-a.png",
+     "rec": true
+    },
+    {
+     "id": "two",
+     "label": "Two paces to choose from",
+     "desc": "“Ease In” and “Steady”. Same plan at two sizes.",
+     "img": "plan-b.png"
+    },
+    {
+     "id": "none",
+     "label": "No plan screen",
+     "desc": "Go straight to Home with everything set up quietly."
+    }
+   ]
+  },
+  {
+   "id": "plans",
+   "area": "Think big",
+   "title": "New Starting Points Goku Doesn't Have Yet",
+   "why": "A “Not Sure” path is only as good as what it can send people to. Today everything ends in either timed as-many-as-you-can circuits or a practice log. Four starting points would cover most people who aren't you or a gymnast:\n\n• Move More: a weekly minutes goal for walking or any activity, plus two short strength days. A ring on Home fills toward 150 minutes.\n• Starter Workouts: a gentler guided workout with fixed reps that stops short of failure, for people new to strength training. I'd find and cite a training source for the format before building it.\n• Food Only: Nutrition, check-ins and weight trend, with no training screens at all.\n• Comeback: starts at Easy and steps up a level after two good weeks.\n\nThese are new features, bigger than a setup change.",
+   "options": [
+    {
+     "id": "all",
+     "label": "Build all four",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "some",
+     "label": "Only the ones I list",
+     "desc": "Type which in the note box."
+    },
+    {
+     "id": "none",
+     "label": "None. “Not Sure” should only pick between Strength, Gymnastics and Custom",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "length",
+   "area": "Setup length",
+   "title": "How Long Setup Takes",
+   "why": "Twelve screens before you see the app. The coach already asks one follow-up question a day, so anything not needed on day one could move there.",
+   "options": [
+    {
+     "id": "short",
+     "label": "Short start",
+     "desc": "Front door, the questions, your name, the plan, then you're in. Look, avatar, units and the finer details come up over the first few days, and are always in Settings.",
+     "rec": true
+    },
+    {
+     "id": "reorder",
+     "label": "Keep every screen, put goals first",
+     "desc": "Same length. Purpose before look and color."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "passcode",
+   "area": "Setup length",
+   "title": "The Required Passcode",
+   "why": "Every profile must create a 6-digit passcode and type it twice before seeing anything. That protects profiles on a shared phone. For one person on their own phone, which already has a lock, it's a hurdle.",
+   "options": [
+    {
+     "id": "solo",
+     "label": "Optional when it's the only profile",
+     "desc": "“Add a Passcode Later” appears for the first profile. Adding a second profile asks both to set one.",
+     "rec": true
+    },
+    {
+     "id": "always",
+     "label": "Always optional",
+     "desc": ""
+    },
+    {
+     "id": "keep",
+     "label": "Keep it required",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "screen",
+   "area": "Think big",
+   "title": "A Trainer's First Question: Is It Safe to Start?",
+   "why": "Trainers ask about health before giving a plan. Setup already asks about injuries and limits in a text box, but nothing changes because of the answer.\n\nIdea: one yes/no question in the “Not Sure” path, along the lines of “Has a doctor told you to limit activity, or do you get chest pain or dizziness when you're active?” A yes shows “check with your doctor first” and starts you on food logging and check-ins only until you say you're cleared.\n\nThe standard screening questionnaire is copyrighted, so I'd write Goku's own question and cite the guidance it's based on. I haven't picked that source yet.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Add it, once I show you the sourced wording",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "demo",
+   "area": "Think big",
+   "title": "Look Around First",
+   "why": "Let someone open a sample profile with a few weeks of made-up data and tap through every screen before answering anything. Leaving it erases the sample. It shows what Goku is faster than any description.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Add “Just Look Around First”",
+     "desc": "A small link on the first screen (shown in the Two Doors picture).",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "who",
+   "area": "Think big",
+   "title": "Setting Up for Someone Else",
+   "why": "A parent setting up a child, or a coach setting up a client. Today the person holding the phone answers everything, including the passcode, as if they were the user. You did this for the Gymnastics profile.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Add “Who Is This For?”",
+     "desc": "For someone else: you answer the basics, then hand over the phone so they finish and choose their own passcode.",
+     "img": "who-a.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "words",
+   "area": "Fixes",
+   "title": "Six Smaller Setup Fixes",
+   "why": "• Replace insider words on the first screen (“drop sets”, “ghost races”) with plain ones.\n• “What Should the App Show?”: Goku turns on what fits your answers and shows the list with “Recommended for You” at the top, instead of seven switches all on.\n• Fold the Protein Target screen into the plan (“a range sized for you; type your own number if a coach gave you one”).\n• Custom's sport list uses the same search box as Log Activity, with all 51 sports.\n• Time zone: use the phone's, with a Change link, instead of a 15-item list.\n• Say why birth year, height and weight are asked, on that screen (“sizes your food ranges; never shared”).",
+   "options": [
+    {
+     "id": "all",
+     "label": "Do all six",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "some",
+     "label": "Only the ones I list",
+     "desc": "Type which in the note box."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "audit",
+   "area": "Audit of the audit",
+   "title": "What This Might Have Wrong",
+   "why": "• “Like a professional trainer and nutritionist” has a ceiling. With no AI and nothing sent off the phone, Goku follows rules I write. It will be right for common cases and plain for unusual ones, and it should say so.\n• I verified the CDC activity numbers today (adult page dated Dec. 20, 2023; ages 6 to 17 page dated Dec. 4, 2025). The food side of the example plan (“log a week first”, a calorie range) is my design, not a sourced rule yet. Goku's existing sourced numbers are the protein range, the energy estimate and the CDC's 1 to 2 lb a week.\n• Under-18s need a different plan (60 minutes a day, and Goku already hides “lose fat” for them). The pictures show an adult.\n• What counts as jargon is my judgment. No new person has tried this.\n• Picture A shows the fourth card cut off because of card height on this phone size. Shorter cards would fix that, so don't reject your own idea on that alone.\n• The four new starting points are real features. “Food Only” means hiding training screens, which I haven't sized in the code.\n• A short start means look and avatar are defaults on day one, and skipping the passcode leaves a profile open to anyone holding the phone.\n• Your review 10 picks (including “I Have a Backup” on this screen and the setup contrast fix) aren't built yet. Four items there are unanswered: Gentle Motion, History, Dribbble and its audit note.\n• Dribbble still refuses connections from this Mac, so nothing here comes from it.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Understood",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  }
+ ]
+}

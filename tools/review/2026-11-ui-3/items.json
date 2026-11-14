@@ -1,0 +1,391 @@
+{
+ "batch": "2026-11-ui-3",
+ "title": "Ideas and Goal Lists to Pick From",
+ "items": [
+  {
+   "id": "idea-1rm",
+   "area": "Strength · Library",
+   "title": "Weight × Reps History for Each Exercise",
+   "why": "Opens from the exercise in the Library. Each session counts its heaviest set; the estimate uses the Epley formula (weight × (1 + reps ÷ 30)), named on screen. Goku never asks anyone to test a real one-rep max. Pictures use made-up numbers.",
+   "options": [
+    {
+     "id": "chart",
+     "label": "A small chart plus the last 3 sessions",
+     "desc": "A line of the estimate over time, then the sets it came from.",
+     "img": "rm-a.png",
+     "rec": true
+    },
+    {
+     "id": "list",
+     "label": "A list only, no chart",
+     "desc": "Every session as a row: date, weight × reps, estimate.",
+     "img": "rm-b.png"
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-week",
+   "area": "Gymnastics · Week",
+   "title": "Faster Week-Hours Entry",
+   "why": "Today each day takes up to 16 taps of 15 minutes. Both choices keep − and + for fine steps.",
+   "options": [
+    {
+     "id": "chips",
+     "label": "Tap a number of hours",
+     "desc": "0, 1, 1½, 2, 2½, 3 or 4 h in one tap.",
+     "img": "week-a.png",
+     "rec": true
+    },
+    {
+     "id": "type",
+     "label": "Type the hours, with “Same hours on Mon to Fri”",
+     "desc": "A number box and one button to copy the day to weekdays.",
+     "img": "week-b.png"
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-pace",
+   "area": "Log activity",
+   "title": "Pace for Running, Cycling, Rowing and Swimming",
+   "why": "Worked out from minutes and distance; nothing new to type. Runs and rows show time per mile, km or 500 m; rides show mph or km/h; swims show time per 100 yd or m.",
+   "options": [
+    {
+     "id": "live",
+     "label": "Show pace as you type",
+     "desc": "Under the distance box, before you save.",
+     "img": "pace-a.png",
+     "rec": true
+    },
+    {
+     "id": "history",
+     "label": "Show pace on your history only",
+     "desc": "After saving, next to each activity.",
+     "img": "pace-b.png"
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-repeat",
+   "area": "Nutrition",
+   "title": "Repeat Yesterday’s Food in One Tap",
+   "why": "Shown only when the meal or day is still empty, so it never adds twice by accident.",
+   "options": [
+    {
+     "id": "meal",
+     "label": "One meal at a time",
+     "desc": "Add food shows “Same breakfast as yesterday” at the top for the meal you picked.",
+     "img": "repeat-a.png",
+     "rec": true
+    },
+    {
+     "id": "day",
+     "label": "The whole day at once",
+     "desc": "“Copy all of yesterday” on an empty Nutrition page.",
+     "img": "repeat-b.png"
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-again",
+   "area": "Strength · Home",
+   "title": "Start the Last Workout Again",
+   "why": "Split from “Repeat yesterday” so you can pick each one. Today Goku builds a fresh circuit from your Library each day.",
+   "options": [
+    {
+     "id": "button",
+     "label": "A “Same as last time” button under Enter the chamber",
+     "desc": "Same moves and order as your last session; the ghost races it.",
+     "img": "again-a.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-rest",
+   "area": "Strength · Library",
+   "title": "Rest Time for Each Exercise, and Supersets",
+   "why": "Both are set in the exercise’s Edit screen. The workout screen stays the same.",
+   "options": [
+    {
+     "id": "rest",
+     "label": "Rest per exercise only",
+     "desc": "Circuit default, 60 s, 90 s or 2 min after this move.",
+     "img": "rest-a.png",
+     "rec": true
+    },
+    {
+     "id": "both",
+     "label": "Rest per exercise and supersets",
+     "desc": "Also “Pair with the next exercise”: two moves back to back, then the rest.",
+     "img": "rest-b.png"
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-intro",
+   "area": "Custom profiles · Goal ideas",
+   "title": "How Custom Goal Ideas Work",
+   "why": "The next screens list ideas for each sport, one sport per screen. A Custom profile sees the ideas for the sports it picked, plus the current strength list (5 pull-ups, squat my bodyweight…) if it picked Strength, and the gymnastics list if it picked Gymnastics. Ideas are only suggestions to tap; anyone can type their own. None are about weight or body size.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Sounds right",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "change",
+     "label": "Change how it works",
+     "desc": "Type what you want in the note."
+    }
+   ]
+  },
+  {
+   "id": "goals-run",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Running",
+   "why": "Ideas shown to a Custom profile that picked Running:\n• Run 5 km (3.1 mi) without stopping\n• Run 30 minutes without stopping\n• Run 3 times a week for 4 weeks\n• Take a minute off my 5 km time",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-soccer",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Soccer",
+   "why": "Ideas shown to a Custom profile that picked Soccer:\n• Juggle 50 in a row\n• 10 passes in a row off a wall with my weaker foot\n• Practice ball skills 3 days a week\n• Sprint the length of the field without slowing",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-swim",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Swimming",
+   "why": "Ideas shown to a Custom profile that picked Swimming:\n• Swim 500 yd (or m) without stopping\n• Swim 4 lengths of each stroke I know\n• Swim 3 times a week for 4 weeks",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-bike",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Cycling",
+   "why": "Ideas shown to a Custom profile that picked Cycling:\n• Ride 20 miles (32 km) in one ride\n• Ride 3 times a week for 4 weeks\n• Climb my local hill without stopping",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-dance",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Dance",
+   "why": "Ideas shown to a Custom profile that picked Dance:\n• Learn one full routine from start to finish\n• Hold a balance on one foot for 30 seconds\n• Full splits\n• Practice 4 days a week",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-martial",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Martial arts",
+   "why": "Ideas shown to a Custom profile that picked Martial arts:\n• Pass my next belt test\n• 100 clean kicks a side in one session\n• Train 3 days every week",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-team",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Team sport",
+   "why": "Ideas shown to a Custom profile that picked Team sport:\n• Make 50 free throws or shots in a session\n• Train 4 days every week\n• Sprint drills twice a week for 4 weeks",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-yoga",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for Yoga or flexibility",
+   "why": "Ideas shown to a Custom profile that picked Yoga or flexibility:\n• Touch my toes with straight legs\n• Hold a 60-second plank\n• Full splits\n• Stretch 10 minutes a day for 4 weeks",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-fitness",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Goal Ideas for General fitness",
+   "why": "Ideas shown to a Custom profile that picked General fitness:\n• Walk 8,000 steps a day for 4 weeks\n• 20 push-ups in one set\n• A 60-second plank\n• Train 3 days every week",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note: add, remove or reword."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

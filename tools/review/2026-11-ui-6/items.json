@@ -1,0 +1,80 @@
+{
+ "batch": "2026-11-ui-6",
+ "title": "Master Roshi Test on 2.9.0",
+ "items": [
+  {
+   "id": "tc-names",
+   "area": "Workout screen · bug from 2.9.0",
+   "title": "Title Case Is Changing Exercise Names Mid-Workout",
+   "why": "My mistake in 2.9.0. You picked “exercise names stay as they are”, but the workout screen now shows “? How to Do Perfect Pushup”, “Stage 1 of 3 · Deficit”, “Drop to Flat” and “Rest · Next: Pike Push-Up”. Those lines mix a label with an exercise or stage name, and the Title Case pass caught the names too. My 2.9.0 test didn't open a workout, so I missed it.\n\nThe fix keeps the names exactly as written (“? How to do Perfect Pushup”, “Stage 1 of 3 · deficit”, “Drop to flat”). It also stops the Title Case pass from re-running four times a second during a workout.",
+   "now": [{"img": "run-now.png", "caption": "Now (2.9.0), in a real workout"}],
+   "options": [
+    {"id": "fix", "label": "Fix it", "desc": "Names inside these lines stay as written; the labels around them keep Title Case.", "rec": true},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "weight-trend",
+   "area": "Stats · adult profiles",
+   "title": "Track Weight Goals With a Trend Line",
+   "why": "A gap in what we shipped: the adult goal ideas from review 4 (“Lose 4 lb in 4 weeks”) can't track progress. Goku keeps only your latest weight; each new weigh-in replaces the last one. Goals can only link to an exercise or a skill.\n\nApps like Happy Scale and MacroFactor log every weigh-in and draw a smoothed trend, because daily weight swings a few pounds from water. Goku would do the same and link a weight goal to the trend, so it shows how you're doing on its own.\n\nThe smoothing would follow a published method (for example the moving average in John Walker's The Hacker's Diet), checked and cited before building. Shown only where weight content is on; the Gymnastics preset keeps it hidden unless turned on.",
+   "options": [
+    {"id": "trend", "label": "Weight Trend card on Stats", "desc": "+ Weigh-In logs today's weight. The line is the smoothed trend, the dots are each weigh-in, and the dashed line is your goal. A linked goal updates itself.", "img": "weight-a.png", "rec": true},
+    {"id": "log", "label": "Just keep a weigh-in history, no chart", "desc": "Every weigh-in is saved and listed in History, and a linked goal uses the latest one."},
+    {"id": "leave", "label": "Leave as is", "desc": "Weight goal ideas stay, without automatic tracking."}
+   ]
+  },
+  {
+   "id": "last-time",
+   "area": "Workout screen",
+   "title": "Show What You Did Last Time",
+   "why": "Strong and Hevy show your previous set right beside the current one, so you know the number to beat without leaving the screen. Goku already has this data. It shows in each exercise's history card, but not during the set. The ghost covers the whole workout, not each exercise.",
+   "now": [{"img": "run-now.png", "caption": "Now"}],
+   "options": [
+    {"id": "line", "label": "One line under the exercise name", "desc": "“Last time: 14 reps · Beat it with 15”, for this exercise and stage. Hidden on the first try.", "img": "last-a.png", "rec": true},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "plates",
+   "area": "Workout screen · barbell lifts",
+   "title": "Plate Math for Barbell Lifts",
+   "why": "Strong's plate calculator does the loading math for you: which plates go on each side of the bar. Goku already knows the weight for each barbell set, so it could show one line under the weight. Example drawn on the workout screen.\n\nThis needs one new setting: the bar weight (45 lb / 20 kg by default) and the plates your gym has.",
+   "options": [
+    {"id": "line", "label": "Plates per side under the weight", "desc": "e.g. 135 lb → “Plates each side: 45 · on a 45 lb bar”. Barbell exercises only.", "img": "plates-a.png", "rec": true},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "two-levels",
+   "area": "Home · Today's Workout",
+   "title": "One Place to Pick the Level",
+   "why": "Since 2.9.0 there are two level pickers. The Today's Workout sheet opens when you tap Enter the Chamber, and Home still has its own “Change Level · Show ▾” fold with a dial and the same four buttons. Two controls for one setting is extra clutter.",
+   "now": [{"img": "level-now.png", "caption": "Now: the Home fold, opened"}],
+   "options": [
+    {"id": "sheet", "label": "Only in Today's Workout", "desc": "The Home fold and dial go away; the level shows in the line under the workout name.", "img": "level-a.png", "rec": true},
+    {"id": "leave", "label": "Keep both", "desc": ""}
+   ]
+  },
+  {
+   "id": "small",
+   "area": "Found in the audit",
+   "title": "Smaller Fixes",
+   "why": "All checked in the code or on screen:\n\n1. Edit Home still lists the workout card as “Gravity chamber”; it would say “Today's Workout” to match.\n2. Quick Add → Supplements opens on whatever day Nutrition last showed, so it could log to yesterday. It would always open today.\n3. Some Settings option names missed Title Case (“Symptom check-ins”). They'd match the rest.\n4. On the passcode screen, “Don't Ask Again on This Phone for” reads oddly in Title Case. It would become “Remember This Phone For”.\n5. “Next time at Hard, you race it live” would become “Next Hard workout, you race it live”.",
+   "options": [
+    {"id": "all", "label": "Fix all five", "desc": "", "rec": true},
+    {"id": "some", "label": "Fix some (say which in the note)", "desc": ""},
+    {"id": "none", "label": "None", "desc": ""}
+   ]
+  },
+  {
+   "id": "audit-audit",
+   "area": "Audit of the audit",
+   "title": "What This Audit Might Have Wrong",
+   "why": "• The Title Case bug came from my own 2.9.0 change and got past my testing. From now on each release test opens a real workout, a how-to sheet, the Interaction Check and Quick Add, not just the tabs.\n• Weight trend: the smoothing method and its citation aren't chosen yet. I'd confirm the source before building, as with the CDC pace. Mockup numbers are made up.\n• Plate math depends on your gym's plates. Without that setting it would guess standard plates and could be wrong for your gym.\n• Still not checked on an iPhone or the simulator: whether the bottom bar clears the home-bar area. I'd do that before the next publish.\n• Dropped: a lock-screen rest timer like Strong's. A Home Screen web app can't show one on iPhone, so it isn't offered.\n• Not re-pitched: a workout summary screen, which you declined earlier.",
+   "options": [
+    {"id": "ok", "label": "Understood", "desc": "", "rec": true}
+   ]
+  }
+ ]
+}

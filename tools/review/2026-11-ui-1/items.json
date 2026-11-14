@@ -1,0 +1,497 @@
+{
+ "batch": "2026-11-ui-1",
+ "title": "Open items from the Vegeta run · Goku 2.8.0",
+ "items": [
+  {
+   "id": "setup-skin",
+   "area": "Setup",
+   "title": "Pick a look while setting up a new profile",
+   "why": "A new profile always opens as Dragon Ball, and its setup guide is whichever skin was last open. Someone setting up Encore has to find Settings → Skin afterwards.",
+   "now": [
+    {
+     "img": "setup-1.jpg",
+     "caption": "First setup screen today"
+    }
+   ],
+   "options": [
+    {
+     "id": "step",
+     "label": "Add a “Pick a look” step",
+     "desc": "Right after “What do you train?”. Three cards with each skin's words and colors. Changeable later in Settings.",
+     "img": "skinstep-a.jpeg",
+     "rec": true
+    },
+    {
+     "id": "copy",
+     "label": "Copy the current profile's skin",
+     "desc": "No new step. A profile added from Encore starts as Encore."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": "Every new profile starts as Dragon Ball; change it in Settings."
+    }
+   ]
+  },
+  {
+   "id": "center-button",
+   "area": "Home · bottom bar",
+   "title": "The centre button opens a menu, not what its label says",
+   "why": "It's labelled “Check in” (or “Train”), but tapping it opens a menu, so a check-in takes two taps.",
+   "now": [
+    {
+     "img": "perf-home.jpeg",
+     "caption": "Labelled “Check in”"
+    },
+    {
+     "img": "fan-now.jpeg",
+     "caption": "Tapping it opens this menu"
+    }
+   ],
+   "options": [
+    {
+     "id": "rename",
+     "label": "Call it “Quick add” with a +",
+     "desc": "Same menu, honest label. Works the same on every profile.",
+     "img": "fan-a.jpeg",
+     "rec": true
+    },
+    {
+     "id": "direct",
+     "label": "One tap does the label",
+     "desc": "Tap starts the check-in (or the workout). Press and hold opens the menu, which is harder to discover."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "finish-hint",
+   "area": "Train",
+   "title": "“Hold Finish to charge it up” pops up over the workout",
+   "why": "A quick tap on Finish shows this message at the bottom for 2½ seconds, over the Ghost line and next to the weight buttons, mid-set.",
+   "now": [
+    {
+     "img": "toast-now.jpeg",
+     "caption": "Message lands at the bottom"
+    }
+   ],
+   "options": [
+    {
+     "id": "label",
+     "label": "Small “Hold to finish” under the button",
+     "desc": "Always there, so the pop-up is no longer needed.",
+     "img": "toast-b.jpeg",
+     "rec": true
+    },
+    {
+     "id": "top",
+     "label": "Show the message at the top",
+     "desc": "Same pop-up, placed under Finish, away from your thumbs.",
+     "img": "toast-a.jpeg"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "edit-add",
+   "area": "History · Edit session",
+   "title": "Edit session can't add a round or an exercise",
+   "why": "You can change reps and weights or remove a set, but a forgotten set can't be added after the workout.",
+   "now": [
+    {
+     "img": "edit-now.jpeg",
+     "caption": "Edit session today"
+    }
+   ],
+   "options": [
+    {
+     "id": "both",
+     "label": "Add a round and add an exercise",
+     "desc": "Two dashed buttons under the list. “Add an exercise” opens the normal move picker.",
+     "img": "edit-a.jpeg",
+     "rec": true
+    },
+    {
+     "id": "round",
+     "label": "Add a round only",
+     "desc": "Repeat an exercise already in the session."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "name-limit",
+   "area": "Setup",
+   "title": "Names stop at 24 characters without saying so",
+   "why": "Typing just stops. “Perf Tester Gymnast Longname” ends up as “Perf Tester Gymnast Long”.",
+   "now": [
+    {
+     "img": "name-now.jpeg",
+     "caption": "Cut off at 24"
+    }
+   ],
+   "options": [
+    {
+     "id": "counter",
+     "label": "Show “24 / 24” at the limit",
+     "desc": "Keeps names short enough for the profile chip. The counter shows only near the limit.",
+     "img": "name-a.jpeg",
+     "rec": true
+    },
+    {
+     "id": "longer",
+     "label": "Allow 40 characters",
+     "desc": "Long names get shortened with “…” on the profile chip.",
+     "img": "name-b.jpeg"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "setup-colors",
+   "area": "Setup",
+   "title": "Setup's page color changes on every step",
+   "why": "Each step gets its own bright color (yellow, orange, lilac…). On phones in dark mode, a dark scrollbar also shows on the bright page under Cancel.",
+   "now": [
+    {
+     "img": "setup-1.jpg",
+     "caption": "Step 1: yellow"
+    },
+    {
+     "img": "name-now.jpeg",
+     "caption": "Step 2: orange"
+    }
+   ],
+   "options": [
+    {
+     "id": "fixbar",
+     "label": "Keep the colors, fix the scrollbar",
+     "desc": "The per-step colors stay as designed in 2.2. Only the dark scrollbar goes.",
+     "rec": true
+    },
+    {
+     "id": "one",
+     "label": "One color for all of setup",
+     "desc": "Calmer. The guide's face still changes from step to step.",
+     "img": "setupcolor-b.jpeg"
+    },
+    {
+     "id": "leave",
+     "label": "Leave both as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "skin-words",
+   "area": "Skins",
+   "title": "Two places still use Dragon Ball words in Encore and Plain",
+   "why": "Setup's avatar step is titled “Choose your fighter”, and the arc editor says “New arc”, “Edit arc” and “Arc name”, whatever the skin.",
+   "now": [],
+   "options": [
+    {
+     "id": "skin",
+     "label": "Use each skin's words",
+     "desc": "Encore: “Pick your look”, “New era”. Plain: “Pick an avatar”, “New block”. Dragon Ball stays the same.",
+     "rec": true
+    },
+    {
+     "id": "neutral",
+     "label": "Plain words for everyone",
+     "desc": "“Pick an avatar” and “New goal block” in every skin."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "days-7",
+   "area": "Setup · Coach",
+   "title": "Training days per week stop at 6",
+   "why": "The choices are 2, 3, 4, 5 and 6 in setup and Settings, so someone who trains every day can't say so.",
+   "now": [],
+   "options": [
+    {
+     "id": "add7",
+     "label": "Add 7",
+     "desc": "Adds 7 to the choices in setup and Settings.",
+     "rec": true
+    },
+    {
+     "id": "note",
+     "label": "Keep 6 and explain why",
+     "desc": "A line under the choices: “Goku plans at least one rest day.”"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "mic-hint",
+   "area": "Setup · Coach",
+   "title": "“Tap the mic on your keyboard” shows on computers",
+   "why": "The hint sits under every free-text answer, including on a laptop, where there's no keyboard mic.",
+   "now": [
+    {
+     "img": "mic-now.jpeg",
+     "caption": "Hint under the free-text box"
+    }
+   ],
+   "options": [
+    {
+     "id": "touch",
+     "label": "Show it on phones and tablets only",
+     "desc": "Hidden when there's no touch screen.",
+     "rec": true
+    },
+    {
+     "id": "remove",
+     "label": "Remove it everywhere",
+     "desc": ""
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "soccer-pack",
+   "area": "Setup · Strength profiles",
+   "title": "Strength profiles start with the Soccer pack turned on",
+   "why": "Every Strength profile gets the “Soccer engine pack” switched on and sees it ticked in “What should the app show?”. Only Custom profiles check the sport first.",
+   "now": [],
+   "options": [
+    {
+     "id": "ifsoccer",
+     "label": "On only if you play soccer",
+     "desc": "Off by default for Strength. Still one tap away in Settings.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "arc-goals",
+   "area": "Saga",
+   "title": "Every profile gets gymnastics goal ideas",
+   "why": "The goal suggestions are one list for everyone, so a strength profile is offered “Land my round-off back handspring” and “Full splits”.",
+   "now": [],
+   "options": [
+    {
+     "id": "split",
+     "label": "Separate ideas for each profile type",
+     "desc": "Strength sees strength and conditioning goals, gymnastics sees skills, Custom sees both.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "timezones",
+   "area": "Settings",
+   "title": "Settings lists fewer time zones than setup",
+   "why": "Setup offers 15 time zones. Settings offers 5 (New York, Chicago, Denver, Los Angeles, London), plus yours and the device's.",
+   "now": [],
+   "options": [
+    {
+     "id": "same",
+     "label": "Use setup's 15 in Settings too",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "search",
+     "label": "A searchable list of every time zone",
+     "desc": "In both places. Longer list, but nobody is left out."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "per-lb",
+   "area": "Fuel",
+   "title": "Fueling ratios say “per kg” when you use pounds",
+   "why": "The gram amounts are right, but the ratio reads “1.4–2.0 g per kg a day” even with lb chosen.",
+   "now": [],
+   "options": [
+    {
+     "id": "lb",
+     "label": "Per lb when you use pounds",
+     "desc": "“0.64–0.91 g per lb a day; about 0.11 g per lb per meal.” Per kg stays for kg users.",
+     "rec": true
+    },
+    {
+     "id": "both",
+     "label": "Show both",
+     "desc": "“0.64–0.91 g per lb (1.4–2.0 g per kg) a day”, longer but matches the cited source."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "dumbbell-math",
+   "area": "Library · New exercise",
+   "title": "“Dumbbell math” shows on cable and machine exercises",
+   "why": "Any custom exercise with a weight gets “Loads are per dumbbell…”, even a cable row.",
+   "now": [],
+   "options": [
+    {
+     "id": "db",
+     "label": "Only on dumbbell exercises",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "groups",
+   "area": "Library · New exercise",
+   "title": "New exercise uses different groups from the move picker",
+   "why": "New exercise offers push, pull, legs, core, power, joints (lowercase). The picker uses “Push (chest, shoulders, triceps)”, “Legs and glutes”, “Cardio”, “Mobility and stretching” and so on.",
+   "now": [],
+   "options": [
+    {
+     "id": "match",
+     "label": "Use the picker's 7 groups and names",
+     "desc": "A new exercise then appears under the same group you picked.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "power-jump",
+   "area": "Gymnastics profile · Power level",
+   "title": "One session can add 4,000 to the power level",
+   "why": "Training counts up to 4,000 against the number of planned days. With one planned day, one session jumps it from 469 to 4,469.",
+   "now": [],
+   "options": [
+    {
+     "id": "floor",
+     "label": "Count against at least 3 sessions a week",
+     "desc": "One session adds about 1,333. Weeks with more planned days work as today.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "ki-rest",
+   "area": "Home · Ki",
+   "title": "A rest day shows 50% before you do anything",
+   "why": "A planned rest day counts as training done, so a new profile shows Ki 50% with nothing logged.",
+   "now": [],
+   "options": [
+    {
+     "id": "mark",
+     "label": "Rest counts once you mark it",
+     "desc": "Tap “Rest day” in the quick menu, and the rest half fills.",
+     "rec": true
+    },
+    {
+     "id": "label",
+     "label": "Keep 50%, but say why",
+     "desc": "The line under Ki reads “Rest day counted · protein to go”."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "back",
+   "area": "Whole app · Android",
+   "title": "Android's Back button leaves the app",
+   "why": "Goku adds nothing to the browser's history, so Back on Android closes the app even with a sheet open or mid-workout. iPhone has no Back button, so this is Android only.",
+   "now": [],
+   "options": [
+    {
+     "id": "close",
+     "label": "Back closes the open sheet first",
+     "desc": "Mid-workout it asks “Leave the workout?” before going anywhere.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "icon",
+   "area": "Home screen",
+   "title": "The app icon is the same ball for every skin",
+   "why": "A phone sets the icon once, when the app is added to the home screen, so it can't change when a profile switches skin. Only a different icon for everyone is possible.",
+   "now": [],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep the orange ball icon",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "neutral",
+     "label": "Design a new icon that fits every skin",
+     "desc": "I'd bring you three icon designs to choose from in the next review."
+    }
+   ]
+  }
+ ]
+}

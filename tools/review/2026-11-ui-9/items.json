@@ -1,0 +1,58 @@
+{
+ "batch": "2026-11-ui-9",
+ "title": "How You Feel Today",
+ "items": [
+  {
+   "id": "feel-what",
+   "area": "Nutrition · How You Feel Today",
+   "title": "What Should This Section Be?",
+   "why": "Today it has a bloating score, five unlabeled symptom buttons (heartburn, cramps, gas, nausea, low energy) and an optional waist size. With no heading over the buttons, they're easy to miss, and only bloating feeds the pattern finder.\n\nTeam sports and strength coaches commonly use a short daily wellness questionnaire: fatigue or energy, sleep, muscle soreness, stress and mood, each on a small scale (Hooper and Mackinnon, 1995; McLean et al., 2010, which used 1 to 5). The Gymnastics check-in already asks these, so on a Gymnastics profile option A would show only the Stomach part.",
+   "now": [{"img": "feel-now.png", "caption": "Now"}],
+   "options": [
+    {"id": "wellness", "label": "A daily check-in, with the stomach questions folded under it", "desc": "Energy, sleep hours, muscle soreness, stress and mood, one tap each. Stomach ▾ holds bloating, the symptom buttons and waist.", "img": "feel-a.png", "rec": true},
+    {"id": "stomach", "label": "Stomach only, finished properly", "desc": "A heading over the symptom buttons, headache added, and bowel movements in plain words (Goku's own: none, hard, normal, loose).", "img": "feel-b.png"},
+    {"id": "remove", "label": "Remove the section", "desc": "The Symptom check-ins option and its pattern finder go away. Answers already saved stay in backups."},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "feel-questions",
+   "area": "Nutrition · How You Feel Today",
+   "title": "Which Questions",
+   "why": "The pictures show my picks. Other ideas, if you want any: hunger, headache, motivation to train, and how your last workout felt. Say which to add or drop in the note.",
+   "options": [
+    {"id": "as-shown", "label": "As shown in the option you picked", "desc": "", "rec": true},
+    {"id": "edit", "label": "Change them (say how in the note)", "desc": ""}
+   ]
+  },
+  {
+   "id": "feel-patterns",
+   "area": "Nutrition · Patterns",
+   "title": "Let Patterns Use Every Answer",
+   "why": "The pattern finder only looks at bloating now. It could look at every answer you keep: for example, foods that show up more on low-energy days, or poor sleep before high-soreness days. It would still wait for enough days before saying anything, and still say that showing up together isn't proof.",
+   "options": [
+    {"id": "all", "label": "Use every answer", "desc": "", "rec": true},
+    {"id": "bloat", "label": "Bloating only, as now", "desc": ""}
+   ]
+  },
+  {
+   "id": "feel-text",
+   "area": "Settings · Modules",
+   "title": "Out-of-Date Descriptions",
+   "why": "Found while checking: the Symptom check-ins option says it covers “bloating, heartburn, cramps and energy”, and the Nutrition option still says “125,000 foods and 18 restaurant chains”. Goku now has 36 chains. Both would be rewritten to match what the app actually has after your picks.",
+   "options": [
+    {"id": "fix", "label": "Fix both", "desc": "", "rec": true},
+    {"id": "leave", "label": "Leave them", "desc": ""}
+   ]
+  },
+  {
+   "id": "feel-audit",
+   "area": "Audit of the audit",
+   "title": "What These Suggestions Might Have Wrong",
+   "why": "• The standard 7-type stool chart (the Bristol scale) is copyrighted, so option B uses Goku's own four plain words instead. They're less precise.\n• I checked the two questionnaire papers' citations but haven't read their full text. Goku would use its own wording, not theirs, with the papers cited as where the idea comes from.\n• On a Gymnastics profile, Symptom check-ins is off unless turned on, and option A doesn't repeat the readiness questions there.\n• Patterns would show what lines up, not what causes it. More questions means more chance of a pattern that's only luck, so the finder would need the same minimum days for each answer.",
+   "options": [
+    {"id": "ok", "label": "Understood", "desc": "", "rec": true}
+   ]
+  }
+ ]
+}

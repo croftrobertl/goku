@@ -1,0 +1,143 @@
+{
+ "batch": "2026-11-ui-5",
+ "title": "Shadows, Spacing, Quick Add and Tap Signals",
+ "items": [
+  {
+   "id": "shadows",
+   "area": "Whole app · cards and buttons",
+   "title": "Remove the Bottom-Right Drop Shadow",
+   "why": "Every card has a hard black shadow 4 px to the bottom-right. To fit that shadow, each card is also nudged 2 px to the left. That nudge is why the Coach's Pick card was cut off on the left of the screen in your screenshot. Removing the shadow fixes the cut-off too. Black borders stay either way.",
+   "now": [{"img": "home-now.png", "caption": "Now"}],
+   "options": [
+    {"id": "cards", "label": "Cards flat, buttons keep a small shadow", "desc": "Cards and tiles lose the shadow. Buttons (Enter the Chamber, Today, Close) keep a small one, so they still look pressable.", "img": "shadow-a.png"},
+    {"id": "all", "label": "Everything flat", "desc": "No offset shadow anywhere: cards, buttons, chips, the + button and the Quick Add menu.", "img": "shadow-b.png", "rec": true},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "bottom-bar",
+   "area": "Whole app · bottom of every tab",
+   "title": "Keep Content Clear of the Bottom Bar",
+   "why": "Found the cause. Goku measures the bar to know how much empty space to leave at the bottom of each page, but it measures only the bar's inside. That leaves out its padding, its border and the iPhone's home-bar area (about 34 px). The round + button also pokes 22 px above the bar. Together that hides roughly 50 to 80 px of the page.\n\nThe fix measures the whole bar plus the + button. The same fix leaves a gap above the fixed buttons at the bottom of sheets. That's where step 2 of the Pike push-up ran under “Edit loads and drop chain” in your screenshot.",
+   "now": [{"img": "rob-8.png", "caption": "Your screenshot: Add exercise under the bar"}, {"img": "rob-7.png", "caption": "Your screenshot: step 2 under the button"}],
+   "options": [
+    {"id": "fix", "label": "Fix it", "desc": "The last thing on every page stops above the bar and the + button.", "img": "bottom-fix.png", "rec": true},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "quick-add",
+   "area": "Quick Add (+ button)",
+   "title": "Quick Add Menu Without Overlaps",
+   "why": "Today it fans out 6 buttons on one small half circle, so they overlap. Both choices use your two groups: Food & Drink (Food, Water, Supplements) and Activity (Train, Add Exercise, Log Activity, Rest Day). Supplements is new here; today it's only on the Nutrition tab. The same two groups can be used anywhere else that lists these.",
+   "now": [{"img": "rob-9.png", "caption": "Your screenshot"}],
+   "options": [
+    {"id": "groups", "label": "Two big group buttons, then their items", "desc": "Tap + and you see Food & Drink and Activity. Tapping one fans out only its 3 or 4 items, with room between them. It takes one more tap than today.", "img": "qa-a.png"},
+    {"id": "sheet", "label": "One panel with both groups", "desc": "Tap + and a panel slides up with both groups as labeled rows of buttons. Every item is still one tap away, and nothing can overlap.", "img": "qa-b.png", "rec": true},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "groups-step2",
+   "area": "Quick Add · option A only",
+   "title": "What You See After Tapping Activity (Option A)",
+   "why": "Only matters if you picked “Two big group buttons” above. This is the second step: Activity's four items, spaced so they don't touch.",
+   "options": [
+    {"id": "ok", "label": "Looks right", "desc": "", "img": "qa-a2.png", "rec": true},
+    {"id": "na", "label": "Not using option A", "desc": ""}
+   ]
+  },
+  {
+   "id": "title-case",
+   "area": "Whole app · words",
+   "title": "Title Case for Headings and Labels",
+   "why": "“Quick add” becomes “Quick Add”, “Interaction check” becomes “Interaction Check”, “Supplements to check” becomes “Supplements to Check”, and “Protein and nutrients” becomes “Protein & Nutrients”. Small words (a, and, of, to, the, for) stay lowercase unless they come first. Units (g, oz, cal), brand names and anything you type stay exactly as they are.\n\nAlso shortened, as you asked: “Fuel timing for when you train” becomes “Fuel Timing”.",
+   "now": [{"img": "rob-10.png", "caption": "Your screenshot: Interaction check"}],
+   "options": [
+    {"id": "all", "label": "Headings, labels, buttons, tabs and exercise names", "desc": "e.g. “Quick Add”, “Last Session”, “Enter the Chamber”, “Start Workout”, “Edit Loads and Drop Chain”, “Pike Push-Up”.", "img": "focus-a.png", "rec": true},
+    {"id": "noex", "label": "Same, but exercise and food names stay as they are", "desc": "“Pike push-up” and “Bodyweight squat” stay sentence case. Everything else is Title Case."},
+    {"id": "heads", "label": "Headings and labels only", "desc": "Buttons stay sentence case: “Enter the chamber”, “Start workout”."}
+   ]
+  },
+  {
+   "id": "focus",
+   "area": "Whole app · text boxes",
+   "title": "The Orange Edge on Text Boxes",
+   "why": "Your question C: the orange edge isn't a style for that one box. It marks the box the cursor is in. The Interaction Check puts the cursor in “Your Medicines” when it opens, so only that box has it.\n\nIt's drawn 2 px outside the box. That's why it was cut off at both sides of the screen (B) and ran into the Add button (A). Both choices also add a proper gap between the box and the Add button.\n\nRelated: the orange ring that appears inside the Close button whenever a sheet opens (your Pike push-up and ki screenshots) is the same marker. It would only show when using a keyboard.",
+   "now": [{"img": "rob-10.png", "caption": "Your screenshot"}],
+   "options": [
+    {"id": "inside", "label": "Orange edge inside the box you're typing in", "desc": "Same rule for every box in the app. It never pokes past the screen or into the next button.", "img": "focus-a.png", "rec": true},
+    {"id": "none", "label": "No colored edge at all", "desc": "Only the blinking cursor shows where you're typing.", "img": "focus-b.png"}
+   ]
+  },
+  {
+   "id": "ki",
+   "area": "Training · ki and gravity",
+   "title": "Ki and Gravity",
+   "why": "What they actually do: the 4 gravity levels set the workout. ×10 is 3 rounds with 90 s rest. ×20 is 4 rounds with 75 s rest. ×50 is 4 rounds with 45 s rest. ×100 is 5 rounds with 30 s rest. The higher levels also take sets to failure with drops. The ki question only suggests a level from how you feel. So the function is real; the names hide it.\n\nWith A or B, Home also uses plain words: “Gravity chamber · today” becomes “Today's Workout”, “×50 gravity” becomes “Hard”, and “Today's ki” becomes “Today's Progress”. The Dragon Ball look and the themes stay.\n\nThe “Plain” look in Settings already uses plain words, but it also drops the Dragon Ball style everywhere else.",
+   "now": [{"img": "rob-11.png", "caption": "Your screenshot"}],
+   "options": [
+    {"id": "plain", "label": "Plain levels, no ki question", "desc": "Train opens Today's Workout: Easy, Medium, Hard or Max, with the rounds and rest spelled out, then Start Workout. One less screen.", "img": "ki-a.png", "rec": true},
+    {"id": "feel", "label": "Plain levels, keep a short “How do you feel?”", "desc": "Same plain levels. A 4-choice feeling question still suggests one.", "img": "ki-b.png"},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "tap",
+   "area": "Whole app · what can be tapped",
+   "title": "Make Tappable Things Obvious",
+   "why": "Today tap signals are mixed: some rows end in ›, some links are underlined, some folds have nothing at all. On iPhone the fold arrow on Fuel Timing, How You Feel and the Library groups doesn't show, because of how those headers are styled. That's why Fuel Timing looked exactly like Last Session and Food Today.\n\nThe example cards are from the Stats view.",
+   "now": [{"img": "rob-13.png", "caption": "Your screenshot: only Fuel timing can be tapped"}],
+   "options": [
+    {"id": "chev", "label": "An orange › or “Show ▾” on everything tappable", "desc": "Cards that open something end in ›. Cards that unfold end in Show ▾. Cards with neither only show information.", "img": "tap-a.png", "rec": true},
+    {"id": "border", "label": "Orange border and light fill on everything tappable", "desc": "Information cards keep the black border.", "img": "tap-b.png"},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "nutrients",
+   "area": "Nutrition · top panel",
+   "title": "Show Nutrients Without a Tap",
+   "why": "Today the panel shows only calories until you tap the small “Protein and nutrients” link. Apps like Cronometer and MacroFactor keep protein, carbs and fat on the main log screen for this reason.",
+   "now": [{"img": "rob-14.png", "caption": "Your screenshot: folded"}],
+   "options": [
+    {"id": "core", "label": "Protein bar and 4 tiles always showing", "desc": "The % split, your protein range and the full nutrient list are behind one clear “All Nutrients ›” link.", "img": "nut-a.png", "rec": true},
+    {"id": "full", "label": "Everything always showing", "desc": "The whole unfolded panel from your screenshot, every time. It's taller, so the meals start lower.", "img": "rob-15.png"},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "drawings",
+   "area": "Library · exercise how-to",
+   "title": "Exercise Drawings to Match the Muscle Maps",
+   "why": "Honest status: 34 of Goku's 183 exercises use real drawings (Everkinetic, free license, like Push-up below). The other 149 use Goku's own stick figures, which are drawn by code from joint angles. Code-drawn shapes can be improved but won't reach the muscle maps' hand-drawn detail. Option B shows the best I could do that way.\n\nReal drawings for the rest have to come from sets that are free to use. I haven't yet checked how many more Everkinetic or other free sets cover, so the count for A is unknown until I look. No copied images.",
+   "now": [{"img": "rob-7.png", "caption": "Now: stick figures"}, {"img": "fig-ek.png", "caption": "Now: one of the 34 real drawings"}],
+   "options": [
+    {"id": "find", "label": "Find more real drawings; hide stick figures where none exist", "desc": "I search free-license sets and match each one by eye, like the first 34. Exercises still without one show the muscle map and steps only (picture C).", "img": "fig-c.png", "rec": true},
+    {"id": "mannequin", "label": "Code-drawn body shapes in the muscle map's colors", "desc": "Filled, outlined body parts with the worked part in red. It's a step up from sticks, not parity.", "img": "fig-a.png"},
+    {"id": "hide", "label": "Just hide the stick figures", "desc": "Muscle map and steps only, for the 149 without a real drawing.", "img": "fig-c.png"},
+    {"id": "leave", "label": "Leave as is", "desc": ""}
+   ]
+  },
+  {
+   "id": "more-fixes",
+   "area": "Found in the audit",
+   "title": "Similar Problems Found Elsewhere",
+   "why": "These are the same kinds of problems as your 8, all checked in the code or your screenshots:\n\n1. Serving sizes copied from USDA in capitals: “1 TEASPOON (4.0 g)” would become “1 teaspoon (4 g)”.\n2. The calorie split can add up to 101% (“24% · 24% · 53%”). It would be rounded to total 100%.\n3. Last Session shows a lone “—” over “reps per minute” before your first workout. It would say “No sessions yet”.\n4. “20-min cap” breaks across two lines as “20-” and “min cap” on Home. It would stay together.\n5. Sheets have uneven side margins (14 px left, 18 px right) that were only there to make room for the shadows. They'd become 16 and 16.\n6. Fold headers like “How you feel today” and “Customize this theme” get the same tap signal as item 8.",
+   "options": [
+    {"id": "all", "label": "Fix all six", "desc": "", "rec": true},
+    {"id": "some", "label": "Fix some (say which in the note)", "desc": ""},
+    {"id": "none", "label": "None", "desc": ""}
+   ]
+  },
+  {
+   "id": "audit-audit",
+   "area": "Audit of the audit",
+   "title": "What This Audit Might Have Wrong",
+   "why": "• The bottom-bar gap was worked out from the code and a browser, not measured on your iPhone. I'd check it on the iPhone 18 Pro simulator before shipping.\n• Title Case would touch hundreds of labels. A few may end up wrong (for example “Log a Rest Day” vs “Log a rest day” mid-sentence). I'd list every changed label in the release notes.\n• Ki and gravity: plain levels change words only. Your saved sessions, ghosts and records keep working, because ×10, ×20, ×50 and ×100 map one-to-one to Easy, Medium, Hard and Max.\n• Dropped from this list: a “tap hint” tour. It adds a screen, and the tap signals in item 8 should make it unnecessary.\n• Not checked: dark mode and the Encore and Plain looks with these changes. I'd screenshot all of them before shipping.",
+   "options": [
+    {"id": "ok", "label": "Understood", "desc": "", "rec": true}
+   ]
+  }
+ ]
+}

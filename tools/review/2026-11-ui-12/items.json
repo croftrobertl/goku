@@ -1,0 +1,228 @@
+{
+ "batch": "2026-11-ui-12",
+ "title": "Dribbble Ideas",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "The Dribbble Audit",
+   "why": "Dribbble loaded today. I read the 24 pages you linked (about 560 designs by title) and looked closely at 12 that had pieces Goku could use: food trackers, a gamified fitness app, a goal list, a calorie tracker, a habit flow, a tennis dashboard, a mood tracker, a calendar app, a hotel booking app, a bento-style dashboard, mobile search bars and a WordPress admin redesign.\n\nI took ideas for individual pieces, not whole screens, and drew each one inside Goku with its own colors, so nothing is copied. Nothing in Goku was changed.\n\nFive ideas follow, then one search problem the audit turned up, then what I left out and why.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "days",
+   "area": "Nutrition",
+   "title": "A Week of Days at the Top of Nutrition",
+   "why": "From the calorie-tracker and calendar designs: a row of the last seven days with a small ring around each date showing how much of the calorie target was logged. One tap jumps to that day. Today replaces the ‹ Today › switcher, which takes two taps per day and shows nothing about the other days.\n\nOn a profile without a calorie target, the rings would show whether anything was logged, not an amount.",
+   "now": [
+    {
+     "img": "days-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "add",
+     "label": "Add the day row",
+     "desc": "Replaces the ‹ Today › switcher. Older days stay one swipe away.",
+     "img": "days-a.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Add it, and keep the ‹ › arrows too",
+     "desc": ""
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "feel",
+   "area": "Nutrition · How You Feel Today",
+   "title": "See the Last Two Weeks of Check-Ins",
+   "why": "From the mood-tracker design. Today the daily check-in has no history: you answer, and only the pattern finder uses the answers. A small grid would show each answer for the last 14 days at a glance, one dot per day, green for a good day for that question and red for a hard one.\n\nThe colors in the picture come from my sample answers, not real ones.",
+   "now": [
+    {
+     "img": "feel-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "grid",
+     "label": "Add the two-week grid",
+     "desc": "Above the questions, folded away with the rest when you hide the section.",
+     "img": "feel-a.png",
+     "rec": true
+    },
+    {
+     "id": "stats",
+     "label": "Put it on Stats instead",
+     "desc": "Keeps the check-in itself short."
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "delta",
+   "area": "Home · Stats",
+   "title": "This Week Compared With Last Week",
+   "why": "From the WordPress admin and dashboard designs, which put \"vs previous 7 days\" beside every number. Goku has a weekly recap for the week that ended, but nothing that tells you mid-week whether you're ahead or behind.\n\nOne card on Stats: workouts, training minutes, reps per workout, protein, sleep and weight trend, each with last week's number and the change. It compares the same days (Sunday to today) so a Friday isn't measured against a whole week. Green means better for that measure, yellow means lower; weight has no color, since better depends on the goal.",
+   "now": [
+    {
+     "img": "delta-now.png",
+     "caption": "Now (the Stats tiles)"
+    }
+   ],
+   "options": [
+    {
+     "id": "add",
+     "label": "Add the card",
+     "desc": "Rows only for what you track; a profile without weigh-ins has no weight row.",
+     "img": "delta-a.png",
+     "rec": true
+    },
+    {
+     "id": "tiles",
+     "label": "Put one small \"vs last week\" line on each existing tile instead",
+     "desc": ""
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals",
+   "area": "You",
+   "title": "All Your Targets in One List",
+   "why": "From the goal-tracking design. Goku's targets live in five places: weekly workouts in setup's questions, protein in Settings, calories in Nutrition, a weight goal in the saga, sleep in the coach's questions. A My Goals card on the You tab would list them together with progress and an Edit button. Each target still shows where it's used.\n\nThe icons are Goku's own outline drawings.",
+   "now": [
+    {
+     "img": "goals-now.png",
+     "caption": "Now (the You tab)"
+    }
+   ],
+   "options": [
+    {
+     "id": "add",
+     "label": "Add My Goals",
+     "desc": "Only goals you've set show; + Add offers the rest.",
+     "img": "goals-a.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "filter",
+   "area": "Add Food",
+   "title": "Filter Food Search",
+   "why": "From the hotel-booking and search designs, which put filter chips right under the search box. With 125,000 foods, one word like \"chicken\" matches hundreds. Chips would narrow the list to basic foods, restaurants, brands or your own foods, each with a count.",
+   "now": [
+    {
+     "img": "filter-now.png",
+     "caption": "Now: \"chicken\""
+    }
+   ],
+   "options": [
+    {
+     "id": "add",
+     "label": "Add the filter chips",
+     "desc": "All stays the default. Chips only show once you type.",
+     "img": "filter-a.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "rank",
+   "area": "Add Food · a problem the audit found",
+   "title": "Restaurant Items Crowd Out Plain Foods",
+   "why": "While drawing the filter picture I searched \"chicken\": the first nine results are all restaurant items (Chipotle chicken, Burger King Chicken Jr., KFC pot pie…). Plain chicken breast isn't on the first screen. It happens because a restaurant item whose name contains every word you typed gets a large boost, added in 2.8.2 so \"big mac\" finds McDonald's first.\n\nThe whole-meal entry in 2.17 already puts plain foods first, so typing \"chicken\" there works; regular search doesn't.",
+   "now": [
+    {
+     "img": "filter-now.png",
+     "caption": "Now: \"chicken\""
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Plain foods first unless you name a restaurant",
+     "desc": "\"chicken\" lists chicken breast and thigh first; \"big mac\" or \"kfc chicken\" still lists the restaurant first.",
+     "rec": true
+    },
+    {
+     "id": "mix",
+     "label": "Mix them: the best two plain foods, then everything",
+     "desc": ""
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "skipped",
+   "area": "What I left out",
+   "title": "Ideas I Didn't Bring Over",
+   "why": "• Photo food scanning (\"Your food, decoded by AI\") appears in a dozen of the nutrition designs. You ruled out photo features, and it would need a server.\n• Leaderboards and podiums (the gamified app). Goku has Duels between profiles on one phone; a public leaderboard would need accounts.\n• Health scores (\"Health Score: Good 7/10\"). There's no sourced way to score a day, and it judges food as good or bad, which the Gymnastics profile avoids.\n• BMI with an underweight-to-obese color bar. Not useful for athletes or teens, and it labels bodies.\n• Floating pill-shaped tab bars and big glass blurs. A style change for its own sake, which you've asked me to avoid.\n• Hotel booking, WordPress admin and job-board pages mostly offered patterns Goku already has (date pickers, stat cards, filters).",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Agreed",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "reconsider",
+     "label": "I want one of these anyway",
+     "desc": "Say which in the note box."
+    }
+   ]
+  },
+  {
+   "id": "audit",
+   "area": "Audit of the audit",
+   "title": "What This Might Have Wrong",
+   "why": "• I looked closely at 12 designs out of about 560. Others may have pieces I'd have liked better.\n• The pictures use made-up data. The check-in grid in particular looks busier than real answers would, which tend to repeat.\n• Red and green dots are hard to tell apart for people with red-green color blindness. If you pick the grid, I'd add a lighter shade for good days and a darker one for hard days so it works without color.\n• \"This Week vs Last Week\" could make a slow week feel like a failure. It only shows numbers; it never says \"behind\" or \"falling short\".\n• The day row needs a way back to older days; I'd let it swipe sideways, which the picture doesn't show.\n• I can't promise the restaurant-ranking fix keeps every old search exactly as it was; I'd test a list of common searches (big mac, chicken, coffee, chipotle bowl) before and after.\n• Dribbble was blocked on your network for two days; it loads now.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Understood",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  }
+ ]
+}

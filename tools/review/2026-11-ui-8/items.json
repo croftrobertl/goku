@@ -1,0 +1,38 @@
+{
+ "batch": "2026-11-ui-8",
+ "title": "A Longer Sports List",
+ "items": [
+  {
+   "id": "sports-layout",
+   "area": "Log Activity",
+   "title": "How to Show 53 Sports",
+   "why": "You asked for more sports. Log Activity shows 24 as buttons now. These 29 would join them, named the way the 2024 Compendium of Physical Activities names them: badminton, table tennis, racquetball, squash, golf, bowling, archery, fencing, rugby, cricket, handball, ultimate frisbee, water polo, kayaking or canoeing, surfing, paddleboarding, diving, water aerobics, skiing, snowboarding, snowshoeing, horseback riding, skateboarding, trampoline, jump rope, yoga, Pilates, elliptical and HIIT.\n\nAt 53, the buttons fill about three phone screens. Apple Health workouts of these kinds would land on the right sport in every option.",
+   "options": [
+    {"id": "search", "label": "Your sports, then a search box", "desc": "Shows the sports you picked in setup and the ones you've logged, plus a box to type any of the others. Shortest screen.", "img": "sport-a.png", "rec": true},
+    {"id": "fold", "label": "Common sports, then More Sports ▾", "desc": "Eight everyday ones as buttons. More Sports opens the rest in groups (Team, Racket, Water and Snow, And More). Shown opened here.", "img": "sport-b.png"},
+    {"id": "all", "label": "Every sport as a button", "desc": "Like now, but twice as long; you scroll to find yours.", "img": "sport-c.png"},
+    {"id": "none", "label": "Keep the 24 for now", "desc": ""}
+   ]
+  },
+  {
+   "id": "sports-which",
+   "area": "Log Activity",
+   "title": "Which New Sports",
+   "why": "The 29 listed above. Type any to drop or add in the note (for example, “drop cricket, add pickleball”). Pickleball isn't in the Compendium's list by that name, so it isn't included unless you ask.",
+   "options": [
+    {"id": "all29", "label": "All 29", "desc": "", "rec": true},
+    {"id": "edit", "label": "Change the list (say how in the note)", "desc": ""}
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "2.13.0",
+   "title": "The Other Lists Are Ready",
+   "why": "Built and tested locally, not yet published:\n\n• Interaction Check: 14 more herbs with NIH text, word for word (acai, aloe vera, astragalus, cat's claw, chamomile, cranberry, dandelion, feverfew, goldenseal, kava, lavender, licorice root, white mulberry leaf, yohimbe). They're new to the supplement list too.\n• Plain foods: 177 foods new in USDA Foundation Foods, such as raw chicken breast, sockeye salmon, oat milk and Hass avocado.\n• Restaurants: 12 more chains are being read from their own nutrition pages (Chili's, Olive Garden, Applebee's, Jimmy John's, Firehouse Subs, Jack in the Box, Zaxby's, Bojangles, Dairy Queen, Smoothie King, Tropical Smoothie Cafe, Papa John's).",
+   "options": [
+    {"id": "wait", "label": "Publish everything together, with the sports", "desc": "", "rec": true},
+    {"id": "now", "label": "Publish the lists first; sports in the next version", "desc": ""}
+   ]
+  }
+ ]
+}

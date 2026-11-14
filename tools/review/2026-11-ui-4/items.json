@@ -1,0 +1,85 @@
+{
+ "batch": "2026-11-ui-4",
+ "title": "Meal First, Weight Goals and Swimming",
+ "items": [
+  {
+   "id": "meal-first",
+   "area": "Nutrition · Add food",
+   "title": "Pick the Meal Before the Food",
+   "why": "Today Add food guesses the meal from the clock: anything before 10 AM is Breakfast, so a 3 AM snack lands in Breakfast. Both choices stop the guess. The same applies to Quick add → Log food. Scan a barcode would ask for the meal first too.",
+   "options": [
+    {
+     "id": "step",
+     "label": "A “Which meal is this?” screen first",
+     "desc": "Four big buttons, then the search. The meal can still be changed before adding.",
+     "img": "meal-a.png",
+     "rec": true
+    },
+    {
+     "id": "none",
+     "label": "No meal picked until you tap one",
+     "desc": "The meal buttons stay at the top; search waits until one is picked.",
+     "img": "meal-b.png"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "weight-goals",
+   "area": "Goal ideas · Adults",
+   "title": "Weight and Body-Size Goal Ideas",
+   "why": "Added to every adult profile’s goal ideas (Strength, Gymnastics and Custom). Under 18 they stay hidden, as you picked for “Lose fat” in review 2; say so in the note if you want that changed.\n\nThe pace comes from the CDC: people who lose weight “gradually and steadily (about 1 to 2 pounds per week)” are more successful at keeping it off. I read that on the CDC page as archived in 2018; before shipping I’d confirm the live cdc.gov page still says it, and cite it on screen.",
+   "options": [
+    {
+     "id": "numbers",
+     "label": "Clear numbers at a steady pace",
+     "desc": "• Lose 4 lb (2 kg) in 4 weeks\n• Lose about 1 lb (0.5 kg) a week for 4 weeks\n• Reach my calorie target 5 days a week",
+     "rec": true
+    },
+    {
+     "id": "size",
+     "label": "Body size, without numbers",
+     "desc": "• Take an inch off my waist\n• Fit my clothes more comfortably\n• Feel lighter on my feet"
+    },
+    {
+     "id": "both",
+     "label": "Both lists",
+     "desc": "All six ideas."
+    },
+    {
+     "id": "no",
+     "label": "Leave them out",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "goals-swim",
+   "area": "Custom profiles · Goal ideas",
+   "title": "Gentler Goal Ideas for Swimming",
+   "why": "Rewritten from your note (“way less intense”). Ideas a Custom profile that picked Swimming would see:\n• Swim 2 lengths without stopping\n• Swim once or twice a week for 4 weeks\n• Float on my back for 30 seconds\n• Try one new stroke",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "edit",
+     "label": "Use them with my changes",
+     "desc": "Type changes in the note."
+    },
+    {
+     "id": "no",
+     "label": "Leave this sport out",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

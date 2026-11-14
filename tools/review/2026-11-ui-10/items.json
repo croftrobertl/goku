@@ -1,0 +1,554 @@
+{
+ "batch": "2026-11-ui-10",
+ "title": "Super Saiyan Audit",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What This Review Covers",
+   "why": "I walked through Goku 2.14.1 on a phone-sized and a desktop-sized screen with a test profile holding six weeks of sample data, measured load and search times, and had two separate code read-throughs (one for speed and data safety, one for bugs and polish). Nothing in the app was changed.\n\nItems 2–8 are fixes. Items 9–16 are screens with before-and-after pictures. Items 17–21 are new ideas. The last two cover the Dribbble pages and what this audit might have wrong.\n\nFor anything visual you pick that has no picture here, I'll show you the screen before it's published.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "bugs",
+   "area": "Fixes · Bugs",
+   "title": "Eleven Things That Are Broken",
+   "why": "Each was found in the code and the line checked.\n\n• Choosing a photo for your avatar in Settings fails with an error and the photo isn't kept.\n• Log Activity: typing a sport and tapping Save without tapping a suggestion logs the default sport instead.\n• Undo after removing a food brings back an older copy of the day, so water or food added in those few seconds is lost.\n• Removing a supplement with an apostrophe in its name shows garbled text in the question.\n• Editing an activity after switching between miles and kilometers relabels the distance without converting it (5 mi becomes 5 km).\n• In a workout, Undo after an accidental weight “+” still keeps the higher weight for the next round and next session.\n• Gymnastics Log a Session: the minutes stepper drifts off 15-minute steps (5, 20, 35…).\n• Goal ideas: “Lose 2 kg” saves as 1.8 kg on metric profiles.\n• The weekly recap still says “×10 or ×20 days”, the old level names.\n• Today's Workout says “Time to beat: 296 reps”. It's reps, not a time.\n• On Gymnastics profiles the pattern finder's explanation mentions an energy score that those profiles don't have.",
+   "options": [
+    {
+     "id": "all",
+     "label": "Fix all eleven",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "some",
+     "label": "Fix only the ones I list",
+     "desc": "Type which ones in the note box."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "safety",
+   "area": "Fixes · Data safety",
+   "title": "Six Ways Data Could Be Lost or Locked",
+   "why": "None of these has happened that I know of. Each is a gap found in the code.\n\n• If anything on Home hits an error, the whole app shows “Goku couldn't start” on every launch, with no way to reach Settings or export a backup. Fix: show the error inside the page and keep the bottom bar working.\n• If saving fails (storage full, for example), nothing tells you. Fix: a clear “Couldn't save” message.\n• If Goku is left open overnight, Home still shows yesterday in the morning, and Rest Day logs to yesterday. Fix: refresh when the day changes.\n• A damaged backup with an impossible date can trigger the first problem. Fix: check dates on import.\n• A backup made on a newer Goku loads into an older one with the newer answers quietly dropped. Fix: warn first.\n• Restoring a backup turns “per serving” restaurant foods into per-gram foods, so re-adding them from Recent offers wrong portions. Fix: keep the serving unit.",
+   "options": [
+    {
+     "id": "all",
+     "label": "Fix all six",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "undo",
+   "area": "Fixes · Missing edit and delete",
+   "title": "Four Things You Can Add but Never Fix",
+   "why": "• Foods you add from a label and saved meals can't be edited or deleted. A typo stays in search forever.\n• A wrong weigh-in can't be corrected once the day ends (81 instead of 181 lb would bend the trend line for weeks).\n• Rest Day logs in one tap, right next to Activity, with no Undo and no way to remove it.\n• On Gymnastics profiles, an activity logged through Quick Add can't be edited or deleted, and doesn't show in History.",
+   "options": [
+    {
+     "id": "all",
+     "label": "Add edit and delete for all four",
+     "desc": "I'd show you each new screen before publishing.",
+     "rec": true
+    },
+    {
+     "id": "some",
+     "label": "Only the ones I list",
+     "desc": "Type which ones in the note box."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "speed",
+   "area": "Fixes · Speed",
+   "title": "Speed",
+   "why": "What I measured on this Mac (an iPhone will be slower by an amount I haven't measured):\n• About 1.5 seconds after every launch, Goku loads all 125,000 foods (17.5 MB) and freezes for roughly 0.8 seconds, even when you only came to train. It also holds about 60 MB of memory.\n• Every visit to Home re-reads your whole history. It's fast now and gets slower each month you log.\n• Home waits for the body-map drawing before showing anything.\n• Some food searches take 0.1–0.2 seconds per keystroke.\n• First install fails completely if the big food file doesn't finish downloading.\n• The workout screen redraws four times a second for the whole session.\n\nWhat's already good: the app scores 100 on Chrome's accessibility and best-practices checks, and a workout in progress survives a reload.",
+   "options": [
+    {
+     "id": "quick",
+     "label": "Quick wins",
+     "desc": "Load foods only when you open food search, read just the days each screen needs, show Home without waiting for the drawing, let install finish without the food file, calm the workout redraw.",
+     "rec": true
+    },
+    {
+     "id": "worker",
+     "label": "Quick wins plus background search",
+     "desc": "Also moves food loading and searching off the main screen thread so typing never stutters. A bigger change with more to test."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "gym-cal",
+   "area": "Fixes · Gymnastics profile",
+   "title": "Calorie Target and Waist Size on Gymnastics Profiles",
+   "why": "The README says the Gymnastics profile has no calorie deficits or body-shape content. But its Nutrition tab offers “Set a Calorie Target” (the ring then says “left” and “over”) and “Also Track Waist Size”, the same as a Strength profile.\n\nYou decided earlier that every guardrail is the user's own choice, with smart defaults on. So this may be on purpose.",
+   "options": [
+    {
+     "id": "default-off",
+     "label": "Off by default, can be turned on",
+     "desc": "Hidden on Gymnastics profiles until switched on in Settings, like the other guardrails.",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep showing them",
+     "desc": "I correct the README to match."
+    },
+    {
+     "id": "never",
+     "label": "Never show them on Gymnastics profiles",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "polish",
+   "area": "Fixes · Polish",
+   "title": "Eight Polish Fixes",
+   "why": "• “Why?” on the Nutrition panel is the same color as the panel in dark mode, so it can't be seen. The calorie ring's fill has the same problem.\n• During setup in dark mode, the big number and progress bar are light on yellow and hard to read.\n• Six kinds of buttons are smaller than the 44-point touch size: the Undo in the pop-up message, “Why?”, suggestion pills, small toggles, progress-row links and calendar days.\n• In the Plain look, text boxes have almost no visible edge.\n• Pressing Return on the keyboard doesn't save in one-field sheets (weigh-in, calorie target, name).\n• In landscape on an iPhone, content can sit under the notch.\n• On desktop the Goku name sits tight against the top, and on very wide screens the page hugs the left.\n• Cancel on a long form (adding a profile, adding a food from a label, editing an exercise) throws away everything with no “Discard?” question.",
+   "options": [
+    {
+     "id": "all",
+     "label": "Fix all eight",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "some",
+     "label": "Only the ones I list",
+     "desc": "Type which ones in the note box."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "restore",
+   "area": "Fixes · Setup",
+   "title": "Restore a Backup on a New Phone",
+   "why": "On a new or wiped phone there's no way to load a backup from the welcome screen. You'd have to make a throwaway profile and passcode, find Settings → Import, then delete the throwaway.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Add “I Have a Backup” to the welcome screen",
+     "desc": "One link under Continue.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "patterns",
+   "area": "Screens · Nutrition",
+   "title": "The Pattern Finder Is a Wall of Text",
+   "why": "Since 2.14 it lists every pattern in full. With my sample data the card is more than three phone screens tall. Real data will usually be shorter, but nothing limits it.",
+   "now": [
+    {
+     "img": "pat-now.png",
+     "caption": "Now (the first of three screens)"
+    }
+   ],
+   "options": [
+    {
+     "id": "rows",
+     "label": "One row per pattern, tap to open",
+     "desc": "Each row says how many days and the top matches. Details open on tap.",
+     "img": "pat-a.png",
+     "rec": true
+    },
+    {
+     "id": "top",
+     "label": "Only the strongest pattern",
+     "desc": "One sentence, with a button to see the rest.",
+     "img": "pat-b.png"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "nut-top",
+   "area": "Screens · Nutrition",
+   "title": "The Nutrition Panel Fills the First Screen",
+   "why": "Protein appears three times (bar, tile and “to go”), and your meals start below the fold.",
+   "now": [
+    {
+     "img": "nut-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "compact",
+     "label": "Compact panel",
+     "desc": "Smaller ring beside the protein bar. Meals show on the first screen. Calorie target, protein range and percentages move into “Targets and All Nutrients”.",
+     "img": "nut-a.png",
+     "rec": true
+    },
+    {
+     "id": "trim",
+     "label": "Keep the big ring, remove the repeats",
+     "desc": "Drops the protein tile, “to go” line and percentage bar.",
+     "img": "nut-b.png"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "more",
+   "area": "Screens · Bottom bar",
+   "title": "The More Tab Holds Only Two Things",
+   "why": "On a phone, More opens a sheet with just History and Settings, so each is two taps away. Desktop already shows both in the side bar.",
+   "now": [
+    {
+     "img": "more-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "history",
+     "label": "History takes the tab, Settings becomes a gear",
+     "desc": "History is one tap. The gear sits by the date on every screen.",
+     "img": "more-a.png",
+     "rec": true
+    },
+    {
+     "id": "you",
+     "label": "A “You” tab",
+     "desc": "Your name and streak, then History, Look, Backup and all settings as rows.",
+     "img": "more-b.png"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "settings",
+   "area": "Screens · Settings",
+   "title": "Settings Is One Six-Screen Scroll",
+   "why": "Sixteen sections on one page. Backup, which matters most for an app that keeps data only on the phone, is near the bottom.",
+   "now": [
+    {
+     "img": "set-now.png",
+     "caption": "Now (top of the page)"
+    }
+   ],
+   "options": [
+    {
+     "id": "groups",
+     "label": "Grouped rows with a search box",
+     "desc": "Eight rows, each opening its own page. Each row shows its current state, like “Never backed up”.",
+     "img": "set-a.png",
+     "rec": true
+    },
+    {
+     "id": "chips",
+     "label": "Keep one page, add jump buttons at the top",
+     "desc": "Profile · Look · Shows · Training · Backup · Passcode."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "quickadd",
+   "area": "Screens · Quick Add",
+   "title": "Quick Add",
+   "why": "• From the Library tab it shows “Exercise” and “Train” side by side with the same lightning icon.\n• The “Activity” group has a button also called “Activity”.\n• The biggest, brightest button is Close.\n• A weigh-in and the daily check-in aren't here, though they're things you log.\n\nThe picture keeps your Food & Drink and Activity groups. It renames two buttons (Train → Workout, Activity → Other Sport); say in the note if you'd rather keep the words.",
+   "now": [
+    {
+     "img": "qa-now.png",
+     "caption": "Now (opened from Library)"
+    }
+   ],
+   "options": [
+    {
+     "id": "tidy",
+     "label": "Tidy it",
+     "desc": "Small ✕ at the top, a Body group with Check-In and Weigh-In, clearer names. Add Exercise stays on the Library page only.",
+     "img": "qa-a.png",
+     "rec": true
+    },
+    {
+     "id": "close-only",
+     "label": "Only shrink the Close button",
+     "desc": ""
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "runner",
+   "area": "Screens · Workout",
+   "title": "The Workout Screen",
+   "why": "The exercise name is the smallest text on its card. Four lines of small text sit above the card. The ghost is a sentence you have to read mid-set.",
+   "now": [
+    {
+     "img": "run-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "clear",
+     "label": "Name first, ghost as a race bar",
+     "desc": "Big exercise name, round dots, a bar showing you against the ghost, and “How” beside the main button.",
+     "img": "run-a.png",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "start",
+   "area": "Screens · Workout",
+   "title": "The Today's Workout Sheet",
+   "why": "Half the sheet is empty, and it doesn't say which moves you're about to do or what to beat. All four level descriptions show at once.",
+   "now": [
+    {
+     "img": "start-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "moves",
+     "label": "Show the moves and last time",
+     "desc": "Level buttons on top with one line for the chosen level, then each move with last time's reps.",
+     "img": "start-a.png",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "words",
+   "area": "Screens · Wording",
+   "title": "One Word per Action",
+   "why": "The same action has different names in different places:\n• Leaving a sheet: Close, Done or Back.\n• Saving: Save, Save Changes, Save Session, Log It.\n• Removing: Delete or Remove.\n• Card titles are centered on some cards and left-aligned on others (Stats mixes both).\n• Theme color swatches are read aloud as codes like “Color #5ea4ff”.",
+   "options": [
+    {
+     "id": "unify",
+     "label": "Unify",
+     "desc": "Close, Save and Delete everywhere, card titles left-aligned, color names for swatches.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "week",
+   "area": "New ideas",
+   "title": "This Week at a Glance on Home",
+   "why": "A row of seven days above the workout: trained, rest, today, still to come. It uses the same orange balls as the History calendar. The Gymnastics profile already has a week strip; Strength doesn't.",
+   "now": [
+    {
+     "img": "home-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "add",
+     "label": "Add the week row",
+     "desc": "",
+     "img": "week-a.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "multi",
+   "area": "New ideas",
+   "title": "Type a Whole Meal at Once",
+   "why": "Type or dictate “2 eggs, toast with butter, coffee” and Goku splits it into foods with amounts for you to check, then adds them together. It works offline from the food list already on the phone. Every match is shown before anything is saved, and any row can be changed. The calories in the picture are example numbers.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Build it",
+     "desc": "",
+     "img": "multi-a.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "fits",
+   "area": "New ideas",
+   "title": "“Fits What's Left” for Restaurants",
+   "why": "When you search a restaurant, sort its menu by what fits the calories and protein you have left today. It only sorts the chain's own published numbers; it doesn't recommend anything. It would stay off on Gymnastics profiles.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Build it",
+     "desc": "",
+     "img": "fits-a.png",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "motion",
+   "area": "New ideas",
+   "title": "Gentle Motion",
+   "why": "Today only Quick Add slides in. Every other sheet and tab change is an instant cut. A short slide for sheets and a quick fade between tabs (about a sixth of a second) would make it feel more like a built-in iPhone app. It turns off automatically when the phone's Reduce Motion setting is on.",
+   "options": [
+    {
+     "id": "add",
+     "label": "Add it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "history",
+   "area": "New ideas",
+   "title": "History That Stays Short",
+   "why": "History lists every session you've ever logged under the calendar. With six weeks of sample data it's already six screens long, and it grows forever.",
+   "options": [
+    {
+     "id": "month",
+     "label": "Show only the month on the calendar",
+     "desc": "Change the month and the list follows. Tapping a day shows that day's training, food and check-in together.",
+     "rec": true
+    },
+    {
+     "id": "recent",
+     "label": "Show the last ten, with “Show More”",
+     "desc": ""
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "dribbble",
+   "area": "Second audit",
+   "title": "The Dribbble Pages Would Not Open",
+   "why": "Dribbble refused every connection from this Mac during the audit. I tried its home page and three of your links, in Chrome and directly, over about 40 minutes, and each time got “connection reset”. Other sites worked. So the second audit hasn't been done. None of the ideas in this review came from those pages, and I haven't guessed at what's on them.",
+   "options": [
+    {
+     "id": "retry",
+     "label": "Try again later",
+     "desc": "I rerun the second audit when Dribbble answers and add its ideas as a new review.",
+     "rec": true
+    },
+    {
+     "id": "send",
+     "label": "I'll send screenshots",
+     "desc": "Send shots you like and I work from those."
+    },
+    {
+     "id": "skip",
+     "label": "Skip the Dribbble audit",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "audit",
+   "area": "Audit of the audit",
+   "title": "What This Audit Might Have Wrong",
+   "why": "• Speed numbers come from this Mac, not an iPhone. The order of the problems should hold; the sizes are estimates.\n• I used sample data, not real use, and didn't test on an iPhone or the simulator. The Gymnastics profile was checked only when empty.\n• My sample data made the pattern finder as long as it can get. Yours is probably shorter today.\n• The two code read-throughs produced 49 findings. I re-checked 18 myself (the activity distance bug, the workout weight Undo bug and several polish items are not among them) and left out the ones I couldn't stand behind (one about backup encryption strength rested on a number from memory). I'll re-check each remaining one in the code before changing anything.\n• The photo avatar worked when tested in 2.8.2, so that bug either came in later or affects only the Settings path. I'd reproduce it before fixing.\n• The compact Nutrition panel hides “g to go”, the percentage bar and your protein range one tap deeper. If you look at those daily, pick the lighter option.\n• Quick Add renames two of your button words. That's a suggestion, not a correction.\n• “Type a whole meal” has to guess which bread “toast” means. It would always show the guess for you to confirm, never add silently.\n• The blue ring around your avatar looked like a stuck focus ring to me at first. It's the 30-day streak aura, working as designed, so it isn't listed.\n• The new ideas are mine, not from the Dribbble pages.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Understood",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  }
+ ]
+}

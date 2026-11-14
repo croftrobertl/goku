@@ -1,0 +1,1039 @@
+{
+ "batch": "2026-11-ui-2",
+ "title": "Vegeta's 2.8.1 runs: fixes and choices",
+ "items": [
+  {
+   "id": "checkin-save",
+   "area": "Gymnastics · Check-in",
+   "title": "The check-in page has no Save button any more",
+   "why": "2.8.1's “Quick add” rename caused this. The only way to save a check-in is the centre button, which now opens the menu, where “Save check-in” is the first item. Other pages whose main action lived in the centre button have the same gap.",
+   "now": [
+    {
+     "img": "checkin-now.jpeg",
+     "caption": "Bottom of the check-in today"
+    }
+   ],
+   "options": [
+    {
+     "id": "page",
+     "label": "A Save button at the bottom of the page",
+     "desc": "On the check-in and on every page whose main action was the centre button. Quick add stays as it is.",
+     "img": "checkin-a.jpeg",
+     "rec": true
+    },
+    {
+     "id": "centre",
+     "label": "The centre button turns into “Save” on those pages",
+     "desc": "Quick add everywhere else. One tap saves, as before 2.8.1.",
+     "img": "checkin-b.jpeg"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "sjw-text",
+   "area": "Supplements · Safety",
+   "title": "The St. John's wort + warfarin warning never says what happens",
+   "why": "It shows only “Warfarin, an anticoagulant (blood thinner)”. NIH's sentence that explains it (“can weaken the effects of many medicines”) is in the data but not shown. Every medicine on that list looks the same.",
+   "now": [
+    {
+     "img": "sjw-now.jpeg",
+     "caption": "Today: the medicine name only"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Show NIH's lead-in sentence above the matched medicine, word for word.",
+     "rec": true,
+     "img": "sjw-a.jpeg"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "readiness-flags",
+   "area": "Gymnastics · Safety",
+   "title": "Readiness still says “Good to go” after a pain or dizzy “yes”",
+   "why": "Answering yes to back pain when arching, pain changing a skill, or feeling dizzy shows the reminder to tell a parent and doctor, but the readiness line still reads “Readiness 84 · Good to go”.",
+   "now": [],
+   "options": [
+    {
+     "id": "cap",
+     "label": "Any “yes” changes the verdict",
+     "desc": "The line reads “Talk to a parent or coach before training” instead of “Good to go”. The number stays.",
+     "rec": true
+    },
+    {
+     "id": "lower",
+     "label": "Any “yes” also lowers the number",
+     "desc": "Same message, and the score drops so the power level and recap reflect it."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "minor-defaults",
+   "area": "Under-18 profiles",
+   "title": "Teen profiles are offered “Lose fat” and start with waist tracking on",
+   "why": "“Lose fat” is a goal choice for under-18s on Strength and Custom profiles. A new Gymnastics profile starts with Symptom check-ins on, which include morning and evening waist measurements.",
+   "now": [],
+   "options": [
+    {
+     "id": "both",
+     "label": "Hide “Lose fat” and start waist tracking off for under-18s",
+     "desc": "Both can still be turned on in Settings by choice.",
+     "rec": true
+    },
+    {
+     "id": "goal",
+     "label": "Only hide “Lose fat” for under-18s",
+     "desc": ""
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "record-toast",
+   "area": "Workout",
+   "title": "“New record” pops up and beeps on every rep",
+   "why": "Once you pass your best, each extra rep counts as another new record, so the toast and beep repeat every rep. On a laptop the toast also covers “Drop to flat”.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "One “New record” per set, shown when you finish the set, placed where it covers nothing.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "weight-rest",
+   "area": "Workout",
+   "title": "The weight buttons stay on screen during rest",
+   "why": "During rest the “− 5 lb +” row still shows the last exercise's weight, and tapping it does nothing. A style rule overrides the code that hides it.",
+   "now": [
+    {
+     "img": "rest-now.jpeg",
+     "caption": "Rest screen today"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Hide the weight row during rest, as intended.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "double-finish",
+   "area": "Workout · laptop",
+   "title": "Holding Finish with a mouse opens two “Finish session?” dialogs",
+   "why": "With a mouse, a long hold fires both the hold timer and the click. After Discard, a second dialog stays over Home. Touch screens are fine.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "A hold opens the dialog once.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "picker-tap",
+   "area": "Library and Edit session",
+   "title": "After typing a search, the first tap on Add does nothing",
+   "why": "Typing “bench press” then tapping Add only closes the keyboard; a second tap adds it. The list redraws as the keyboard closes.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "The first tap adds.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "gym-activity",
+   "area": "Gymnastics · Today",
+   "title": "A logged gymnastics activity still says “Rest day”",
+   "why": "Logging Activity → Gymnastics, 120 minutes on a planned rest day: Ki says Training done, but the Today card says “Rest day. Rest is part of training.” and the week strip gets no star. Only “sessions” count there, and Quick add only offers Activity.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Count a logged activity as training on the Today card and the week strip.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "tz-change",
+   "area": "Settings · time",
+   "title": "Changing time zone moves today's entries into the future",
+   "why": "Switching New York → Honolulu made “today” Sunday. Monday's workout and food then sat in the future: power level, streak and Ki read 0, while “This week” still counted the session.",
+   "now": [],
+   "options": [
+    {
+     "id": "next",
+     "label": "A time-zone change starts at the next day",
+     "desc": "Today keeps its date; tomorrow follows the new zone. Good for travel.",
+     "rec": true
+    },
+    {
+     "id": "warn",
+     "label": "Keep it, but warn first",
+     "desc": "“Today's entries will show as Monday, which is now tomorrow.”"
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "photo-bug",
+   "area": "Setup",
+   "title": "Choosing your own photo in setup fails",
+   "why": "The code that handles the photo refers to something that doesn't exist, so it would show “t is not defined”. Found in the code; not tried with a real photo.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Fix the code so the photo is used.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "restaurant-weight",
+   "area": "Food · restaurants",
+   "title": "Restaurant items show a made-up weight and “McDonald's's”",
+   "why": "A Big Mac says “100 g in all” (a real one is about 220 g): the chains publish servings, not weights, and 100 was a placeholder. 125 source lines read “McDonald's's”, “Wendy's's” or “Dunkin''s”.",
+   "now": [
+    {
+     "img": "bigmac-sheet.jpeg",
+     "caption": "Big Mac today"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Show only “1 sandwich” unless the chain publishes a weight, and fix the source lines.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "bigmac-rank",
+   "area": "Food search",
+   "title": "Searching “big mac” shows a USDA “Mac Jr” first",
+   "why": "The first hit is USDA's “Big Mac (McDonalds)” whose serving is a Mac Jr at 352 kcal, above McDonald's own 580 kcal Big Mac. Some brand rows show unit codes like “2 ONZ” and “20 Z”.",
+   "now": [
+    {
+     "img": "bigmac-now.jpeg",
+     "caption": "Search today"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Chain items first, readable units",
+     "desc": "A chain's own item ranks above copies of its name. Unreadable unit codes show as grams.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "search-qty",
+   "area": "Food search",
+   "title": "“2 slices pizza”, “3 eggs” and “Chipotle bowl” miss",
+   "why": "A leading amount stops the match (“2 slices pizza” finds nothing; “3 eggs” finds egg bites). “Chipotle bowl” finds packaged bowls, not Chipotle's 25 items. “creatine” finds an energy drink.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Smarter matching",
+     "desc": "Ignore a leading amount (and use it as the amount), match a chain by its name, and point “creatine” to Supplements.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "leave-goku",
+   "area": "Workout · Android Back",
+   "title": "Back mid-workout: the button says “Leave Goku”",
+   "why": "The dialog is titled “Leave the workout?” but its button closes the whole app, which is easy to misread.",
+   "now": [],
+   "options": [
+    {
+     "id": "close",
+     "label": "Call it what it does",
+     "desc": "Title “Close Goku?”, text “Your workout stays saved and picks up where you left off.”, button “Close Goku”.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "edit-library",
+   "area": "Edit session",
+   "title": "Adding an exercise in Edit session adds it to your Library at once",
+   "why": "Even if you close Edit session without saving, the exercise stays in your Library.",
+   "now": [],
+   "options": [
+    {
+     "id": "onsave",
+     "label": "Add it to the Library only when you tap Save changes",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "library-groups",
+   "area": "Library",
+   "title": "Library section names don't match New exercise's 7 groups",
+   "why": "New exercise now offers the picker's 7 groups, but the Library still shows “Power” and “Joints”. A Cardio exercise lands under Power.",
+   "now": [
+    {
+     "img": "library-now.jpeg",
+     "caption": "Library today"
+    }
+   ],
+   "options": [
+    {
+     "id": "names",
+     "label": "Use the picker's names",
+     "desc": "Push (chest, shoulders, triceps) … Jumps, power and cardio · Mobility and stretching.",
+     "img": "library-a.jpeg",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "custom-goals",
+   "area": "Saga · Custom profiles",
+   "title": "Custom profiles get every goal idea, whatever their sports",
+   "why": "A soccer and running profile is offered “Land my round-off back handspring”, “Full splits” and “5 pull-ups”, and no running goals.",
+   "now": [],
+   "options": [
+    {
+     "id": "sports",
+     "label": "Ideas from the sports you picked",
+     "desc": "e.g. running: “Run 5 km without stopping”; soccer: “Juggle 50 in a row”; strength: the current strength ideas. I'd show you the full lists before adding them.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "weight-step",
+   "area": "Workout",
+   "title": "The weight buttons always use your dumbbell step",
+   "why": "+ and − use the dumbbell step (5 lb) for every exercise, barbell and machines included.",
+   "now": [],
+   "options": [
+    {
+     "id": "plates",
+     "label": "Barbell and machines step by 5 lb (2.5 kg)",
+     "desc": "Dumbbells keep your own step from Settings.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "why-lb",
+   "area": "Fuel · Why?",
+   "title": "“Why?” still does the math in kg for pound users",
+   "why": "The card says “0.64–0.91 g per lb”, but Why? shows “83.9 kg × 1.4 g = 117 g”. Rounding differs (1.36 vs 1.4), and one line has doubled brackets.",
+   "now": [],
+   "options": [
+    {
+     "id": "lb",
+     "label": "Do the math in lb for pound users",
+     "desc": "e.g. “185 lb × 0.64 g = 117 g”, with one rounding rule everywhere.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "protein-explain",
+   "area": "Fuel",
+   "title": "Protein goal is the bottom of the range, and nothing says why",
+   "why": "With “Build muscle” picked at 185 lb, Home aims for 117 g, the bottom of 1.4–2.0 g per kg. The goal you picked isn't used, and Why? doesn't say the bottom is the target.",
+   "now": [],
+   "options": [
+    {
+     "id": "explain",
+     "label": "Explain it",
+     "desc": "Why? says “Home aims for the bottom of the range; reach it most days.”",
+     "rec": true
+    },
+    {
+     "id": "middle",
+     "label": "“Build muscle” aims for the middle",
+     "desc": "About 1.7 g per kg (still inside the ISSN range); others stay at the bottom."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "past-day",
+   "area": "Nutrition",
+   "title": "Past days still say “today”",
+   "why": "On an earlier day: “calories today”, “None logged today”, “Tap + Food to start the day”. The Add food sheet doesn't say which day it adds to.",
+   "now": [],
+   "options": [
+    {
+     "id": "day",
+     "label": "Name the day",
+     "desc": "“calories on Sun, Nov 1”, and Add food shows “Adding to Sun, Nov 1”.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "food-cleanup",
+   "area": "Food data",
+   "title": "Egg offers “1 slice”, and Banana appears twice",
+   "why": "“Egg, boiled” lists 1 egg / 1 cup / 1 slice. “Banana 122 kcal” and “Bananas, raw 105 kcal” both show.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Drop servings that don't fit and keep one banana (USDA's medium banana).",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "magnesium",
+   "area": "Supplements",
+   "title": "Magnesium with levothyroxine isn't flagged",
+   "why": "Goku's copy of NIH's Magnesium sheet (March 2021) doesn't list thyroid medicine, so this matches the data. NIH may have updated the sheet.",
+   "now": [],
+   "options": [
+    {
+     "id": "check",
+     "label": "Re-read NIH's current sheet",
+     "desc": "Add it only if NIH lists it, with the date. I won't add anything NIH doesn't say.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "setup-errors",
+   "area": "Setup",
+   "title": "Height and weight errors can hide below the keyboard",
+   "why": "With the keyboard up, “That height doesn't look right” sits off screen, and only the first problem shows (a bad weight appears only after fixing the height).",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Scroll the error into view and list every problem at once.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "interaction-focus",
+   "area": "Supplements",
+   "title": "The Interaction check opens on Close",
+   "why": "Typing a medicine and pressing Enter closes the sheet, because the cursor starts on Close.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Open with the cursor in the medicine box.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "legend",
+   "area": "Home · calendar",
+   "title": "The calendar's “Senzu save” key wraps on a phone",
+   "why": "The dot sits at the end of one line and its word starts the next.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Keep each dot with its word.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "activity-first",
+   "area": "Gymnastics · Log activity",
+   "title": "Log activity starts on Soccer for a gymnastics profile",
+   "why": "Only Custom profiles start on their own sport.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Start on Gymnastics.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "small-text",
+   "area": "Wording",
+   "title": "Four small wording slips",
+   "why": "Coach says “tap Skip” but the button is “Not now”. History says “1 sets”. The rest-day hint says “quick menu” (now Quick add). Finish's screen-reader label says “hold to charge”.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Correct all four.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "supp-row",
+   "area": "Supplements",
+   "title": "A matched supplement also says “Not in Goku's list”",
+   "why": "Searching beetroot, AG1, greens, LMNT or whey shows the match and, under it, “Add “beetroot”: Not in Goku's list.”",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Hide that row when something matched.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "hints",
+   "area": "Food search",
+   "title": "Search hints that aren't words",
+   "why": "“GU gel” suggests “gu gelato / gu gelat / gu gela”.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Only suggest whole words from the food list.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "a11y",
+   "area": "Accessibility",
+   "title": "Three screen-reader slips",
+   "why": "The calendar key is hidden from screen readers, New exercise is announced as “Edit exercise”, and “Enter the same 6 digits again” stays announced after setup.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Fix all three.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "link-contrast",
+   "area": "Accessibility",
+   "title": "Link text is too faint on some backgrounds",
+   "why": "Accent links are checked against cards only. On the page background they measure 4.25:1 and on lavender panels 3.88:1 (the guideline is 4.5:1). Seen in Encore light.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Check links against every background and darken where needed.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "name-layout",
+   "area": "Layout",
+   "title": "A 24-character name pushes Settings sideways",
+   "why": "In Settings → Profiles the row is wider than the phone, so the page scrolls sideways. The name chip at the top cuts the name off without “…”.",
+   "now": [],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Shorten long names with “…” in both places.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "back-setup",
+   "area": "Setup · Android Back",
+   "title": "Back during first-time setup leaves the app",
+   "why": "First-time setup has no Cancel, so Back closes the app and the answers are lost.",
+   "now": [],
+   "options": [
+    {
+     "id": "step",
+     "label": "Back goes to the previous setup step",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "two-weeks",
+   "area": "Home",
+   "title": "Power level and “This week” count different weeks",
+   "why": "Power level uses the last 7 days; “This week” uses Sunday to Saturday, side by side.",
+   "now": [],
+   "options": [
+    {
+     "id": "label",
+     "label": "Label it “last 7 days” on the power level",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "two-profile-chip",
+   "area": "Profiles",
+   "title": "With two profiles, one tap on the name switches at once",
+   "why": "There's no picker, so “Add a profile” is only in Settings.",
+   "now": [],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep one-tap switching",
+     "desc": "Fast for two people sharing the phone; Add a profile stays in Settings.",
+     "rec": true
+    },
+    {
+     "id": "picker",
+     "label": "Tap opens a small picker",
+     "desc": "Switch or Add a profile; one extra tap to switch."
+    }
+   ]
+  },
+  {
+   "id": "encore-avatars",
+   "area": "Skins",
+   "title": "Dragon Ball characters appear in Encore and Plain",
+   "why": "The avatar step lists Fighters (Goku, Vegeta, Frieza…) in every skin, first in Plain. Auras are named “Saiyan gold”, “Namekian green”, “Majin pink”.",
+   "now": [
+    {
+     "img": "avatar-now.jpeg",
+     "caption": "Encore's avatar step today"
+    }
+   ],
+   "options": [
+    {
+     "id": "hide",
+     "label": "Hide Fighters in Encore and Plain, plain aura names",
+     "desc": "“Gold”, “Green”, “Pink” there. Dragon Ball keeps everything.",
+     "rec": true
+    },
+    {
+     "id": "last",
+     "label": "Keep Fighters, but list them last",
+     "desc": ""
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "skin-words",
+   "area": "Skins",
+   "title": "More Dragon Ball words left in Encore and Plain",
+   "why": "Saga: “Your saga”, “ARC 1 CLEARED”, “Boss defeated”, name ideas “Gravity training”, “Skill saga”. Elsewhere: “How much ki do you have today?”, “starting gravity level”, “Today's scouter”, “First power level record”, “All seven Dragon Balls”.",
+   "now": [],
+   "options": [
+    {
+     "id": "skin",
+     "label": "Use each skin's words everywhere",
+     "desc": "Dragon Ball stays the same.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "theme-names",
+   "area": "Skins · Settings",
+   "title": "Theme names are Dragon Ball places in every skin",
+   "why": "Settings lists Namek, Super Saiyan, Time Chamber and Kame House in Encore and Plain too.",
+   "now": [],
+   "options": [
+    {
+     "id": "plain",
+     "label": "Plain names in Encore and Plain",
+     "desc": "e.g. Green, Gold, Night, Beach. Same colors.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "encore-volume",
+   "area": "Skins · Encore",
+   "title": "Encore calls gravity “volume”",
+   "why": "Screens read “×100 volume” and “Change volume”, but “volume” already means amount of training.",
+   "now": [],
+   "options": [
+    {
+     "id": "intensity",
+     "label": "“intensity”",
+     "desc": "Same as Plain.",
+     "rec": true
+    },
+    {
+     "id": "energy",
+     "label": "“energy”",
+     "desc": "“×100 energy”, “Change energy”."
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "encore-ts",
+   "area": "Skins · Encore",
+   "title": "Encore's words together may suggest one real tour",
+   "why": "There's no name, lyric or album art. But Era + Tour + friendship bracelets + Showstopper + The encore together point strongly at one artist's tour. Your family's call.",
+   "now": [],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep the words",
+     "desc": "The Encore profile's owner picked the pop-tour feel."
+    },
+    {
+     "id": "soften",
+     "label": "Swap two words",
+     "desc": "“Era” → “Chapter”, “friendship bracelet” → “charm”. Keeps the pop-tour feel.",
+     "rec": true
+    },
+    {
+     "id": "leave",
+     "label": "Leave as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-1rm",
+   "area": "Idea from Vegeta",
+   "title": "Weight × reps history per exercise",
+   "why": "A chart of weight and reps for each exercise, with an estimated one-rep max, beyond today's “Best: N reps”.",
+   "now": [],
+   "options": [
+    {
+     "id": "plan",
+     "label": "Yes, show me options",
+     "desc": "I'd come back with designs to pick from before building."
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-week",
+   "area": "Idea from Vegeta",
+   "title": "Faster week-hours entry",
+   "why": "Tap a number of hours instead of 12 taps of 15 minutes in the week planner.",
+   "now": [],
+   "options": [
+    {
+     "id": "plan",
+     "label": "Yes, show me options",
+     "desc": "I'd come back with designs to pick from before building."
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-pace",
+   "area": "Idea from Vegeta",
+   "title": "Pace in Log activity",
+   "why": "Show pace from distance and minutes for running, cycling, rowing and swimming.",
+   "now": [],
+   "options": [
+    {
+     "id": "plan",
+     "label": "Yes, show me options",
+     "desc": "I'd come back with designs to pick from before building."
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-repeat",
+   "area": "Idea from Vegeta",
+   "title": "Repeat yesterday in one tap",
+   "why": "Copy yesterday's meals, or start the last workout again.",
+   "now": [],
+   "options": [
+    {
+     "id": "plan",
+     "label": "Yes, show me options",
+     "desc": "I'd come back with designs to pick from before building."
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-rest",
+   "area": "Idea from Vegeta",
+   "title": "Rest timer per exercise, and supersets",
+   "why": "Set a different rest for a hard lift, or pair two moves back to back.",
+   "now": [],
+   "options": [
+    {
+     "id": "plan",
+     "label": "Yes, show me options",
+     "desc": "I'd come back with designs to pick from before building."
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "idea-coach",
+   "area": "Idea from Vegeta",
+   "title": "Coach or parent summary for teens",
+   "why": "A weekly summary you choose to share, with any red-flag answers at the top. (It's listed as “coming soon” already.)",
+   "now": [],
+   "options": [
+    {
+     "id": "plan",
+     "label": "Yes, show me options",
+     "desc": "I'd come back with designs to pick from before building."
+    },
+    {
+     "id": "no",
+     "label": "Not now",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}
