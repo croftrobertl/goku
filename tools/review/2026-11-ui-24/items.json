@@ -1,0 +1,50 @@
+{
+ "batch": "2026-11-ui-24",
+ "title": "Chi-Chi Pass 1",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What the Pass Found",
+   "why": "Every screen was checked at seven sizes, in dark mode and with bigger text: 352 screen states. Nothing scrolls sideways, nothing runs off the screen, every button shows a focus ring for keyboards, and there were no errors.\n\nTwo plain bugs are already fixed (not published yet):\n• History calendar: on phones up to 393 px wide, the Saturday column ran past the edge of the card. The days now shrink to fit.\n• Check-in 1–5 scales: on small phones they broke into 4 buttons plus a lone wide \"5\" underneath. They now stay on one row.\n\nThree design questions follow. Each shows the app now and with the fix tried in the browser.",
+   "options": [{ "id": "ok", "label": "Got it", "desc": "", "rec": true }]
+  },
+  {
+   "id": "commas",
+   "area": "Numbers",
+   "title": "Commas in Big Numbers",
+   "why": "Most of the app writes 2,300 and 6,136, but a few spots write 1595: the food days in History, \"Average calories\" in the weekly recap, and the Gymnastics training load. The fix adds the comma everywhere.",
+   "now": [
+    { "img": "commas-history-before.png", "caption": "History now: 1595 cal" },
+    { "img": "commas-recap-before.png", "caption": "Weekly recap now" }
+   ],
+   "options": [
+    { "id": "fix", "label": "Fix it", "desc": "1,595 cal, the same as the rest of the app.", "img": "commas-history-after.png", "rec": true },
+    { "id": "keep", "label": "Keep as is", "desc": "" }
+   ]
+  },
+  {
+   "id": "future",
+   "area": "History",
+   "title": "Future Days in the Calendar",
+   "why": "Days that haven't happened yet are so faint (2.2 to 1) that they are hard to read, below the 4.5 to 1 needed for small text. The fix makes them darker but still clearly lighter than past days (4.8 to 1).",
+   "now": [{ "img": "future-before.png", "caption": "Now" }],
+   "options": [
+    { "id": "fix", "label": "Fix it", "desc": "Future days a bit darker.", "img": "future-after.png", "rec": true },
+    { "id": "keep", "label": "Keep as is", "desc": "" }
+   ]
+  },
+  {
+   "id": "rows",
+   "area": "Home",
+   "title": "Rows Cut Off With Bigger Text",
+   "why": "When the phone's text size is turned up, the one-line rows on Home (Coach, Fuel, Circuit) cut off with \"…\", for example \"Make Goku yours · about 3 …\". The fix lets a row wrap to a second line only when it doesn't fit. At normal text size nothing changes.",
+   "now": [{ "img": "rows-before.png", "caption": "Now, bigger text (the black tip is the first-visit hint)" }],
+   "options": [
+    { "id": "fix", "label": "Fix it", "desc": "Wrap to two lines when needed.", "img": "rows-after.png", "rec": true },
+    { "id": "keep", "label": "Keep as is", "desc": "Always one line, cut off with …" }
+   ]
+  }
+ ]
+}

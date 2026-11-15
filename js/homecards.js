@@ -161,7 +161,7 @@ export function recapCard(p, all, today) {
   // Nutrition for the week, on days something was eaten or drunk.
   if (p.modules?.nutrition !== false) {
     const fed = n.food.filter(f => f.data.items?.length), watered = n.food.filter(f => f.data.water);
-    if (fed.length) rows.push(['Average calories', `${Math.round(fed.reduce((a, f) => a + sumN(f.data.items).kcal, 0) / fed.length)} on ${fed.length} day${fed.length === 1 ? '' : 's'}`]);
+    if (fed.length) rows.push(['Average calories', `${Math.round(fed.reduce((a, f) => a + sumN(f.data.items).kcal, 0) / fed.length).toLocaleString('en-US')} on ${fed.length} day${fed.length === 1 ? '' : 's'}`]);
     if (watered.length) rows.push(['Average water', `${volume(watered.reduce((a, f) => a + f.data.water, 0) / watered.length, p)} ${volumeUnit(p)}`]);
   }
   return `<section class="card recap"><p class="lbl">${esc(W('arc'))} recap · ${prettyDay(from)} – ${prettyDay(to)}</p>

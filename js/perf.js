@@ -200,7 +200,7 @@ export async function checkinView() {
   };
   const care = on(p, 'care');
   const scale = (k, label, lo, hi) => `<div class="q"><p class="lbl">${label}</p>
-    <div class="seg" role="group" aria-label="${label}">${[1, 2, 3, 4, 5].map(v => `<button data-sc="${k}" data-v="${v}" aria-pressed="${c[k] === v}">${v}</button>`).join('')}</div>
+    <div class="seg five" role="group" aria-label="${label}">${[1, 2, 3, 4, 5].map(v => `<button data-sc="${k}" data-v="${v}" aria-pressed="${c[k] === v}">${v}</button>`).join('')}</div>
     <div class="row note" style="margin-top:4px"><span>${lo}</span><span>${hi}</span></div></div>`;
   const yn = (k, label) => `<div class="toggle"><span>${label}</span>
     <span class="seg" style="margin:0;flex:none"><button data-yn="${k}" data-v="0" aria-pressed="${!c[k]}">No</button><button data-yn="${k}" data-v="1" aria-pressed="${c[k]}">Yes</button></span></div>`;
@@ -292,7 +292,7 @@ export async function weekView() {
     html: `<h1>Week</h1>
     <div class="grid" style="margin-top:12px">
       <section class="card"><p class="lbl">Planned</p><p class="big num" id="wtot" style="text-align:center">${total()} h</p></section>
-      <section class="card"><p class="lbl">Load this week</p><p class="big num" style="text-align:center">${weekLoad}</p><p class="sub" style="text-align:center">minutes × effort</p></section>
+      <section class="card"><p class="lbl">Load this week</p><p class="big num" style="text-align:center">${weekLoad.toLocaleString('en-US')}</p><p class="sub" style="text-align:center">minutes × effort</p></section>
     </div>
     <div id="wstrip">${strip()}</div>
     <div id="weditor">${editor(weekPick)}</div>`,
@@ -383,7 +383,7 @@ export async function historyView() {
         <span class="row" style="gap:8px"><span class="num">${readiness(c.data, sleepTarget(p))}</span><button class="cta2" data-ci="${esc(c.day)}" aria-label="Edit check-in from ${prettyDay(c.day)}">Edit</button></span></li>`).join('');
   const ssRows = (list, inDay) => list.map(s => `<li><span>${inDay ? '' : prettyDay(s.day) + ' · '}${esc(kindName(p, s))}<br>
         <span class="chain">${esc(s.data.minutes)} min · effort ${esc(s.data.effort)}</span></span>
-        <span class="row" style="gap:8px"><span class="num">${s.data.minutes * s.data.effort}</span>
+        <span class="row" style="gap:8px"><span class="num">${(s.data.minutes * s.data.effort).toLocaleString('en-US')}</span>
         <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('');
   const mC = cs.filter(inM), mS = ss.filter(inM), mA = acts.filter(inM);
   const act = (b, close) => {

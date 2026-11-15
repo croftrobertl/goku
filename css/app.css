@@ -58,6 +58,7 @@ p { margin: 0; }
 .seg button { flex: 1; min-width: 3.5rem; border-radius: 10px; background: var(--s2); padding: 0 8px; }
 .seg.grav { flex-wrap: nowrap; }
 .seg.grav button { min-width: 0; }
+.seg.five { flex-wrap: nowrap; } .seg.five button { min-width: 0; } /* Chi-Chi 1: 1-5 scales broke into 4 + 1 rows on small phones */
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 .dial { display: grid; place-items: center; position: relative; margin: 4px auto 0; width: min(190px, 52vw); aspect-ratio: 1; }
 .dial svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -544,7 +545,7 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .cd.tr .rec { color: #c4281c; }
 .cd.lg.bn::after { display: none; } /* the bean marks the day already */
 .cd.now { outline: 2.5px solid var(--ink, var(--tx)); outline-offset: 1px; }
-.cd.out, .cd.fut { opacity: .35; }
+.cd.out, .cd.fut { opacity: .6; } /* Chi-Chi 1: readable (4.8:1), still lighter than past days */
 .cd .rec, .calkey .reck { font-style: normal; font-size: 12px; line-height: 1; color: var(--ink, var(--tx)); }
 .cd .rec { position: absolute; top: 2px; right: 3px; }
 .cd .bean { position: absolute; bottom: 3px; left: 50%; width: 9px; height: 6px; margin-left: -4.5px; border-radius: 50%; background: var(--ok); }
@@ -672,7 +673,8 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .hrow > summary { list-style: none; display: flex; align-items: center; gap: 12px; min-height: 52px; cursor: pointer; padding: 4px 2px; }
 .hrow > summary::-webkit-details-marker { display: none; }
 .hrow > summary b { flex: none; font-weight: 800; }
-.hrow > summary span { flex: 1; min-width: 0; color: var(--tx2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hrow > summary span { flex: 1; min-width: 0; color: var(--tx2); } /* Chi-Chi 1: wraps to a second line only when it does not fit */
+.hrow[data-row="circuit"] > summary span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* the full move list never fits: stays one line, as before */
 .hrow > summary::after { content: '›'; display: inline-block; flex: none; font-size: 1.3rem; color: var(--tx2); transition: transform .15s ease; }
 .hrow[open] > summary::after { transform: rotate(90deg); }
 .hrowbody > .card { border: 0; box-shadow: none; margin: 0; padding: 0 2px 14px; background: none; }
@@ -822,6 +824,7 @@ html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background:
 .toast button { min-height: 44px; padding: 10px 8px; }
 .why { position: relative; } .why::after { content: ""; position: absolute; inset: -8px -6px; }
 .sugg button, .seg.mini button, .kirows .link, .cd { min-height: 44px; }
+.calgrid .cd { min-width: 0; min-height: 0; } /* Chi-Chi 1: seven 44px days ran past the card on phones; days fill their column instead */
 /* Plain look: text boxes and outlined buttons keep a visible edge. */
 :root[data-skin="plain"] input, :root[data-skin="plain"] select, :root[data-skin="plain"] textarea,
 :root[data-skin="plain"] .cta2, :root[data-skin="plain"] .seg button, :root[data-skin="plain"] .pills button { border-color: var(--tx3); }

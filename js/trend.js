@@ -44,7 +44,7 @@ export function trendCard(p, all, today) {
       ${avg ? `<line x1="0" x2="${W}" y1="${avgY}" y2="${avgY}" class="avgline"/>` : ''}
       ${avg && elapsed < 7 ? `<line x1="${px}" x2="${px + bw}" y1="${paceY}" y2="${paceY}" class="paceline"/>` : ''}</svg>
     <div class="row" style="margin-top:6px"><span class="sub">${prettyDay(weeks[0].from)}</span><span class="sub">this week</span></div>
-    <ul class="list" style="margin-top:6px"><li><span>This week so far</span><b class="num">${now.value} ${unit}</b></li>
-      ${avg && elapsed < 7 ? `<li><span>Usual by today <span class="sub">(short line)</span></span><b class="num">${pace} ${unit}</b></li>` : ''}
-      <li><span>4-week average <span class="sub">(dashed)</span></span><b class="num">${avg} ${unit}</b></li></ul></section>`;
+    <ul class="list" style="margin-top:6px"><li><span>This week so far</span><b class="num">${now.value.toLocaleString('en-US')} ${unit}</b></li>
+      ${avg && elapsed < 7 ? `<li><span>Usual by today <span class="sub">(short line)</span></span><b class="num">${pace.toLocaleString('en-US')} ${unit}</b></li>` : ''}
+      <li><span>4-week average <span class="sub">(dashed)</span></span><b class="num">${avg.toLocaleString('en-US')} ${unit}</b></li></ul></section>`;
 }

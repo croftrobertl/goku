@@ -27,7 +27,7 @@ const SYMPTOMS = [['heartburn', 'Heartburn'], ['cramps', 'Cramps'], ['gas', 'Gas
 const WELL = [['energy', 'Energy', 'Drained', 'Great'], ['soreness', 'Muscle soreness', 'None', 'Very sore'],
   ['stress', 'Stress', 'Calm', 'Very stressed'], ['mood', 'Mood', 'Low', 'Great']];
 const wellScale = (g, [k, label, lo, hi]) => `<div class="q"><p class="lbl">${label}</p>
-  <div class="seg" role="group" aria-label="${label}">${[1, 2, 3, 4, 5].map(v => `<button data-well="${k}" data-v="${v}" aria-pressed="${g[k] === v}">${v}</button>`).join('')}</div>
+  <div class="seg five" role="group" aria-label="${label}">${[1, 2, 3, 4, 5].map(v => `<button data-well="${k}" data-v="${v}" aria-pressed="${g[k] === v}">${v}</button>`).join('')}</div>
   <div class="row note ends" style="margin-top:4px"><span>${lo}</span><span>${hi}</span></div></div>`;
 
 let chainSort = 'best'; // how a restaurant's menu is sorted in food search; kept while the app is open

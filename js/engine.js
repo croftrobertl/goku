@@ -819,7 +819,7 @@ export async function historyView() {
         <span class="chain">${s.data.sets.length} set${s.data.sets.length === 1 ? '' : 's'} · ${round(minutes(s))} min</span></span>
         <span class="row" style="gap:8px"><span class="num">${sessionTotal(s)} reps</span>
         <button class="cta2" data-edit="${esc(s.id)}" aria-label="Edit session from ${prettyDay(s.day)}">Edit</button></span></li>`).join('');
-  const dayRows = (list, inDay) => list.map(d => `<li><span>${inDay ? 'Logged' : prettyDay(d.day)}<br><span class="chain">${d.n ? `${d.kcal} cal · ${d.n} food${d.n === 1 ? '' : 's'}` : 'no foods logged'}${d.bloat != null ? ` · bloating ${esc(d.bloat)}` : ''}</span></span>
+  const dayRows = (list, inDay) => list.map(d => `<li><span>${inDay ? 'Logged' : prettyDay(d.day)}<br><span class="chain">${d.n ? `${Math.round(d.kcal).toLocaleString('en-US')} cal · ${d.n} food${d.n === 1 ? '' : 's'}` : 'no foods logged'}${d.bloat != null ? ` · bloating ${esc(d.bloat)}` : ''}</span></span>
         <button class="cta2" data-nday="${esc(d.day)}" aria-label="Open nutrition for ${prettyDay(d.day)}">Open</button></li>`).join('');
   const mS = sessions.filter(inM), mD = days.filter(inM), mA = acts.filter(inM);
   // One day, everything together: training, food and the check-in.
