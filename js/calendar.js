@@ -76,7 +76,7 @@ export function bindCalendar(root, p, all, t, skills = [], { onMonth, onDay } = 
     if (nav) {
       shown = shift(shown, +nav.dataset.cal);
       if (onMonth) return onMonth();
-      const key = card.querySelector('.calkey').outerHTML; card.innerHTML = grid(p, by, t) + key; card.querySelector(`[data-cal="${nav.dataset.cal}"]`)?.focus(); return; }
+      const key = card.querySelector('.calkey').outerHTML; card.innerHTML = grid(p, by, t) + key; (card.querySelector(`[data-cal="${nav.dataset.cal}"]:not([disabled])`) || card.querySelector('[data-cal]:not([disabled])'))?.focus(); return; } // Chi-Chi 2: the arrow just pressed can be disabled at the current month
     const d = e.target.closest('[data-cd]'); if (!d) return;
     const w = words(by[d.dataset.cd] || new Set(), p.kind);
     if (onDay && by[d.dataset.cd]) return onDay(d.dataset.cd);

@@ -262,7 +262,7 @@ export async function home() {
         ${last ? `<p class="big num">${round(sessionTotal(last) / minutes(last), 1)}</p><p class="sub">reps per minute</p>` : '<p class="sub" style="margin-top:8px">No sessions yet</p>'}
         ${paces.length >= 2 ? `${spark(paces, 'Reps per minute, last ' + paces.length + ' workouts')}<p class="sub sparknote">Last ${paces.length} · ${paces.at(-1) === paces[0] ? 'steady' : (paces.at(-1) > paces[0] ? 'up ' : 'down ') + round(Math.abs(paces.at(-1) - paces[0]), 1)}</p>` : ''}</section>
       ${eaten ? `<section class="card"><p class="lbl">Food today</p>
-        <p class="big num">${eaten.kcal}<span class="sub"> cal</span></p><p class="sub">${eaten.n ? `${eaten.p} g protein` : 'Nothing logged yet'}</p>
+        <p class="big num">${eaten.kcal.toLocaleString('en-US')}<span class="sub"> cal</span></p><p class="sub">${eaten.n ? `${eaten.p} g protein` : 'Nothing logged yet'}</p>
         ${week.filter(d => d.n).length >= 2 ? `${spark(week.map(d => d.n ? d.kcal : null), 'Calories, last 7 days')}<p class="sub sparknote">7 days${kcalAvg ? ` · avg ${kcalAvg.toLocaleString('en-US')}` : ''}</p>` : ''}</section>` : ''}
     </div>`],
       ['sleep', `${lowSleep ? `<section class="card"><p class="lbl">Recovery</p><p>You sleep about ${esc(sleepH)} hours. ${sleepMin === 8 ? 'Teens are advised to get 8–10' : 'Adults are advised to get 7 or more'}, and muscle grows during recovery.</p>

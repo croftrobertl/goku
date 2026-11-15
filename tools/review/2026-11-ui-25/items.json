@@ -1,0 +1,99 @@
+{
+ "batch": "2026-11-ui-25",
+ "title": "Chi-Chi Pass 2",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What Pass 2 Found",
+   "why": "First, last pass's fixes all held: the calendar fits, the 1–5 scales stay on one row, the commas and future days are right, and Home rows wrap.\n\nThis pass added what the last one skipped: every look (Dragon Ball, Encore, Plain) with every colour theme in light and dark, plus empty profiles, one-item profiles, the longest allowed name (24 letters) and the longest food name (60 letters).\n\nFixed already (not published yet):\n• History: moving into this month with the keyboard lost your place. Focus now lands on \"Previous month\".\n• More numbers without commas showed up with big meals and loads (1250 cal, load 1050). You already picked commas everywhere, so these now have them too.\n\nEvery look and colour theme passed: no hard-to-read text in any of the 270 theme screens.\n\nThree questions follow.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "sample",
+   "area": "Sample",
+   "title": "The Sample Asks for a Passcode",
+   "why": "Once a phone has two profiles, each one has to make a passcode. That includes the sample, so someone just looking around is stopped by \"Create a Passcode\" for made-up data. The fix lets the sample open without one. Real profiles still need a passcode.",
+   "now": [
+    {
+     "img": "sample-before.png",
+     "caption": "Now: opening the sample on a phone that has another profile"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "The sample opens straight away.",
+     "img": "sample-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "The sample asks for a passcode too."
+    }
+   ]
+  },
+  {
+   "id": "grid",
+   "area": "Gymnastics",
+   "title": "\"Sleep quality\" on Two Lines",
+   "why": "In the Check-Ins grid on Gymnastics Stats, \"Sleep quality\" breaks onto two lines, so that row is taller than the rest. The fix widens the label column so every label fits on one line. The dots get 1 px smaller (14 to 13) and stay lined up with the day letters.",
+   "now": [
+    {
+     "img": "grid-before.png",
+     "caption": "Now (small phone)"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Every label on one line.",
+     "img": "grid-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "name",
+   "area": "Header",
+   "title": "Long Names in the Header",
+   "why": "The name button at the top cuts long names, so \"Maximiliano Bartholomews\" shows as \"Maximiliano Bar…\". One option is the first name only there. The full name still shows in You and Settings. Short names like yours look the same either way.",
+   "now": [
+    {
+     "img": "name-before.png",
+     "caption": "Now (small phone)"
+    }
+   ],
+   "options": [
+    {
+     "id": "first",
+     "label": "First name only",
+     "desc": "Maximiliano",
+     "img": "name-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Maximiliano Bar…"
+    }
+   ]
+  }
+ ]
+}

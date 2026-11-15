@@ -11,7 +11,7 @@ const RELOCK_AFTER_HIDDEN_MS = 2 * 60000; // "Always ask" relocks after 2 minute
 
 const sessionUnlocked = new Set(); // in memory only, so a reload asks again
 // A phone's only profile may go without a passcode (2.18, review 11); once a second profile exists, each is asked to create one.
-export const noPinOk = p => p.lock.noPin === true && !p.lock.pin && S.profiles.length <= 1;
+export const noPinOk = p => p.lock.noPin === true && !p.lock.pin && (S.profiles.length <= 1 || p.demo === true); // Chi-Chi 2: the sample never needs one
 export const isUnlocked = p => noPinOk(p) || (!!p.lock.pin && !p.lock.needsNewPin && (p.lock.until > Date.now() || sessionUnlocked.has(p.id)));
 export const lockNow = p => { p.lock.until = 0; sessionUnlocked.delete(p.id); };
 

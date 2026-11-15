@@ -904,7 +904,7 @@ html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background:
 /* 2.19 (review 12): this week vs last week, and two weeks of check-ins on Stats */
 .compare .cmp { display: flex; gap: 10px; align-items: baseline; } .compare .cmp .sub { font-size: .8rem; }
 .compare .chg { min-width: 58px; text-align: right; font-weight: 800; font-size: .85rem; color: var(--tx2); } .compare .chg.up { color: var(--ok); } .compare .chg.down { color: var(--warn); }
-.fg { display: grid; grid-template-columns: 64px repeat(14, minmax(0, 1fr)); gap: 6px 2px; align-items: center; font-size: .75rem; color: var(--tx2); }
+.fg { display: grid; grid-template-columns: 7em repeat(14, minmax(0, 1fr)); /* Chi-Chi 2: every label fits one line */ gap: 6px 2px; align-items: center; font-size: .75rem; color: var(--tx2); }
 .fgl { text-align: left; }
 .fd { display: block; justify-self: center; width: 100%; max-width: 14px; aspect-ratio: 1; border-radius: 50%; }
 .fd.none { background: transparent; } .fd.good { background: var(--ok); } .fd.mid { max-width: 8px; background: var(--warn); } .fd.hard { border: 2.5px solid var(--care); background: transparent; }

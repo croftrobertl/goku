@@ -204,7 +204,7 @@ async function drawNow() {
     ${p.demo ? '<div class="demobar" role="status"><span>This is a sample with made-up data.</span><button class="cta2" id="demoEnd">Start my own</button></div>' : ''}
     <header class="top">
       <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch or add a profile' : 'Add a profile'}">
-        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${form ? auraSVG(form, 36) : ''}${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name)}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">${GLY.swap}</span></button>
+        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${form ? auraSVG(form, 36) : ''}${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name.trim().split(/\s+/)[0])}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">${GLY.swap}</span></button>
       <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}${view.cta && !view.ctaShown ? `<button class="cta pagecta" id="pageCta">${esc(view.cta[0])}</button>` : ''}</main>`;
@@ -237,7 +237,8 @@ async function drawNow() {
   // The center button, "Quick add" since 2.8.1 (it was labelled with the first action), opens the Ki menu (2.3): this screen's action first, then quick logs.
   $('#cta').onclick = () => kiMenu(p, action, scr);
   if (!(await db.getMeta('kiHint'))) showKiHint();
-  if (fk) document.querySelector(fk)?.focus({ preventScroll: true });
+  if (fk) { const el = document.querySelector(fk); // Chi-Chi 2: a control that is now disabled hands focus to a neighbour in its row
+    (el?.disabled ? el.parentElement.querySelector('button:not([disabled])') : el)?.focus({ preventScroll: true }); }
 }
 
 async function open(id) {

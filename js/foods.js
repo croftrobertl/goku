@@ -224,4 +224,5 @@ export async function lookupBarcode(code) {
 }
 
 export const kcalOf = n => n?.kcal == null ? null : Math.round(n.kcal);
+export const kcalText = n => { const k = kcalOf(n); return k == null ? null : k.toLocaleString('en-US'); }; // for showing, with a thousands comma (Chi-Chi 2)
 export const fmt = (v, unit = 'g') => v == null ? '—' : (unit === 'mg' ? Math.round(v) : v >= 10 ? Math.round(v) : Math.round(v * 10) / 10) + (unit ? ' ' + unit : '');

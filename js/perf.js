@@ -129,7 +129,7 @@ export async function home() {
         ${planned.gym + planned.vault === 0 ? `<p>${doneToday.length ? 'Planned rest day, and you trained anyway.' : weekMins ? 'Rest day. Rest is part of training.' : 'No plan for today.'}</p>` :
           `<p>${planned.gym ? `${esc(nm[0])} ${round(planned.gym / 60, 1)} h` : ''}${planned.gym && planned.vault ? ' · ' : ''}${planned.vault ? `${esc(nm[1] || 'Other')} ${round(planned.vault / 60, 1)} h` : ''}</p>`}
         ${doneToday.length ? `<ul class="list" style="margin-top:8px">${doneToday.map(s => `<li><span>${esc(s.type === 'activity' ? activityName(s.data.kind, s.data.name) : kindName(p, s))} · ${esc(s.data.minutes)} min<br>
-          <span class="chain">effort ${esc(s.data.effort)} · load ${s.data.minutes * s.data.effort}</span></span>
+          <span class="chain">effort ${esc(s.data.effort)} · load ${(s.data.minutes * s.data.effort).toLocaleString('en-US')}</span></span>
           ${s.type === 'activity' ? `<button class="cta2" data-act="${esc(s.id)}" aria-label="Edit ${esc(activityName(s.data.kind, s.data.name))}">Edit</button>` : ''}</li>`).join('')}</ul>` : ''}
         <p class="note">Load = minutes × effort (0–10).</p>
       </section>`],

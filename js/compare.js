@@ -30,7 +30,7 @@ export function perfCompareCard(p, all, t) {
   const now = span(a0, t), was = span(b0, b1), rows = [], add = adder(rows);
   add('Sessions', now.n, was.n, String, (a, b) => ({ v: a - b, t: String(Math.abs(a - b)) }), null);
   add('Training hours', now.h, was.h, v => `${round(v, 1)} h`, (a, b) => ({ v: round(a - b, 1), t: `${round(Math.abs(a - b), 1)} h` }), null);
-  add('Training load', now.load, was.load, v => v.toLocaleString('en-US'), (a, b) => { const x = pctOf(a, b); return { v: a - b, t: x == null ? String(Math.abs(a - b)) : `${Math.abs(x)}%` }; }, null);
+  add('Training load', now.load, was.load, v => v.toLocaleString('en-US'), (a, b) => { const x = pctOf(a, b); return { v: a - b, t: x == null ? Math.abs(a - b).toLocaleString('en-US') : `${Math.abs(x)}%` }; }, null);
   add('Sleep a night', now.sleep, was.sleep, v => `${round(v, 1)} h`, (a, b) => ({ v: round(a - b, 1), t: `${round(Math.abs(a - b), 1)} h` }));
   return rows.length ? shell(t, rows) : '';
 }

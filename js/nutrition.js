@@ -10,7 +10,7 @@ import { volume, volumeUnit, volumeSteps, length, lengthUnit, lengthStep } from 
 import { fuelRanges } from './fuel.js';
 import { whyBtn } from './why.js';
 import { feelPatterns } from './insights.js';
-import { splitMeal, chainOf, startPortion, loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, lookupBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf } from './foods.js';
+import { splitMeal, chainOf, startPortion, loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, lookupBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf, kcalText } from './foods.js';
 import { scanBarcode } from './scan.js';
 import { suppCard, bindSupps, recentSupps, suppNamed } from './supplements.js';
 
@@ -139,10 +139,10 @@ export async function nutritionView() {
     const list = items.map((it, idx) => [it, idx]).filter(([it]) => (it.meal || 'snacks') === k);
     if (!list.length) return ''; // empty meals fold away; the line under them names what's left
     const kc = Math.round(list.reduce((a, [it]) => a + (it.n?.kcal || 0), 0));
-    return `<section class="card meal"><div class="row"><h2 style="margin:0">${label}</h2><span class="num sub">${kc} cal</span></div>
+    return `<section class="card meal"><div class="row"><h2 style="margin:0">${label}</h2><span class="num sub">${kc.toLocaleString('en-US')} cal</span></div>
       ${list.length ? `<ul class="list">${list.map(([it, idx]) => `<li><button class="itemrow" data-item="${idx}" aria-label="Edit ${esc(it.name)}">
         <span><b>${esc(tidyName(it.name, it.src))}</b>${it.brand ? ` <span class="sub">${esc(it.brand)}</span>` : ''}<br><span class="chain">${esc(amountText(it))}</span></span>
-        <span class="num">${kcalOf(it.n) ?? '—'}</span></button></li>`).join('')}</ul>` : ''}
+        <span class="num">${kcalText(it.n) ?? '—'}</span></button></li>`).join('')}</ul>` : ''}
       ${list.filter(([it]) => it.legacy === undefined).length >= 2 ? `<div class="row" style="margin-top:6px;justify-content:center"><button class="link" data-savemeal="${k}">Save as a meal</button></div>` : ''}
       </section>`;
   };
@@ -328,7 +328,7 @@ function foodSheet(meal, day, { scan = false } = {}) {
   const row = (f, key, sub) => `<li><button class="itemrow" data-pick="${esc(key)}"><span><b>${esc(f.name)}</b>${f.brand ? ` <span class="sub">${esc(f.brand)}</span>` : ''}<br>
     <span class="chain">${esc(sub)}</span></span><span class="num">${f.kc ?? ''}</span></button></li>`;
   const firstPortion = f => { const ps = portionsOf(f); return ps[startPortion(f, ps)]; };
-  const sub = f => { const po = firstPortion(f); const k = kcalOf(scale(f.per, po.g)); f.kc = k == null ? '' : k; return po.label; };
+  const sub = f => { const po = firstPortion(f); const k = kcalText(scale(f.per, po.g)); f.kc = k == null ? '' : k; return po.label; };
   let shown = [], amt = { q: '', qty: null, unit: '' }, fkind = 'all';
   // Type a whole meal (2.17): each part is matched and shown for checking; nothing is added until Add All.
   let multi = []; const fixed = new Map(); // fixed: a part's food or amount after the user changed it
@@ -345,9 +345,9 @@ function foodSheet(meal, day, { scan = false } = {}) {
     multi = parts.map(t => matchPart(t, [...mine, ...all]));
     const ok = multi.filter(m => m.item), tot = sumN(ok.map(m => m.item));
     $('#fsugg').innerHTML = '';
-    $('#fstat').textContent = ok.length ? `Found ${ok.length} of ${multi.length} foods · ${kcalOf(tot) ?? 0} cal. Check each one, then add them together.` : 'None of those matched. Try one food at a time.';
+    $('#fstat').textContent = ok.length ? `Found ${ok.length} of ${multi.length} foods · ${kcalText(tot) ?? 0} cal. Check each one, then add them together.` : 'None of those matched. Try one food at a time.';
     $('#fres').innerHTML = `<ul class="list">${multi.map((m, i) => m.item ? `<li><button class="itemrow" data-mrow="${i}"><span><span class="chain" data-raw>“${esc(m.text)}”</span><br><b>${esc(tidyName(m.item.name, m.item.src))}</b>${m.item.brand ? ` <span class="sub">${esc(m.item.brand)}</span>` : ''}<br>
-        <span class="chain" data-raw>${esc(amountText(m.item))} · tap to change the amount</span></span><span class="num">${kcalOf(m.item.n) ?? ''}</span></button>
+        <span class="chain" data-raw>${esc(amountText(m.item))} · tap to change the amount</span></span><span class="num">${kcalText(m.item.n) ?? ''}</span></button>
         ${m.alts.length > 1 ? `<button class="cta2 rowedit" data-mswap="${i}" aria-label="Not ${esc(m.item.name)}? Show another match for ${esc(m.text)}">Swap</button>` : ''}</li>`
       : `<li><span><span class="chain" data-raw>“${esc(m.text)}”</span><br><b>No match</b><br><span class="chain">Left out. Search it on its own, or add it from its label.</span></span></li>`).join('')}</ul>
       ${ok.length ? `<button class="cta" id="addAll" style="margin-top:12px">Add ${ok.length === 1 ? 'It' : `All ${ok.length}`} to ${esc(mealName(meal))}</button>` : ''}`;
@@ -395,13 +395,13 @@ function foodSheet(meal, day, { scan = false } = {}) {
     // Same meal as the day before (2.8.2): only while this meal is still empty, so it never adds twice.
     const prev = prevDay.filter(it => (it.meal || 'snacks') === meal && !it.quick), empty = !thisDay.some(it => (it.meal || 'snacks') === meal);
     const same = prev.length && empty ? `<ul class="list"><li><button class="itemrow" data-same="1"><span><b>Same ${esc(mealName(meal).toLowerCase())} as ${day === today(p) ? 'yesterday' : esc(prettyDay(addDays(day, -1)))}</b><br>
-      <span class="chain">${esc(prev.map(it => tidyName(it.name, it.src)).slice(0, 4).join(' · '))}${prev.length > 4 ? ` and ${prev.length - 4} more` : ''}</span></span><span class="num">${kcalOf(sumN(prev)) ?? ''}</span></button></li></ul>` : '';
-    if (tab === 'recent') $('#fres').innerHTML = same + (recent.length ? `<ul class="list">${recent.map((it, i) => { const f = { ...it, kc: kcalOf(it.n) }; return row(f, 'r:' + i, amountText(it)); }).join('')}</ul>`
+      <span class="chain">${esc(prev.map(it => tidyName(it.name, it.src)).slice(0, 4).join(' · '))}${prev.length > 4 ? ` and ${prev.length - 4} more` : ''}</span></span><span class="num">${kcalText(sumN(prev)) ?? ''}</span></button></li></ul>` : '';
+    if (tab === 'recent') $('#fres').innerHTML = same + (recent.length ? `<ul class="list">${recent.map((it, i) => { const f = { ...it, kc: kcalText(it.n) }; return row(f, 'r:' + i, amountText(it)); }).join('')}</ul>`
       : same ? '' : '<div class="empty"><p>Foods you log show up here for one-tap adding.</p></div>');
     if (tab === 'mine') $('#fres').innerHTML = mine.length ? `<ul class="list">${mine.map((f, i) => row(f, 'm:' + i, sub(f)).replace('</li>', `<button class="cta2 rowedit" data-editmine="${i}" aria-label="Edit ${esc(f.name)}">Edit</button></li>`)).join('')}</ul>`
       : '<div class="empty"><p>Foods you add from a label show up here.</p></div>';
     if (tab === 'meals') $('#fres').innerHTML = meals.length ? `<ul class="list">${meals.map((m, i) => `<li><button class="itemrow" data-pick="ml:${i}"><span><b>${esc(m.data.name)}</b><br>
-      <span class="chain">${m.data.items.length} foods</span></span><span class="num">${kcalOf(sumN(m.data.items))}</span></button><button class="cta2 rowedit" data-editmeal="${i}" aria-label="Edit ${esc(m.data.name)}">Edit</button></li>`).join('')}</ul>`
+      <span class="chain">${m.data.items.length} foods</span></span><span class="num">${kcalText(sumN(m.data.items))}</span></button><button class="cta2 rowedit" data-editmeal="${i}" aria-label="Edit ${esc(m.data.name)}">Edit</button></li>`).join('')}</ul>`
       : '<div class="empty"><p>Save a breakfast you often eat as a meal, then add it here in one tap.</p></div>';
   };
   const pick = async key => {
@@ -499,7 +499,7 @@ function serving(f, { meal, qty = 1, portionLabel = null, onDone, onRemove = nul
   const amount = () => Math.max(0, +String($('#qty').value).replace(',', '.') || 0);
   const draw = () => {
     const n = scale(f.per, amount() * ps[pi].g);
-    $('#nt').innerHTML = `<p class="big num" style="text-align:center;margin-top:12px">${kcalOf(n) ?? '—'} <span class="sub">calories</span></p>
+    $('#nt').innerHTML = `<p class="big num" style="text-align:center;margin-top:12px">${kcalText(n) ?? '—'} <span class="sub">calories</span></p>
       <ul class="list">${NUTRIENTS.slice(1).map(([k, label, u]) => `<li><span>${label}</span><span class="num">${fmt(n[k], u)}</span></li>`).join('')}</ul>
       ${f.unit === 'srv' ? '' : `<p class="sub" style="text-align:center">${round(amount() * ps[pi].g, 1)} ${f.unit === 'ml' ? 'ml' : 'g'} in all</p>`}`; // a chain with no published weight: servings only (2.8.2)
   };
@@ -614,7 +614,7 @@ export function labelFood(pre = {}, onSaved = () => {}, onDeleted = () => {}) {
 // A saved meal can be renamed or deleted (2.15).
 function editMeal(m, onDone) {
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Edit meal</h1><button class="cta2" id="x" data-close>Close</button></div>
-    <p class="sub" style="text-align:center">${m.data.items.length} foods, ${kcalOf(sumN(m.data.items))} calories.</p>
+    <p class="sub" style="text-align:center">${m.data.items.length} foods, ${kcalText(sumN(m.data.items))} calories.</p>
     <label class="f" style="margin-top:12px"><span>Meal name</span><input id="mn" maxlength="40" value="${esc(m.data.name)}"></label>
     <button class="cta" id="ok" style="margin-top:12px">Save</button>
     <button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete</button>`, { label: 'Edit meal' });
@@ -632,7 +632,7 @@ function editMeal(m, onDone) {
 
 async function saveMeal(items) {
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Save as a meal</h1><button class="cta2" id="x" data-close>Close</button></div>
-    <p class="sub" style="text-align:center">${items.length} foods, ${kcalOf(sumN(items))} calories. Add them all in one tap next time.</p>
+    <p class="sub" style="text-align:center">${items.length} foods, ${kcalText(sumN(items))} calories. Add them all in one tap next time.</p>
     <label class="f" style="margin-top:12px"><span>Meal name</span><input id="mn" maxlength="40" placeholder="e.g. My usual breakfast"></label>
     <button class="cta" id="ok" style="margin-top:12px">Save meal</button>`, { label: 'Save as a meal' });
   el.addEventListener('click', guard(async e => {
@@ -666,7 +666,7 @@ export function setTarget(p) {
 function dayDetail(items, day) {
   const tot = sumN(items);
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">All nutrients</h1><button class="cta2" id="x" data-close>Close</button></div>
-    <div class="scroll"><ul class="list">${NUTRIENTS.map(([k, label, u]) => `<li><span>${label}</span><b class="num">${k === 'kcal' ? Math.round(tot.kcal || 0) : fmt(tot[k], u)}</b></li>`).join('')}</ul>
+    <div class="scroll"><ul class="list">${NUTRIENTS.map(([k, label, u]) => `<li><span>${label}</span><b class="num">${k === 'kcal' ? Math.round(tot.kcal || 0).toLocaleString('en-US') : fmt(tot[k], u)}</b></li>`).join('')}</ul>
     <p class="note">Totals for ${esc(prettyDay(day))}. Foods missing a number (some labels skip fiber or sugar) count as zero for it.</p></div>`, { label: 'All nutrients' });
   el.addEventListener('click', e => { if (e.target.closest('#x')) close(); });
 }
