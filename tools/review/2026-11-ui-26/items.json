@@ -1,0 +1,74 @@
+{
+ "batch": "2026-11-ui-26",
+ "title": "Cloud Sync Screens",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Sync Works; Now the Screens",
+   "why": "The sync server and the app's sync engine are built and tested on your Mac (42 tests, three pretend phones). Nothing is on your Cloudflare account or the live app yet.\n\nTested: everything arrives on a second phone; edits and deletions travel; when both phones change the same thing, the later edit wins; settings travel but each phone keeps its own passcode; saves sync by themselves a few seconds later; the recovery key resets a forgotten password; deleting the cloud copy leaves the phone's data alone; and with sync off the app makes no internet requests at all.\n\nThese pictures are mock-ups in the app's own style. Pick or fix each one.",
+   "options": [{ "id": "ok", "label": "Got it", "desc": "", "rec": true }]
+  },
+  {
+   "id": "where",
+   "area": "You tab",
+   "title": "Where Sync Lives",
+   "why": "Sync sits next to Backup, since both keep your data safe.",
+   "options": [
+    { "id": "inside", "label": "Inside Backup", "desc": "The row becomes \"Backup and Sync\" and shows the last sync. No new row.", "img": "whereA-row.png", "rec": true },
+    { "id": "own", "label": "Its own row", "desc": "A separate \"Cloud Sync\" row under Backup.", "img": "whereB-row.png" }
+   ]
+  },
+  {
+   "id": "card",
+   "area": "Backup screen",
+   "title": "The Sync Card",
+   "why": "A card above Backup, in three states: off, syncing normally, and signed out (after a password reset on another phone).",
+   "now": [
+    { "img": "card-off.png", "caption": "Off" },
+    { "img": "card-on.png", "caption": "On" },
+    { "img": "card-err.png", "caption": "Needs you to sign in again" }
+   ],
+   "options": [
+    { "id": "ok", "label": "Looks good", "desc": "", "rec": true },
+    { "id": "change", "label": "Change it", "desc": "Say what in the note." }
+   ]
+  },
+  {
+   "id": "create",
+   "area": "Turning it on",
+   "title": "Making an Account",
+   "why": "A username and a password (at least 10 characters), typed twice. It says up front that nobody can reset the password, and that a recovery key comes next.",
+   "now": [{ "img": "sheet-create.png", "caption": "Turn On Sync" }],
+   "options": [
+    { "id": "ok", "label": "Looks good", "desc": "", "rec": true },
+    { "id": "change", "label": "Change it", "desc": "Say what in the note." }
+   ]
+  },
+  {
+   "id": "key",
+   "area": "Turning it on",
+   "title": "The Recovery Key",
+   "why": "Shown once, right after the account is made. It's the only way back in after a forgotten password, so the screen makes sure it was kept.",
+   "options": [
+    { "id": "type", "label": "Type the last four", "desc": "Done unlocks after typing its last four characters, which proves it was saved.", "img": "sheet-keyB.png", "rec": true },
+    { "id": "tick", "label": "Tick a box", "desc": "Done unlocks after ticking \"I saved it somewhere safe\". Quicker, easier to skip.", "img": "sheet-keyA.png" }
+   ]
+  },
+  {
+   "id": "signin",
+   "area": "Another phone",
+   "title": "Signing In on a New Phone",
+   "why": "A new phone's welcome screen gets a \"Sign in to sync\" link under the other two. Signing in brings the whole profile over. \"Forgot your password?\" uses the recovery key and sets a new password. Adding a profile on a phone that already has one offers the same.",
+   "now": [
+    { "img": "welcome.png", "caption": "Welcome screen on a new phone" },
+    { "img": "sheet-signin.png", "caption": "Sign In to Sync" }
+   ],
+   "options": [
+    { "id": "ok", "label": "Looks good", "desc": "", "rec": true },
+    { "id": "change", "label": "Change it", "desc": "Say what in the note." }
+   ]
+  }
+ ]
+}

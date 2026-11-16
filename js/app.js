@@ -106,6 +106,7 @@ import { logActivity } from './activity.js';
 import { loadFoods, foodVocab } from './foods.js';
 import { streakSeen, toggleKi } from './homecards.js';
 import { setHomeView, homeView } from './homelayout.js';
+import { startSync } from './sync.js';
 
 // The Saga screen (2.5) is Home's game cards on a page of their own, reached from the status strip.
 const sagaOf = home => async () => {
@@ -386,6 +387,7 @@ async function boot() {
     const last = await db.getMeta('lastProfile');
     await open(S.profiles.some(p => p.id === last) ? last : S.profiles[0].id);
   }
+  startSync(); // 2.24: does nothing over the network unless a profile here has signed in to sync
   // Relock covers the screen instead of redrawing it, so nothing typed is lost.
   watchRelock(() => {
     const p = profile();

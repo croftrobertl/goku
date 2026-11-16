@@ -18,6 +18,8 @@ import { editHome } from './homelayout.js';
 import { weight, weightUnit, length, lengthUnit } from './units.js';
 import { deviceTZ, TZ, nextDayStart } from './time.js';
 import { parseHealth, saveHealth, RECIPE } from './health.js';
+import { getLink } from './sync.js';
+import { syncCard, syncClick, syncLine } from './syncui.js';
 
 export const SCHEMA_VERSION = 1;
 const DAY = 86400000;
@@ -325,7 +327,7 @@ const GROUPS = [
   ['training', 'Training', /^(Starting point|Protein target|Duels|Sound)$/],
   ['units', 'Units and Time', /^Units and time$/],
   ['about', 'About You', /^About you$/],
-  ['backup', 'Backup and Health', /^(Backup|.* link · Apple Health)$/],
+  ['backup', 'Backup and Health', /^(Backup|Cloud Sync|.* link · Apple Health)$/],
   ['pass', 'Passcode and Profiles', /^(Passcode|Profiles on this phone)$/],
   ['goku', 'About Goku', /^About$/],
 ];
@@ -339,7 +341,7 @@ export async function settingsView() {
     return { h, label, g: GROUPS.find(([, , rx]) => rx.test(label))?.[0] || 'goku' };
   });
   if (openGroup && !GROUPS.some(g => g[0] === openGroup)) openGroup = null;
-  const age = backupAgeDays(p), mods = liveModules(p.kind), onN = mods.filter(([k]) => p.modules[k] !== false).length;
+  const age = backupAgeDays(p), mods = liveModules(p.kind), onN = mods.filter(([k]) => p.modules[k] !== false).length, link = await getLink(p.id);
   const asked = essentials(p).length;
   const state = {
     look: `${SKINS[skinOf(p)]?.name || ''} · ${themeName(p.settings.theme || 'capsule', THEMES[p.settings.theme] || THEMES.capsule)}`,
@@ -347,7 +349,7 @@ export async function settingsView() {
     training: p.kind === 'engine' ? `${p.settings.proteinTarget ? p.settings.proteinTarget + ' g protein · ' : ''}Sound ${p.settings.sound !== false ? 'on' : 'off'}` : `Sound ${p.settings.sound !== false ? 'on' : 'off'}`,
     units: `${p.units === 'metric' ? 'kg · cm · ml' : 'lb · in · oz'} · ${(p.tz || '').split('/').pop().replace(/_/g, ' ')}`,
     about: `${asked} answers your coach uses`,
-    backup: age === null ? 'Never backed up' : age === 0 ? 'Backed up today' : `Backed up ${age} day${age === 1 ? '' : 's'} ago`,
+    backup: syncLine(link) || (age === null ? 'Never backed up' : age === 0 ? 'Backed up today' : `Backed up ${age} day${age === 1 ? '' : 's'} ago`),
     pass: `${S.profiles.length} profile${S.profiles.length === 1 ? '' : 's'} on this phone`,
     goku: `Version ${VERSION}`,
   };
@@ -374,7 +376,7 @@ export async function settingsView() {
 // "You" (2.16, review 10): the fifth tab on a phone. Your name and streak, then History and the settings people open most.
 export async function youView(streakDays, pages = [['history', 'History']]) {
   const SUBS = { history: 'Calendar, sessions and records', skills: 'Each skill from learning to competition-ready' };
-  const p = profile(), age = backupAgeDays(p), mods = liveModules(p.kind), onN = mods.filter(([k]) => p.modules[k] !== false).length;
+  const p = profile(), age = backupAgeDays(p), mods = liveModules(p.kind), onN = mods.filter(([k]) => p.modules[k] !== false).length, link = await getLink(p.id);
   const row = (go, name, sub) => `<li><button class="itemrow" data-you="${go}"><span><b>${name}</b><br><span class="chain" data-raw="">${esc(sub)}</span></span><span class="chev" aria-hidden="true">${GLY.right}</span></button></li>`;
   const goals = await goalsCard(p);
   return { html: `<h1>You</h1>
@@ -385,7 +387,7 @@ export async function youView(streakDays, pages = [['history', 'History']]) {
       ${pages.map(([id, name]) => row('page:' + id, esc(name), SUBS[id] || '')).join('')}
       ${row('look', 'Look', `${SKINS[skinOf(p)]?.name || ''} · ${themeName(p.settings.theme || 'capsule', THEMES[p.settings.theme] || THEMES.capsule)}`)}
       ${row('shows', 'What the App Shows', `${onN} of ${mods.length} on`)}
-      ${row('backup', 'Backup', age === null ? 'Never backed up' : age === 0 ? 'Backed up today' : `Backed up ${age} day${age === 1 ? '' : 's'} ago`)}
+      ${row('backup', 'Backup and Sync', syncLine(link) || (age === null ? 'Never backed up' : age === 0 ? 'Backed up today' : `Backed up ${age} day${age === 1 ? '' : 's'} ago`))}
       ${row('all', 'All Settings', 'Units, passcode, sound and more')}</ul></section>`,
     bind(root) { root.addEventListener('click', async e => {
       if (await goalClick(e, p)) return;
@@ -434,7 +436,7 @@ export async function goalsCard(p) {
 async function settingsFull() {
   const p = profile();
   const others = S.profiles.filter(x => x.id !== p.id);
-  const age = backupAgeDays(p);
+  const age = backupAgeDays(p), link = await getLink(p.id);
   const persisted = await navigator.storage?.persisted?.().catch(() => false);
   const soon = soonModules(p.kind);
   return {
@@ -505,9 +507,10 @@ async function settingsFull() {
       <button class="cta2" id="aboutAll" style="width:100%;margin-top:8px">Go through all questions</button>
     </section>
     </div><div>
+    ${p.demo ? '' : syncCard(link)}
     <section class="card" ${age === null || age >= 7 ? 'style="border-color:var(--warn)"' : ''}><p class="lbl">Backup</p>
       <p>${age === null ? 'Never backed up.' : age === 0 ? 'Backed up today.' : `Last backup ${age} day${age === 1 ? '' : 's'} ago.`}</p>
-      <p class="note">Data lives only on this phone. Export saves a file you can keep in Files or iCloud Drive.</p>
+      <p class="note">${link?.token ? '' : 'Data lives only on this phone. '}Export saves a file you can keep in Files or iCloud Drive.</p>
       <button class="cta" id="exp" style="margin-top:12px">Export backup</button>
       <button class="cta2" id="expEnc" style="width:100%;margin-top:8px">Export encrypted backup</button>
       <button class="cta2" id="imp" style="width:100%;margin-top:8px">Import a backup</button>
@@ -560,6 +563,7 @@ async function settingsFull() {
       });
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b) return;
+        if (b.id.startsWith('sync') && await syncClick(b, p)) return;
         if (b.dataset.acc) { p.accent = b.dataset.acc; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.skin) {
           // A skin brings its own theme (Encore → Pastel tour); leaving it goes back to the default theme.

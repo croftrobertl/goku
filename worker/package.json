@@ -1,0 +1,7 @@
+{
+  "name": "goku-sync",
+  "private": true,
+  "description": "Goku's zero-knowledge sync server (Cloudflare Worker + D1). It only ever sees encrypted data.",
+  "scripts": { "dev": "wrangler dev", "test": "node test.mjs", "deploy": "wrangler deploy" },
+  "devDependencies": { "wrangler": "4.156.1" }
+}

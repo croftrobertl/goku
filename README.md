@@ -1,8 +1,8 @@
 # Goku
 
 An offline training tracker that installs from Safari to the iPhone Home Screen.
-There are no accounts, no servers, no analytics and no network requests while you use it.
-Everything you enter stays on the device it was entered on.
+There are no analytics and no network requests while you use it, and everything you enter stays on
+the device it was entered on, unless a profile turns on **Cloud Sync** (2.24, optional, below).
 
 Goku is a fan-made app. Dragon Ball belongs to Akira Toriyama, Bird Studio, Shueisha and Toei Animation.
 Goku is not affiliated with them. All of its art is drawn for Goku; none is copied from official artwork.
@@ -357,13 +357,35 @@ Each person can install it on their own phone. To share one phone, use **Add a p
 
 ---
 
+## Cloud Sync (2.24, optional)
+
+Off until someone turns it on in **You → Backup and Sync**. With it off, Goku makes no network requests.
+One account per profile (username and password, no email). Each phone that signs in gets that profile,
+and changes sync by themselves a few seconds after saving, on opening the app, and when the phone is
+back online. When two phones change the same thing, the later edit wins. Each phone keeps its own passcode.
+
+**Zero-knowledge.** Everything is encrypted on the phone before it leaves (`js/synccrypto.js`):
+the password goes through PBKDF2 (600,000 rounds) into a login key and a key that locks a random data key.
+Records are AES-GCM encrypted under keys made from the data key, and entry ids become keyed hashes, so the
+server sees no names, numbers, dates or types. It stores a salted hash of the login key, never the password.
+Nobody can reset a forgotten password: the **recovery key** shown once at sign-up (32 letters and numbers)
+is the only way back in. Forgetting both makes the cloud copy unreadable; the phone's own data is unaffected.
+
+**Server:** `worker/` (Cloudflare Worker + D1, free plan) at `https://goku-sync.croftrobertl.workers.dev`,
+answering only `https://croftrobertl.github.io`. `worker/test.mjs` runs 26 end-to-end checks against it
+(`SYNC_URL=… node test.mjs`, or against `npx wrangler dev` locally). Deploy with `npx wrangler deploy` from `worker/`.
+
+---
+
 ## Backups: what's stored where
 
 | What | Where | Leaves the phone? |
 |---|---|---|
-| Profiles, sessions, check-ins, food log | IndexedDB database `goku`, on this device | Only when you export it |
+| Profiles, sessions, check-ins, food log | IndexedDB database `goku`, on this device | When you export it, or encrypted if Cloud Sync is on |
 | Passcodes | Salted PBKDF2 hash (150,000 rounds) inside the profile | Never; exports leave it out |
 | App files (HTML, JS, CSS, icons) | Service-worker cache `goku-app-<version>` | Downloaded from GitHub Pages |
+
+| Cloud Sync account (optional) | Cloudflare Worker `goku-sync` + D1 database | Only encrypted records and salted hashes; the server can't read them |
 
 The app asks the browser to protect its storage from automatic clearing. Settings → About shows
 whether that was granted. iOS can still remove data if the app is deleted from the Home Screen,

@@ -133,7 +133,8 @@ export function onboard({ cancellable = false } = {}) {
       const out = [{ key: 'door', need: 'Pick one to continue.', ready: () => !!d.goal, html: () => `<h1 style="margin-top:0">What brings you here?</h1>
         <p class="sub">Pick the closest. Goku builds the rest around it, and you can change anything later. Everything you log stays on this phone.</p>
         ${GOALS.map(([k, t, sub]) => `<button class="card pick goalpick" data-goal="${k}" aria-pressed="${d.goal === k}"><b>${t}</b><br><span class="sub">${sub}</span></button>`).join('')}
-        ${S.profiles.length ? '' : '<p class="doorlinks"><button class="link" id="demo">Just look around first</button><span aria-hidden="true"> · </span><button class="link" id="restore">I have a backup</button></p>'}` }];
+        ${S.profiles.length ? '' : '<p class="doorlinks"><button class="link" id="demo">Just look around first</button><span aria-hidden="true"> · </span><button class="link" id="restore">I have a backup</button></p>'}
+        <p class="doorlinks"${S.profiles.length ? '' : ' style="margin-top:4px"'}><button class="link" id="syncin">Sign in to sync</button></p>` }];
       if (chatted()) out.push({ key: 'chat', need: 'Tap an answer to continue.', ready: () => !chatNext(d.chat), html: () => { const c = d.chat, nx = chatNext(c), asked = chatAsked(c);
         return `${asked.map(q => say(q.say(c)) + me(c._l?.[q.k] || '')).join('')}
           ${nx ? `${say(nx.say(c))}<div class="pills chatreplies">${nx.replies.map(([t, v]) => `<button data-reply="${nx.k}" data-v="${v}" data-raw>${esc(t)}</button>`).join('')}</div>
@@ -246,6 +247,8 @@ export function onboard({ cancellable = false } = {}) {
         close(); resolve(null); return; }
       // Restore on a new or wiped phone (2.16): the backup's own profile is added and asked for a passcode, with no throwaway profile.
       if (b.id === 'restore') { const p = await (await import('./settings.js')).restoreFirst(); if (p) { close(); resolve(p); } return; }
+      // Sign in to sync (2.24, review 26): the account's profile comes onto this phone with everything in it.
+      if (b.id === 'syncin') { const pid = await (await import('./syncui.js')).signInFlow(); const p = pid && S.profiles.find(x => x.id === pid); if (p) { close(); resolve(p); } return; }
       // Just look around first (2.18): a sample profile with made-up data; leaving it erases the sample.
       if (b.id === 'demo') { b.disabled = true; const p = await (await import('./demo.js')).startDemo(); close(); resolve(p); return; }
       const st = cur(), qs = st.qs || null;

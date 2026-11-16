@@ -68,17 +68,21 @@ export const memoOn = () => { memo = new Map(); };
 export const memoOff = () => { memo = null; };
 const shared = (k, read) => { if (!memo) return read(); if (!memo.has(k)) memo.set(k, read()); return memo.get(k); };
 const wrote = v => { memo?.clear(); return v; };
+// Sync (2.24) listens for changes to profiles and entries (never its own bookkeeping in "meta").
+const listeners = new Set();
+export const onChange = f => listeners.add(f);
+const changed = (s, v) => { if (s !== 'meta') for (const f of listeners) f(s); return v; };
 export const get = (s, key) => shared(`g|${s}|${JSON.stringify(key)}`, () => req1(s, 'readonly', os => os.get(key)));
 export const all = s => req1(s, 'readonly', os => os.getAll());
-export const put = (s, val) => { wrote(); return req1(s, 'readwrite', os => os.put(val)).then(wrote); };
-export const del = (s, key) => { wrote(); return req1(s, 'readwrite', os => os.delete(key)).then(wrote); };
+export const put = (s, val) => { wrote(); return req1(s, 'readwrite', os => os.put(val)).then(wrote).then(v => changed(s, v)); };
+export const del = (s, key) => { wrote(); return req1(s, 'readwrite', os => os.delete(key)).then(wrote).then(v => changed(s, v)); };
 export const byIndex = (s, index, key) => shared(`i|${s}|${index}|${JSON.stringify(key)}`, () => req1(s, 'readonly', os => os.index(index).getAll(key)));
 export const byIndexRange = (s, index, lo, hi) => req1(s, 'readonly', os => os.index(index).getAll(IDBKeyRange.bound(lo, hi)));
 
 export const putMany = (s, vals) => (wrote(), withDb(db => run(db, s, 'readwrite', tx => {
   const os = tx.objectStore(s);
   for (const v of vals) os.put(v);
-})).then(wrote));
+})).then(wrote).then(v => changed(s, v)));
 
 // Deletes a profile's entries and writes the new ones in ONE transaction:
 // if any write fails, nothing is deleted.
@@ -90,7 +94,7 @@ export const replaceProfileEntries = (profileId, vals) => (wrote(), withDb(db =>
     if (c) { os.delete(c.primaryKey); c.continue(); }
     else for (const v of vals) os.put(v);
   };
-})).then(wrote));
+})).then(wrote).then(v => changed('entries', v)));
 
 // Removes a profile, all its entries and its meta keys, in one transaction.
 export const deleteProfile = profileId => (wrote(), withDb(db => run(db, ['profiles', 'entries', 'meta'], 'readwrite', tx => {
@@ -98,7 +102,7 @@ export const deleteProfile = profileId => (wrote(), withDb(db => run(db, ['profi
   const os = tx.objectStore('entries');
   const cur = os.index('profile').openKeyCursor(IDBKeyRange.only(profileId));
   cur.onsuccess = () => { const c = cur.result; if (c) { os.delete(c.primaryKey); c.continue(); } };
-  for (const k of ['run:', 'seeded:']) tx.objectStore('meta').delete(k + profileId);
+  for (const k of ['run:', 'seeded:', 'sync:']) tx.objectStore('meta').delete(k + profileId);
 })).then(wrote));
 
 export const getMeta = async key => (await get('meta', key))?.value;
