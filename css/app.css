@@ -812,7 +812,7 @@ details.fold > summary.lbl { text-align: left; }
 .spark polyline { fill: none; stroke: var(--accent-line); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .sparknote { margin: 2px 0 0; }
 /* 2.10.1: the setup color fills the whole screen, home-bar area included, on iPhone */
-html:has(.overlay.capsule-setup), body:has(.overlay.capsule-setup) { background: #ffd84d; }
+html:has(.overlay.capsule-setup):not(:has(.overlay.capsule-setup ~ .overlay)), body:has(.overlay.capsule-setup):not(:has(.overlay.capsule-setup ~ .overlay)) { background: #ffd84d; } /* 2.24.1: only while setup is the top screen, so a sheet opened over it (sync sign-in, passcode) has no yellow edges */
 .gatehint { display: block; font-size: .8rem; font-weight: 400; color: var(--tx2); margin-top: 2px; text-decoration: none; }
 /* 2.15 polish (review 10) */
 /* On the Nutrition panel the card is the accent color, so its "Why?" and ring fill use the on-accent color to be seen. */
