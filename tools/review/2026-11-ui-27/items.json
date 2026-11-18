@@ -1,0 +1,18 @@
+{
+ "batch": "2026-11-ui-27",
+ "title": "The + Water Button",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "water",
+   "area": "Nutrition",
+   "title": "What + Water Does",
+   "why": "Now, each tap of + Water at the top of Nutrition adds 8 oz with no sign anything happened, because the water count is far down the page. Pick what a tap should do instead. Either way, nothing is added until you tap +8 or +16 yourself.",
+   "now": [{ "img": "now.png", "caption": "Now: + Water at the top adds 8 oz silently" }],
+   "options": [
+    { "id": "sheet", "label": "A · Open a water sheet", "desc": "A small sheet with today's total, the glasses and −8 / +8 / +16. Done closes it. Works like + Food, and you never lose your place.", "img": "optA.png", "rec": true },
+    { "id": "scroll", "label": "B · Jump to the water card", "desc": "The page scrolls down to the Water card and outlines it for a moment, so you can tap +8 there.", "img": "optB.png" }
+   ]
+  }
+ ]
+}

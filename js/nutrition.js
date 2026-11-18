@@ -160,7 +160,7 @@ export async function nutritionView() {
         ${range ? `<p class="sub" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
         <div class="row" style="justify-content:center;margin-top:8px;gap:8px">${bodyOn ? `<button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>` : ''}
           <button class="link" id="dayDetail">All nutrients ${GLY.right}</button></div></div>
-        <div class="qadd"><button class="cta2" id="addFood">+ Food</button><button class="cta2" data-fl="${volumeSteps(p)[1][1]}">+ Water</button>
+        <div class="qadd"><button class="cta2" id="addFood">+ Food</button><button class="cta2" id="addWater">+ Water</button>
           <button class="cta2" id="scanFood">${BARCODE}<span>Scan</span></button></div>
       </section>
       ${MEALS.map(mealCard).join('')}
@@ -198,6 +198,7 @@ export async function nutritionView() {
         if (b.dataset.nday && b.closest('.dayrow')) { navDay = b.dataset.nday; return window.goku.render(); }
         if (b.dataset.dayshift) { navDay = addDays(day, +b.dataset.dayshift); if (navDay < addDays(t, -60)) navDay = addDays(t, -60); return window.goku.render(); }
         if (b.id === 'addFood') return addFood(nowMeal(), day);
+        if (b.id === 'addWater') return waterSheet(p, day, food, water);
         if (b.id === 'scanFood') return addFood(nowMeal(), day, { scan: true });
         if (b.dataset.item !== undefined) {
           const it = items[+b.dataset.item];
@@ -684,6 +685,24 @@ export async function poweredUp(p) {
 }
 
 // One glass of water from the Ki menu: 8 oz, or 250 ml in metric.
+// + Water (2.25, review 27): a sheet with the day's total and the same −/+ steps as the Water card,
+// so every tap shows what changed. Nothing is added until a step is tapped.
+function waterSheet(p, day, food, water) {
+  let oz = food.water ?? water, saveT = null;
+  const body = () => `<p style="text-align:center;margin:0"><span class="num big">${esc(volume(oz, p))} <span class="sub">${volumeUnit(p)}</span></span></p>${glasses(oz, p)}
+    <div class="row" style="justify-content:center;gap:8px;margin-top:8px">${volumeSteps(p).map(([label, v]) => `<button class="cta2" data-ws="${v}" aria-label="${label > 0 ? 'Add' : 'Remove'} ${Math.abs(label)} ${volumeUnit(p)}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join('')}</div>`;
+  const { el, close } = overlay(`<div class="scroll" style="display:flex;flex-direction:column;justify-content:center"><h1>Water</h1>
+    <p class="sub" style="text-align:center;margin:4px 0 12px">${day === today(p) ? 'Today so far' : 'On ' + esc(prettyDay(day))}</p>
+    <div id="wbody" role="status" aria-live="polite">${body()}</div>
+    <button class="cta" data-close style="margin-top:16px">Done</button></div>`, { label: 'Water' });
+  const save = () => { clearTimeout(saveT); food.water = oz; return saveDay(p, day, food, true); };
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.ws) { oz = Math.max(0, round(oz + +b.dataset.ws, 2)); el.querySelector('#wbody').innerHTML = body(); clearTimeout(saveT); saveT = setTimeout(save, 250); return; }
+    if (b.hasAttribute('data-close')) { await save(); close(); window.goku.render(); }
+  });
+}
+
 export async function quickWater(p = profile()) {
   const day = today(p), { food, gut } = await readDay(p, day);
   food.water = round(waterOf(food, gut) + (volumeUnit(p) === 'ml' ? 250 / 29.5735 : 8), 2);
