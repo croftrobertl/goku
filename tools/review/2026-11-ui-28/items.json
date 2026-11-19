@@ -1,0 +1,45 @@
+{
+ "batch": "2026-11-ui-28",
+ "title": "Backup History",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "The Plan You Chose",
+   "why": "Nothing is built yet. These are mock-ups in the app's own style.\n\nWhat you picked: backup history comes with Cloud Sync, keeps 90 days, and a restore asks Merge or Replace.\n\nHow it will work: once a day, when something has changed, the phone sends one locked copy of the profile to your Cloudflare R2 storage. It is locked with the same key as sync, so Cloudflare cannot read it. The newest 90 are kept; older ones are removed only when a new one arrives, so a long break never empties the list. Deleting the cloud copy also deletes the history.\n\nCost: free at your size. R2 includes 10 GB a month free (Cloudflare's R2 pricing page, read today); two accounts with 90 days each should stay well under 1 GB.",
+   "options": [{ "id": "ok", "label": "Got it", "desc": "", "rec": true }]
+  },
+  {
+   "id": "where",
+   "area": "Backup screen",
+   "title": "Where Backup History Lives",
+   "why": "It only shows when the profile is signed in to sync.",
+   "options": [
+    { "id": "button", "label": "A · A button in Cloud Sync", "desc": "One more button in the card that's already there. Nothing new to read.", "img": "whereA.png", "rec": true },
+    { "id": "card", "label": "B · Its own card", "desc": "A separate card under Cloud Sync that says when the last copy was saved and what it's for.", "img": "whereB.png" }
+   ]
+  },
+  {
+   "id": "list",
+   "area": "Backup History",
+   "title": "The List of Days",
+   "why": "Tapping opens this list. Pick a day to restore it.",
+   "options": [
+    { "id": "counts", "label": "A · Day and number of entries", "desc": "The count helps you spot the day before something went missing.", "img": "listB.png", "rec": true },
+    { "id": "plain", "label": "B · Day only", "desc": "Shorter rows, nothing but the date and time.", "img": "listA.png" }
+   ]
+  },
+  {
+   "id": "confirm",
+   "area": "Backup History",
+   "title": "Before a Restore",
+   "why": "Picking a day shows this. It uses the same Merge and Replace as importing a backup file, and Goku saves a copy of right now first so a restore can be undone.",
+   "now": [{ "img": "confirm.png", "caption": "After picking Tue, Nov 17" }],
+   "options": [
+    { "id": "ok", "label": "Looks good", "desc": "", "rec": true },
+    { "id": "change", "label": "Change it", "desc": "Say what in the note." }
+   ]
+  }
+ ]
+}
