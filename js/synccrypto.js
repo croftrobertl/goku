@@ -50,7 +50,7 @@ export async function fromRecovery(bytes) { return { auth: b64(await hkdf(bytes,
 export const newDataKey = () => C.getRandomValues(new Uint8Array(32));
 export async function lockKey(raw, lock) { const iv = C.getRandomValues(new Uint8Array(12)); return { iv: b64(iv), ct: b64(await C.subtle.encrypt({ name: 'AES-GCM', iv }, lock, raw)) }; }
 export async function unlockKey(w, lock) { return new Uint8Array(await C.subtle.decrypt({ name: 'AES-GCM', iv: unb64(w.iv) }, lock, unb64(w.ct))); }
-export async function dataKeys(raw) { return { aes: await hkdf(raw, 'records'), ids: await hkdf(raw, 'ids', 'hmac') }; }
+export async function dataKeys(raw) { return { aes: await hkdf(raw, 'records'), ids: await hkdf(raw, 'ids', 'hmac'), snap: await hkdf(raw, 'snapshots') }; }
 
 // An entry id like "abc:food:2026-11-16" becomes an opaque id, so the server can't see types or dates.
 export async function rid(keys, id) { return b64url((await C.subtle.sign('HMAC', keys.ids, te.encode(id))).slice(0, 24)); }
@@ -61,4 +61,19 @@ export async function seal(keys, obj) {
 export async function open(keys, blob) {
   const u = unb64(blob);
   return JSON.parse(td.decode(await C.subtle.decrypt({ name: 'AES-GCM', iv: u.subarray(0, 12) }, keys.aes, u.subarray(12))));
+}
+
+// Backup history: a whole profile as one encrypted file. Compressed first where the browser can (first byte says which).
+export async function sealFile(keys, obj) {
+  let plain = te.encode(JSON.stringify(obj)), zip = 0;
+  if (typeof CompressionStream === 'function') { plain = new Uint8Array(await new Response(new Blob([plain]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()); zip = 1; }
+  const body = new Uint8Array(plain.length + 1); body[0] = zip; body.set(plain, 1);
+  const iv = C.getRandomValues(new Uint8Array(12)), ct = new Uint8Array(await C.subtle.encrypt({ name: 'AES-GCM', iv }, keys.snap, body));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return out;
+}
+export async function openFile(keys, bytes) {
+  const u = new Uint8Array(bytes), body = new Uint8Array(await C.subtle.decrypt({ name: 'AES-GCM', iv: u.subarray(0, 12) }, keys.snap, u.subarray(12)));
+  let plain = body.subarray(1);
+  if (body[0] === 1) plain = new Uint8Array(await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+  return JSON.parse(td.decode(plain));
 }

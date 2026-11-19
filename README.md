@@ -372,8 +372,18 @@ Nobody can reset a forgotten password: the **recovery key** shown once at sign-u
 is the only way back in. Forgetting both makes the cloud copy unreadable; the phone's own data is unaffected.
 
 **Server:** `worker/` (Cloudflare Worker + D1, free plan) at `https://goku-sync.croftrobertl.workers.dev`,
-answering only `https://croftrobertl.github.io`. `worker/test.mjs` runs 26 end-to-end checks against it
+answering only `https://croftrobertl.github.io`. `worker/test.mjs` runs 37 end-to-end checks against it
 (`SYNC_URL=… node test.mjs`, or against `npx wrangler dev` locally). Deploy with `npx wrangler deploy` from `worker/`.
+
+**Backup history (2.26).** Comes with Cloud Sync: **Backup and Sync → Backup History**. After changes sync
+(at most every 10 minutes), the phone sends one encrypted copy of the whole profile, the same content as
+Export Backup, to a Cloudflare R2 bucket (`goku-snapshots`). Each day keeps its latest copy and the newest
+90 days are kept; older ones are removed only when a new one arrives. Restoring a day asks **Merge** (bring
+back what's missing) or **Replace** (go back to that day), saves a "before a restore" copy first (newest 5
+kept) so it can be undone, and counts as a fresh edit so every signed-in phone follows. Copies are compressed,
+then AES-GCM encrypted under a key made from the data key; the server can't read them, and deleting the cloud
+copy deletes them too. Importing a backup file now syncs the same way (before 2.26, other phones kept their
+newer copies after an import).
 
 ---
 

@@ -1,7 +1,7 @@
 // End-to-end test of the sync server, run against `wrangler dev` (local database only).
 // Uses the app's own encryption code (js/synccrypto.js), acting as two phones.
 import * as K from '../js/synccrypto.js';
-const BASE = process.env.SYNC_URL || 'http://127.0.0.1:8787', ORIGIN = 'http://127.0.0.1:8768';
+const BASE = process.env.SYNC_URL || 'http://127.0.0.1:8787', ORIGIN = process.env.SYNC_ORIGIN || 'http://127.0.0.1:8768';
 let pass = 0, fail = 0;
 const ok = (c, m) => { c ? pass++ : fail++; console.log(c ? 'PASS' : 'FAIL', m); };
 async function call(path, body, token, origin = ORIGIN) {
@@ -74,9 +74,37 @@ ok(K.parseRecoveryKey(rk.toLowerCase().replace(/-/g, ' ')) !== null && K.parseRe
 const P4 = await K.fromPassword(user, 'fourth password!', ITER);
 ok((await call('password', { auth: P3.auth, newAuth: P4.auth, wrapPw: await K.lockKey(rawR, P4.lock) }, C2)).status === 200, 'password change works');
 ok((await call('sync', { since: 0, push: [] }, C2)).status === 200, 'this phone stays signed in after changing the password');
+// 7b backup history: encrypted copies in R2
+const file = (path, headers, body, token) => fetch(BASE + '/v1/' + path, { method: 'POST', headers: { Origin: ORIGIN, Authorization: 'Bearer ' + token, ...headers }, body });
+const keysC = await K.dataKeys(rawR), day = new Date().toISOString().slice(0, 10);
+const copy = { app: 'goku', profile: { name: 'Rob' }, entries: [{ id: 'p1:food:2026-11-16', data: { kcal: 1250 } }] };
+const put = (d, pre, token = C2, body) => K.sealFile(keysC, copy).then(async b => file('snapput', { 'Content-Type': 'application/octet-stream', 'X-Snap-Day': d, 'X-Snap-Meta': await K.seal(keysC, { n: 1 }), ...(pre ? { 'X-Snap-Pre': '1' } : {}) }, body || b, token));
+ok((await put(day)).status === 200 && (await put(day)).status === 200, 'a backup copy is stored (and the same day can be sent again)');
+let hist = (await call('snaps', {}, C2)).body.snaps;
+ok(hist.length === 1 && hist[0].id === day && !hist[0].pre && (await K.open(keysC, hist[0].meta)).n === 1, 'the list shows one copy for the day, with its locked label');
+const got1 = await file('snapget', { 'Content-Type': 'application/json' }, JSON.stringify({ id: day }), C2), bytes1 = new Uint8Array(await got1.arrayBuffer());
+ok(got1.status === 200 && (await K.openFile(keysC, bytes1)).entries[0].data.kcal === 1250, 'the copy comes back and opens with the data key');
+ok(!new TextDecoder().decode(bytes1).includes('Rob') && !new TextDecoder().decode(bytes1).includes('kcal'), 'the stored copy holds nothing readable');
+ok((await put('2026-01-01')).status === 400 && (await put('nonsense')).status === 400, 'a copy for a made-up day is refused');
+ok((await put(day, false, 'f'.repeat(64))).status === 401, 'a copy needs a signed-in phone');
+ok((await put(day, false, C2, new Uint8Array(8 * 1024 * 1024 + 1))).status === 413, 'a copy over 8 MB is refused');
+for (let i = 0; i < 7; i++) await put(day, true);
+hist = (await call('snaps', {}, C2)).body.snaps;
+ok(hist.filter(s => s.pre).length === 5 && hist.filter(s => !s.pre).length === 1, 'only the newest 5 "before a restore" copies are kept');
+ok((await file('snapget', { 'Content-Type': 'application/json' }, JSON.stringify({ id: '../../x' }), C2)).status === 400, 'a copy id can\'t reach outside the account');
+// a second account can't see the first one's copies
+const u2 = 'other' + Date.now().toString(36), Q = await K.fromPassword(u2, pw, ITER), raw2 = K.newDataKey();
+const T2 = (await call('signup', { user: u2, auth: Q.auth, recAuth: R.auth, wrapPw: await K.lockKey(raw2, Q.lock), wrapRec: await K.lockKey(raw2, R.lock), kdf: { iter: ITER } })).body.token;
+ok((await call('snaps', {}, T2)).body.snaps.length === 0 && (await file('snapget', { 'Content-Type': 'application/json' }, JSON.stringify({ id: day }), T2)).status === 404, 'another account sees none of them');
+await call('delete', { auth: Q.auth }, T2);
+
 ok((await call('delete', { auth: P3.auth }, C2)).status === 403, 'deleting needs the current password');
 ok((await call('delete', { auth: P4.auth }, C2)).status === 200, 'the account can be deleted');
 ok((await call('login', { user, auth: P4.auth })).status === 403, 'after deleting, nothing is left to sign in to');
+// the copies went with the account: a new account with the same number of none; check the bucket through a fresh sign-up of the same name
+const again = (await call('signup', { user, auth: P4.auth, recAuth: R.auth, wrapPw: await K.lockKey(rawR, P4.lock), wrapRec: await K.lockKey(rawR, R.lock), kdf: { iter: ITER } })).body.token;
+ok((await call('snaps', {}, again)).body.snaps.length === 0, 'deleting the account deleted its backup copies');
+await call('delete', { auth: P4.auth }, again);
 
 // 8 junk is refused
 ok((await call('sync', { since: 0, push: [{ rid: 'x', v: 1, blob: 'a' }] }, 'f'.repeat(64))).status === 401, 'a made-up token is refused');

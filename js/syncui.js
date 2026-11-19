@@ -1,9 +1,10 @@
 // Cloud sync screens (2.24, review 26): the card in Backup and Sync, making an account, the recovery key,
 // signing in on another phone, and the account actions. The work itself is in sync.js.
 import * as sync from './sync.js';
-import { S } from './state.js';
+import { S, today } from './state.js';
 import * as db from './db.js';
-import { overlay, ask, toast, esc } from './ui.js';
+import { overlay, ask, toast, esc, GLY } from './ui.js';
+import { addDays } from './time.js';
 
 const USER = /^[a-z0-9][a-z0-9._-]{2,29}$/, MIN_PW = 10;
 const ago = t => { const m = Math.round((Date.now() - t) / 60000);
@@ -28,7 +29,7 @@ export function syncCard(link) {
   return `<section class="card"><p class="lbl">Cloud Sync</p><p data-raw>${esc(link.lastAt ? 'Synced ' + ago(link.lastAt) + '.' : 'Syncing…')}</p>
     ${link.error ? `<p class="note" style="color:var(--warn)" data-raw>${esc(link.error)}</p>` : ''}
     <p class="note">Signed in as <b data-raw>${esc(link.user)}</b>. Changes sync by themselves when there's internet.</p>
-    <button class="cta2" id="syncNow" style="width:100%;margin-top:12px">Sync now</button><button class="cta2" id="syncPw" style="width:100%;margin-top:8px">Change password</button>
+    <button class="cta2" id="syncNow" style="width:100%;margin-top:12px">Sync now</button><button class="cta2" id="syncHist" style="width:100%;margin-top:8px">Backup history</button><button class="cta2" id="syncPw" style="width:100%;margin-top:8px">Change password</button>
     <button class="cta2" id="syncOut" style="width:100%;margin-top:8px">Sign out on this phone</button><button class="link" id="syncDel" style="width:100%;margin-top:4px">Delete the cloud copy</button></section>`;
 }
 
@@ -38,6 +39,7 @@ export async function syncClick(b, p) {
   if (id === 'syncOn') { if (await createFlow(p)) redraw(); return true; }
   if (id === 'syncHave' || id === 'syncAgain') { const pid = await signInFlow({ again: id === 'syncAgain' ? (await sync.getLink(p.id))?.user : null }); if (pid) { if (pid !== p.id) await window.goku.open(pid); else redraw(); } return true; }
   if (id === 'syncNow') { b.disabled = true; b.textContent = 'Syncing…'; await sync.syncNow(p.id); const l = await sync.getLink(p.id); toast(l?.error ? l.error : 'Synced', l?.error ? 5000 : 2400); redraw(); return true; }
+  if (id === 'syncHist') { await historyFlow(p); return true; }
   if (id === 'syncPw') { await passwordFlow(p); return true; }
   if (id === 'syncOut') {
     if (await ask('Sign out on this phone?', 'Syncing stops here. Everything stays on this phone and in the cloud. You can sign in again any time.', [{ label: 'Sign out', value: true }])) { await sync.signOut(p.id); toast('Signed out of sync'); redraw(); }
@@ -164,4 +166,48 @@ async function deleteFlow(p) {
     <button class="cta" style="margin-top:12px">Delete it</button><button class="cta2" data-close style="width:100%;margin-top:8px">Cancel</button>`, 'Delete cloud copy',
   async (v, msg, b) => { if (!v.p0) return 'Enter your password.'; working(b, 'Deleting…'); await sync.deleteAccount(p.id, v.p0); return true; });
   if (ok) toast('Cloud copy deleted. Everything here stays.');
+}
+
+// Backup History (2.26, review 28): the cloud's copy of each of the last 90 days. Pick one, then Merge or Replace.
+// A copy of right now is saved first, so a restore can be undone from the same list.
+const dayName = (p, id) => { const d = id.slice(0, 10), t = today(p);
+  return d === t ? 'Today' : d === addDays(t, -1) ? 'Yesterday' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
+const clock = (p, at) => { try { return new Date(at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: p.tz || undefined }); } catch { return new Date(at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } };
+async function historyFlow(p) {
+  const { el, close } = overlay(`<div class="scroll"><h1>Backup History</h1>
+    <p class="sub" style="margin:8px 0">One locked copy for each day something changed, kept for 90 days. Pick a day to restore.</p>
+    <div id="hlist"><p class="note" role="status">Loading…</p></div>
+    <button class="cta2" data-close style="width:100%;margin-top:12px">Close</button></div>`, { label: 'Backup history' });
+  const box = el.querySelector('#hlist');
+  let snaps = [];
+  try { snaps = await sync.listSnapshots(p.id); }
+  catch (e) { box.innerHTML = `<p class="msg" role="status" data-raw>${esc(e.message || 'Something went wrong.')}</p>`; }
+  if (snaps.length) box.innerHTML = `<ul class="list">${snaps.map((s, i) => `<li><button class="itemrow" data-snap="${i}"><span><b data-raw>${esc(dayName(p, s.id))} · ${esc(clock(p, s.at))}</b><br>
+    <span class="chain" data-raw>${s.pre ? 'Before a restore' : ''}${s.pre && s.n != null ? ' · ' : ''}${s.n != null ? `${s.n.toLocaleString('en-US')} entr${s.n === 1 ? 'y' : 'ies'}` : ''}</span></span><span class="chev" aria-hidden="true">${GLY.right}</span></button></li>`).join('')}</ul>`;
+  else if (!box.querySelector('.msg')) box.innerHTML = '<p class="note">No copies yet. The first one is saved after the next sync.</p>';
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    if (b.hasAttribute('data-close')) return close();
+    if (b.dataset.snap == null) return;
+    const s = snaps[+b.dataset.snap], label = dayName(p, s.id), rows = [...el.querySelectorAll('[data-snap]')];
+    rows.forEach(r => { r.disabled = true; });
+    const fail = async m => { await ask('Restore stopped', `Nothing was changed. (${esc(m || 'Unknown error')})`, []); rows.forEach(r => { r.disabled = false; }); };
+    let back;
+    try {
+      const { parseExport } = await import('./settings.js');
+      back = parseExport(await sync.getSnapshot(p.id, s.id));
+      if (back.prof?.id !== p.id) throw new Error('That copy belongs to another profile.');
+    } catch (err) { return fail(err.message); }
+    const days = back.entries.map(x => x.day).filter(d => d > '1970-01-01').sort(), n = back.entries.length;
+    const choice = await ask(`Restore ${label}?`, `<b>${esc(back.prof.name)}</b><br>${n.toLocaleString('en-US')} entr${n === 1 ? 'y' : 'ies'}${days.length ? ` · From ${esc(days[0])} to ${esc(days.at(-1))}` : ''}<br><br>
+      <b>Merge</b> keeps everything here and brings back anything that's missing.<br>
+      <b>Replace</b> makes this profile exactly what it was that day, on every phone that syncs it.<br><br>
+      Goku saves a copy of right now first, so you can undo this.`, [{ label: 'Merge', value: 'merge' }, { label: 'Replace', value: 'replace' }]);
+    if (!choice) { rows.forEach(r => { r.disabled = false; }); return; }
+    try {
+      await sync.snapshotBeforeRestore(p.id); // no safety copy, no restore
+      await (await import('./settings.js')).applyBackup(p, back.prof, back.entries, choice);
+    } catch (err) { return fail(err.message); }
+    close(); toast(`Restored ${label}`); sync.syncSoon(p.id, 300); window.goku.render();
+  });
 }

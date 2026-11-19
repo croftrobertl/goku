@@ -11,6 +11,11 @@
 //   /v1/password {auth, newAuth, wrapPw}                          -> {ok}      (signs out other phones)
 //   /v1/logout   {}                                               -> {ok}
 //   /v1/delete   {auth}                                           -> {ok}      (erases the account and all its data)
+//
+// Backup history (R2 bucket "goku-snapshots"): one encrypted copy of the whole profile per day, the newest 90 kept.
+//   /v1/snapput  body = the encrypted copy (bytes); headers X-Snap-Day, X-Snap-Meta (encrypted label), X-Snap-Pre -> {ok, id}
+//   /v1/snaps    {}                                               -> {snaps: [{id, at, size, meta, pre}]}  newest first
+//   /v1/snapget  {id}                                             -> the encrypted copy (bytes)
 
 const MAX_BODY = 2 * 1024 * 1024;     // one request (the free plan allows 10 ms of work per request)
 const MAX_BLOB = 1024 * 1024;         // one encrypted record (a profile photo can be large)
@@ -19,6 +24,8 @@ const MAX_PULL = 500;
 const MAX_RECORDS = 50000;            // per account, years of daily logging
 const MAX_FAILS = 10, LOCK_MS = 15 * 60000;
 const SIGNUPS_PER_DAY = 5;            // per network
+const MAX_SNAP = 8 * 1024 * 1024;     // one backup copy (compressed and encrypted on the phone)
+const KEEP_DAYS = 90, KEEP_PRE = 5;   // daily copies kept, and "before a restore" copies kept
 const TOKEN_IDLE_MS = 400 * 86400000; // a phone unused for over a year signs in again
 
 const USER = /^[a-z0-9][a-z0-9._-]{2,29}$/;
@@ -41,7 +48,7 @@ function cors(req, env) {
   const origin = req.headers.get('Origin') || '';
   const ok = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).includes(origin);
   return ok ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Max-Age': '86400', Vary: 'Origin' } : { Vary: 'Origin' };
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Snap-Day, X-Snap-Meta, X-Snap-Pre', 'Access-Control-Max-Age': '86400', Vary: 'Origin' } : { Vary: 'Origin' };
 }
 const json = (obj, status, headers) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...headers } });
 
@@ -76,6 +83,19 @@ async function checkKey(env, u, field, value) {
   const fails = u.fails + 1, lock = fails >= MAX_FAILS ? now + LOCK_MS : 0;
   await env.DB.prepare('UPDATE users SET fails = ?, locked_until = ? WHERE id = ?').bind(lock ? 0 : fails, lock, u.id).run();
   throw new Fail(403, field === 'rec' ? 'That recovery key is not right.' : 'Wrong username or password.');
+}
+
+// Backup copies live under u/<account number>/<day> (or <day>.pre.<time> for the copy saved before a restore).
+const SNAP_ID = /^\d{4}-\d{2}-\d{2}(\.pre\.\d{13})?$/;
+const snapKey = (userId, id) => `u/${userId}/${id}`;
+async function listSnaps(env, userId) {
+  const prefix = snapKey(userId, ''), out = []; let cursor;
+  do {
+    const r = await env.SNAPS.list({ prefix, cursor, include: ['customMetadata'] });
+    for (const o of r.objects) { const id = o.key.slice(prefix.length); if (SNAP_ID.test(id)) out.push({ id, at: Number(o.customMetadata?.at) || o.uploaded.getTime(), size: o.size, meta: o.customMetadata?.meta || '', pre: id.includes('.pre.') }); }
+    cursor = r.truncated ? r.cursor : null;
+  } while (cursor);
+  return out.sort((a, b) => b.at - a.at);
 }
 
 const routes = {
@@ -142,6 +162,33 @@ const routes = {
     return { pull: results.slice(0, MAX_PULL).map(r => ({ ...r, del: !!r.del })), more };
   },
 
+  // The body is the encrypted copy itself, not JSON (see the fetch handler).
+  async snapput(body, env, req) {
+    const { userId } = await signedIn(req, env);
+    const day = req.headers.get('X-Snap-Day') || '', meta = req.headers.get('X-Snap-Meta') || '', now = Date.now();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !(Math.abs(Date.parse(day) - now) < 3 * 86400000)) throw new Fail(400, 'Bad day.');
+    if (meta.length > 800 || (meta && !B64.test(meta))) throw new Fail(400, 'Bad label.');
+    if (!body.byteLength) throw new Fail(400, 'Empty copy.');
+    const id = req.headers.get('X-Snap-Pre') === '1' ? `${day}.pre.${now}` : day; // the same day's copy is replaced
+    await env.SNAPS.put(snapKey(userId, id), body, { customMetadata: { meta, at: String(now) } });
+    const all = await listSnaps(env, userId), old = [...all.filter(s => !s.pre).slice(KEEP_DAYS), ...all.filter(s => s.pre).slice(KEEP_PRE)];
+    if (old.length) await env.SNAPS.delete(old.map(s => snapKey(userId, s.id)));
+    return { ok: true, id };
+  },
+
+  async snaps(b, env, req) {
+    const { userId } = await signedIn(req, env);
+    return { snaps: await listSnaps(env, userId) };
+  },
+
+  async snapget(b, env, req) {
+    const { userId } = await signedIn(req, env);
+    if (typeof b.id !== 'string' || !SNAP_ID.test(b.id)) throw new Fail(400, 'Bad copy id.');
+    const o = await env.SNAPS.get(snapKey(userId, b.id));
+    if (!o) throw new Fail(404, 'That copy is gone.');
+    return { raw: o.body };
+  },
+
   async password(b, env, req) {
     const { userId, tokenHash } = await signedIn(req, env);
     const u = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
@@ -169,6 +216,8 @@ const routes = {
       env.DB.prepare('DELETE FROM tokens WHERE user_id = ?').bind(userId),
       env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId),
     ]);
+    const snaps = await listSnaps(env, userId);
+    for (let i = 0; i < snaps.length; i += 500) await env.SNAPS.delete(snaps.slice(i, i + 500).map(s => snapKey(userId, s.id)));
     return { ok: true };
   },
 };
@@ -180,12 +229,20 @@ export default {
     try {
       const m = /^\/v1\/(\w+)$/.exec(new URL(req.url).pathname);
       if (req.method !== 'POST' || !m || !Object.hasOwn(routes, m[1])) throw new Fail(404, 'Not found.');
+      if (m[1] === 'snapput') { // bytes, not JSON
+        if (Number(req.headers.get('Content-Length') || 0) > MAX_SNAP) throw new Fail(413, 'Too large.');
+        const bytes = await req.arrayBuffer();
+        if (bytes.byteLength > MAX_SNAP) throw new Fail(413, 'Too large.');
+        return json(await routes.snapput(bytes, env, req), 200, headers);
+      }
       if (Number(req.headers.get('Content-Length') || 0) > MAX_BODY) throw new Fail(413, 'Too large.');
       const text = await req.text();
       if (text.length > MAX_BODY) throw new Fail(413, 'Too large.');
       let body; try { body = JSON.parse(text || '{}'); } catch { throw new Fail(400, 'Bad JSON.'); }
       if (!body || typeof body !== 'object') throw new Fail(400, 'Bad JSON.');
-      return json(await routes[m[1]](body, env, req), 200, headers);
+      const out = await routes[m[1]](body, env, req);
+      if (out.raw) return new Response(out.raw, { status: 200, headers: { 'Content-Type': 'application/octet-stream', 'Cache-Control': 'no-store', ...headers } });
+      return json(out, 200, headers);
     } catch (e) {
       if (e instanceof Fail) return json({ error: e.message }, e.status, headers);
       console.error(e);

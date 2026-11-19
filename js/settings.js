@@ -41,7 +41,7 @@ export async function buildExport(p) {
   };
 }
 
-function parseExport(obj) {
+export function parseExport(obj) {
   if (obj?.app !== 'goku' || typeof obj.schemaVersion !== 'number') throw new Error("This file isn't a Goku backup.");
   if (obj.schemaVersion > SCHEMA_VERSION) throw new Error('This backup is from a newer version of Goku. Update the app first.');
   const raw = (Array.isArray(obj.entries) ? obj.entries : []).map(e => e && typeof e === 'object'
@@ -187,6 +187,28 @@ export function restoreFirst() {
   });
 }
 
+// Writes a backup into the open profile (shared by Import and Backup History's restore).
+// Replace swaps the profile's entries and settings for the backup's; Merge adds what's missing and takes newer copies.
+// Whatever this brings back counts as edited now (2.26), so with sync on every phone follows instead of keeping
+// its own newer copy or an old deletion.
+export async function applyBackup(cur, prof, entries, choice) {
+  const { lockRemember, ...rest } = prof;
+  const mine = await db.byIndex('entries', 'profile', cur.id), here = new Map(mine.map(e => [e.id, e]));
+  const now = Math.max(Date.now(), ...mine.map(e => (e.updatedAt || 0) + 1));
+  if (choice === 'replace') {
+    await db.replaceProfileEntries(cur.id, entries.map(e => here.get(e.id)?.updatedAt === e.updatedAt ? e : { ...e, updatedAt: now }));
+    Object.assign(cur, { name: rest.name, accent: rest.accent || cur.accent, dayEndsAt: rest.dayEndsAt, modules: { ...cur.modules, ...rest.modules },
+      units: rest.units || cur.units, tz: rest.tz || cur.tz, custom: rest.custom, about: rest.about || cur.about, coach: rest.about ? rest.coach || cur.coach : cur.coach,
+      avatar: rest.avatar === undefined ? cur.avatar : rest.avatar,
+      // Duels stay as chosen on this phone, and an older backup without a Home layout keeps this one.
+      settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([k, v]) => v !== null && k !== 'duel' && !(['homeOrder', 'homeHidden'].includes(k) && !v.length))) } });
+    await saveProfile(cur);
+  } else {
+    await db.putMany('entries', entries.filter(e => !here.has(e.id) || (e.updatedAt || 0) > (here.get(e.id).updatedAt || 0))
+      .map(e => here.has(e.id) ? e : { ...e, updatedAt: now }));
+  }
+}
+
 async function previewImport({ prof, entries, skipped, newer, madeBy }) {
   const cur = profile();
   if (newer && !(await ask('This backup is from a newer Goku', `It was made by version ${esc(madeBy)}; this phone has ${esc(VERSION)}. Newer kinds of answers would be left out. Update Goku first if you can.`,
@@ -214,7 +236,6 @@ async function previewImport({ prof, entries, skipped, newer, madeBy }) {
   if (choice === 'replace' && !(await ask('Replace everything?',
     `All entries for ${esc(cur.name)} on this phone will be swapped for the backup's. If anything goes wrong, nothing is changed. Export a backup first if you're unsure.`,
     [{ label: 'Replace', value: true, danger: true }]))) return;
-  const { lockRemember, ...rest } = prof;
   try {
     if (choice === 'add') {
       const p = profileFromBackup(prof);
@@ -223,18 +244,7 @@ async function previewImport({ prof, entries, skipped, newer, madeBy }) {
       await db.setMeta('seeded:' + p.id, true);
       if (await showLock(p, { mode: 'create' })) window.goku.open(p.id);
       else window.goku.render();
-    } else if (choice === 'replace') {
-      await db.replaceProfileEntries(cur.id, entries);
-      Object.assign(cur, { name: rest.name, accent: rest.accent || cur.accent, dayEndsAt: rest.dayEndsAt, modules: { ...cur.modules, ...rest.modules },
-        units: rest.units || cur.units, tz: rest.tz || cur.tz, custom: rest.custom, about: rest.about || cur.about, coach: rest.about ? rest.coach || cur.coach : cur.coach,
-        avatar: rest.avatar === undefined ? cur.avatar : rest.avatar,
-        // Duels stay as chosen on this phone, and an older backup without a Home layout keeps this one.
-        settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([k, v]) => v !== null && k !== 'duel' && !(['homeOrder', 'homeHidden'].includes(k) && !v.length))) } });
-      await saveProfile(cur);
-    } else {
-      const here = new Map((await db.byIndex('entries', 'profile', cur.id)).map(e => [e.id, e]));
-      await db.putMany('entries', entries.filter(e => !here.has(e.id) || (e.updatedAt || 0) > (here.get(e.id).updatedAt || 0)));
-    }
+    } else await applyBackup(cur, prof, entries, choice);
     toast('Import complete');
   } catch (e) {
     await ask('Import stopped', `Nothing was changed. (${esc(e.message || 'Unknown error')})`, []);

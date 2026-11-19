@@ -7,6 +7,10 @@
   "d1_databases": [
     { "binding": "DB", "database_name": "goku-sync", "database_id": "9ef7a2d4-405c-4260-bde2-f598ef3df32d" }
   ],
+  // Backup history: encrypted daily copies of each profile.
+  "r2_buckets": [
+    { "binding": "SNAPS", "bucket_name": "goku-snapshots" }
+  ],
   "vars": {
     // Only the app itself may call this server from a browser. (Local testing uses `wrangler dev`, which reads .dev.vars.)
     "ALLOWED_ORIGINS": "https://croftrobertl.github.io"

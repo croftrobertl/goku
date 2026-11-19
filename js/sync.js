@@ -2,18 +2,20 @@
 // Off until someone signs in: with no account linked, this file makes no network requests at all.
 //
 // Each phone keeps a link per profile in meta "sync:<profileId>":
-//   { user, token, key (the data key), since (last change number seen), known: { entryId: updatedAt }, profileHash, lastAt, error }
+//   { user, token, key (the data key), since (last change number seen), known: { entryId: updatedAt }, profileHash, lastAt, error,
+//     snapAt (when the last backup copy was sent), snapDirty (changes synced since then) }
 // "known" is what this phone and the server last agreed on, so changes are found by comparing, with no hooks:
 //   an entry whose updatedAt differs is sent; an id in "known" that's gone from the phone is sent as deleted.
 // The newest edit wins (by updatedAt). The server can't read anything; see synccrypto.js.
 import * as db from './db.js';
 import * as K from './synccrypto.js';
-import { S, newProfile } from './state.js';
+import { S, newProfile, today } from './state.js';
 
 const LOCAL = /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
 export const SYNC_URL = LOCAL ? 'http://127.0.0.1:8787' : 'https://goku-sync.croftrobertl.workers.dev';
 const PROFILE_ID = '~profile'; // the profile's own settings travel as one record under this id
 const MAX_BATCH = 150, MAX_BATCH_BYTES = 900 * 1024;
+const SNAP_GAP = 10 * 60000; // a backup copy at most this often
 const linkKey = pid => 'sync:' + pid;
 
 export class SyncError extends Error { constructor(msg, status) { super(msg); this.status = status; } }
@@ -25,6 +27,15 @@ async function call(path, body, token) {
   const out = await r.json().catch(() => ({}));
   if (!r.ok) throw new SyncError(out.error || 'The sync server had a problem. Try again later.', r.status);
   return out;
+}
+
+// The same, for the two backup-history calls that send or fetch a file instead of JSON.
+async function callFile(path, { headers = {}, body }, token) {
+  let r;
+  try { r = await fetch(SYNC_URL + '/v1/' + path, { method: 'POST', headers: { Authorization: 'Bearer ' + token, ...headers }, body, cache: 'no-store' }); }
+  catch { throw new SyncError('No connection. Try again when there\'s internet.', 0); }
+  if (!r.ok) throw new SyncError((await r.json().catch(() => ({}))).error || 'The sync server had a problem. Try again later.', r.status);
+  return r;
 }
 
 export const getLink = pid => db.getMeta(linkKey(pid));
@@ -138,6 +149,11 @@ async function run(pid) {
     }
     link.lastAt = Date.now(); link.error = '';
     if (got) window.goku?.render?.(); // only when another phone's changes arrived, so typing isn't interrupted
+    // Backup history: after changes, send a fresh copy of the whole profile (today's replaces today's earlier one).
+    if (out.length || got) link.snapDirty = true;
+    if ((link.snapDirty || !link.snapAt) && Date.now() - (link.snapAt || 0) > SNAP_GAP) {
+      try { await sendSnapshot(p, keys, link.token); link.snapAt = Date.now(); link.snapDirty = false; } catch { /* next sync tries again */ }
+    }
   } catch (e) {
     link.error = e instanceof SyncError ? e.message : 'Sync stopped: ' + (e.message || 'unknown problem');
     if (e.status === 401) link.token = ''; // signed out elsewhere (password reset): sign in again
@@ -174,6 +190,31 @@ async function apply(pid, keys, link, pull) {
     }
   } finally { applying = false; }
   return n;
+}
+
+// ---------- Backup history (2.26) ----------
+// One encrypted copy of the profile per day in the cloud, 90 days kept. The copy is the same thing Export Backup makes.
+async function sendSnapshot(p, keys, token, { pre = false } = {}) {
+  const obj = await (await import('./settings.js')).buildExport(p);
+  const meta = await K.seal(keys, { n: obj.entries.length }); // the list shows this without downloading the copy
+  await callFile('snapput', { headers: { 'Content-Type': 'application/octet-stream', 'X-Snap-Day': today(p), 'X-Snap-Meta': meta, ...(pre ? { 'X-Snap-Pre': '1' } : {}) }, body: await K.sealFile(keys, obj) }, token);
+}
+const linkKeys = async pid => { const link = await getLink(pid); if (!link?.token) throw new SyncError('Sign in again.', 401); return { link, keys: await K.dataKeys(K.unb64(link.key)) }; };
+// Saves a copy of right now, kept apart from the daily ones, so a restore can be undone.
+export async function snapshotBeforeRestore(pid) {
+  const { link, keys } = await linkKeys(pid);
+  await sendSnapshot(S.profiles.find(x => x.id === pid), keys, link.token, { pre: true });
+}
+// Newest first: [{ id, at, pre, n (entries, or null) }]
+export async function listSnapshots(pid) {
+  const { link, keys } = await linkKeys(pid), { snaps } = await call('snaps', {}, link.token);
+  return Promise.all(snaps.map(async s => ({ id: s.id, at: s.at, pre: s.pre, n: (await K.open(keys, s.meta).catch(() => null))?.n ?? null })));
+}
+// Downloads and unlocks one copy. Resolves with the same object Export Backup writes.
+export async function getSnapshot(pid, id) {
+  const { link, keys } = await linkKeys(pid);
+  const r = await callFile('snapget', { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }, link.token);
+  return K.openFile(keys, await r.arrayBuffer());
 }
 
 // ---------- When to sync ----------
