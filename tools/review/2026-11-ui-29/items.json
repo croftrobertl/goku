@@ -1,0 +1,211 @@
+{
+ "batch": "2026-11-ui-29",
+ "title": "Chi-Chi Test: Backup History",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What Was Checked",
+   "why": "What was checked: the Backup History button, the list, the restore question, the \"Restore stopped\" message and the message after a restore. Seven screen sizes plus a 320 px phone, dark mode, larger text, all 9 themes in each look, both profile kinds, and the keyboard.\n\nLast pass: the Water sheet fixes held (10 of 10 checks). Sync and backup history still pass (16 of 16 and 18 of 18). The full app was measured again, 352 screens: no page errors and nothing new that is real. One new report, the \"Sign in to sync\" link on the setup screen, was the test measuring a link that was scrolled out of view; scrolled into view it taps fine.\n\nClean on the new screens: no cut-off text, no overflow, no low-contrast text in any theme, every row at least 44 px tall.\n\nTwo plain bugs, fixed and retested (21 of 21 checks; 4 failed before). Not published yet.\n1. Restore question: on a sideways phone, or a small phone with larger text, the title was cut off at the top and could not be scrolled to. It was 15 to 19 px above the sheet. Now it starts at the top. This was in the shared question sheet, so every tall question gets the fix. Short ones are pixel-for-pixel unchanged.\n2. Keyboard: after cancelling the restore question, Escape no longer closed the list. Now it does, and focus goes back to the Backup History button.\n\nNot tested: a real iPhone or Safari, and the clean-up of copies older than 90 days.\n\nThe next six items are design choices. Nothing in them has been changed.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "area": "1 · Backup History list",
+   "title": "Close Button Is At The Bottom Of The List",
+   "why": "Problem: with many copies, Close is below up to 95 rows, and it jumps down when the rows load.\n\nFix: keep Close fixed under the list, the way other sheets in the app do.",
+   "now": [
+    {
+     "img": "close-before.png",
+     "caption": "Now: Close is off screen until you scroll to the end."
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Close stays in view under the list.",
+     "img": "close-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Close stays at the end of the list.",
+     "img": "close-before.png"
+    }
+   ]
+  },
+  {
+   "id": "title",
+   "area": "2 · Restore question",
+   "title": "Title Doesn't Say Which Copy",
+   "why": "Problem: when several rows say Today, the question only says \"Restore Today?\".\n\nFix: add the time, so it reads \"Restore Today · 5:56 PM?\".",
+   "now": [
+    {
+     "img": "ask-before.png",
+     "caption": "Now: no time in the title."
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "The title shows the day and the time.",
+     "img": "ask-title-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "The title shows the day only.",
+     "img": "ask-before.png"
+    }
+   ]
+  },
+  {
+   "id": "date",
+   "area": "3 · Restore question",
+   "title": "Dates Are Written Like A Computer",
+   "why": "Problem: the line reads \"From 2026-11-19 to 2026-11-19\". The rest of the app writes dates like \"Nov 19\".\n\nFix: write \"Aug 22 to Nov 19, 2026\", or just \"Nov 19, 2026\" when it is one day.",
+   "now": [
+    {
+     "img": "ask-before.png",
+     "caption": "Now: 2026-11-19 to 2026-11-19."
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Dates in words. One day shows once.",
+     "img": "ask-date-after2.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Dates stay as 2026-11-19.",
+     "img": "ask-before.png"
+    }
+   ]
+  },
+  {
+   "id": "toast",
+   "area": "4 · After a restore",
+   "title": "\"Restored Today\" Reads Oddly",
+   "why": "Problem: the message after a restore says \"Restored Today\", which sounds like when it happened, not what was restored.\n\nFix: say \"Backup restored\".",
+   "now": [
+    {
+     "img": "toast-before.png",
+     "caption": "Now: Restored Today."
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "The message says Backup restored.",
+     "img": "toast-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "The message says Restored Today.",
+     "img": "toast-before.png"
+    }
+   ]
+  },
+  {
+   "id": "empty",
+   "area": "5 · Backup History list",
+   "title": "Loading And Empty Messages Are Small And Off To The Left",
+   "why": "Problem: \"Loading…\" and \"No copies yet\" are small and left-aligned under a centred heading.\n\nFix: centre them and use the same text size as the line above.",
+   "now": [
+    {
+     "img": "loading-before.png",
+     "caption": "Now: Loading."
+    },
+    {
+     "img": "empty-before.png",
+     "caption": "Now: no copies yet."
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Centred, same size as the line above. Picture shows the empty message; Loading gets the same.",
+     "img": "empty-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Small and left-aligned.",
+     "img": "empty-before.png"
+    }
+   ]
+  },
+  {
+   "id": "arrow",
+   "area": "6 · Every list row in the app",
+   "title": "Row Arrow Sits 1.8 px Low",
+   "why": "Problem: the small arrow at the right of a row is 1.8 px below the middle (2.3 px with larger text). Pictures are zoomed 6 times. This is in three places in the app, not only Backup History.\n\nFix: centre it exactly.",
+   "now": [
+    {
+     "img": "arrow-before.png",
+     "caption": "Now, zoomed 6 times: 1.8 px low."
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Fix it",
+     "desc": "Arrow centred, 0 px off, everywhere it is used.",
+     "img": "arrow-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Too small to matter.",
+     "img": "arrow-before.png"
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "My Recommendation",
+   "why": "Fix 1 to 5. They are small, each one stays inside Backup History, and each already uses a pattern the app has.\n\nItem 6 is your call: it is correct to fix, but nobody will see 1.8 px, and it touches rows outside this screen.\n\nThe two bugs I fixed are on this Mac only. They go out with whatever you pick here, as version 2.26.1, after you say publish.",
+   "options": [
+    {
+     "id": "with",
+     "label": "Publish bug fixes with my picks",
+     "desc": "One update, 2.26.1.",
+     "rec": true
+    },
+    {
+     "id": "now",
+     "label": "Publish the bug fixes now",
+     "desc": "Then the picks as a second update."
+    },
+    {
+     "id": "wait",
+     "label": "Don't publish yet",
+     "desc": "I want to ask something first."
+    }
+   ]
+  }
+ ]
+}
