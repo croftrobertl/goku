@@ -173,25 +173,29 @@ async function deleteFlow(p) {
 const dayName = (p, id) => { const d = id.slice(0, 10), t = today(p);
   return d === t ? 'Today' : d === addDays(t, -1) ? 'Yesterday' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
 const clock = (p, at) => { try { return new Date(at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: p.tz || undefined }); } catch { return new Date(at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } };
+// "Nov 19, 2026", "Aug 22 to Nov 19, 2026", or with both years when they differ.
+const span = (a, b) => { const f = (d, y) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(y ? { year: 'numeric' } : {}) });
+  return a === b ? f(b, true) : `${f(a, a.slice(0, 4) !== b.slice(0, 4))} to ${f(b, true)}`; };
 async function historyFlow(p) {
   const { el, close } = overlay(`<div class="scroll"><h1>Backup History</h1>
     <p class="sub" style="margin:8px 0">One locked copy for each day something changed, kept for 90 days. Pick a day to restore.</p>
-    <div id="hlist"><p class="note" role="status">Loading…</p></div>
-    <button class="cta2" data-close style="width:100%;margin-top:12px">Close</button></div>`, { label: 'Backup history' });
+    <div id="hlist"><p class="note" role="status" style="text-align:center;font-size:.9rem">Loading…</p></div></div>
+    <button class="cta2" data-close style="width:100%;margin-bottom:12px">Close</button>`, { label: 'Backup history' }); // Close sits under the list, always in view (review 29)
   const box = el.querySelector('#hlist');
   let snaps = [];
   try { snaps = await sync.listSnapshots(p.id); }
   catch (e) { box.innerHTML = `<p class="msg" role="status" data-raw>${esc(e.message || 'Something went wrong.')}</p>`; }
   if (snaps.length) box.innerHTML = `<ul class="list">${snaps.map((s, i) => `<li><button class="itemrow" data-snap="${i}"><span><b data-raw>${esc(dayName(p, s.id))} · ${esc(clock(p, s.at))}</b><br>
     <span class="chain" data-raw>${s.pre ? 'Before a restore' : ''}${s.pre && s.n != null ? ' · ' : ''}${s.n != null ? `${s.n.toLocaleString('en-US')} entr${s.n === 1 ? 'y' : 'ies'}` : ''}</span></span><span class="chev" aria-hidden="true">${GLY.right}</span></button></li>`).join('')}</ul>`;
-  else if (!box.querySelector('.msg')) box.innerHTML = '<p class="note">No copies yet. The first one is saved after the next sync.</p>';
+  else if (!box.querySelector('.msg')) box.innerHTML = '<p class="note" style="text-align:center;font-size:.9rem">No copies yet. The first one is saved after the next sync.</p>';
   el.addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b || b.disabled) return;
     if (b.hasAttribute('data-close')) return close();
     if (b.dataset.snap == null) return;
-    const s = snaps[+b.dataset.snap], label = dayName(p, s.id), rows = [...el.querySelectorAll('[data-snap]')];
+    const s = snaps[+b.dataset.snap], label = `${dayName(p, s.id)} · ${clock(p, s.at)}`, rows = [...el.querySelectorAll('[data-snap]')];
     rows.forEach(r => { r.disabled = true; });
-    const fail = async m => { await ask('Restore stopped', `Nothing was changed. (${esc(m || 'Unknown error')})`, []); rows.forEach(r => { r.disabled = false; }); };
+    const back2 = () => { rows.forEach(r => { r.disabled = false; }); b.focus({ preventScroll: true }); }; // the row was disabled, so focus has to be put back by hand
+    const fail = async m => { await ask('Restore stopped', `Nothing was changed. (${esc(m || 'Unknown error')})`, []); back2(); };
     let back;
     try {
       const { parseExport } = await import('./settings.js');
@@ -199,15 +203,15 @@ async function historyFlow(p) {
       if (back.prof?.id !== p.id) throw new Error('That copy belongs to another profile.');
     } catch (err) { return fail(err.message); }
     const days = back.entries.map(x => x.day).filter(d => d > '1970-01-01').sort(), n = back.entries.length;
-    const choice = await ask(`Restore ${label}?`, `<b>${esc(back.prof.name)}</b><br>${n.toLocaleString('en-US')} entr${n === 1 ? 'y' : 'ies'}${days.length ? ` · From ${esc(days[0])} to ${esc(days.at(-1))}` : ''}<br><br>
+    const choice = await ask(`Restore ${label}?`, `<b>${esc(back.prof.name)}</b><br>${n.toLocaleString('en-US')} entr${n === 1 ? 'y' : 'ies'}${days.length ? ` · ${esc(span(days[0], days.at(-1)))}` : ''}<br><br>
       <b>Merge</b> keeps everything here and brings back anything that's missing.<br>
       <b>Replace</b> makes this profile exactly what it was that day, on every phone that syncs it.<br><br>
       Goku saves a copy of right now first, so you can undo this.`, [{ label: 'Merge', value: 'merge' }, { label: 'Replace', value: 'replace' }]);
-    if (!choice) { rows.forEach(r => { r.disabled = false; }); return; }
+    if (!choice) { back2(); return; }
     try {
       await sync.snapshotBeforeRestore(p.id); // no safety copy, no restore
       await (await import('./settings.js')).applyBackup(p, back.prof, back.entries, choice);
     } catch (err) { return fail(err.message); }
-    close(); toast(`Restored ${label}`); sync.syncSoon(p.id, 300); window.goku.render();
+    close(); toast('Backup restored'); sync.syncSoon(p.id, 300); window.goku.render();
   });
 }

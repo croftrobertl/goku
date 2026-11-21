@@ -96,11 +96,11 @@ export function discardGuard(el) {
 export function ask(title, body, buttons) {
   return new Promise(resolve => {
     const { el, close } = overlay(`
-      <div class="scroll" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="scroll" style="display:flex;flex-direction:column"><div style="display:flex;flex-direction:column;margin:auto 0">
         <h1>${esc(title)}</h1><div class="sub" style="margin:8px 0 16px">${body}</div>
         ${buttons.map((b, i) => `<button class="${b.danger ? 'cta danger-fill' : i === 0 ? 'cta' : 'cta2'}" data-i="${i}" style="margin-top:10px;width:100%">${esc(b.label)}</button>`).join('')}
         <button class="${buttons.length ? 'cta2' : 'cta'}" data-i="-1" data-close style="margin-top:10px;width:100%">${buttons.length ? 'Cancel' : 'OK'}</button>
-      </div>`, { label: title });
+      </div></div>`, { label: title }); // auto margins centre a short question; a tall one starts at the top so its title can be scrolled to
     el.addEventListener('click', e => {
       const b = e.target.closest('button[data-i]'); if (!b) return;
       close(); resolve(+b.dataset.i < 0 ? null : buttons[+b.dataset.i].value);

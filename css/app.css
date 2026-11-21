@@ -854,7 +854,7 @@ html:has(.overlay.capsule-setup):not(:has(.overlay.capsule-setup ~ .overlay)), b
 .qasheet > .row > h2 { margin: 0; text-align: left; } .qax { width: 44px; min-height: 44px; padding: 0; flex: none; }
 .qagrid { grid-template-columns: repeat(3, 1fr); }
 /* 2.16: rows that open a page end with a chevron */
-.itemrow .chev { flex: none; font-size: 1.4rem; font-weight: 800; color: var(--accent-text); }
+.itemrow .chev { flex: none; display: flex; align-items: center; font-size: 1.4rem; font-weight: 800; color: var(--accent-text); } /* flex centres the arrow exactly (review 29) */
 /* 2.16 (review 10): the workout screen. Exercise name first, round dots, the ghost as a race bar, How beside the main button. */
 .rdots { display: flex; gap: 5px; justify-content: center; margin: 12px 0 4px; }
 .rdots i { width: 8px; height: 8px; border-radius: 4px; background: var(--line); } .rdots i.done { background: var(--accent-line); } .rdots i.now { width: 22px; background: var(--accent-line); }
