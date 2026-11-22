@@ -1,0 +1,788 @@
+{
+ "batch": "2026-11-ui-30",
+ "title": "Balanced Text Wrapping",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What Balanced Wrapping Does",
+   "why": "When centred text runs onto two or more lines, the browser normally fills each line as full as it can, so the last line is often one or two words. Balanced wrapping makes the lines about the same length instead. Nothing else changes: same words, same size, same colours.\n\nWhat was checked: every screen at seven sizes plus larger text (352 screens), and the sync, backup and question sheets and the pop-up message.\n\nThe app uses balanced wrapping nowhere today. 38 centred texts can wrap. For 11 of them balancing changes nothing you can see. The other 27 are next, one at a time, each with now and balanced pictures.\n\nI recommend Balance for 24 and Keep for 3, where balancing makes a line start with \"·\" or splits a number range.\n\nNot checked: a real iPhone. Browsers that don't support balanced wrapping just keep the current line breaks.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "demo",
+   "area": "Sample banner",
+   "title": "\"Start My Own\" Button",
+   "why": "Problem: on a small phone the button reads \"Start My / Own\".\nBalanced: \"Start / My Own\".\n\nPicture: Home, small phone (360 px).",
+   "now": [
+    {
+     "img": "div_demobar_button_demoEnd_cta2-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_demobar_button_demoEnd_cta2-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_demobar_button_demoEnd_cta2-before.png"
+    }
+   ]
+  },
+  {
+   "id": "chamber",
+   "area": "Home · Today's Workout",
+   "title": "Workout Details Line",
+   "why": "Problem: \"45 s rest ·\" ends line one with a dot.\nBalanced: the second line would start with \"· 45 s rest\", which reads worse.\n\nPicture: Home, small phone.",
+   "now": [
+    {
+     "img": "section_card_chamber_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Line one ends with \"·\"; no line starts with one.",
+     "img": "section_card_chamber_p_sub-before.png",
+     "rec": true
+    },
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Even lines, but the second one starts with \"·\".",
+     "img": "section_card_chamber_p_sub-after.png"
+    }
+   ]
+  },
+  {
+   "id": "rest1",
+   "area": "Home · Rest day card",
+   "title": "\"Your Check-In Says…\" Line",
+   "why": "Problem: \"use a break.\" sits alone on line two.\nBalanced: \"Your check-in says your / body could use a break.\"\n\nPicture: Home on a rest day, small phone.",
+   "now": [
+    {
+     "img": "section_card_restcard_p-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "section_card_restcard_p-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "section_card_restcard_p-before.png"
+    }
+   ]
+  },
+  {
+   "id": "rest2",
+   "area": "Home · Rest day card",
+   "title": "\"Relax and Recharge\" Line",
+   "why": "Problem: \"streak going.\" sits alone on line two.\nBalanced: \"Relax and recharge. A rest / day keeps your streak going.\"\n\nPicture: Home on a rest day, small phone.",
+   "now": [
+    {
+     "img": "section_card_restcard_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "section_card_restcard_p_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "section_card_restcard_p_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "saga",
+   "area": "Saga",
+   "title": "\"Your Saga\" Card Text",
+   "why": "Problem: three lines of uneven length.\nBalanced: three lines about the same length.\n\nPicture: Saga, small phone.",
+   "now": [
+    {
+     "img": "section_card_saga_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "section_card_saga_p_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "section_card_saga_p_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "library",
+   "area": "Library",
+   "title": "Line Under the Title",
+   "why": "Problem: the second line is noticeably shorter.\nBalanced: two lines about the same length.\n\nPicture: Library, small phone.",
+   "now": [
+    {
+     "img": "main_main_fadein_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "main_main_fadein_p_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "main_main_fadein_p_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "kcal",
+   "area": "Nutrition",
+   "title": "\"Change Calorie Target\" Link",
+   "why": "Problem: \"Change Calorie / Target\".\nBalanced: \"Change / Calorie Target\".\n\nPicture: Nutrition, small phone.",
+   "now": [
+    {
+     "img": "div_row_button_kcalTarget_link-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_row_button_kcalTarget_link-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_row_button_kcalTarget_link-before.png"
+    }
+   ]
+  },
+  {
+   "id": "allnut",
+   "area": "Nutrition",
+   "title": "\"All Nutrients\" Link",
+   "why": "Problem: the arrow sits alone on line two.\nBalanced: \"All / Nutrients ›\".\n\nPicture: Nutrition, small phone.",
+   "now": [
+    {
+     "img": "div_row_button_dayDetail_link-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_row_button_dayDetail_link-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_row_button_dayDetail_link-before.png"
+    }
+   ]
+  },
+  {
+   "id": "protein",
+   "area": "Nutrition",
+   "title": "Protein Range Line",
+   "why": "Problem: with larger text, \"Why?\" sits alone on line two.\nBalanced: it would split the range as \"109– / 155 g\", which is worse.\n\nPicture: Nutrition, small phone, 125% text.",
+   "now": [
+    {
+     "img": "div_ringd_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "\"Why?\" alone on line two, range kept whole.",
+     "img": "div_ringd_p_sub-before.png",
+     "rec": true
+    },
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Splits the number range across two lines.",
+     "img": "div_ringd_p_sub-after.png"
+    }
+   ]
+  },
+  {
+   "id": "feel",
+   "area": "Nutrition · How You Feel Today",
+   "title": "Note Under the Title",
+   "why": "Problem: \"and bad days.\" is a short last line.\nBalanced: three lines about the same length.\n\nPicture: Nutrition, small phone.",
+   "now": [
+    {
+     "img": "details_card_fold_feel_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "details_card_fold_feel_p_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "details_card_fold_feel_p_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "calday",
+   "area": "History",
+   "title": "Line Under the Calendar",
+   "why": "Problem: \"logged\" sits alone on line two.\nBalanced: \"10 training days · 21 days / with anything logged\".\n\nPicture: History, small phone.",
+   "now": [
+    {
+     "img": "section_cal_card_cal_p_calday_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "section_cal_card_cal_p_calday_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "section_cal_card_cal_p_calday_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "whysheet",
+   "area": "\"Why?\" sheet",
+   "title": "Explanation Text",
+   "why": "Problem: \"it.\" sits alone on the last line.\nBalanced: three even lines, no lone word.\n\nPicture: A \"Why?\" sheet, small phone.",
+   "now": [
+    {
+     "img": "div_sub_p-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_sub_p-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_sub_p-before.png"
+    }
+   ]
+  },
+  {
+   "id": "preview",
+   "area": "Workout preview",
+   "title": "Difficulty Details Line",
+   "why": "Problem: \"each / set to failure\" is split across lines.\nBalanced: \"…up to 20 min · / each set to failure, then drops\".\n\nPicture: Workout preview, small phone.",
+   "now": [
+    {
+     "img": "div_tf_scroll_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_tf_scroll_p_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_tf_scroll_p_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "doortitle",
+   "area": "First-time setup",
+   "title": "\"What Brings You Here?\" Title",
+   "why": "Problem: \"What Brings You / Here?\".\nBalanced: \"What Brings / You Here?\".\n\nPicture: Setup, small phone.",
+   "now": [
+    {
+     "img": "div_ob_scroll_h1-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_ob_scroll_h1-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_ob_scroll_h1-before.png"
+    }
+   ]
+  },
+  {
+   "id": "doorsub",
+   "area": "First-time setup",
+   "title": "Line Under the Title",
+   "why": "Problem: three lines of uneven length.\nBalanced: three lines about the same length.\n\nPicture: Setup, small phone.",
+   "now": [
+    {
+     "img": "div_ob_scroll_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_ob_scroll_p_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_ob_scroll_p_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "settitle",
+   "area": "Settings",
+   "title": "Page Titles With Larger Text",
+   "why": "Problem: \"What the App / Shows\" (also \"Passcode and Profiles\").\nBalanced: \"What the / App Shows\".\n\nPicture: Settings › What the App Shows, small phone, 125% text.",
+   "now": [
+    {
+     "img": "main_main_fadein_h1-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "main_main_fadein_h1-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "main_main_fadein_h1-before.png"
+    }
+   ]
+  },
+  {
+   "id": "progress",
+   "area": "Home · Today's Progress",
+   "title": "\"Training and Protein Today\" Line",
+   "why": "Problem: on a laptop the line breaks before \"· Show\", so line two starts with \"·\".\nBalanced: \"Training and protein / today · Show\".\n\nPicture: Home, laptop (1000 px).",
+   "now": [
+    {
+     "img": "span_span_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "span_span_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "span_span_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "ready",
+   "area": "Gymnastics · Scouter",
+   "title": "Readiness Title",
+   "why": "Problem: with larger text, \"Steady\" sits alone.\nBalanced: \"Readiness 68 · / Take It Steady\".\n\nPicture: Gymnastics Home, small phone, 125% text.",
+   "now": [
+    {
+     "img": "div_scread_h2_h_ready-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_scread_h2_h_ready-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_scread_h2_h_ready-before.png"
+    }
+   ]
+  },
+  {
+   "id": "load",
+   "area": "Gymnastics · Week",
+   "title": "\"minutes × effort\" Label",
+   "why": "Problem: \"minutes × / effort\".\nBalanced: \"minutes / × effort\".\n\nPicture: Gymnastics Week, small phone, 125% text.",
+   "now": [
+    {
+     "img": "section_card_p_sub-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "section_card_p_sub-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "section_card_p_sub-before.png"
+    }
+   ]
+  },
+  {
+   "id": "sleep",
+   "area": "Gymnastics · Check-in",
+   "title": "\"Sleep the Night Before\" Question",
+   "why": "Problem: \"(Hours)\" sits alone.\nBalanced: \"Sleep the Night / Before (Hours)\".\n\nPicture: Gymnastics check-in, small phone, 125% text.",
+   "now": [
+    {
+     "img": "div_q_p_lbl-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_q_p_lbl-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_q_p_lbl-before.png"
+    }
+   ]
+  },
+  {
+   "id": "gymempty",
+   "area": "Gymnastics · Stats",
+   "title": "Empty Week Message",
+   "why": "Problem: \"rest days.\" is a short last line.\nBalanced: three lines about the same length.\n\nPicture: Gymnastics Stats with no week planned, phone, 125% text.",
+   "now": [
+    {
+     "img": "div_empty_p-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "div_empty_p-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "div_empty_p-before.png"
+    }
+   ]
+  },
+  {
+   "id": "signin",
+   "area": "Cloud Sync · Sign in",
+   "title": "Sign-In Sheet Text",
+   "why": "Problem: \"everything in it.\" and \"Key\" sit alone on their lines.\nBalanced: \"Forgot Your Password? / Use Your Recovery Key\", and an even line under the title.\n\nPicture: Sign In to Sync, small phone.",
+   "now": [
+    {
+     "img": "sheet_signin-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "sheet_signin-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "sheet_signin-before.png"
+    }
+   ]
+  },
+  {
+   "id": "create",
+   "area": "Cloud Sync · Turn on",
+   "title": "Line Under \"Turn On Sync\"",
+   "why": "Problem: \"characters.\" sits alone on line three.\nBalanced: three lines about the same length.\n\nPicture: Turn On Sync, small phone, 125% text.",
+   "now": [
+    {
+     "img": "sheet_create-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "sheet_create-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "sheet_create-before.png"
+    }
+   ]
+  },
+  {
+   "id": "history",
+   "area": "Backup History",
+   "title": "Line Under the Title, and \"No Copies Yet\"",
+   "why": "Problem: \"restore.\" and \"after the next sync.\" are short last lines.\nBalanced: even lines in both.\n\nPicture: Backup History with no copies, small phone, 125% text.",
+   "now": [
+    {
+     "img": "sheet_history-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "sheet_history-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "sheet_history-before.png"
+    }
+   ]
+  },
+  {
+   "id": "restore",
+   "area": "Backup History · Restore question",
+   "title": "\"Restore Today · 4:32 PM?\" Title",
+   "why": "Problem: with larger text, line one ends with \"·\".\nBalanced: line two would start with \"· 4:32 PM?\", which reads worse.\n\nPicture: Restore question, small phone, 125% text.",
+   "now": [
+    {
+     "img": "sheet_restore-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Line one ends with \"·\".",
+     "img": "sheet_restore-before.png",
+     "rec": true
+    },
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Line two starts with \"·\".",
+     "img": "sheet_restore-after.png"
+    }
+   ]
+  },
+  {
+   "id": "delete",
+   "area": "Cloud Sync · Delete question",
+   "title": "\"Delete the Cloud Copy?\" Question",
+   "why": "Problem: \"Delete the Cloud / Copy?\".\nBalanced: \"Delete the / Cloud Copy?\", and even lines below.\n\nPicture: Delete question, small phone, 125% text.",
+   "now": [
+    {
+     "img": "sheet_delete-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "sheet_delete-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "sheet_delete-before.png"
+    }
+   ]
+  },
+  {
+   "id": "toast",
+   "area": "Pop-up message",
+   "title": "Short Messages at the Bottom",
+   "why": "Problem: with larger text, \"stays.\" sits alone.\nBalanced: \"Cloud copy / deleted. / Everything / here stays.\"\n\nPicture: \"Cloud copy deleted\" message, small phone, 125% text.",
+   "now": [
+    {
+     "img": "toast-before.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "fix",
+     "label": "Balance it",
+     "desc": "Lines about even.",
+     "img": "toast-after.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep as is",
+     "desc": "Leave the line breaks as they are.",
+     "img": "toast-before.png"
+    }
+   ]
+  },
+  {
+   "id": "others",
+   "area": "Last",
+   "title": "Centred Text That Looks the Same Today",
+   "why": "11 more centred texts (for example \"Quick Add\" and the Settings back button) already break evenly, so balancing shows no change today. Giving them the same setting keeps them even if a word changes or the text is larger.\n\nAny item where you picked Keep stays exactly as it is.",
+   "options": [
+    {
+     "id": "all",
+     "label": "Balance all centred text",
+     "desc": "Everything except what you kept. New centred text gets it too.",
+     "rec": true
+    },
+    {
+     "id": "only",
+     "label": "Only what I approved",
+     "desc": "Nothing else changes."
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "After I Build It",
+   "why": "I'll build exactly what you picked, check every picked item with a measurement, rerun all the earlier checks, then publish it as 2.26.2.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Publish when checks pass",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "ask",
+     "label": "Show me first",
+     "desc": "Send pictures of the built screens before publishing."
+    }
+   ]
+  }
+ ]
+}
