@@ -313,18 +313,19 @@ export function addFood(meal, day, opts = {}) {
 }
 
 function foodSheet(meal, day, { scan = false } = {}) {
+  // Scan sits above search so people see it first (review 31).
   const p = profile();
   let tab = 'recent', q = '', all = null, mine = [], recent = [], meals = [], failed = false, prevDay = [], thisDay = [];
   const { el, close } = overlay(`<div class="row"><h1 style="text-align:left">Add food</h1><button class="cta2" id="x" data-close>Close</button></div>
     ${day !== today(p) ? `<p class="sub">Adding to ${esc(prettyDay(day))}</p>` : ''}
     <div class="seg meals" role="group" aria-label="Meal">${MEALS.map(([k, n]) => `<button data-meal="${k}" aria-pressed="${k === meal}">${n}</button>`).join('')}</div>
+    <button class="cta2 scanbtn" id="scan">${BARCODE}<span>Scan a barcode</span></button>
     <input id="fq" type="search" placeholder="Search foods, e.g. banana" autocomplete="off" enterkeyhint="search" aria-label="Search foods" style="margin-top:10px">
     <div class="pills sugg" id="fsugg" aria-label="Suggestions"></div>
     <div class="seg" id="tabs" role="group" aria-label="Show" style="margin-top:8px"></div>
     <p class="sub" id="fstat" role="status"></p>
     <div class="scroll" id="fres"></div>
-    <div class="row" style="gap:8px;margin-top:8px;margin-right:3px"><button class="cta2" id="quick" style="flex:1">Quick add</button><button class="cta2" id="label" style="flex:1">Add from a label</button></div>
-    <button class="cta2 scanbtn" id="scan">${BARCODE}<span>Scan a barcode</span></button>`, { label: 'Add food' });
+    <div class="row" style="gap:8px;margin-top:8px;margin-right:3px"><button class="cta2" id="quick" style="flex:1">Quick add</button><button class="cta2" id="label" style="flex:1">Add from a label</button></div>`, { label: 'Add food' });
   const $ = s => el.querySelector(s);
   const row = (f, key, sub) => `<li><button class="itemrow" data-pick="${esc(key)}"><span><b>${esc(f.name)}</b>${f.brand ? ` <span class="sub">${esc(f.brand)}</span>` : ''}<br>
     <span class="chain">${esc(sub)}</span></span><span class="num">${f.kc ?? ''}</span></button></li>`;
