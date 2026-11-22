@@ -1,0 +1,13 @@
+{"batch":"2026-11-ui-31","title":"Barcode Scanner Placement","bigPreviews":true,"items":[
+{"id":"place","area":"Add food sheet","title":"Where the Scan Button Goes",
+ "why":"Now: \"Scan a barcode\" is the last button at the bottom of the Add food sheet, below Quick add and Add from a label, so it's easy to miss.\n\nEach option moves it above the list, next to search. The button it replaces at the bottom goes away, so there's still one scan button on the sheet. It works the same: it opens the camera.\n\nPictures: phone (393 px), Lunch picked, nothing logged yet.",
+ "now":[{"img":"now.png","caption":"Now: scan at the bottom"}],
+ "options":[
+  {"id":"top","label":"Full button above search","desc":"Same big \"Scan a barcode\" button (52 px tall, full width), moved between the meal buttons and the search field. Most obvious. Pushes the food list down about 60 px.","img":"top.png","rec":true},
+  {"id":"beside","label":"\"Scan\" button beside search","desc":"Search gets a bit narrower, with a \"Scan\" button and barcode picture on the same line. Easy to see; the list stays where it is.","img":"beside.png"},
+  {"id":"icon","label":"Barcode picture inside search","desc":"Just the barcode picture at the right end of the search field, no word. Tidiest, but easiest to miss and smallest to tap.","img":"icon.png"},
+  {"id":"keep","label":"Keep as is","desc":"Leave it at the bottom.","img":"now.png"}]},
+{"id":"publish","area":"Last","title":"After I Build It",
+ "why":"I'll build exactly what you picked, measure that the button is where you chose and opens the camera, rerun all the earlier checks, then publish it as 2.26.3.",
+ "options":[{"id":"yes","label":"Publish when checks pass","desc":"","rec":true},{"id":"ask","label":"Show me first","desc":"Send pictures of the built screen before publishing."}]}
+]}
