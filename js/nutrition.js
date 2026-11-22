@@ -157,7 +157,7 @@ export async function nutritionView() {
           <div class="mc"><b class="num">${fmt(tot.c)}</b><span>Carbs</span></div>
           <div class="mf"><b class="num">${fmt(tot.f)}</b><span>Fat</span></div>
           <div class="mfb"><b class="num">${fmt(tot.fib)}</b><span>Fiber</span></div></div>
-        ${range ? `<p class="sub" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
+        ${range ? `<p class="sub nobal" style="text-align:center;margin-top:6px">Your protein range: ${range.protein[0]}–${range.protein[1]} g a day ${whyBtn('protein', '0')}</p>` : ''}
         <div class="row" style="justify-content:center;margin-top:8px;gap:8px">${bodyOn ? `<button class="link" id="kcalTarget">${target ? 'Change calorie target' : 'Set a calorie target'}</button>` : ''}
           <button class="link" id="dayDetail">All nutrients ${GLY.right}</button></div></div>
         <div class="qadd"><button class="cta2" id="addFood">+ Food</button><button class="cta2" id="addWater">+ Water</button>

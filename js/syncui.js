@@ -206,7 +206,7 @@ async function historyFlow(p) {
     const choice = await ask(`Restore ${label}?`, `<b>${esc(back.prof.name)}</b><br>${n.toLocaleString('en-US')} entr${n === 1 ? 'y' : 'ies'}${days.length ? ` · ${esc(span(days[0], days.at(-1)))}` : ''}<br><br>
       <b>Merge</b> keeps everything here and brings back anything that's missing.<br>
       <b>Replace</b> makes this profile exactly what it was that day, on every phone that syncs it.<br><br>
-      Goku saves a copy of right now first, so you can undo this.`, [{ label: 'Merge', value: 'merge' }, { label: 'Replace', value: 'replace' }]);
+      Goku saves a copy of right now first, so you can undo this.`, [{ label: 'Merge', value: 'merge' }, { label: 'Replace', value: 'replace' }], { nobal: true });
     if (!choice) { back2(); return; }
     try {
       await sync.snapshotBeforeRestore(p.id); // no safety copy, no restore

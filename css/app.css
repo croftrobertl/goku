@@ -1011,3 +1011,14 @@ nav.tabs .tb:not([aria-current]) .ic { opacity: .6; filter: saturate(.55); }
 /* The aura's flames tuck behind the banners above the profile chip, with a little room to rise (2.21). */
 .top:has(.saura) { margin-top: 12px; }
 .demobar, .updbar { position: relative; z-index: 2; }
+/* Centred text breaks into lines of about equal length (review 30). The setting passes down to children,
+   so text set to the left or right inside these goes back to normal wrapping. Browsers without it keep normal wrapping. */
+h1, h2, .lbl, h1 + p.sub, h2 + p.sub, h1 + .sub, h2 + .sub, .card.pick, button, .empty, .toast, .kihint, .feel, .scread, .day, .tap, .figs figure, .macros, .devstat,
+.cheer, .musline, .plates, .doorlinks, .chatcount, .safetyq, .clr, #lock .inner, .calgrid .cw, .ov9000 .big9, .ov9000 .sub9,
+nav.tabs .center > span, [style*="text-align:center"] { text-wrap-style: balance; }
+.nobal, .nobal *, .meta, .kibtn, .librow, .list h1, .list h2, .list .lbl, .row > h1, .toggle .lbl, .meal h2, .ki, .saga .arc h2,
+.kirows .link, .qasheet .qahead, details.fold > summary.lbl, .card:not(.pick) > .lbl, .card:not(.pick) > summary.lbl,
+.card:not(.pick) > h2, .card:not(.pick) > .row > .lbl, .prow > summary > span:first-child, .qasheet > .row > h2,
+.card.pick.goalpick, .bubble, .planline > span, .compare .chg, .fgl, .goals .gtx, .itemrow, [style*="text-align:left"],
+[style*="text-align:right"] { text-wrap-style: auto; }
+@media (min-width: 900px) { nav.tabs button { text-wrap-style: auto; } .tside .kibtn { text-wrap-style: balance; } } /* matches where these are left-aligned or centred */

@@ -93,11 +93,11 @@ export function discardGuard(el) {
 }
 
 // Ask a question with buttons; resolves with the chosen value (or null on Cancel).
-export function ask(title, body, buttons) {
+export function ask(title, body, buttons, { nobal = false } = {}) { // nobal: keep the title's normal line breaks (review 30)
   return new Promise(resolve => {
     const { el, close } = overlay(`
       <div class="scroll" style="display:flex;flex-direction:column"><div style="display:flex;flex-direction:column;margin:auto 0">
-        <h1>${esc(title)}</h1><div class="sub" style="margin:8px 0 16px">${body}</div>
+        <h1${nobal ? ' class="nobal"' : ''}>${esc(title)}</h1><div class="sub" style="margin:8px 0 16px">${body}</div>
         ${buttons.map((b, i) => `<button class="${b.danger ? 'cta danger-fill' : i === 0 ? 'cta' : 'cta2'}" data-i="${i}" style="margin-top:10px;width:100%">${esc(b.label)}</button>`).join('')}
         <button class="${buttons.length ? 'cta2' : 'cta'}" data-i="-1" data-close style="margin-top:10px;width:100%">${buttons.length ? 'Cancel' : 'OK'}</button>
       </div></div>`, { label: title }); // auto margins centre a short question; a tall one starts at the top so its title can be scrolled to
