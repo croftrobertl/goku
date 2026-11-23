@@ -1,0 +1,34 @@
+{"batch":"2026-11-ui-34","title":"Eras Art Check","bigPreviews":true,"items":[
+{"id":"all","area":"Start here","title":"All 68 Pictures, Cut Out",
+ "why":"I cut ChatGPT's 5 images into 68 separate files and removed the magenta. Each picture is shown on a light and a dark background, at the same file size as its Dragon Ball version. Pinks stay solid and the edges are clean on both.\n\nWhat ChatGPT got right: Buzz (upright ears, grey coat, green-gold eyes, his collar and fishbone charm), all three banners spelled right, the era outfits, no badges on the objects, and a snake with no horns.\n\nThree things need your call, next. Nothing in the app has changed; putting the art in comes with building the Eras look.",
+ "now":[{"img":"all68.png","caption":"Each pair: light background, dark background"}],
+ "options":[{"id":"ok","label":"Looks good","desc":"","rec":true},{"id":"notes","label":"Some need changes","desc":"Type which ones in the notes."}]},
+{"id":"stars","area":"Bracelets","title":"Wrong Star Counts on 5 Bracelets",
+ "why":"Bracelets 1 to 5 are right. Bracelets 6 and 7 both have only 5 stars, and the not-earned 5, 6 and 7 have 4, 4 and 5. Image models often miscount past 4 or 5.",
+ "now":[{"img":"stars-lit.png","caption":"Earned 4 to 7: 4, 5, 5, 5 stars"},{"img":"stars-dim.png","caption":"Not earned 4 to 7: 4, 4, 4, 5 stars"}],
+ "options":[
+  {"id":"redo","label":"One more ChatGPT image","desc":"I write a short prompt for one image with just the 5 wrong bracelets (and the grey cat, if you pick that below), with the stars counted out in words. One image from your free limit.","rec":true},
+  {"id":"me","label":"I fix them myself","desc":"I copy star beads from the same bracelet onto plain beads until the count is right. No ChatGPT image; I show you the result before anything goes in."},
+  {"id":"keep","label":"Keep as is","desc":"The numbers are wrong, but the colours still tell the bracelets apart."}]},
+{"id":"greycat","area":"Profile pictures","title":"The Grey Cat Is a Second Buzz",
+ "why":"The grey-cat profile picture was meant to be a grey-and-white Scottish Fold. It came out as another Buzz, so in the picker there would be two Buzzes.",
+ "now":[{"img":"cats.png","caption":"Buzz and the grey cat"}],
+ "options":[
+  {"id":"redo","label":"Redo it in the same ChatGPT image","desc":"A grey-and-white Scottish Fold with folded ears and a white face, so nobody mistakes it for Buzz. Shares the one image with the bracelets.","rec":true},
+  {"id":"drop","label":"Drop it","desc":"18 profile pictures instead of 19."},
+  {"id":"keep","label":"Keep it","desc":"Two Buzz pictures in the picker."}]},
+{"id":"ovals","area":"Profile pictures","title":"Oval Badges",
+ "why":"ChatGPT drew most profile badges as wide ovals. The app shows profile pictures in circles, like the Dragon Ball ones.\n\nTrimming to a circle keeps the middle of each picture and redraws a thin dark rim. Buzz loses the tips of his ears.",
+ "now":[{"img":"ovals.png","caption":"Now: ovals"}],
+ "options":[
+  {"id":"circle","label":"Trim to circles","desc":"As shown. No ChatGPT image needed.","img":"circles.png","rec":true},
+  {"id":"keep","label":"Keep the ovals","desc":"Oval pictures in round spots, with some empty space above and below.","img":"ovals.png"}]},
+{"id":"stripes","area":"Buzz","title":"Buzz's Forehead Stripes",
+ "why":"ChatGPT gave Buzz light tabby stripes on his forehead; the real Buzz is solid grey with only faint tail rings. Fixing it means redoing all 12 poses and 2 profile pictures (2 more ChatGPT images).",
+ "options":[
+  {"id":"keep","label":"Keep the stripes","desc":"Barely visible at the app's sizes (56 to 340 px).","rec":true},
+  {"id":"redo","label":"Redo for a solid coat","desc":"I write the prompt; 2 more images from your free limit."}]},
+{"id":"next","area":"Last","title":"After You Pick",
+ "why":"If you pick a ChatGPT redo, I'll send you a short prompt and a tiny sheet for just that one image. Then the art waits for the Eras look build, which also needs code: the pictures go in img/eras, and each phone downloads only the looks it uses.",
+ "options":[{"id":"ok","label":"Sounds good","desc":"","rec":true}]}
+]}

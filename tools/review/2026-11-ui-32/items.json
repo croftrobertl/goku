@@ -1,0 +1,41 @@
+{"batch":"2026-11-ui-32","title":"Who's Registering?","bigPreviews":true,"items":[
+{"id":"intro","area":"Start here","title":"What This Batch Covers",
+ "why":"Setup will start with \"Who's registering?\": Rob, Erica, Alice, Lennon or Somebody Else, with the names shown to everyone as you chose.\n\nPicking a name loads that person's plan and look. Everyone still answers the questions about themselves, their health, goals and equipment, so Goku can fit the plan to them.\n\nThis batch is only the first screen and what happens right after it. Lennon's kid mode, the Eras Tour look, Erica's look and her routine come in later batches, each with pictures first.\n\nThe colour dots for Alice show today's Encore colours. The Eras Tour redo will replace them.\n\nPictures: phone (393 px), first time opening Goku.",
+ "now":[{"img":"now.png","caption":"Now: the first screen asks what brings you here"}],
+ "options":[{"id":"ok","label":"Got it","desc":"","rec":true}]},
+{"id":"screen","area":"First screen","title":"How the Names Look",
+ "why":"Three ways to show the five choices. All keep the waving mascot, the Continue button and the links at the bottom.",
+ "options":[
+  {"id":"tiles","label":"Name tiles","desc":"Four big tiles, each with a round badge in that person's colours, and Somebody Else below. Everything fits on one phone screen.","img":"tiles-light.png","rec":true},
+  {"id":"cards","label":"Cards that say what loads","desc":"Each name, with what loads for them (for example \"Soccer, strength and nutrition · Dragon Ball look\") and colour dots. Somebody Else is partly below the fold on a phone.","img":"cards-light.png"},
+  {"id":"names","label":"Names only","desc":"Five plain buttons with just the names.","img":"names-light.png"}]},
+{"id":"after","area":"Right after","title":"After Picking a Name",
+ "why":"Today the next screen is \"What brings you here?\". For a named person, Goku already knows the answer.",
+ "options":[
+  {"id":"skip","label":"Skip to their questions","desc":"Goes straight to the questions about them, worded for their plan (for example Alice gets gymnastics questions). Somebody Else still gets \"What brings you here?\".","rec":true},
+  {"id":"show","label":"Show it, already picked","desc":"Show \"What brings you here?\" with their answer already picked, so they can change it."}]},
+{"id":"gear","area":"Questions","title":"The Equipment Question",
+ "why":"Today Goku only asks about equipment on some paths, such as \"Get stronger\". You asked that Somebody Else is always asked, and that the named people's plans fit their equipment too.",
+ "options":[
+  {"id":"all","label":"Ask everyone","desc":"Everyone, named or not, picks what they have: nothing, dumbbells, kettlebells, bands, bench, barbell and rack, cables, cardio machines, pull-up bar, mat, and so on. Workouts only use what they picked.","rec":true},
+  {"id":"some","label":"Only Somebody Else and Erica","desc":"Rob, Alice and Lennon keep their plans as written."}]},
+{"id":"lennon","area":"Questions","title":"Who Answers Lennon's Questions",
+ "why":"Lennon is 7 and will use his own tablet. The health and goal questions are written for adults and teens.",
+ "options":[
+  {"id":"parent","label":"A parent answers","desc":"After tapping Lennon, a screen says \"Grown-up, please answer these\". A parent answers the questions, then sets a parent passcode that later guards the prize settings.","rec":true},
+  {"id":"kid","label":"Lennon answers with pictures","desc":"Short questions with pictures and read-aloud. Health questions are still for a parent."}]},
+{"id":"wait","area":"Until they're built","title":"Erica and Lennon for Now",
+ "why":"Erica's routine and look, and Lennon's kid mode, aren't built yet. You asked for this screen first.",
+ "options":[
+  {"id":"show","label":"Show them now","desc":"Erica and Lennon can register today. They answer their questions and get a starter plan in the Dragon Ball look. When their part is ready, their profile switches over on its own and keeps everything they logged.","rec":true},
+  {"id":"hide","label":"Hide them until ready","desc":"Only Rob, Alice and Somebody Else show until their parts are built."}]},
+{"id":"onphone","area":"First screen","title":"A Name Already on This Phone",
+ "why":"For example, Rob opens \"Add a profile\" on his own phone, where Rob is already set up.",
+ "options":[
+  {"id":"open","label":"Mark it \"On this phone\"","desc":"The name shows \"On this phone\" under it. Tapping it opens that profile instead of setting up a second Rob.","rec":true},
+  {"id":"hide","label":"Leave it out","desc":"Only names not yet on this phone show."},
+  {"id":"allow","label":"Allow a second one","desc":"Tapping it sets up another profile with that name."}]},
+{"id":"publish","area":"Last","title":"After I Build It",
+ "why":"I'll build exactly what you picked, write a measuring check for each part, rerun all the earlier checks, then publish it as 2.27.0.",
+ "options":[{"id":"yes","label":"Publish when checks pass","desc":"","rec":true},{"id":"ask","label":"Show me first","desc":"Send pictures of the built screens before publishing."}]}
+]}

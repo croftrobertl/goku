@@ -1,0 +1,133 @@
+{"batch":"2026-11-ui-33","title":"Eras Art Brief Audit","bigPreviews":true,"items":[
+{"id":"intro","area":"Start here","title":"What I Checked",
+ "why":"I audited the art sheet and the ChatGPT prompt. Nothing has been changed.\n\nEvery finding was checked against the app's code, the Dragon Ball art files, or OpenAI's own docs and forum. The last item is the audit of this audit: what I got wrong or dropped.\n\nFound: 3 errors, 7 blind spots, 1 speed issue, 1 heads-up about the code, and 6 ideas.",
+ "options":[{"id":"ok","label":"Got it","desc":"","rec":true}]},
+
+{"id":"readable","area":"Error · biggest risk","title":"ChatGPT May Not Be Able to Read the Sheet",
+ "why":"The descriptions of all 68 pictures are only on the sheet; the prompt says \"see the sheet\". The sheet is 2400 x 3760 px. OpenAI's docs and forum say large uploads are shrunk before the model reads them, often to about 768 px wide. At that size the descriptions are about 6 px tall and the Dragon Ball references are thumbnails.\n\nLeft: part of the sheet at full size. Right: the same part shrunk to 768 px wide.",
+ "now":[{"img":"full.png","caption":"Full size"},{"img":"shrunk.png","caption":"As ChatGPT may see it"}],
+ "options":[
+  {"id":"both","label":"Words in the prompt, one sheet per group","desc":"All 68 descriptions go in the prompt as plain text (always readable). The sheet becomes 5 smaller sheets, one per group, sent with that group's request.","rec":true},
+  {"id":"text","label":"Words in the prompt only","desc":"Keep one sheet as a visual map; the descriptions move into the prompt."},
+  {"id":"keep","label":"Keep as is","desc":"One sheet, descriptions only on it."}]},
+
+{"id":"scouter","area":"Error","title":"The Scouter Picture Is Square, Not Wide",
+ "why":"The sheet says scouter.png should be \"Wide\". The Dragon Ball file is 420 x 420, and the app shows it at 300 x 300. A wide picture would be squashed or cut off.",
+ "options":[{"id":"fix","label":"Say square, 1024 x 1024","desc":"","rec":true},{"id":"keep","label":"Keep as is","desc":""}]},
+
+{"id":"replaces","area":"Error","title":"\"Replaces\" Sounds Like Overwriting Dragon Ball",
+ "why":"Every tile says \"replaces pose/wave.png\" and so on. Rob and Lennon keep the Dragon Ball look, so nothing is replaced. The new files need their own folder, and the same names in two places is how files get mixed up.",
+ "options":[
+  {"id":"folder","label":"\"Dragon Ball version\" + own folder","desc":"Tiles say \"Dragon Ball version: pose/wave.png\" and every new file is saved as img/eras/... (for example img/eras/pose/wave.png).","rec":true},
+  {"id":"keep","label":"Keep as is","desc":""}]},
+
+{"id":"sizes","area":"Error","title":"The Sheet and the Prompt Disagree on Sizes",
+ "why":"The sheet says bracelets are 512 px, profile pictures 512 px and icons 256 px. The prompt asks for 7, 19 and 17 of them on one ChatGPT image, whose largest size is 1536 x 1024. That makes each one about 200 to 300 px. ChatGPT gets two different instructions.",
+ "options":[
+  {"id":"one","label":"One rule: \"as large as fits\"","desc":"Both say: make each item as large as the grid allows; I resize to the app's sizes (2x for sharp phone screens) and compress.","rec":true},
+  {"id":"keep","label":"Keep as is","desc":""}]},
+
+{"id":"alpha","area":"Blind spot","title":"Transparent Backgrounds Often Fail",
+ "why":"OpenAI's own guide says asking for a transparent background doesn't guarantee one, and their forum has a long thread of ChatGPT users getting a painted checkerboard or white instead. The prompt relies on it for all 68 pictures.",
+ "options":[
+  {"id":"magenta","label":"Flat magenta background; I remove it","desc":"Ask for a solid #FF00FF background with nothing magenta in the art. I cut it out here and check every edge on light and dark screens.","rec":true},
+  {"id":"check","label":"Ask for transparent; I check each file","desc":"Keep the request; I test each file's transparency and send back any that fail."},
+  {"id":"adobe","label":"Use Adobe's background remover","desc":"Your Adobe account's Remove Background on each picture."}]},
+
+{"id":"grids","area":"Blind spot","title":"Big Grids Drift",
+ "why":"Image models are unreliable at exact counts and even spacing. 19 avatars in a 5 x 4 grid can come back as 18 or 20, touching, or out of order, and each item gets less detail.",
+ "options":[
+  {"id":"four","label":"Groups of 4 (2 x 2)","desc":"About 15 requests instead of 4. Each item is bigger and more detailed, and a bad one is cheap to redo.","rec":true},
+  {"id":"one","label":"One picture per request","desc":"Best quality, 68 requests."},
+  {"id":"keep","label":"Keep the big grids","desc":"4 requests; I send back any that come out wrong."}]},
+
+{"id":"model","area":"Idea","title":"Draw Tour Cat's Model Sheet First",
+ "why":"Animation studios lock a character with a model sheet before drawing any scenes. Today the prompt starts straight with wave.png, so the cat can change from pose to pose.",
+ "options":[
+  {"id":"yes","label":"Model sheet first","desc":"One image: Tour Cat front, side and back, plus 6 faces (happy, wink, thinking, sleepy, fierce, proud). Every pose request attaches it.","rec":true},
+  {"id":"no","label":"Start with wave.png","desc":"As written."}]},
+
+{"id":"refs","area":"Blind spot","title":"The Style References Are Thumbnails",
+ "why":"Each Dragon Ball reference on the sheet is 110 px, and smaller after shrinking. \"Same style\" is the most important instruction, and its evidence is the smallest thing on the page.",
+ "options":[
+  {"id":"bible","label":"Attach 5 full-size style examples","desc":"yougotthis, restday, a profile picture (Vegeta), a Dragon Ball and an icon, at full size, as the style guide.","rec":true},
+  {"id":"keep","label":"Keep the thumbnails only","desc":""}]},
+
+{"id":"dark","area":"Blind spot","title":"Dark Screens",
+ "why":"The Eras look has a dark mode (deep purple, #1c1530). The Dragon Ball art has no light edge, so dark outlines and black areas blend in a little on dark screens (see the hair and banner). The Eras set has more dark subjects: the Reputation snake, the black-and-white typewriter and the midnight ring.",
+ "now":[{"img":"dark.png","caption":"Dragon Ball art on the Eras dark background"}],
+ "options":[
+  {"id":"glow","label":"A thin light rim on dark subjects","desc":"Ask for a soft pink-white rim light on dark shapes (snake, typewriter, black hair), and I check every picture on light and dark before it goes in.","rec":true},
+  {"id":"edge","label":"White sticker edge on everything","desc":"Every picture gets a thin white outline. Clearest, but a small style difference from Dragon Ball."},
+  {"id":"keep","label":"Match Dragon Ball exactly","desc":"No edge, as today."}]},
+
+{"id":"tiny","area":"Blind spot","title":"Pictures Shown Tiny",
+ "why":"Some pictures are shown much smaller than drawn: the bead charm at 24 px, the thinking cat at 56 px, the menu icons at 26 to 28 px, and the Pro Tips cat at 120 px. The prompt only warns about one of them.",
+ "options":[
+  {"id":"list","label":"List every display size","desc":"Each description says its real size on screen, and the small ones are asked for as simpler, bolder shapes. I check each at real size before it goes in.","rec":true},
+  {"id":"keep","label":"Keep as is","desc":""}]},
+
+{"id":"cats","area":"Blind spot","title":"Two Scottish Fold Cats",
+ "why":"Tour Cat and the grey cat avatar are both Scottish Folds, so in the avatar picker they could look like the same cat.",
+ "options":[
+  {"id":"tour","label":"Give Tour Cat her own colours","desc":"For example a cream-and-lavender coat with pink ear tips, so no other cat looks like her.","rec":true},
+  {"id":"grey","label":"Change the grey cat instead","desc":"For example a tabby, keeping the ragdoll."},
+  {"id":"keep","label":"Keep both","desc":""}]},
+
+{"id":"facts","area":"Blind spot","title":"Era Details I Assumed",
+ "why":"A few era colours and objects came from memory, notably the Showgirl colours (orange and mint) and the exact Debut shade. A wrong detail is the kind of thing a fan spots right away.",
+ "options":[
+  {"id":"verify","label":"Check each era first","desc":"I check every era's colours and symbols against reliable sources before the prompt goes out.","rec":true},
+  {"id":"alice","label":"Ask Alice","desc":"She checks the 12 era descriptions; I build in her edits."},
+  {"id":"keep","label":"Keep as written","desc":""}]},
+
+{"id":"cache","area":"Speed","title":"Every Phone Would Download Every Look",
+ "why":"The app saves all its art for offline use on every phone (sw.js keeps one list of all art). 68 new pictures, about 1 MB at Dragon Ball's sizes, would land on Rob's and Lennon's phones too, though they never see them.",
+ "options":[
+  {"id":"lazy","label":"Each phone saves only the looks it uses","desc":"Dragon Ball phones skip the Eras art and the other way round. A look's art downloads when a profile on that phone switches to it.","rec":true},
+  {"id":"webp","label":"Save everything, but smaller","desc":"WebP files, about 30 to 50% smaller."},
+  {"id":"keep","label":"Save everything","desc":""}]},
+
+{"id":"wiring","area":"Heads-up","title":"Several Pictures Need Code to Show",
+ "why":"Some Dragon Ball pictures only appear for the Dragon Ball look today: the scouter popup (scouter.js line 71), the rest-day card (homecards.js line 35), the workout cheers (engine.js line 398) and the finale (milestones.js line 121). The avatar picker shows bracelets for other looks (avatar.js line 90). The art alone won't make them appear in the Eras look; that's part of building the skin. I'll also write words for screen readers for each new picture.",
+ "options":[{"id":"ok","label":"Got it","desc":"","rec":true}]},
+
+{"id":"bracelets","area":"Idea","title":"The 7 Bracelets Tell a Story",
+ "why":"Today each bracelet only differs by its number of star beads.",
+ "options":[
+  {"id":"eras","label":"Each bracelet is one era","desc":"1 Debut teal, 2 Fearless gold, 3 Speak Now purple, 4 Red, 5 1989 sky blue, 6 Reputation black and silver, 7 Lover pink. Collecting all 7 is touring the eras.","rec":true},
+  {"id":"stars","label":"Same bracelet, more stars","desc":"As written."}]},
+
+{"id":"locked","area":"Idea","title":"What a Bracelet Looks Like Before You Earn It",
+ "why":"Today the unearned bracelet is the same bracelet faded to grey.",
+ "options":[
+  {"id":"unstrung","label":"Loose beads on a string","desc":"Unearned = plain undyed beads half-strung on a loose cord, waiting to be made. Earning it \"makes\" the bracelet.","rec":true},
+  {"id":"grey","label":"Faded grey copy","desc":"As written."}]},
+
+{"id":"outfits","area":"Idea","title":"Tour Cat Changes Outfits",
+ "why":"One combined Eras Tour look could show through Tour Cat herself, the way the real show changes costumes between eras.",
+ "options":[
+  {"id":"mix","label":"A different era outfit per pose","desc":"For example a sparkly Lover bodysuit to wave, the folklore cardigan for rest day, a Reputation snake-print jacket for \"Let's Train!\", a Midnights star dress for the finale. Same cat, same face.","rec":true},
+  {"id":"one","label":"One outfit everywhere","desc":"The rhinestone bodysuit in every pose."}]},
+
+{"id":"finale","area":"Idea","title":"The Finale Picture",
+ "why":"It shows when all 7 are collected, like Shenron.",
+ "options":[
+  {"id":"snake","label":"Reputation snake from the bracelets","desc":"As written: a glittering black-and-silver snake coiling up out of the 7 bracelets.","rec":true},
+  {"id":"stage","label":"Surprise-song stage","desc":"A glowing piano and acoustic guitar on a lit stage, fireworks bursting from the 7 bracelets."},
+  {"id":"cat","label":"Tour Cat takes a bow","desc":"Tour Cat on a stage platform rising through fireworks, the 7 bracelets on her arm."}]},
+
+{"id":"banners","area":"Idea","title":"Banner Words",
+ "why":"The banners copy Dragon Ball's words: \"Let's Train!\", \"You Got This!\", \"Rest Day\".",
+ "options":[
+  {"id":"tour","label":"Tour words","desc":"\"It's Showtime!\", \"You Got This!\", \"Rest Day\" with a small \"Encore tomorrow\". The app's words for each look come with the skin build.","rec":true},
+  {"id":"same","label":"Same words as Dragon Ball","desc":""}]},
+
+{"id":"auditaudit","area":"Audit of the audit","title":"What I Corrected or Dropped",
+ "why":"Corrected: I first assumed the Dragon Ball art has a white sticker edge. It doesn't (see Dark Screens), so that item now offers a light rim as a choice instead of saying the prompt left one out.\n\nLess certain than it sounds: the 768 px shrink comes from OpenAI's older docs and forum posts. Newer models can read larger images. Putting the words in the prompt costs nothing either way, so the recommendation stands.\n\nNot certain: OpenAI's docs disagree on which image models do transparency. The magenta-background route works whichever model ChatGPT uses.\n\nDropped: a finding that banner text might be misspelled (I check every file anyway), and that ChatGPT's output files are large (I resize and compress them as part of putting them in).\n\nOwn error, already fixed earlier: I first said 58 pictures; it's 68.\n\nNot checked: the sheet in a real ChatGPT chat. A 1-picture trial (wave.png) would show how ChatGPT handles it before you spend time on all 68.",
+ "options":[{"id":"ok","label":"Got it","desc":"","rec":true},{"id":"trial","label":"Do the 1-picture trial first","desc":"You send ChatGPT just the wave.png request; we fix the brief from what comes back."}]},
+
+{"id":"next","area":"Last","title":"After You Pick",
+ "why":"I'll rewrite the prompt and sheet exactly as you picked, check them again, and send both back. Nothing in the app changes.",
+ "options":[{"id":"yes","label":"Send me the new versions","desc":"","rec":true},{"id":"ask","label":"Show me first","desc":"Pictures of the new sheet before the final files."}]}
+]}
