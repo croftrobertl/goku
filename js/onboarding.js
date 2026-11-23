@@ -88,19 +88,37 @@ const CHAT = [
 const chatNext = c => CHAT.find(q => c[q.k] === undefined && (!q.when || q.when(c))) || null;
 const chatAsked = c => CHAT.filter(q => c[q.k] !== undefined);
 const GEAR_SETS = { none: [], home: ['db', 'band'], gym: [...GEAR] };
+// Who's registering (2.27, review 32): the family's own setups load with a tap; Somebody Else gets the usual questions.
+// Rob chose to show these names to everyone. Badge colors: dark, ring and glow, as in the approved picture.
+const FAMILY = [['rob', 'Rob', ['#0b0f1a', '#5aa2ff', '#f39a1e']], ['erica', 'Erica', ['#1d1b19', '#d9a22b', '#f4e6cf']],
+  ['alice', 'Alice', ['#f7f0ff', '#ff8fb1', '#b9a6ff']], ['lennon', 'Lennon', ['#0b0f1a', '#5aa2ff', '#f39a1e']]];
+// Each person's look. Erica's own look and Lennon's kid mode come later; until then Dragon Ball, then they switch over.
+const WHO_SKIN = { rob: 'dbz', erica: 'dbz', alice: 'encore', lennon: 'dbz', else: 'dbz' };
+// The family's equipment comes later as one list for Rob, Erica and Alice; Lennon learns with no equipment.
+const NO_GEAR_Q = new Set(['rob', 'alice', 'lennon']);
 const ABOUT_GOAL = { stronger: 'strength', lose: 'leaner', eat: 'health', move: 'health' };
 
 // Resolves with the new profile, or null if cancelled (only possible when cancellable).
 export function onboard({ cancellable = false } = {}) {
   return new Promise(resolve => {
     const was = skinId(); // the open profile's skin, put back if setup is cancelled
-    const d = { goal: null, chat: {}, custom: null, kind: null, skin: was, name: '', accent: null, modules: {}, modsTouched: false, safety: null, planPick: null,
+    const d = { who: null, goal: null, chat: {}, custom: null, kind: null, skin: was, name: '', accent: null, modules: {}, modsTouched: false, safety: null, planPick: null,
       week: Array.from({ length: 7 }, () => ({ gym: 0, vault: 0 })), avatar: null, units: 'imperial', tz: deviceTZ(), about: {}, coach: { asked: {} } };
     let step = 0, steps = [];
     const { el, close } = overlay(`${cancellable ? '<div class="row" style="justify-content:flex-end"><button class="cta2" id="cancel" data-close>Cancel</button></div>' : ''}
       <div class="scroll" id="ob"></div><div id="obnav"></div>`, { label: 'Set up a profile' });
     const $ = s => el.querySelector(s);
     const h = m => round(m / 60, 2);
+    // Picking a name loads that person's setup; their answers start over if they pick someone else.
+    function pickWho(k) {
+      if (d.who === k) return;
+      Object.assign(d, { who: k, goal: null, chat: {}, custom: null, kind: null, planPick: null, safety: null, modsTouched: false, modules: {}, about: {}, accent: null,
+        name: FAMILY.find(f => f[0] === k)?.[1] || '', skin: WHO_SKIN[k] }); // the look switches from the next screen on
+      if (['rob', 'erica', 'lennon'].includes(k)) { d.goal = 'stronger'; d.kind = 'engine'; }
+      if (k === 'rob') d.about.goal = 'strength';
+      if (k === 'lennon') Object.assign(d.about, { goal: 'strength', experience: 'new', equipment: [] });
+      if (k === 'alice') { d.goal = 'sport'; d.custom = { sports: ['gymnastics'], style: 'sessions' }; d.kind = 'perf'; }
+    }
     const goal = () => d.goal === 'notsure' ? d.chat.goal || null : d.goal; // the goal in effect
     const chatted = () => d.goal === 'notsure';
     const names = () => sessionNames(d.custom && !classicGym() ? d : {});
@@ -120,7 +138,7 @@ export function onboard({ cancellable = false } = {}) {
     function recommended() {
       if (d.kind !== 'engine') return d.custom && !classicGym() ? presetModules(d.kind, d.custom.sports) : {};
       const pl = planFor(), lifts = ['strength', 'comeback'].includes(pl.id) || pl.workouts === 'circuit';
-      return { nutrition: true, gut: true, hypertrophy: lifts, shuffle: lifts, soccer: false, fuel: pl.id !== 'food', weight: goal() === 'lose' && !isMinor(d) };
+      return { nutrition: true, gut: true, hypertrophy: lifts, shuffle: lifts, soccer: d.who === 'rob', fuel: pl.id !== 'food', weight: goal() === 'lose' && !isMinor(d) };
     }
 
     const mini = () => skin().mascot === 'star' ? '<img class="chatface coachface" src="img/pose/think.png" alt="" aria-hidden="true" width="56" height="56">'
@@ -130,18 +148,27 @@ export function onboard({ cancellable = false } = {}) {
     const qStep = (title, qs) => ({ qs, html: () => `${label('Your coach')}<h1>${esc(title)}</h1>${screenHTML(qs, d).replace(`<h2>${esc(title)}</h2>`, '')}` });
 
     const build = () => {
-      const out = [{ key: 'door', need: 'Pick one to continue.', ready: () => !!d.goal, html: () => `<h1 style="margin-top:0">What brings you here?</h1>
-        <p class="sub">Pick the closest. Goku builds the rest around it, and you can change anything later. Everything you log stays on this phone.</p>
-        ${GOALS.map(([k, t, sub]) => `<button class="card pick goalpick" data-goal="${k}" aria-pressed="${d.goal === k}"><b>${t}</b><br><span class="sub">${sub}</span></button>`).join('')}
+      const out = [{ key: 'who', need: 'Pick one to continue.', ready: () => !!d.who, html: () => `<h1>Who's registering?</h1>
+        <p class="sub">Pick your name. Goku loads your plan and look, then asks a few questions to fit it to you.</p>
+        <div class="whogrid">${FAMILY.map(([k, n, c]) => `<button class="card pick whotile" data-who="${k}" aria-pressed="${d.who === k}">
+          <span class="whobadge" aria-hidden="true" style="background:${c[0]};border-color:${c[1]};box-shadow:0 0 0 3px ${c[2]};color:${c[1]}">${n[0]}</span>
+          <b>${n}</b>${S.profiles.some(p => p.who === k) ? '<span class="sub">On this phone</span>' : ''}</button>`).join('')}</div>
+        <button class="card pick goalpick" data-who="else" aria-pressed="${d.who === 'else'}"><b>Somebody Else</b><br><span class="sub">Answer a few questions and Goku builds your plan</span></button>
         ${S.profiles.length ? '' : '<p class="doorlinks"><button class="link" id="demo">Just look around first</button><span aria-hidden="true"> · </span><button class="link" id="restore">I have a backup</button></p>'}
         <p class="doorlinks"${S.profiles.length ? '' : ' style="margin-top:4px"'}><button class="link" id="syncin">Sign in to sync</button></p>` }];
+      if (d.who === 'else') out.push({ key: 'door', need: 'Pick one to continue.', ready: () => !!d.goal, html: () => `<h1 style="margin-top:0">What brings you here?</h1>
+        <p class="sub">Pick the closest. Goku builds the rest around it, and you can change anything later. Everything you log stays on this phone.</p>
+        ${GOALS.map(([k, t, sub]) => `<button class="card pick goalpick" data-goal="${k}" aria-pressed="${d.goal === k}"><b>${t}</b><br><span class="sub">${sub}</span></button>`).join('')}` });
+      // Lennon is 7 (review 32): a grown-up answers his questions.
+      if (d.who === 'lennon') out.push({ key: 'grownup', html: () => `${label()}<h1>Grown‑up, please answer these</h1>
+        <p class="sub">The next questions are about Lennon: his age, size, health and food. A grown‑up should answer them for him.</p>` });
       if (chatted()) out.push({ key: 'chat', need: 'Tap an answer to continue.', ready: () => !chatNext(d.chat), html: () => { const c = d.chat, nx = chatNext(c), asked = chatAsked(c);
         return `${asked.map(q => say(q.say(c)) + me(c._l?.[q.k] || '')).join('')}
           ${nx ? `${say(nx.say(c))}<div class="pills chatreplies">${nx.replies.map(([t, v]) => `<button data-reply="${nx.k}" data-v="${v}" data-raw>${esc(t)}</button>`).join('')}</div>
             <p class="note chatcount">Question ${asked.length + 1} of ${asked.length + CHAT.filter(q => c[q.k] === undefined && (!q.when || q.when(c))).length}</p>`
             : say(c.safety === 'yes' ? 'Thanks for telling me. Check with your doctor first, and ask what kinds and amounts of activity are safe for you. I\'ll show you where I\'d start in the meantime.' : 'Thanks. That\'s what I need. A few basics next, then I\'ll show you where I\'d start you.')}
           ${asked.length ? '<p style="text-align:center"><button class="link" id="chatBack">Change my last answer</button></p>' : ''}`; } });
-      if (goal() === 'sport') out.push(
+      if (goal() === 'sport' && d.who === 'else') out.push(
         { key: 'sports', need: 'Pick at least one.', ready: () => d.custom.sports.length > 0, html: () => `${label()}<h1>What do you do?</h1><p class="sub" style="text-align:center">Pick everything that's part of your training, or search for it.</p>
           <input id="spq" type="search" autocomplete="off" placeholder="Search sports, e.g. tennis" aria-label="Search sports" style="margin-top:10px">
           <div class="pills sugg" id="spsugg"></div>
@@ -152,8 +179,14 @@ export function onboard({ cancellable = false } = {}) {
       if (!d.kind) return out;
       const scr = Object.fromEntries(withGear(setupScreens(d)));
       // Goals first (2.18): training, then the basics, food and anything to watch. The front door already asked a Strength-side profile its goal.
-      const training = (scr['Your training'] || []).filter(q => !(d.kind === 'engine' && q.id === 'goal'));
-      if (training.length && goal() !== 'eat' && !(chatted() && d.kind === 'engine')) out.push(qStep('Your training', training));
+      // Erica picks her own goal; the family's equipment comes later; Lennon starts new to it with no equipment (review 32).
+      const training = (scr['Your training'] || []).filter(q => !(d.kind === 'engine' && q.id === 'goal' && d.who !== 'erica')
+        && !(q.id === 'equipment' && NO_GEAR_Q.has(d.who)) && !(d.who === 'lennon' && ['experience', 'goal'].includes(q.id)));
+      const showTraining = training.length && goal() !== 'eat' && !(chatted() && d.kind === 'engine');
+      if (showTraining) out.push(qStep('Your training', training));
+      // Somebody Else is always asked what equipment they have, whatever brought them here (review 32).
+      if (d.who === 'else' && !(showTraining && training.some(q => q.id === 'equipment')) && d.chat.equipment === undefined)
+        out.push(qStep('Your equipment', withGear(setupScreens(d, 'equipment'))[0][1]));
       for (const t of ['Units and time', 'About you', 'Food']) if (scr[t]) out.push(qStep(t, scr[t]));
       const askSafety = d.kind === 'engine' && goal() !== 'eat' && !chatted();
       if (scr['Anything to watch?']) out.push({ ...qStep('Anything to watch?', scr['Anything to watch?']), key: 'watch', need: 'Answer the health question to continue.', ready: () => !askSafety || d.safety !== null,
@@ -177,11 +210,6 @@ export function onboard({ cancellable = false } = {}) {
             ${sources([SRC.cdcAdults, SRC.cdcCounts, ...(minor ? [SRC.cdcKids] : []), ...(pl.hold || d.safety !== null || chatted() ? [SRC.nhlbi, SRC.cdcAdding] : [])])}</section>
           <p class="note" style="text-align:center">A starting point, not medical advice.</p>`; } });
       out.push(
-        { key: 'look', html: () => `${label()}<h1>Pick a look</h1>
-          <p class="sub">It changes the words, colors and pictures. Everything else stays the same. You can switch any time in Settings.</p>
-          ${Object.entries(SKINS).map(([id, k]) => `<button class="card pick" data-skin="${id}" aria-pressed="${d.skin === id}">
-            <h2>${esc(k.name)}</h2><p class="sub">${esc(k.desc)}</p>
-            <span class="skin-dots" aria-hidden="true">${k.dots.map(c => `<i style="background:${c}"></i>`).join('')}</span></button>`).join('')}` },
         { key: 'name', need: 'Enter a name to continue.', ready: () => d.name.trim().length > 0, html: () => `${label()}<h1>What should we call you?</h1>
           <label class="f"><span>First name or nickname</span>
           <input id="nm" autocomplete="off" autocapitalize="words" maxlength="24" value="${esc(d.name)}"></label>
@@ -212,8 +240,9 @@ export function onboard({ cancellable = false } = {}) {
 
     function draw() {
       const st = cur();
+      setSkin(st.key === 'who' ? was : d.skin); // the first screen keeps one look; each person's look starts after it (review 32)
       // The Dragon Ball coach waves hello on the first screen too (2.21); other skins keep the first screen clear.
-      $('#ob').innerHTML = (['chat', 'plan'].includes(st.key) || (st.key === 'door' && skin().mascot !== 'star') ? '' : capsule(step, steps.length)) + st.html();
+      $('#ob').innerHTML = (['chat', 'plan'].includes(st.key) || (['who', 'door'].includes(st.key) && skin().mascot !== 'star') ? '' : capsule(step, steps.length)) + st.html();
       $('.q[data-qid="equipment"] .pills')?.insertAdjacentHTML('afterbegin', `<button data-fullgym aria-pressed="${fullGym(d)}">Full gym</button>`);
       el.classList.add('capsule-setup');
       el.style.setProperty('--step', STEP_COLOR);
@@ -255,7 +284,10 @@ export function onboard({ cancellable = false } = {}) {
       if (b.dataset.fullgym !== undefined) { d.about.equipment = fullGym(d) ? [] : [...GEAR]; draw(); return; }
       if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }
       if (b.dataset.avatar) { pickAvatar(d, b.dataset.avatar); draw(); return; }
-      if (b.dataset.skin) { d.skin = b.dataset.skin; setSkin(d.skin); draw(); return; } // the guide changes with it
+      // A name already on this phone opens that profile instead of setting up a second one (review 32).
+      if (b.dataset.who) { const k = b.dataset.who, have = S.profiles.find(p => p.who === k);
+        if (have) { close(); resolve(have); return; }
+        pickWho(k); return rebuild(); }
       if (b.dataset.goal) {
         if (d.goal !== b.dataset.goal) { d.goal = b.dataset.goal; d.chat = {}; d.planPick = null; d.safety = null; d.modsTouched = false; }
         d.accent = null;
@@ -298,7 +330,7 @@ export function onboard({ cancellable = false } = {}) {
       const p = newProfile(d.kind, capName(d.name), d.accent);
       if (!d.modsTouched) d.modules = { ...d.modules, ...recommended() };
       for (const [k, v] of Object.entries(d.modules)) p.modules[k] = v;
-      Object.assign(p, { avatar: d.avatar, units: d.units, tz: d.tz, about: d.about, coach: d.coach });
+      Object.assign(p, { who: d.who, avatar: d.avatar, units: d.units, tz: d.tz, about: d.about, coach: d.coach });
       // The skin, and its theme when it has one (Encore → Pastel tour); a color picked in setup stays.
       p.settings.skin = d.skin;
       const theme = SKINS[d.skin].theme;

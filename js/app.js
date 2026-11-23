@@ -371,10 +371,20 @@ function watchBack() {
   });
 }
 
+// The family setup (2.27): Rob chose to start everyone fresh. Each phone clears itself once. The marker is kept with
+// the data, so the reset can't run twice on the same data. The cloud had no accounts, so there was nothing to clear there.
+const FRESH_START = 1;
+async function freshStart() {
+  if ((await db.getMeta('freshStart')) >= FRESH_START) return;
+  if ((await db.all('profiles')).length || (await db.all('entries')).length) await db.clearAll();
+  await db.setMeta('freshStart', FRESH_START);
+}
+
 async function boot() {
   registerSW();
   watchBack();
   startTitleCase();
+  await freshStart();
   if (isIOS && !standalone) { await loadProfiles(); profilesLoaded = true; if (update && !S.profiles.length) return applyUpdate(); await installGate(); }
   await loadProfiles(); profilesLoaded = true;
   if (!S.profiles.length) {

@@ -105,6 +105,11 @@ export const deleteProfile = profileId => (wrote(), withDb(db => run(db, ['profi
   for (const k of ['run:', 'seeded:', 'sync:']) tx.objectStore('meta').delete(k + profileId);
 })).then(wrote));
 
+// Everything on this phone, every profile, log and setting (2.27, the family reset).
+export const clearAll = () => (wrote(), withDb(db => run(db, ['profiles', 'entries', 'meta'], 'readwrite', tx => {
+  for (const st of ['profiles', 'entries', 'meta']) tx.objectStore(st).clear();
+})).then(wrote));
+
 export const getMeta = async key => (await get('meta', key))?.value;
 export const setMeta = (key, value) => put('meta', { key, value });
 

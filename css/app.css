@@ -1022,3 +1022,22 @@ nav.tabs .center > span, [style*="text-align:center"] { text-wrap-style: balance
 .card.pick.goalpick, .bubble, .planline > span, .compare .chg, .fgl, .goals .gtx, .itemrow, [style*="text-align:left"],
 [style*="text-align:right"] { text-wrap-style: auto; }
 @media (min-width: 900px) { nav.tabs button { text-wrap-style: auto; } .tside .kibtn { text-wrap-style: balance; } } /* matches where these are left-aligned or centred */
+/* Who's registering (2.27, review 32): four name tiles with a badge in each person's colors, Somebody Else below. */
+.whogrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.whogrid .whotile { margin: 0; padding: 16px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.whotile b { font-size: 1.15rem; }
+.whotile .sub { margin-top: -6px; font-size: .85rem; }
+.whobadge { width: 64px; height: 64px; border-radius: 50%; border: 4px solid; display: grid; place-items: center; font-weight: 900; font-size: 1.6rem; }
+.whogrid + .goalpick { margin-top: 10px; }
+/* Who's registering on tight screens (review 35). Narrow or short: smaller badges and tiles, so all four names show.
+   Short (a phone held sideways): no mascot on this screen, and the four tiles in one row. */
+@media (max-width: 400px), (max-height: 500px) {
+  .whogrid .whotile { padding: 10px 6px; gap: 4px; }
+  .whobadge { width: 44px; height: 44px; font-size: 1.1rem; border-width: 3px; }
+  #ob:has(.whogrid) .mascot img, #ob:has(.whogrid) .mascot svg { width: 56px; height: 56px; }
+}
+@media (max-height: 500px) {
+  #ob:has(.whogrid) .mascot { display: none; }
+  .whogrid { grid-template-columns: repeat(4, 1fr); }
+  .whogrid .whotile { padding: 10px 4px; }
+}
