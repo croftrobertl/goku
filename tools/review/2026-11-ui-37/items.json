@@ -1,0 +1,28 @@
+{"batch":"2026-11-ui-37","title":"Hard-to-Read Spots","bigPreviews":true,"items":[
+{"id":"intro","area":"Start here","title":"What's on This Page",
+ "why":"The audit of Alice's look found two spots that are hard to read. I checked every look and theme and found a third. None of them came from 2.28.0; they were there before.\n\nText should be at least 4.5 times brighter or darker than what's behind it (written 4.5 to 1, the usual accessibility minimum).\n\n1. Future days on Alice's calendar.\n2. The tip bubble on Alice's look.\n3. The tip bubble on the Plain look.\n4. Whether to publish.\n\nNothing is changed yet.",
+ "options":[{"id":"ok","label":"Got it","desc":"","rec":true}]},
+{"id":"calendar","area":"Alice's look","title":"Future Days on the Calendar",
+ "why":"Days that haven't happened yet are faded so past days stand out. Alice's purple text fades too far: 3.8 to 1.\n\nThe Eternal Dragon theme (the one a wish unlocks) has the same problem, more mildly: 4.4 to 1.\n\nThe fix: each theme keeps the lightest fade that still passes. Pastel tour goes from 60% to 70% (5.0 to 1), Eternal Dragon to 65% (5.2 to 1). The Dragon Ball themes already pass and don't change. Dark mode already passes.",
+ "now":[{"img":"cal-now-light.png","caption":"Now: 24 to 30 and next month's days, 3.8 to 1"}],
+ "options":[
+  {"id":"fade","label":"Fade a little less","desc":"Future days still lighter than past days. 5.0 to 1.","img":"cal-fix-light.png","rec":true},
+  {"id":"keep","label":"Keep","desc":"","img":"cal-now-light.png"}]},
+{"id":"erasbubble","area":"Alice's look","title":"The Tip Bubble (Alice's Look)",
+ "why":"Shows once, for about 4 seconds, the first time someone opens Home: \"The center button has quick actions...\". In light mode it's light text on mid pink: 3.0 to 1. Dark mode already passes (8.2 to 1) and stays as it is in every option.",
+ "now":[{"img":"eras-now.png","caption":"Now: light mode 3.0 to 1"}],
+ "options":[
+  {"id":"purple","label":"Dark purple bubble","desc":"Her text colour, like Dragon Ball's black bubble. 11.3 to 1.","img":"eras-purple.png","rec":true},
+  {"id":"mauve","label":"Deeper pink bubble","desc":"Her pink, darkened until it passes. 5.5 to 1.","img":"eras-mauve.png"},
+  {"id":"keep","label":"Keep","desc":"","img":"eras-now.png"}]},
+{"id":"plainbubble","area":"Plain look","title":"The Tip Bubble (Plain Look)",
+ "why":"On the Plain look the same bubble is nearly invisible: pale grey on pale grey in light mode (1.3 to 1) and dark on dark in dark mode (1.5 to 1). Shown with the blue accent; it's the same with any accent.",
+ "now":[{"img":"plain-now.png","caption":"Now: 1.3 to 1 light, 1.5 to 1 dark"}],
+ "options":[
+  {"id":"text","label":"Text-colour bubble","desc":"Dark bubble in light mode, light bubble in dark mode. About 16 to 1.","img":"plain-text.png","rec":true},
+  {"id":"accent","label":"Accent-colour bubble","desc":"Uses the chosen accent colour. 5.1 to 1 light, 7.3 to 1 dark.","img":"plain-accent.png"},
+  {"id":"keep","label":"Keep","desc":"","img":"plain-now.png"}]},
+{"id":"publish","area":"Last","title":"Publish 2.28.1?",
+ "why":"After your picks I build them, run every check (including the full audit on both looks), then publish. Nothing on anyone's phone is erased by this update.",
+ "options":[{"id":"yes","label":"Publish when checks pass","desc":"","rec":true},{"id":"wait","label":"Not yet","desc":"Keep it unpublished."}]}
+]}
