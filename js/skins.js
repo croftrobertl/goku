@@ -1,18 +1,19 @@
 // Skins (2.8): the same app under different "shells". A skin changes the words for Goku's game ideas,
 // suggests a theme, and picks the avatar set, setup mascot and card style. Features never change.
 // Each profile has its own skin (p.settings.skin). Every skin's art is original; Encore is a pop-tour
-// feel, not any real artist: no names, lyrics, photos or album art.
+// feel inspired by the Eras: original drawings, era names and motifs; no real person, lyrics, photos or album art.
 
 export const SKINS = {
-  dbz: { name: 'Dragon Ball', desc: 'Sagas, Senzu beans, Dragon Balls and the gravity chamber', theme: null, avatars: 'fighters', mascot: 'star', dots: ['#0b0f1a', '#5aa2ff', '#f39a1e'],
+  dbz: { name: 'Dragon Ball', desc: 'Sagas, Senzu beans, Dragon Balls and the gravity chamber', theme: null, avatars: 'fighters', mascot: 'star', art: 'img', dots: ['#0b0f1a', '#5aa2ff', '#f39a1e'],
     words: { ki: 'Progress', kiMenu: 'Quick Add', power: 'Power level', saga: 'Saga', sagaMap: 'Saga map', arc: 'Arc', boss: 'Boss', bean: 'Senzu bean', beans: 'Senzu beans',
       beanSave: 'Senzu save', savedBy: 'saved by a Senzu bean', chamber: 'Gravity chamber', enter: 'Enter the chamber', scouter: 'Scouter', readiness: 'Scouter and readiness',
       gravity: 'gravity', news: 'Dragon Ball news', master: 'Dragon Ball master', ball: 'Dragon Ball', balls: 'Dragon Balls', wisher: 'Shenron', pickAvatar: 'Choose your fighter',
       bossBeat: 'Boss defeated', energyQ: 'How much ki do you have today?' } },
-  encore: { name: 'Encore', desc: 'Spotlight, tours, rain checks and rehearsals', theme: 'tour', avatars: 'bracelets', mascot: 'mic', dots: ['#f7f0ff', '#ff8fb1', '#b9a6ff'],
+  encore: { name: 'Eras Tour', desc: 'Buzz the tour cat, friendship bracelets and stage nights', theme: 'tour', avatars: 'eras', mascot: 'star', art: 'img/eras', dots: ['#f7f0ff', '#ff8fb1', '#b9a6ff'],
+    forms: ['Gold sparkle', 'Pink sparkle', 'Confetti', 'Ruby glitter', 'Midnight stars', 'Iridescent'],
     words: { ki: 'Spotlight', kiMenu: 'Spotlight menu', power: 'Crowd', saga: 'Tour', sagaMap: 'Tour map', arc: 'Chapter', boss: 'Showstopper', bean: 'rain check', beans: 'rain checks',
       beanSave: 'Rain check', savedBy: 'saved by a rain check', chamber: 'Rehearsal', enter: 'Take the stage', scouter: 'Soundcheck', readiness: 'Soundcheck and readiness',
-      gravity: 'intensity', news: 'Tour news', master: 'Headliner', ball: 'charm', balls: 'charms', wisher: 'The encore', pickAvatar: 'Pick your look',
+      gravity: 'intensity', news: 'Tour news', master: 'Headliner', ball: 'bracelet', balls: 'bracelets', wisher: 'The finale', pickAvatar: 'Pick your look',
       bossBeat: 'Showstopper nailed', energyQ: 'How much energy do you have today?' } },
   plain: { name: 'Plain', desc: 'Plain words, no theme', theme: null, avatars: 'plain', mascot: 'none', dots: ['#ffffff', '#5c6370', '#141414'],
     words: { ki: 'Progress', kiMenu: 'Quick menu', power: 'Score', saga: 'Goals', sagaMap: 'Goal plan', arc: 'Block', boss: 'Goal', bean: 'streak saver', beans: 'streak savers',
@@ -23,9 +24,24 @@ export const SKINS = {
 
 let cur = 'dbz';
 export const skinOf = p => SKINS[p?.settings?.skin] ? p.settings.skin : 'dbz';
-export function setSkin(id) { cur = SKINS[id] ? id : 'dbz'; document.documentElement.dataset.skin = cur; }
+export function setSkin(id) { cur = SKINS[id] ? id : 'dbz'; document.documentElement.dataset.skin = cur; if (cur === 'encore') warm(); }
 export const skin = () => SKINS[cur];
 export const skinId = () => cur;
+// Drawn art (2.28): Dragon Ball's in img/, the Eras look's in img/eras/ with the same file names. Plain has none.
+export const hasArt = p => !!SKINS[p ? skinOf(p) : cur].art;
+export const art = path => `${SKINS[cur].art || 'img'}/${path}`;
+// Only people who use the Eras look download its art (2.28): the first time it shows, every picture is
+// fetched once so it works offline; the offline worker keeps them with the other drawings.
+const ERAS_FILES = [...['wave', 'coach', 'cheer', 'think', 'letstrain', 'yougotthis', 'protips', 'recharge', 'restday', 'scouter', 'senzu', 'shenron'].map(n => `pose/${n}`),
+  ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => [`balls/lit-${n}`, `balls/dim-${n}`]), ...['ss1', 'ss2', 'ss3', 'god', 'blue', 'ui'].map(n => `aura/${n}`),
+  ...['buzz', 'buzz-sleep', 'debut', 'fearless', 'speaknow', 'red', '1989', 'reputation', 'lover', 'folklore', 'evermore', 'midnights', 'ttpd', 'showgirl', 'cat-grey', 'cat-ragdoll', 'mic', 'bracelet', 'thirteen'].map(n => `char/${n}`),
+  ...['home', 'workout', 'week', 'food', 'water', 'protein', 'calories', 'checkin', 'history', 'library', 'rest', 'settings', 'skills', 'sport', 'supplements', 'weigh', 'you'].map(n => `ic/${n}`)];
+let warmed = false;
+function warm() {
+  if (warmed || !('caches' in self) || !navigator.serviceWorker?.controller) return;
+  warmed = true;
+  setTimeout(() => ERAS_FILES.forEach(f => fetch(`img/eras/${f}.png`).catch(() => {})), 3000);
+}
 // The current skin's word for an idea; Cap() for the start of a sentence.
 export const w = key => SKINS[cur].words[key] ?? SKINS.dbz.words[key];
 // Theme names (2.8.2): Dragon Ball places only in the Dragon Ball skin; the colors are the same.

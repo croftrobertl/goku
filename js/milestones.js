@@ -1,6 +1,6 @@
 // Dragon Ball milestones: seven orbs, one to seven stars, each for a real achievement.
 // Worked out from the log every time (nothing to drift); only "already celebrated" is saved.
-import { w, W, skinOf, themeName } from './skins.js';
+import { w, W, skinOf, themeName, art, hasArt } from './skins.js';
 import { THEMES } from './themes.js';
 import { saveProfile, profile } from './state.js';
 import { esc } from './ui.js';
@@ -76,7 +76,7 @@ const star = (x, y, r) => {
 };
 // Dragon Balls (2.21): Rob's renders, glossy orange with red stars, or frosted grey until gathered.
 export function ballSVG(stars, lit, px = 40) {
-  return `<img class="gball ${lit ? 'lit' : ''}" src="img/balls/${lit ? 'lit' : 'dim'}-${stars}.png" alt="" aria-hidden="true" width="${px}" height="${px}">`;
+  return `<img class="gball ${lit ? 'lit' : ''}" src="${art(`balls/${lit ? 'lit' : 'dim'}-${stars}.png`)}" alt="" aria-hidden="true" width="${px}" height="${px}">`;
 }
 
 export function ballsCard(list) {
@@ -116,9 +116,10 @@ const wishText = (k, d) => k === 'title' ? `"${W('master')}" beside your name.` 
 export function wishCard(p, list) {
   if (p.coach?.wish || list.filter(m => m.earned).length < 7) return '';
   // Shenron rises (2.21, Rob's render) in the Dragon Ball skin; other skins keep the row of charms.
-  const dbz = skinOf(profile()) === 'dbz';
+  // The Eras look (2.28): the finale snake rises from the seven bracelets.
+  const dbz = skinOf(profile()) === 'dbz', drawn = hasArt(profile());
   return `<section class="card wish"><p class="lbl">All seven ${esc(w('balls'))}</p>
-    ${dbz ? '<img class="shenron" src="img/pose/shenron.png" alt="Shenron rises from the seven Dragon Balls" width="240" height="358">'
+    ${drawn ? `<img class="shenron" src="${art('pose/shenron.png')}" alt="${dbz ? 'Shenron rises from the seven Dragon Balls' : `${esc(W('wisher'))} rises from the seven ${esc(w('balls'))}`}" width="240" height="${dbz ? 358 : 240}">`
       : `<div class="ballrow" style="justify-content:center">${list.map(m => ballSVG(m.stars, true, 32)).join('')}</div>`}
     <p style="text-align:center;font-weight:700">${esc(W('wisher'))} ${skinOf(profile()) === 'dbz' ? 'appears' : 'is here'}. Make one wish.</p>
     <div class="moregrid">${WISHES.map(([k, n, d]) => `<button class="card pick" data-wish="${k}"><span><b>${n}</b><br><span class="sub">${esc(wishText(k, d))}</span></span></button>`).join('')}</div></section>`;

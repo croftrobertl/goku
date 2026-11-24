@@ -1,5 +1,5 @@
 // Boot, routing, profile switching, the update bar.
-import { w, W, setSkin, skinOf } from './skins.js';
+import { w, W, setSkin, skinOf, art, hasArt } from './skins.js';
 import { weighIn, weightOn } from './weight.js';
 import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, deleteEntry, kindLabel } from './state.js';
 import * as db from './db.js';
@@ -8,7 +8,7 @@ import { onboard } from './onboarding.js';
 import { settingsView, backupAgeDays, youView, openSettingsGroup } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
-import { formFor, auraSVG } from './auras.js';
+import { formFor, formName, auraSVG } from './auras.js';
 import { setResting } from './avatar.js';
 import { maybeOver9000 } from './scouter.js';
 import { loggedEntries } from './insights.js';
@@ -74,9 +74,9 @@ function showKiHint() {
 
 // Tab icons: simple outline drawings in the panel style.
 // Full-color Dragon Ball icons (2.21, reviews 20-21): renders Rob picked, one 120 px PNG each in img/ic.
-const pic = n => `<img class="ic" src="img/ic/${n}.png" alt="" aria-hidden="true" width="28" height="28" draggable="false">`;
+const pic = n => () => `<img class="ic" src="${art(`ic/${n}.png`)}" alt="" aria-hidden="true" width="28" height="28" draggable="false">`;
 const svg = d => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const ICON = {
+const ICON = new Proxy({
   home: pic('home'),
   library: pic('library'),
   week: pic('week'),
@@ -95,7 +95,7 @@ const ICON = {
   scale: pic('weigh'),
   moon: pic('rest'),
   close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
-};
+}, { get: (o, k) => typeof o[k] === 'function' ? o[k]() : o[k] }); // icons follow the look (2.28)
 import { prettyDay } from './time.js';
 import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
@@ -182,8 +182,8 @@ async function drawNow() {
   // Transformation stages (2.2): the streak powers the aura up; a wish can make it eternal.
   const days = streakSeen[p.id] || 0;
   // Dragon Ball skin (2.20): the Super Saiyan forms, drawn as flames. Other skins keep the gold and blue rings.
-  const form = skinOf(p) === 'dbz' && p.coach?.wish !== 'aura' ? formFor(days) : null;
-  const [stage, stageName] = p.coach?.wish === 'aura' ? ['st-eternal', 'Eternal aura'] : form ? ['st-form', `${form[1]} · ${days}-day streak`]
+  const form = hasArt(p) && p.coach?.wish !== 'aura' ? formFor(days) : null;
+  const [stage, stageName] = p.coach?.wish === 'aura' ? ['st-eternal', 'Eternal aura'] : form ? ['st-form', `${formName(form)} · ${days}-day streak`]
     : days >= 30 ? ['st-blue', `Blue aura · ${days}-day streak`] : days >= 7 ? ['st-gold', `Gold aura · ${days}-day streak`] : ['', days ? `${days}-day streak` : 'Base form'];
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';
@@ -279,7 +279,7 @@ document.addEventListener('click', e => {
   else if (b.id === 'demoEnd') import('./demo.js').then(m => m.endDemo(profile()));
   else if (b.id === 'updLater') { update.dismissed = true; render(); }
   else if (b.id === 'updNow') applyUpdate();
-  else if (b.dataset.why && WHY[b.dataset.why]) { const [t, html] = WHY[b.dataset.why](profile(), b.dataset.arg); ask(t, (skinOf(profile()) === 'dbz' ? '<img class="tipspic" src="img/pose/protips.png" alt="" aria-hidden="true" width="120" height="120">' : '') + html, []); } // Pro Tips Goku (2.21)
+  else if (b.dataset.why && WHY[b.dataset.why]) { const [t, html] = WHY[b.dataset.why](profile(), b.dataset.arg); ask(t, (hasArt(profile()) ? `<img class="tipspic" src="${art('pose/protips.png')}" alt="" aria-hidden="true" width="120" height="120">` : '') + html, []); } // Pro Tips Goku (2.21)
   else if (b.dataset.setup) setupFlow(profile(), async p => { await saveProfile(p); render(); }, { only: b.dataset.setup });
 });
 

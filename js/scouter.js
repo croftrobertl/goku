@@ -4,7 +4,7 @@
 //   Fuel      up to 2,500: days your protein goal was met (or days with food logged)
 //   Recovery  up to 2,500: average readiness (gymnastics), or days you showed up (strength)
 //   Streak    up to 1,000 (2.20): 25 for each streak day past 7, so a perfect week on a long streak goes over 9,000
-import { w, W } from './skins.js';
+import { w, W, art, skinOf } from './skins.js';
 import { streak } from './insights.js';
 import { restAllowance } from './homecards.js';
 import { addDays } from './time.js';
@@ -68,16 +68,18 @@ export function scouterCard(p, all, today, { extra = '', title = W('scouter') } 
 // "It's over 9,000!" (2.20, review 19): once per profile, the first time the reading passes 9,000.
 // Dragon Ball skin only. The moment is remembered in p.coach.over9000 so it never repeats.
 export async function maybeOver9000(p, all, today) {
-  if (p.coach?.over9000 || p.settings?.skin && p.settings.skin !== 'dbz' || document.querySelector('.overlay')) return;
+  if (p.coach?.over9000 || !['dbz', 'encore'].includes(skinOf(p)) || document.querySelector('.overlay')) return;
   const pl = powerLevel(p, all, today);
   if (pl.total <= 9000) return;
   const { overlay } = await import('./ui.js'), { saveProfile } = await import('./state.js');
   p.coach = { ...(p.coach || {}), over9000: today };
   await saveProfile(p);
-  const { el, close } = overlay(`<div class="nine" role="document"><img class="broke" src="img/pose/scouter.png" alt="A scouter cracking apart" width="300" height="300">
-    <div class="lens"><div class="lbl2">POWER LEVEL</div><div class="read9 num">${pl.total.toLocaleString('en-US')}</div></div>
-    <h1 class="big9">It's over 9,000!</h1><p class="sub9">Your power level just passed 9,000. Every workout, meal and check-in got you here.</p>
-    <button class="btn9" data-close>Keep Training</button></div>`, { label: "It's over 9,000" });
+  // The Eras look (2.28): a light-up wristband bursts as the crowd passes 9,000.
+  const eras = skinOf(p) === 'encore', head = eras ? 'Sold-out show!' : "It's over 9,000!";
+  const { el, close } = overlay(`<div class="nine" role="document"><img class="broke" src="${art('pose/scouter.png')}" alt="${eras ? 'A light-up wristband bursting into glitter' : 'A scouter cracking apart'}" width="300" height="300">
+    <div class="lens"><div class="lbl2">${eras ? 'CROWD' : 'POWER LEVEL'}</div><div class="read9 num">${pl.total.toLocaleString('en-US')}</div></div>
+    <h1 class="big9">${head}</h1><p class="sub9">Your ${eras ? 'crowd' : 'power level'} just passed 9,000. Every workout, meal and check-in got you here.</p>
+    <button class="btn9" data-close>${eras ? 'Keep Going' : 'Keep Training'}</button></div>`, { label: head });
   el.classList.add('ov9000');
   el.querySelector('.btn9').focus();
   el.querySelector('.btn9').addEventListener('click', close);

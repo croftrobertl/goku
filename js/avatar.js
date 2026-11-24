@@ -15,6 +15,12 @@ export const CHARACTERS = [
   ['beerus', 'Beerus', '#8a5bd6', '破'], ['whis', 'Whis', '#6fa8dc', '使'], ['jiren', 'Jiren', '#d9332b', '力'],
 ];
 
+// The Eras look's profile pictures (2.28): Buzz, era emblems and cats. [id, name, file in img/eras/char]
+export const ERAS = [['buzz', 'Buzz', 'buzz'], ['debut', 'Debut', 'debut'], ['fearless', 'Fearless', 'fearless'], ['speaknow', 'Speak Now', 'speaknow'],
+  ['red', 'Red', 'red'], ['y1989', '1989', '1989'], ['reputation', 'Reputation', 'reputation'], ['lover', 'Lover', 'lover'], ['folklore', 'folklore', 'folklore'],
+  ['evermore', 'evermore', 'evermore'], ['midnights', 'Midnights', 'midnights'], ['ttpd', 'Tortured Poets', 'ttpd'], ['showgirl', 'Showgirl', 'showgirl'],
+  ['catgrey', 'Grey cat', 'cat-grey'], ['ragdoll', 'Ragdoll', 'cat-ragdoll'], ['mic', 'Mic', 'mic'], ['karma', 'Karma bracelet', 'bracelet'], ['thirteen', '13', 'thirteen']];
+
 // [id, name, aura color]: the person's own initial wrapped in a power-up glow.
 // The fourth name is for Encore and Plain (2.8.2), which use no Dragon Ball words.
 export const AURAS = [
@@ -48,13 +54,15 @@ const emblem = (fill, kanji, px) => `<svg viewBox="0 0 40 40" width="${px}" heig
 const FACES = new Set(CHARACTERS.map(c => c[0])); // all 18 fighters (2.21, reviews 22-23)
 const resting = new Set(); // profile ids with a rest day logged today
 export const setResting = (id, on) => { if (on) resting.add(id); else resting.delete(id); };
-const face = (id, name, px) => `<span class="av av-art av-face" style="width:${px}px;height:${px}px" title="${esc(name)}"><img src="img/char/${id}.png" alt="" width="${px}" height="${px}"></span>`;
+const face = (id, name, px, dir = 'img/char') => `<span class="av av-art av-face${dir === 'img/char' ? '' : ' av-round'}" style="width:${px}px;height:${px}px" title="${esc(name)}"><img src="${dir}/${id}.png" alt="" width="${px}" height="${px}"></span>`;
 
 // The avatar for a profile, sized in pixels. Falls back to the plain initial in the accent color.
 export function avatarHTML(p, px = 36) {
   const a = p.avatar || {};
   const c = a.type === 'char' && CHARACTERS.find(x => x[0] === a.id);
   if (c && FACES.has(c[0])) return face(c[0] === 'goku' && resting.has(p.id) ? 'gokusleep' : c[0], c[1], px);
+  const era = a.type === 'era' && ERAS.find(x => x[0] === a.id); // Buzz naps through a logged rest day
+  if (era) return face(era[0] === 'buzz' && resting.has(p.id) ? 'buzz-sleep' : era[2], era[1], px, 'img/eras/char');
   if (c) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(c[1])}">${emblem(c[2], c[3], px)}</span>`;
   const bead = a.type === 'beads' && BRACELETS.find(x => x[0] === a.id);
   if (bead) return `<span class="av av-art" style="width:${px}px;height:${px}px" title="${esc(bead[1])} bracelet">${bracelet(bead[2], initials(p.name), px)}</span>`;
@@ -69,6 +77,7 @@ export function avatarHTML(p, px = 36) {
 export const avatarName = p => {
   const a = p.avatar || {};
   if (a.type === 'char') return CHARACTERS.find(x => x[0] === a.id)?.[1] || '';
+  if (a.type === 'era') return ERAS.find(x => x[0] === a.id)?.[1] || '';
   if (a.type === 'aura') { const x = AURAS.find(x => x[0] === a.id); return x ? auraName(x) : ''; }
   if (a.type === 'beads') return (BRACELETS.find(x => x[0] === a.id)?.[1] || '') + ' bracelet';
   return a.type === 'photo' ? 'Your photo' : 'Your initial';
@@ -82,6 +91,9 @@ export function avatarPicker(p) {
   const fighters = `<p class="lbl" style="margin-top:12px">Fighters</p>
     <div class="avgrid">${CHARACTERS.map(([id, name]) => `<button data-avatar="char:${id}" aria-pressed="${on('char', id)}">
       ${avatarHTML({ ...p, avatar: { type: 'char', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
+  const eras = `<p class="lbl" style="margin-top:12px">Eras</p>
+    <div class="avgrid">${ERAS.map(([id, name]) => `<button data-avatar="era:${id}" aria-pressed="${on('era', id)}">
+      ${avatarHTML({ ...p, avatar: { type: 'era', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
   const bracelets = `<p class="lbl" style="margin-top:12px">Bracelets</p>
     <div class="avgrid">${BRACELETS.map(([id, name]) => `<button data-avatar="beads:${id}" aria-pressed="${on('beads', id)}">
       ${avatarHTML({ ...p, avatar: { type: 'beads', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
@@ -89,7 +101,7 @@ export function avatarPicker(p) {
   // though a fighter picked before keeps showing as the avatar.
   const dbz = skin().avatars === 'fighters';
   return `<p class="sub">${dbz ? 'Pick a fighter, an aura, or your own photo. Goku is fan-made; Dragon Ball belongs to its creators.' : 'Pick an avatar, an aura, or your own photo.'} Your colors stay with your theme.</p>
-    ${dbz ? fighters + bracelets : bracelets}
+    ${dbz ? fighters + bracelets : skin().avatars === 'eras' ? eras + bracelets : bracelets}
     <p class="lbl" style="margin-top:12px">Auras</p>
     <div class="avgrid">
       <button data-avatar="initial:" aria-pressed="${on('initial')}">${avatarHTML(self, 44)}<span>Plain</span></button>

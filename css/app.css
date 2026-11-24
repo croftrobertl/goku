@@ -477,6 +477,11 @@ nav.tabs .center > span:last-child { max-width: 5.5rem; text-align: center; line
 .card.wish .lbl { color: #ffe07a; }
 .card.wish .card.pick { background: #102a1e; color: #eafff3; border-color: #e9c13b; box-shadow: 3px 3px 0 #e9c13b; }
 .card.wish .sub { color: #a8d9be; }
+/* The Eras look (2.28): the finale is a stage night, purple with pink and gold */
+:root[data-skin="encore"] .card.wish { background: #1e1238; color: #f7f0ff; }
+:root[data-skin="encore"] .card.wish .lbl { color: #ffd27a; }
+:root[data-skin="encore"] .card.wish .card.pick { background: #2b1a52; color: #f7f0ff; border-color: #ff8fb1; box-shadow: 3px 3px 0 #ff8fb1; }
+:root[data-skin="encore"] .card.wish .sub { color: #d9c9f5; }
 /* Kamehameha finish: the button fills with blue energy while held (2.2) */
 .kame { position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .kame > span { position: relative; z-index: 1; }
@@ -982,11 +987,19 @@ nav.tabs .tb:not([aria-current]) .ic { opacity: .6; filter: saturate(.55); }
 .ov9000 .tick::after { content: ''; position: absolute; inset: 8px; background: #ff4b4b; border-radius: 50%; box-shadow: 0 0 10px #ff4b4b; }
 .ov9000 .big9 { margin: 18px 0 0; text-align: center; font: 900 40px/1.05 -apple-system, system-ui, sans-serif; color: #ffe46b; text-shadow: 3px 3px 0 #b3261e, 0 0 18px rgba(255,200,60,.5); transform: rotate(-3deg); text-transform: uppercase; }
 .ov9000 .sub9 { max-width: 300px; text-align: center; color: #cfe9d9; font-weight: 600; line-height: 1.4; margin: 0; }
+:root[data-skin="encore"] .overlay.ov9000 { background: radial-gradient(circle at 50% 30%, #3b1f6b, #120a24 70%); color: #f7f0ff; } /* Eras look (2.28): stage night */
+:root[data-skin="encore"] .ov9000 .lens { background: linear-gradient(160deg, rgba(255,143,177,.55), rgba(150,90,255,.35)); border-color: #2a1748; box-shadow: inset 0 0 30px rgba(255,210,230,.35), 0 0 30px rgba(255,120,190,.35); }
+:root[data-skin="encore"] .ov9000 .lbl2 { color: #ffd6e6; }
+:root[data-skin="encore"] .ov9000 .read9 { color: #fff4fa; text-shadow: 0 0 12px #ff5fa8, 0 0 2px #fff; }
+:root[data-skin="encore"] .ov9000 .big9 { color: #ffe46b; text-shadow: 3px 3px 0 #7a2bbf, 0 0 18px rgba(255,150,210,.5); }
+:root[data-skin="encore"] .ov9000 .sub9 { color: #e6d9ff; }
 .ov9000 .btn9 { width: 100%; max-width: 330px; height: 52px; margin-top: auto; border-radius: 14px; background: #ffe46b; color: #141a2b; border: 3px solid #141a2b; font: 900 17px -apple-system, system-ui, sans-serif; }
 @media (prefers-reduced-motion: no-preference) { .ov9000 .big9 { animation: pop9 .5s cubic-bezier(.2, 1.6, .4, 1) both .25s; } @keyframes pop9 { from { transform: rotate(-3deg) scale(.4); opacity: 0; } } }
 /* Drawn faces (2.21): the hair breaks out past the circle, so the picture is a little bigger than its slot. */
 .av-face { overflow: visible !important; background: none; position: relative; }
 .av-face img { position: absolute; width: 124%; height: 124%; left: -12%; top: -16%; max-width: none; border-radius: 0; object-fit: contain; }
+.av-face.av-round img { width: 100%; height: 100%; left: 0; top: 0; } /* Eras pictures are trimmed to their circle (2.28) */
+:root[data-skin="encore"] .aura .saura { transform-origin: 50% 51%; } /* the stage-glow rings are centered */
 /* Coach moments (2.21): Let's Train! and You Got This! appear for a moment, then fade. A tap closes them. */
 .moment { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(8, 10, 20, .45); }
 .moment img { width: min(78vw, 340px); height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, .35)); }

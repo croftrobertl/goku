@@ -1,6 +1,6 @@
 // First-launch (and "Add profile") setup. Every personal value is entered here
 // and stored only on this device.
-import { skin, skinId, setSkin, SKINS, w } from './skins.js';
+import { skin, skinId, setSkin, SKINS, w, art } from './skins.js';
 import { THEMES } from './themes.js';
 import { KINDS, newProfile, capName, saveProfile, S, liveModules, soonModules, SPORTS, STYLES, presetModules, sessionNames, profile } from './state.js';
 import { findSports, activityName } from './activity.js';
@@ -32,10 +32,10 @@ function capsule(step, total) {
   const eyes = step % 3 === 1 && !last ? '<path d="M39 56h11M70 56h11" stroke="#141414" stroke-width="4" stroke-linecap="round"/>'
     : `<path d="M44 46${STAR}M76 46${STAR}" fill="#c4281c" stroke="#141414" stroke-width="1.6" stroke-linejoin="round"/>`;
   const arms = last ? '<path d="M18 60l-10-14M102 60l10-14" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : first ? '<path d="M103 56l11-12" stroke="#141414" stroke-width="5" stroke-linecap="round"/>' : '';
-  // The skin picks the guide (2.8): Encore's is a mic buddy, Plain has none.
+  // The skin picks the guide (2.8): drawn coaches for Dragon Ball and Eras Tour (2.28), Plain has none.
   if (skin().mascot === 'none') return '';
   // Dragon Ball skin (2.21, review 22): Goku pointing at you is the coach. The mini chat face uses the same picture.
-  if (skin().mascot === 'star') return `<div class="mascot coachpic" aria-hidden="true"><img src="img/pose/${first ? 'wave' : last ? 'cheer' : 'coach'}.png" alt="" width="96" height="96"></div>`; // 2.21: waves hello, points the way, cheers at the end
+  if (skin().mascot === 'star') return `<div class="mascot coachpic" aria-hidden="true"><img src="${art(`pose/${first ? 'wave' : last ? 'cheer' : 'coach'}.png`)}" alt="" width="96" height="96"></div>`; // 2.21: waves hello, points the way, cheers at the end
   if (skin().mascot === 'mic') {
     const micEyes = step % 3 === 1 && !last ? '<path d="M44 40h9M67 40h9" stroke="#3a2a5c" stroke-width="4" stroke-linecap="round"/>'
       : '<circle cx="48" cy="40" r="4.5" fill="#3a2a5c"/><circle cx="72" cy="40" r="4.5" fill="#3a2a5c"/><circle cx="49.5" cy="38.5" r="1.4" fill="#fff"/><circle cx="73.5" cy="38.5" r="1.4" fill="#fff"/>';
@@ -141,7 +141,7 @@ export function onboard({ cancellable = false } = {}) {
       return { nutrition: true, gut: true, hypertrophy: lifts, shuffle: lifts, soccer: d.who === 'rob', fuel: pl.id !== 'food', weight: goal() === 'lose' && !isMinor(d) };
     }
 
-    const mini = () => skin().mascot === 'star' ? '<img class="chatface coachface" src="img/pose/think.png" alt="" aria-hidden="true" width="56" height="56">'
+    const mini = () => skin().mascot === 'star' ? `<img class="chatface coachface" src="${art('pose/think.png')}" alt="" aria-hidden="true" width="56" height="56">`
       : capsule(2, 9).replace('width="104" height="96"', 'width="44" height="40"').replace('class="mascot"', 'class="chatface"');
     const say = t => `<div class="chatrow">${mini()}<div class="bubble">${esc(t)}</div></div>`;
     const me = t => `<div class="chatrow mine"><div class="bubble">${esc(t)}</div></div>`;

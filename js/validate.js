@@ -53,7 +53,7 @@ function cleanCustom(c) {
 }
 function cleanAvatar(v) {
   if (!v || typeof v !== 'object') return null;
-  if (['char', 'aura', 'beads'].includes(v.type) && /^\w{1,20}$/.test(v.id || '')) return { type: v.type, id: v.id };
+  if (['char', 'era', 'aura', 'beads'].includes(v.type) && /^\w{1,20}$/.test(v.id || '')) return { type: v.type, id: v.id };
   if (v.type === 'photo' && typeof v.img === 'string' && v.img.length < 300000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v.img)) return { type: 'photo', img: v.img };
   return null;
 }

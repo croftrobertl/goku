@@ -1,5 +1,5 @@
 // Home cards both profile types share: the streak with Senzu saves and the weekly arc recap.
-import { w, W, skinOf } from './skins.js';
+import { w, W, skinOf, art, hasArt } from './skins.js';
 import { saveEntry, saveProfile, deleteEntry } from './state.js';
 import { esc, round, toast } from './ui.js';
 import { prettyDay, weekday, minutesNow, clockOf } from './time.js';
@@ -14,7 +14,7 @@ import { powerLevel } from './scouter.js';
 
 // A Senzu bean, drawn small (2.5: no emoji in the interface).
 // A Senzu bean (2.21): Rob's render.
-const BEAN = '<img class="sbean" src="img/pose/senzu.png" alt="" aria-hidden="true" width="24" height="24">';
+const BEAN = () => `<img class="sbean" src="${art('pose/senzu.png')}" alt="" aria-hidden="true" width="24" height="24">`;
 
 // Rest days that count each week: the days you don't plan to train (at least 1; 2 with no plan).
 const offDay = d => d.gym + d.vault === 0;
@@ -32,10 +32,10 @@ export const streakSeen = {};
 //   Gymnastics: a planned rest day, or readiness under 50 in today's check-in.
 //   Strength: today's check-in says energy 1–2 or soreness 4–5.
 export function restCard(p, all, today) {
-  if (skinOf(p) !== 'dbz') return '';
+  if (!hasArt(p)) return '';
   const day = all.filter(e => e.day === today), has = t => day.some(e => e.type === t);
   if (has('session') || has('activity')) return ''; // trained after all: no rest card
-  if (has('rest')) return `<section class="card restcard"><img src="img/pose/restday.png" alt="Rest day" width="220" height="220">
+  if (has('rest')) return `<section class="card restcard"><img src="${art('pose/restday.png')}" alt="Rest day" width="220" height="220">
     <p class="sub" style="text-align:center">Rest day logged. Recovery is training too.</p></section>`;
   const s = streak(all, today, restAllowance(p)); if (!s.restLeft) return '';
   const plan = p.kind === 'perf' ? p.settings.weekPlan || [] : [];
@@ -43,7 +43,7 @@ export function restCard(p, all, today) {
   const ci = day.find(e => e.type === 'checkin')?.data, g = day.find(e => e.type === 'gut')?.data;
   const tired = p.kind === 'perf' ? !!ci && readiness(ci, sleepTargetFor(p)) < 50 : !!g && (g.energy <= 2 || g.soreness >= 4);
   if (!plannedRest && !tired) return '';
-  return `<section class="card restcard"><img src="img/pose/recharge.png" alt="" aria-hidden="true" width="200" height="200">
+  return `<section class="card restcard"><img src="${art('pose/recharge.png')}" alt="" aria-hidden="true" width="200" height="200">
     <p style="text-align:center;font-weight:700">${plannedRest ? 'Today is a planned rest day.' : 'Your check-in says your body could use a break.'}</p>
     <p class="sub" style="text-align:center">Relax and recharge. A rest day keeps your streak going.</p>
     <button class="cta2" data-restday style="margin-top:8px;width:100%">Log a rest day</button></section>`;
@@ -56,7 +56,7 @@ export function streakCard(p, all, today) {
   const plannedRest = plan.length && !plan.every(offDay) && offDay(plan[weekday(today)]);
   return `<section class="card streak"><div class="row"><p class="lbl" style="margin:0">Streak</p>${whyBtn('streak', JSON.stringify(s))}</div>
     <div class="row" style="margin-top:4px"><span class="big num">${s.days}<span class="sub"> day${s.days === 1 ? '' : 's'}</span></span>
-    ${s.beans ? `<span aria-label="${s.beans} ${s.beans === 1 ? w('bean') : w('beans')}" title="${esc(W('beans'))}">${BEAN.repeat(s.beans)}</span>` : `<span class="sub">no ${esc(w('beans'))} yet</span>`}</div>
+    ${s.beans ? `<span aria-label="${s.beans} ${s.beans === 1 ? w('bean') : w('beans')}" title="${esc(W('beans'))}">${BEAN().repeat(s.beans)}</span>` : `<span class="sub">no ${esc(w('beans'))} yet</span>`}</div>
     ${s.todayDone ? '<p class="sub">Today counts. ✓</p>' : s.restLeft ? `<p class="sub">${plannedRest ? 'Today is a planned rest day.' : 'Log anything today to keep it going.'}</p>
       <button class="cta2" data-restday style="margin-top:8px;width:100%">${plannedRest ? 'Count today\'s rest' : 'Log a planned rest day'}</button>`
       : `<p class="sub">This week's ${s.restPerWeek} rest day${s.restPerWeek === 1 ? ' is' : 's are'} used. Log training to keep it going.</p>`}</section>`;
