@@ -150,6 +150,11 @@ export function setAccent(accent) {
   let line = hex(accent);
   for (let t = 0; t <= 1 && contrast(toHex(line), bg) < 3; t += 0.05) line = mix(hex(accent), dark ? [255, 255, 255] : [0, 0, 0], t);
   root.setProperty('--accent', accent);
+  // 2.28.1 (review 37): future calendar days fade only as far as still reads at 4.5:1 on a card,
+  // and the tip bubble on the Eras look uses the text colour when its pink would be too light.
+  let fade = .6; while (fade < 1 && contrast(toHex(mix(hex(pal.s1), hex(pal.tx), fade)), pal.s1) < 4.5) fade = Math.round((fade + .05) * 100) / 100;
+  root.setProperty('--fade', fade);
+  root.setProperty('--hint', contrast(toHex(line), pal.bg) >= 4.5 ? toHex(line) : pal.tx);
   root.setProperty('--accent-text', toHex(text));
   root.setProperty('--accent-line', toHex(line));
   root.setProperty('--ink-manga', dark ? '#e6e1d3' : '#141414'); // comic-panel outlines: dark ink on light, light ink on dark
