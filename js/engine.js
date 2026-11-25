@@ -18,6 +18,7 @@ import { sagaCard, bindSaga, arcsOf } from './saga.js';
 import { homeLayout, bindRows } from './homelayout.js';
 import { pickMove, showMove, howBtn, moveFor, addMove, moveData } from './movepicker.js';
 import { GROUPS as MOVE_GROUPS } from './moves.js';
+import { FAMILY_DB, nextDb } from './gear.js';
 import { figureSVG } from './figure.js';
 import { planId, onHold, trainOff, starterOn, starterSets, moveGoal, holdCard, moveCard, starterCard, starterReady, comebackNote, MOVE_TARGET, MOVE_STEP } from './plan.js';
 import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
@@ -605,7 +606,9 @@ function openRunner(run) {
       history.at(-1).load = { exId: run.cur.exId, label: run.cur.stages[run.stage].label, load: run.cur.stages[run.stage].load ?? null }; // Undo puts this weight back everywhere (2.15)
       // Dumbbells use the step from Settings; barbell, machines and the rest go by 5 lb (2.5 kg) (2.8.2).
       const st = run.cur.stages[run.stage], step = isDumbbell(curEx()) ? toLb(stepShown(p), p) : toLb(metric(p) ? 2.5 : 5, p);
-      const next = Math.max(0, round((st.load || 0) + (b.id === 'wUp' ? step : -step), 3)) || null;
+      // The family's dumbbells only make certain weights (2.29).
+      const makes = isDumbbell(curEx()) && FAMILY_DB[p.who];
+      const next = makes ? nextDb(makes, st.load, b.id === 'wUp') : Math.max(0, round((st.load || 0) + (b.id === 'wUp' ? step : -step), 3)) || null;
       st.load = next;
       const planned = curEx().stages.find(x => x.label === st.label); if (planned) planned.load = next;
       const ex = (await entries('exercise')).find(x => x.id === run.cur.exId);
@@ -791,7 +794,7 @@ function editExercise(ex, hist = '') {
       p.settings.plates = [...have]; p.settings.platesUnit = weightUnit(p); await saveProfile(p); return draw(); }
     if (b.id === 'add') { d.stages.push({ label: '', load: null }); draw(); }
     if (b.dataset.rest !== undefined) { if (b.dataset.rest) d.rest = +b.dataset.rest; else delete d.rest; draw(); }
-    if (b.id === 'stepUp') { const step = toLb(stepShown(p), p); d.stages.forEach(s => { if (s.load) s.load = round(s.load + step, 3); }); draw(); toast('Loads raised. Tap Save to keep them.'); }
+    if (b.id === 'stepUp') { const step = toLb(stepShown(p), p); const makes = isDumbbell(d) && FAMILY_DB[p.who]; d.stages.forEach(s => { if (s.load) s.load = makes ? nextDb(makes, s.load, true) : round(s.load + step, 3); }); draw(); toast('Loads raised. Tap Save to keep them.'); }
     if (b.dataset.rm) { if (d.stages.length > 1) { d.stages.splice(+b.dataset.rm, 1); draw(); } }
     if (b.id === 'save') {
       // Blank stages are dropped from what's saved, not from the form, so a failed save leaves the form as typed.

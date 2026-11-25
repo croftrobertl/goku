@@ -1,6 +1,8 @@
 // Library helpers (1.8): the "?" explanation for any exercise, and a searchable picker that
 // adds catalog exercises to the person's circuit library.
 import { MOVES, GROUPS, EQUIP, LEVELS, moveById, searchMoves, suggestMoves } from './moves.js';
+import { GEAR_NOTE, VEST_MINOR, MOVE_SRC } from './gear.js';
+import { isMinor } from './coach.js';
 import { artOf, muscleMap, muscleLine } from './muscles.js';
 import { profile, saveEntry } from './state.js';
 import { esc, overlay, guard, toast, sources } from './ui.js';
@@ -35,10 +37,11 @@ export function showMove(id, { onAdd = null, added = false, onEdit = null, extra
       ${muscleLine(m.id)}
       <ol class="steps">${m.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
       <p class="tipline"><b>Tip:</b> ${esc(m.tip)}</p>
+      ${GEAR_NOTE[m.equip] ? `<p class="note">${esc(GEAR_NOTE[m.equip])}${m.equip === 'vest' && profile() && (isMinor(profile()) || profile().who === 'lennon') ? ' ' + esc(VEST_MINOR) : ''}</p>` : ''}
       ${extra}
       ${m.mode === 'hold' ? `<p class="note">${['cardio', 'power'].includes(m.group) ? 'Done for time' : 'Held for time'}, not counted in reps.</p>` : ''}
       <p class="note">${esc(LEVELS[m.level])} · ${esc(equipName(m.equip))}. Start light and slow. Sore muscles are normal; sharp pain means stop.</p>
-      ${sources([...(art ? ['Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, CC BY-SA 4.0.'] : []),
+      ${sources([...(MOVE_SRC[m.id] || []), ...(art ? ['Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, CC BY-SA 4.0.'] : []),
         'Muscle map: OpenStax, T. Kebert and umimeto.org, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, recolored.'])}
     </div>
     ${onAdd ? `<button class="cta" id="addMove" ${added ? 'disabled' : ''}>${added ? 'In your library' : 'Add to my library'}</button>` : ''}

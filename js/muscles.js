@@ -11,6 +11,11 @@ export const REGIONS = { chest: 'Chest', shoulders: 'Shoulders', biceps: 'Biceps
 
 const m = (main, also = '') => [main.split(' '), also ? also.split(' ') : []];
 const MAP = {
+  'slider-reverse-lunge': m('glutes quads', 'hamstrings adductors'), 'slider-side-lunge': m('adductors glutes quads'), 'slider-climber': m('abs', 'shoulders hips quads'),
+  'slider-knee-elbow': m('abs obliques', 'shoulders hips'), 'slider-bridge-curl': m('hamstrings glutes', 'lowback'), 'slider-arm-slide': m('abs shoulders', 'chest lats'),
+  'aw-side-leg-lift': m('hips glutes'), 'aw-hip-abduction': m('hips glutes'), 'aw-kickback': m('glutes', 'hamstrings'), 'aw-hamstring-curl': m('hamstrings'),
+  'vest-walk': m('quads glutes calves'), 'vest-squat': m('quads glutes', 'adductors hamstrings'), 'vest-reverse-lunge': m('glutes quads', 'hamstrings adductors'),
+  'vest-plank': m('abs', 'shoulders obliques'),
   'wall-pushup': m('chest', 'shoulders triceps'), 'incline-pushup': m('chest', 'shoulders triceps'), 'knee-pushup': m('chest', 'shoulders triceps'),
   pushup: m('chest', 'shoulders triceps abs'), 'decline-pushup': m('chest shoulders', 'triceps abs'), 'pike-pushup': m('shoulders', 'triceps traps'),
   'bench-dip': m('triceps', 'shoulders chest'), 'db-bench-press': m('chest', 'shoulders triceps'), 'db-floor-press': m('chest triceps', 'shoulders'),
@@ -100,6 +105,8 @@ const ART = {
   'tricep-pushdown': ['0205'], 'cable-curl': ['0212'], 'preacher-curl': ['0239'], 'machine-calf-raise': ['0282'],
   'ab-wheel': ['0286', 'Shown with a barbell; an ab wheel rolls the same way.'], 'cable-crunch': ['0288', 'Shown seated; kneeling works the same way.'],
 };
+Object.assign(ART, { 'slider-reverse-lunge': ['0129', 'Shown holding dumbbells; your back foot slides on a slider.'], 'slider-bridge-curl': ['0109', 'Shown without sliders; one heel slides out and back.'],
+  'vest-reverse-lunge': ['0129', 'Shown holding dumbbells instead of wearing a vest.'] });
 export const artOf = id => ART[id] ? { start: `img/moves/${ART[id][0]}-relaxation.svg`, end: `img/moves/${ART[id][0]}-tension.svg`, note: ART[id][1] || '' } : null;
 export const ART_FILES = Object.values(ART).flatMap(([n]) => [`img/moves/${n}-relaxation.svg`, `img/moves/${n}-tension.svg`]);
 

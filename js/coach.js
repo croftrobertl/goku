@@ -5,7 +5,8 @@ import { esc, overlay, round, toast } from './ui.js';
 import { w } from './skins.js';
 import { weight, weightUnit, toLb, length, lengthUnit, toIn } from './units.js';
 import { dayKey, deviceTZ, validTZ, daysBetween } from './time.js';
-import { EQUIP, GEAR } from './moves.js';
+import { EQUIP, GEAR, MOVES } from './moves.js';
+import { gearPic, GEAR_WHY, GEAR_GROUPS } from './gear.js';
 
 // The keyboard-mic hint shows only on touch screens (2.8.1); a computer keyboard has no mic.
 const VOICE = () => matchMedia('(pointer: coarse)').matches ? '<p class="voice">You can tap the mic on your keyboard to talk instead of typing.</p>' : '';
@@ -135,6 +136,34 @@ export function screenRead(qs, p, root) {
 }
 export const missingEssentials = p => essentials(p).filter(q => !answered(q, p));
 
+// ---------- Choices (2.29, reviews 38 and 39) ----------
+// Every question with choices is one line that opens into a list: pick one and it closes; pick several and Done closes it.
+// Equipment is two folding lists, with a picture and plain words for each piece.
+const OPENED = new Set();
+export const closeChoices = () => OPENED.clear();
+export const flipChoice = id => { OPENED.has(id) ? OPENED.delete(id) : OPENED.add(id); };
+const gearWhy = v => { const n = MOVES.filter(m => m.equip === v).length; return `${GEAR_WHY[v]}. ${n} exercise${n === 1 ? '' : 's'}.`; };
+export function choices(opts, { id, attr, sel, multi = false, label = '' }) {
+  const on = v => sel.includes(String(v));
+  const row = ([v, l], gear) => `<button class="chr${multi ? ' many' : ''}" ${attr}="${esc(v)}" aria-pressed="${on(v)}">${gear ? gearPic(v) : ''}<span class="cht"><b>${esc(l)}</b>${gear ? `<span class="sub">${esc(gearWhy(v))}</span>` : ''}</span><i class="chk" aria-hidden="true"></i></button>`;
+  if (id === 'equipment') return `<div class="chl"><button class="chr many" data-fullgym aria-pressed="${opts.every(([v]) => on(v))}"><span class="cht"><b>Full gym</b><span class="sub">Picks everything below</span></span><i class="chk" aria-hidden="true"></i></button></div>`
+    + GEAR_GROUPS.map(([title, ks]) => { const list = opts.filter(([v]) => ks.includes(v)).sort((a, b) => ks.indexOf(a[0]) - ks.indexOf(b[0])), n = list.filter(([v]) => on(v)).length, key = id + ':' + title, open = OPENED.has(key);
+      return `<div class="chl"><button class="chfold" data-open="${key}" aria-expanded="${open}"><b>${title}</b><span class="sub">${n ? n + ' picked' : list.length + ' kinds'}</span></button>${open ? list.map(o => row(o, true)).join('') : ''}</div>`; }).join('');
+  const open = OPENED.has(id), names = opts.filter(([v]) => on(v)).map(([, l]) => l);
+  const text = names.length > 3 ? `${names.slice(0, 2).join(', ')} and ${names.length - 2} more` : names.join(', ') || (multi ? 'None picked. Tap to choose' : 'Tap to choose');
+  return `<div class="chl"><button class="chfold field${names.length ? '' : ' empty'}" data-open="${id}" aria-expanded="${open}"${label ? ` aria-label="${esc(label + ': ' + text)}"` : ''}><span>${esc(text)}</span></button>
+    ${open ? opts.map(o => row(o)).join('') + (multi ? `<button class="chdone" data-open="${id}">Done</button>` : '') : ''}</div>`;
+}
+// Redrawing replaces the buttons, so the keyboard's place is put back on the same one.
+export function keepFocus(root, redraw) {
+  const b = document.activeElement, at = root.contains(b) && b.closest('.chl') ? ['data-q', 'data-qm', 'data-sport', 'data-open', 'data-fullgym'].find(k => b.hasAttribute(k)) : null, v = at && b.getAttribute(at), qid = at && b.closest('.q')?.dataset.qid;
+  redraw();
+  if (!at) return;
+  const scope = (qid && root.querySelector(`.q[data-qid="${qid}"]`)) || root;
+  const next = [...scope.querySelectorAll(`[${at}]`)].find(x => x.getAttribute(at) === v) || scope.querySelector('.chfold');
+  next?.focus({ preventScroll: true });
+}
+
 // ---------- Rendering one question ----------
 export function questionHTML(q, p) {
   const a = p.about || {};
@@ -156,7 +185,7 @@ export function questionHTML(q, p) {
         placeholder="${p.kind === 'perf' && a.weightLb ? 'Saved. Type a new weight to change it' : weightUnit(p) === 'kg' ? '70' : '155'}"></label>`;
   } else if (q.type === 'choice' || q.type === 'yesno') {
     const opts = q.type === 'yesno' ? [['yes', 'Yes'], ['no', 'No']] : val(q.options, p);
-    body = `<div class="pills" style="margin-top:8px">${opts.map(([v, l]) => `<button data-q="${esc(v)}" aria-pressed="${String(a[q.key]) === v}">${esc(l)}</button>`).join('')}</div>`;
+    body = q.big ? '' : choices(opts, { id: q.id, attr: 'data-q', sel: [String(a[q.key])], label: q.title });
     // Giant number (2.3): one big number with − and +, and a line that cheers the pick.
     if (q.big) {
       const i = opts.findIndex(([v]) => String(a[q.key]) === v), mid = Math.floor(opts.length / 2);
@@ -164,11 +193,11 @@ export function questionHTML(q, p) {
       body = `<div class="giant"><button data-q="${esc(opts[lo][0])}" aria-label="Fewer"${i === 0 ? ' disabled' : ''}>−</button>
         <span class="gn" aria-live="polite"><b class="num">${i < 0 ? '?' : esc(opts[i][1])}</b><span class="sub">${esc(q.big)}</span></span>
         <button data-q="${esc(opts[hi][0])}" aria-label="More"${i === opts.length - 1 ? ' disabled' : ''}>+</button></div>
-        <p class="cheer">${i < 0 ? 'Tap + or − to pick.' : esc(q.cheer?.[opts[i][0]] || '')}</p>${body}`;
+        <p class="cheer">${i < 0 ? 'Tap + or − to pick.' : esc(q.cheer?.[opts[i][0]] || '')}</p>`;
     }
   } else if (q.type === 'multi') {
     const sel = a[q.key] || [];
-    body = `<div class="pills" style="margin-top:8px">${val(q.options, p).map(([v, l]) => `<button data-qm="${esc(v)}" aria-pressed="${sel.includes(v)}">${esc(l)}</button>`).join('')}</div>
+    body = `${choices(val(q.options, p), { id: q.id, attr: 'data-qm', sel, multi: true, label: q.title })}
       ${q.other ? `<label class="f"><span>Anything else</span><input id="q-other" value="${esc(a[q.other] || '')}" maxlength="80" autocapitalize="sentences"></label>${VOICE()}` : ''}`;
   } else if (q.type === 'number') {
     body = `<input id="q-n" type="number" inputmode="decimal" step="${q.step || 1}" min="${q.min}" max="${val(q.max, p)}" value="${esc(a[q.key] ?? '')}" aria-label="${esc(q.title)}" style="margin-top:8px">`;
@@ -184,7 +213,9 @@ export function questionHTML(q, p) {
 export function questionClick(q, p, b) {
   p.about ||= {};
   if (b.dataset.units) { p.units = b.dataset.units; return 'redraw'; }
-  if (b.dataset.q !== undefined) { p.about[q.key] = b.dataset.q; return 'redraw'; }
+  if (b.dataset.open) { flipChoice(b.dataset.open); return 'redraw'; }
+  if (b.dataset.fullgym !== undefined) { p.about.equipment = GEAR.every(k => (p.about.equipment || []).includes(k)) ? [] : [...GEAR]; return 'redraw'; }
+  if (b.dataset.q !== undefined) { OPENED.delete(q.id); p.about[q.key] = b.dataset.q; return 'redraw'; }
   if (b.dataset.qm !== undefined) {
     const cur = new Set(p.about[q.key] || []);
     cur.has(b.dataset.qm) ? cur.delete(b.dataset.qm) : cur.add(b.dataset.qm);
@@ -289,7 +320,7 @@ export function bindCoach(root, p, ctx, save) {
     }
     if (questionClick(q, draft, b) === 'redraw') {
       questionRead(q, draft, card); // keep anything typed before the redraw
-      card.querySelector('.q').outerHTML = questionHTML(q, draft);
+      keepFocus(card, () => { card.querySelector('.q').outerHTML = questionHTML(q, draft); });
     }
   });
 }
@@ -327,7 +358,8 @@ export function setupFlow(p, save, { only = null } = {}) {
       if (i < screens.length - 1) { i++; draw(); $('#qs').scrollTop = 0; } else await finish();
       return;
     }
-    if (screenClick(qs, draft, b, el)) draw();
+    if (screenClick(qs, draft, b, el)) keepFocus(el, draw);
   });
+  closeChoices();
   draw();
 }

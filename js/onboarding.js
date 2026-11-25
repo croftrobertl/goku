@@ -8,8 +8,9 @@ import { MOVE_START, SRC } from './plan.js';
 import { showLock } from './lock.js';
 import { overlay, esc, setAccent, setTheme, stepper, round, ask, sources } from './ui.js';
 import { DOW, deviceTZ } from './time.js';
-import { setupScreens, screenHTML, screenClick, screenRead, progress, EQUIPMENT, isMinor } from './coach.js';
+import { setupScreens, screenHTML, screenClick, screenRead, progress, EQUIPMENT, isMinor, choices, flipChoice, closeChoices, keepFocus } from './coach.js';
 import { EQUIP, GEAR } from './moves.js';
+import { FAMILY_GEAR } from './gear.js';
 import { avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
 
 // Starting gravity from the coach answers: newer lifters start lighter, conditioning goals faster.
@@ -55,10 +56,9 @@ function capsule(step, total) {
 }
 
 // The equipment question (2.8): every kind of gear in the exercise catalog, plus a "Full gym"
-// shortcut that picks them all. The picker's "What I have" filter and the starter library use the answer.
+// row that picks them all. The picker's "What I have" filter and the starter library use the answer.
 const GEAR_OPTIONS = GEAR.map(k => [k, EQUIPMENT.find(e => e[0] === k)?.[1] || EQUIP.find(e => e[0] === k)[1]]);
 const withGear = list => list.map(([title, qs]) => [title, qs.map(q => q.id === 'equipment' ? { ...q, options: GEAR_OPTIONS } : q)]);
-const fullGym = d => GEAR.every(k => (d.about.equipment || []).includes(k));
 
 // The name box's counter (2.8.1) shows only near the 24-character limit.
 const nameCount = name => name.length >= 20 ? `${name.length} / 24` : '';
@@ -94,7 +94,7 @@ const FAMILY = [['rob', 'Rob', ['#0b0f1a', '#5aa2ff', '#f39a1e']], ['erica', 'Er
   ['alice', 'Alice', ['#f7f0ff', '#ff8fb1', '#b9a6ff']], ['lennon', 'Lennon', ['#0b0f1a', '#5aa2ff', '#f39a1e']]];
 // Each person's look. Erica's own look and Lennon's kid mode come later; until then Dragon Ball, then they switch over.
 const WHO_SKIN = { rob: 'dbz', erica: 'dbz', alice: 'encore', lennon: 'dbz', else: 'dbz' };
-// The family's equipment comes later as one list for Rob, Erica and Alice; Lennon learns with no equipment.
+// The family's equipment loads with their name (2.29, gear.js). Erica still sees the question, with her list picked.
 const NO_GEAR_Q = new Set(['rob', 'alice', 'lennon']);
 const ABOUT_GOAL = { stronger: 'strength', lose: 'leaner', eat: 'health', move: 'health' };
 
@@ -116,7 +116,8 @@ export function onboard({ cancellable = false } = {}) {
         name: FAMILY.find(f => f[0] === k)?.[1] || '', skin: WHO_SKIN[k] }); // the look switches from the next screen on
       if (['rob', 'erica', 'lennon'].includes(k)) { d.goal = 'stronger'; d.kind = 'engine'; }
       if (k === 'rob') d.about.goal = 'strength';
-      if (k === 'lennon') Object.assign(d.about, { goal: 'strength', experience: 'new', equipment: [] });
+      if (k === 'lennon') Object.assign(d.about, { goal: 'strength', experience: 'new' });
+      if (FAMILY_GEAR[k]) d.about.equipment = [...FAMILY_GEAR[k]];
       if (k === 'alice') { d.goal = 'sport'; d.custom = { sports: ['gymnastics'], style: 'sessions' }; d.kind = 'perf'; }
     }
     const goal = () => d.goal === 'notsure' ? d.chat.goal || null : d.goal; // the goal in effect
@@ -164,7 +165,7 @@ export function onboard({ cancellable = false } = {}) {
         <p class="sub">The next questions are about Lennon: his age, size, health and food. A grown‑up should answer them for him.</p>` });
       if (chatted()) out.push({ key: 'chat', need: 'Tap an answer to continue.', ready: () => !chatNext(d.chat), html: () => { const c = d.chat, nx = chatNext(c), asked = chatAsked(c);
         return `${asked.map(q => say(q.say(c)) + me(c._l?.[q.k] || '')).join('')}
-          ${nx ? `${say(nx.say(c))}<div class="pills chatreplies">${nx.replies.map(([t, v]) => `<button data-reply="${nx.k}" data-v="${v}" data-raw>${esc(t)}</button>`).join('')}</div>
+          ${nx ? `${say(nx.say(c))}<div class="chl chatreplies">${nx.replies.map(([t, v]) => `<button class="chr" data-reply="${nx.k}" data-v="${v}" data-raw>${esc(t)}</button>`).join('')}</div>
             <p class="note chatcount">Question ${asked.length + 1} of ${asked.length + CHAT.filter(q => c[q.k] === undefined && (!q.when || q.when(c))).length}</p>`
             : say(c.safety === 'yes' ? 'Thanks for telling me. Check with your doctor first, and ask what kinds and amounts of activity are safe for you. I\'ll show you where I\'d start in the meantime.' : 'Thanks. That\'s what I need. A few basics next, then I\'ll show you where I\'d start you.')}
           ${asked.length ? '<p style="text-align:center"><button class="link" id="chatBack">Change my last answer</button></p>' : ''}`; } });
@@ -172,14 +173,13 @@ export function onboard({ cancellable = false } = {}) {
         { key: 'sports', need: 'Pick at least one.', ready: () => d.custom.sports.length > 0, html: () => `${label()}<h1>What do you do?</h1><p class="sub" style="text-align:center">Pick everything that's part of your training, or search for it.</p>
           <input id="spq" type="search" autocomplete="off" placeholder="Search sports, e.g. tennis" aria-label="Search sports" style="margin-top:10px">
           <div class="pills sugg" id="spsugg"></div>
-          <div class="pills" style="margin-top:12px">${[...SPORTS.map(([k, n]) => [k, n]), ...d.custom.sports.filter(k => !SPORTS.some(x => x[0] === k)).map(k => [k, activityName(k)])]
-            .map(([k, n]) => `<button data-sport="${k}" aria-pressed="${d.custom.sports.includes(k)}">${esc(n)}</button>`).join('')}</div>` },
+          ${choices([...SPORTS.map(([k, n]) => [k, n]), ...d.custom.sports.filter(k => !SPORTS.some(x => x[0] === k)).map(k => [k, activityName(k)])], { id: 'sports', attr: 'data-sport', sel: d.custom.sports, multi: true, label: 'Sports' })}` },
         { key: 'style', need: 'Pick one to continue.', ready: () => !!d.custom.style, html: () => `${label()}<h1>How do you like to train?</h1>
           ${STYLES.map(([k, n, desc]) => `<button class="card pick" data-style="${k}" aria-pressed="${d.custom.style === k}"><h2>${esc(n)}</h2><p class="sub">${esc(desc)}</p></button>`).join('')}` });
       if (!d.kind) return out;
       const scr = Object.fromEntries(withGear(setupScreens(d)));
       // Goals first (2.18): training, then the basics, food and anything to watch. The front door already asked a Strength-side profile its goal.
-      // Erica picks her own goal; the family's equipment comes later; Lennon starts new to it with no equipment (review 32).
+      // Erica picks her own goal; Rob's, Alice's and Lennon's equipment is already known; Lennon starts new to it (review 32).
       const training = (scr['Your training'] || []).filter(q => !(d.kind === 'engine' && q.id === 'goal' && d.who !== 'erica')
         && !(q.id === 'equipment' && NO_GEAR_Q.has(d.who)) && !(d.who === 'lennon' && ['experience', 'goal'].includes(q.id)));
       const showTraining = training.length && goal() !== 'eat' && !(chatted() && d.kind === 'engine');
@@ -234,6 +234,7 @@ export function onboard({ cancellable = false } = {}) {
           ${names()[1] ? `<div class="row" style="margin-top:6px"><span>${esc(names()[1])}</span>${stepper('vault:' + i, h(d.week[i].vault), names()[1].toLowerCase() + ' on ' + day, ' h')}</div>` : ''}</div>`).join('')}` });
       return out;
     };
+    closeChoices();
     steps = build();
     const cur = () => steps[Math.min(step, steps.length - 1)];
     const lastStep = () => !!d.kind && step === steps.length - 1;
@@ -243,7 +244,6 @@ export function onboard({ cancellable = false } = {}) {
       setSkin(st.key === 'who' ? was : d.skin); // the first screen keeps one look; each person's look starts after it (review 32)
       // The Dragon Ball coach waves hello on the first screen too (2.21); other skins keep the first screen clear.
       $('#ob').innerHTML = (['chat', 'plan'].includes(st.key) || (['who', 'door'].includes(st.key) && skin().mascot !== 'star') ? '' : capsule(step, steps.length)) + st.html();
-      $('.q[data-qid="equipment"] .pills')?.insertAdjacentHTML('afterbegin', `<button data-fullgym aria-pressed="${fullGym(d)}">Full gym</button>`);
       el.classList.add('capsule-setup');
       el.style.setProperty('--step', STEP_COLOR);
       $('#obnav').innerHTML = `<p class="msg" id="obm" role="status"></p>
@@ -281,8 +281,8 @@ export function onboard({ cancellable = false } = {}) {
       // Just look around first (2.18): a sample profile with made-up data; leaving it erases the sample.
       if (b.id === 'demo') { b.disabled = true; const p = await (await import('./demo.js')).startDemo(); close(); resolve(p); return; }
       const st = cur(), qs = st.qs || null;
-      if (b.dataset.fullgym !== undefined) { d.about.equipment = fullGym(d) ? [] : [...GEAR]; draw(); return; }
-      if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) draw(); return; }
+      if (b.dataset.open && !b.closest('.q')) { flipChoice(b.dataset.open); return keepFocus(el, draw); }
+      if (qs && b.closest('.q')) { if (screenClick(qs, d, b, el)) keepFocus(el, draw); return; }
       if (b.dataset.avatar) { pickAvatar(d, b.dataset.avatar); draw(); return; }
       // A name already on this phone opens that profile instead of setting up a second one (review 32).
       if (b.dataset.who) { const k = b.dataset.who, have = S.profiles.find(p => p.who === k);
@@ -307,7 +307,7 @@ export function onboard({ cancellable = false } = {}) {
       if (b.dataset.safety) { d.safety = b.dataset.safety === 'yes'; if (qs) qs.forEach(q => screenRead([q], d, el)); return rebuild(); }
       if (b.dataset.change === 'plan') { const pick = await ask('Pick a starting point', 'You can switch later in Settings.', [['starter', 'Starter Workouts: 1 set of 8 to 12 reps, no timer'], ['comeback', 'Comeback: timed circuits from Easy'], ['strength', 'Circuits: timed, with a ghost to race'], ['move', 'Move More: weekly minutes plus workouts'], ['food', 'Food Only: no training screens']]
         .map(([value, lbl]) => ({ label: lbl, value }))); if (pick) { d.planPick = pick; d.modsTouched = false; rebuild(); } return; }
-      if (b.dataset.sport) { const s = d.custom.sports, k = b.dataset.sport; s.includes(k) && !b.dataset.add ? s.splice(s.indexOf(k), 1) : s.includes(k) || s.push(k); if (d.kind) d.modules = presetModules(d.kind, s); return draw(); }
+      if (b.dataset.sport) { const s = d.custom.sports, k = b.dataset.sport; s.includes(k) && !b.dataset.add ? s.splice(s.indexOf(k), 1) : s.includes(k) || s.push(k); if (d.kind) d.modules = presetModules(d.kind, s); return keepFocus(el, draw); }
       if (b.dataset.style) {
         d.custom.style = b.dataset.style; d.kind = d.custom.style === 'sessions' ? 'perf' : 'engine';
         d.modules = presetModules(d.kind, d.custom.sports); return rebuild();
@@ -333,6 +333,7 @@ export function onboard({ cancellable = false } = {}) {
       Object.assign(p, { who: d.who, avatar: d.avatar, units: d.units, tz: d.tz, about: d.about, coach: d.coach });
       // The skin, and its theme when it has one (Encore → Pastel tour); a color picked in setup stays.
       p.settings.skin = d.skin;
+      if (FAMILY_GEAR[d.who]) p.settings.familyGear = true; // already in this profile's answers (2.29)
       const theme = SKINS[d.skin].theme;
       if (theme) { p.settings.theme = theme; if (!d.accent) p.accent = THEMES[theme].accent; }
       if (pick === 'custom') p.custom = { sports: [...d.custom.sports], style: d.custom.style };

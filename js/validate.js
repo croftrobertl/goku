@@ -133,7 +133,7 @@ export function cleanBackup(prof, entries) {
     dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
-    settings: { sound: prof.settings?.sound !== false, duel: false, kcalTarget: int(prof.settings?.kcalTarget, 800, 6000), trackWaist: prof.settings?.trackWaist === true, // sharing is chosen again on each phone
+    settings: { sound: prof.settings?.sound !== false, duel: false, kcalTarget: int(prof.settings?.kcalTarget, 800, 6000), trackWaist: prof.settings?.trackWaist === true, ...(prof.settings?.familyGear === true ? { familyGear: true } : {}), // sharing is chosen again on each phone
       homeOrder: ids(prof.settings?.homeOrder), homeHidden: ids(prof.settings?.homeHidden), meds: strs(prof.settings?.meds, 30, 60).map(m => m.trim()).filter(Boolean),
       stacks: Array.isArray(prof.settings?.stacks) ? prof.settings.stacks.slice(0, 10).filter(s => s && str(s.name, 30).trim() && Array.isArray(s.items)).map(s => ({ name: str(s.name, 30).trim(),
         items: s.items.slice(0, 20).filter(x => x && str(x.name, 40).trim()).map(x => ({ name: str(x.name, 40).trim(), dose: num(x.dose, 0, 100000), unit: ['mg', 'mcg', 'g', 'IU', 'mL'].includes(x.unit) ? x.unit : 'mg',

@@ -1,0 +1,66 @@
+{"batch":"2026-11-ui-38","title":"Family Equipment","bigPreviews":true,"items":[
+{"id":"intro","area":"Start here","title":"What's on This Page",
+ "why":"Your family's equipment, added to the app.\n\n1. Three new pieces of equipment, and whether the mat needs its own button.\n2. The new exercises for each piece (15 in all), with sources.\n3. Safety notes and Alice's vest.\n4. Drawings.\n5. Lennon's pieces.\n6. A correction about the dumbbells.\n7. Adding the list to the phones already set up.\n8. Whether to publish.\n\nI checked the main health sources again before making this page. Nothing in the app is changed yet; these pictures come from a test copy.",
+ "options":[{"id":"ok","label":"Got it","desc":"","rec":true}]},
+{"id":"gear","area":"Equipment","title":"Three New Pieces",
+ "why":"Core sliders, ankle weights and a weighted vest are added to the equipment question in setup and Settings. Everything else on your list already had a button:\n\nDumbbells, kettlebells, medicine balls, Ab wheel (your TRX Core Crusher roller). Perfect Pushups count as no equipment; the app already has a Perfect Pushup exercise.",
+ "now":[{"img":"eq-now.png","caption":"Now"}],
+ "options":[
+  {"id":"add","label":"Add the three","desc":"","img":"eq-new.png","rec":true},
+  {"id":"keep","label":"Keep","desc":"","img":"eq-now.png"}]},
+{"id":"mat","area":"Equipment","title":"The Yoga Mat",
+ "why":"The floor exercises already assume a mat, and no exercise needs one to unlock it. A Yoga mat button wouldn't change anyone's exercise list.",
+ "options":[
+  {"id":"leave","label":"Leave it out","desc":"","rec":true},
+  {"id":"add","label":"Add a Yoga mat button anyway","desc":"It would only be a record of what you own."}]},
+{"id":"sliders","area":"Exercises","title":"Core Slider Exercises (6)",
+ "why":"Slider reverse lunge (Beginner)\nSlider side lunge (Intermediate)\nSlider mountain climber (Intermediate)\nSlider plank knee to elbow (Intermediate)\nSlider bridge with leg curl (Intermediate)\nSlider forearm plank arm slide (Intermediate)\n\nSources: ACE (American Council on Exercise) names each slider move. The steps for the lunges and bridge come from Cleveland Clinic's pages on the plain versions. Each exercise's Sources link lists its pages.\n\nThe levels are my judgement; ACE rates plain mountain climbers Advanced.",
+ "now":[{"img":"how-slider-climber.png","caption":"Mountain climber: muscle map and steps"},{"img":"how-slider-reverse-lunge.png","caption":"Reverse lunge: with a real drawing"},{"img":"how-slider-bridge-curl.png","caption":"Bridge with leg curl"}],
+ "options":[{"id":"add","label":"Add all 6","desc":"","rec":true},{"id":"notes","label":"Needs changes","desc":"Type them in the notes."}]},
+{"id":"ankle","area":"Exercises","title":"Ankle Weight Exercises (4)",
+ "why":"Side-lying leg lift (Harvard Health)\nStanding hip abduction (NHS)\nStanding kickback (NHS)\nStanding hamstring curl (Royal National Orthopaedic Hospital, NHS)\nAll Beginner, legs and hips.\n\nLeft out: marching on the spot. The NHS page suggests adding an ankle weight to it, but Harvard Health says not to wear ankle weights for walking or aerobics. I found no good source for ankle-weight core or arm exercises.",
+ "now":[{"img":"how-aw-side-leg-lift.png","caption":"Side-lying leg lift"}],
+ "options":[{"id":"add","label":"Add the 4","desc":"","rec":true},{"id":"march","label":"Add the 4 plus marching","desc":"With the NHS's version: on the spot, holding a support."}]},
+{"id":"vest","area":"Exercises","title":"Weighted Vest Exercises",
+ "why":"Weighted vest walk (Beginner)\nWeighted vest squat (Intermediate)\nWeighted vest reverse lunge (Intermediate)\nWeighted vest plank (Intermediate)\n\nSteps come from Cleveland Clinic's plain versions; the vest guidance is from Harvard Health, Henry Ford Health, Cleveland Clinic and ACE.\n\nThe push-up is a question: Henry Ford Health's physical therapist suggests starting upper-body vest work at only 1% of body weight. A 12 lb vest is far more than that for everyone in the family.",
+ "now":[{"img":"how-vest-walk.png","caption":"Vest walk"},{"img":"how-vest-pushup.png","caption":"Vest push-up, if added"}],
+ "options":[
+  {"id":"four","label":"Add the 4, no push-up","desc":"","rec":true},
+  {"id":"five","label":"Add all 5","desc":"The push-up as Advanced, with \"Only add the vest once plain push-ups are solid.\""}]},
+{"id":"notes","area":"Safety","title":"Safety Notes",
+ "why":"A short note on each exercise for that piece of equipment, above the level line:\n\nVest: Harvard Health says a vest should be no more than 10% of your body weight. Henry Ford Health suggests starting at 3% or less, and walking rather than running.\n\nAnkle weights: Harvard Health says legs and hips only, never walking or aerobics. NHS: start with no weight and add it once the move feels easy.\n\nSliders: no sliders? ACE says hand towels work on hard floors and paper plates on low carpet.\n\nThe sources disagree on running in a vest: Cleveland Clinic calls it a safe way to start, Henry Ford Health advises against it. The note follows the more careful one.",
+ "now":[{"img":"note-ankle-yes.png","caption":"Ankle weight note"},{"img":"note-slider-yes.png","caption":"Slider note"}],
+ "options":[
+  {"id":"yes","label":"Add the notes","desc":"Vest note shown.","img":"note-vest-yes.png","rec":true},
+  {"id":"no","label":"No notes","desc":"","img":"note-vest-no.png"}]},
+{"id":"alice","area":"Safety","title":"Alice and the Vest",
+ "why":"You said Alice gets the full list. I found no reputable guidance on teenagers wearing weighted vests. Henry Ford Health does name gymnastics among the sports where vest jumps can help athletes who train regularly, as a warm-up only.\n\nHarvard's 10% rule means a 12 lb vest suits someone who weighs 120 lb or more.",
+ "options":[
+  {"id":"line","label":"Show her the vest exercises, plus one line","desc":"For anyone under 18 the vest note adds: \"No guidance found for under-18s; ask your coach or doctor first.\"","rec":true},
+  {"id":"hide","label":"Hide vest exercises for under-18s","desc":"Until you turn them on in her Settings."},
+  {"id":"plain","label":"Show them with the normal note only","desc":""}]},
+{"id":"drawings","area":"Drawings","title":"Drawings",
+ "why":"In 2.9 you chose real drawings only, from the free Everkinetic set, with the muscle map and steps where none exists. That set has no slider, ankle-weight or vest drawings.\n\n4 new exercises can borrow a plain version's drawing, with a note saying what differs (like the push-up and lunge pictures on this page): slider reverse lunge, slider bridge with leg curl, vest reverse lunge, and the vest push-up if you add it.\n\nOne more might fit: Everkinetic's \"body leg lifts\" (holding a post, raising a leg behind) for the standing kickback. I haven't seen that picture yet; checking it means downloading the free file from their GitHub.\n\nThe other 10 show the muscle map and steps, like 115 of the app's exercises today.",
+ "options":[
+  {"id":"four","label":"Use the 4, and check the kickback one","desc":"I add it only if it matches by eye.","rec":true},
+  {"id":"fouronly","label":"Use the 4 only","desc":""},
+  {"id":"brief","label":"Also plan new drawings later","desc":"A picture brief for ChatGPT, like the Eras art, for the 10 without one."}]},
+{"id":"lennon","area":"Lennon","title":"Lennon's Pieces",
+ "why":"As you said: core sliders and the two mini medicine balls (the mat needs no button). In his exercise list, \"What I have\" then shows the 6 slider exercises and the medicine ball slam.\n\nI found no source on children using sliders. KidsHealth (Nemours) says children should be closely supervised and start with 1 or 2 sets of 8 to 12 reps.",
+ "options":[
+  {"id":"ok","label":"Give him those pieces","desc":"","rec":true},
+  {"id":"none","label":"Keep no equipment until kid mode","desc":""}]},
+{"id":"dumbbells","area":"Dumbbells","title":"A Correction: Dumbbell Weights",
+ "why":"I told you the dumbbells make 5, 7.5, 10, 12.5 or 15 lb. That was wrong. With one 2.5 lb and one 5 lb plate per side, a dumbbell with the same plates on both ends is 5, 10 or 15 lb (handle left out, as you chose). 7.5 and 12.5 only work with different plates on each end.\n\nOn Rob's, Erica's and Alice's phones, the weight − and + buttons on dumbbell exercises will step through these and stop at the top one.",
+ "options":[
+  {"id":"even","label":"Even ends only: 5, 10, 15 lb","desc":"","rec":true},
+  {"id":"uneven","label":"Also 7.5 and 12.5 lb","desc":"Different plates on each end."}]},
+{"id":"phones","area":"Phones","title":"Phones Already Set Up",
+ "why":"Rob's, Erica's and Alice's profiles were set up before the list existed. When 2.29.0 opens, it can add the full list to those three profiles, and sliders and medicine balls to Lennon's. Nothing else on the phone changes, and anyone can still edit it in Settings.",
+ "options":[
+  {"id":"auto","label":"Add it automatically","desc":"","rec":true},
+  {"id":"manual","label":"Each person picks in Settings","desc":""}]},
+{"id":"publish","area":"Last","title":"Publish 2.29.0?",
+ "why":"After your picks I build them, run every check (including the full audit on both looks), then publish. Nothing on anyone's phone is erased by this update.",
+ "options":[{"id":"yes","label":"Publish when checks pass","desc":"","rec":true},{"id":"wait","label":"Not yet","desc":"Keep it unpublished."}]}
+]}

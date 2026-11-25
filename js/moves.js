@@ -8,9 +8,10 @@ export const GROUPS = [['push', 'Push (chest, shoulders, triceps)'], ['pull', 'P
   ['core', 'Core'], ['power', 'Jumps and power'], ['cardio', 'Cardio'], ['mobility', 'Mobility and stretching']];
 export const EQUIP = [['bw', 'No equipment'], ['db', 'Dumbbells'], ['kb', 'Kettlebell'], ['band', 'Resistance band'], ['bb', 'Barbell'],
   ['bench', 'Bench, chair or step'], ['bar', 'Pull-up bar'], ['trx', 'Suspension trainer (TRX)'], ['ball', 'Medicine ball'], ['wall', 'Wall'],
-  ['machine', 'Weight machines'], ['cable', 'Cable machine'], ['cardio', 'Cardio machines'], ['sled', 'Sled or battle ropes'], ['rope', 'Jump rope'], ['wheel', 'Ab wheel']];
+  ['machine', 'Weight machines'], ['cable', 'Cable machine'], ['cardio', 'Cardio machines'], ['sled', 'Sled or battle ropes'], ['rope', 'Jump rope'], ['wheel', 'Ab wheel'],
+  ['slider', 'Core sliders'], ['ankle', 'Ankle weights'], ['vest', 'Weighted vest']];
 // What setup asks about (2.8): everything except what every home has. "Full gym" picks all of these.
-export const GEAR = ['db', 'kb', 'bb', 'bench', 'band', 'bar', 'trx', 'ball', 'machine', 'cable', 'cardio', 'sled', 'rope', 'wheel'];
+export const GEAR = ['db', 'kb', 'bb', 'bench', 'band', 'bar', 'trx', 'ball', 'machine', 'cable', 'cardio', 'sled', 'rope', 'wheel', 'slider', 'ankle', 'vest'];
 export const LEVELS = ['', 'Beginner', 'Intermediate', 'Advanced'];
 
 const M = (id, name, group, equip, level, muscles, start, end, steps, tip, chain, mode = 'reps') =>
@@ -583,6 +584,54 @@ export const MOVES = [
   M('battle-ropes', 'Battle ropes', 'cardio', 'sled', 2, 'Shoulders, arms, core, cardio', ['ropeStance', 'wavesUp', ['wavesA']], ['ropeStance', 'wavesDown', ['wavesB']],
     ['Hold one rope end in each hand and stand in a half squat with your chest up.', 'Move your arms up and down fast, one after the other, to make waves.', 'Keep going for the time you chose, then rest.'],
     'Stay low and keep the waves reaching the anchor.', ['fast', 'steady'], 'hold'),
+  // ---------- Home gear (2.29): core sliders, ankle weights, a weighted vest ----------
+  // Sliders: ACE (acefitness.org: sliders, gliders for dynamic planks, HIIT 2020) and Cleveland Clinic (lunges, bridges).
+  M('slider-reverse-lunge', 'Slider reverse lunge', 'legs', 'slider', 1, 'Quads, glutes, hamstrings', ['stand', 'hips'], ['lunge', 'hips'],
+    ['Stand with your feet hip-width apart and a slider under one foot.', 'Slide that foot straight back and bend both knees until your front knee is bent about a right angle.', 'Push through your front foot and slide the back foot in to stand. Finish one side, then switch.'],
+    'Keep your chest up and your front knee in line with your toes.', ['full slide', 'short slide', 'holding a chair']),
+  M('slider-side-lunge', 'Slider side lunge', 'legs', 'slider', 2, 'Inner thighs, glutes, quads', ['standWide', 'front'], ['lungeSide', 'front'],
+    ['Stand tall with a slider under one foot.', 'Slide that foot out to the side with the leg straight, while you bend the other knee and sit your hips back.', 'Push through the bent leg and slide the foot back in. Finish one side, then switch.'],
+    'Keep your bent knee over your foot and your back straight.', ['deep', 'short slide', 'holding a chair']),
+  M('slider-climber', 'Slider mountain climber', 'core', 'slider', 2, 'Core, shoulders, hips, cardio', ['plankHigh', 'floor'], ['climber', 'floor'],
+    ['Start in a high plank with a slider under each foot and your hands under your shoulders.', 'Slide one knee in toward your chest, then slide it back.', 'Switch legs and keep a steady rhythm.'],
+    'Keep your belly tight and your shoulders down and back.', ['fast', 'slow, one leg at a time', 'hands on a step']),
+  M('slider-knee-elbow', 'Slider plank knee to elbow', 'core', 'slider', 2, 'Abs, obliques, shoulders', ['plankHigh', 'floor'], ['climber', 'floor'],
+    ['Start in a high plank with your feet together on the sliders.', 'Slide one knee toward the elbow on the same side.', 'Slide it back, then do the other side.'],
+    'Learn to hold a still plank first, then add the slide.', ['knee to elbow', 'still plank on sliders']),
+  M('slider-bridge-curl', 'Slider bridge with leg curl', 'legs', 'slider', 2, 'Hamstrings, glutes', ['supineKnees', 'toFeet', ['mat']], ['bridge', 'toFeet', ['mat']],
+    ['Lie on your back with your knees bent and a slider under each heel.', 'Lift your hips into a bridge.', 'Keep your hips up while you slide one heel out until that leg is nearly straight, then pull it back in. Switch legs.'],
+    'Keep your hips level and lifted the whole time.', ['both heels together', 'one heel at a time', 'plain bridge']),
+  M('slider-arm-slide', 'Slider forearm plank arm slide', 'core', 'slider', 2, 'Abs, shoulders', ['plankLow', 'forearm', ['mat']], ['plankLow', 'forearm', ['mat']],
+    ['Get into a forearm plank with each forearm on a slider and your feet wide.', 'Slide one arm forward and back without moving your hips.', 'Switch arms. Once that is easy, also slide out to the side and in small circles.'],
+    'Feet wider makes it steadier.', ['forward, side and circles', 'forward only', 'on your knees']),
+  // Ankle weights: Harvard Health (wearable weights), NHS North Tees (standing exercises), RNOH (functional fitness pack).
+  // Legs and hips only, never for walking or aerobics (Harvard).
+  M('aw-side-leg-lift', 'Side-lying leg lift', 'legs', 'ankle', 1, 'Outer hips, glutes', ['clamshell', 'toFeet', ['mat']], ['clamOpen', 'toFeet', ['mat']],
+    ['Lie on your side with both legs straight and an ankle weight on the top leg.', 'Lift the top leg toward the ceiling, keeping your hips stacked and facing forward. Hold for a moment.', 'Lower it slowly. Do 10, then switch sides.'],
+    'Don\'t let your hips roll back.', ['ankle weight', 'no weight']),
+  M('aw-hip-abduction', 'Standing hip abduction', 'legs', 'ankle', 1, 'Outer hips', ['stand', 'wallPush', ['wall']], ['stand', 'wallPush', ['wall']],
+    ['Face a wall or sturdy chair with a hand on it, feet together, and an ankle weight on one leg.', 'Keeping both legs straight, lift that leg out to the side.', 'Lower it with control. Finish one side, then switch.'],
+    'Hold on as much as you need to.', ['ankle weight', 'no weight']),
+  M('aw-kickback', 'Standing kickback', 'legs', 'ankle', 1, 'Glutes, hamstrings', ['stand', 'wallPush', ['wall']], ['stand', 'wallPush', ['wall']],
+    ['Face a wall or sturdy chair with your hands on it and an ankle weight on one leg.', 'Keeping that leg straight, move it back behind you.', 'Bring it back to the start. Finish one side, then switch.'],
+    'Keep your back still; don\'t lean forward to lift the leg higher.', ['ankle weight', 'no weight']),
+  M('aw-hamstring-curl', 'Standing hamstring curl', 'legs', 'ankle', 1, 'Hamstrings', ['stand', 'wallPush', ['wall']], ['stand', 'wallPush', ['wall']],
+    ['Face a wall or sturdy chair and hold on, with an ankle weight on one leg.', 'Bend that knee to lift your heel up behind you, and hold for a few seconds.', 'Lower it slowly. Finish one side, then switch.'],
+    'Move slowly and with control.', ['ankle weight', 'no weight']),
+  // Weighted vest: Harvard Health (no more than 10% of body weight), Henry Ford Health (start at 3% or less; walk, don't run),
+  // Cleveland Clinic (5 to 10%), ACE (vest walking). Steps from Cleveland Clinic's bodyweight moves.
+  M('vest-walk', 'Weighted vest walk', 'cardio', 'vest', 1, 'Legs, cardio', ['walkA', 'walkArms'], ['walkB', 'walkArmsB'],
+    ['Put the vest on so it sits snug and close to your body.', 'Walk briskly, about 15 minutes to start.', 'Add a few minutes at a time over the weeks.'],
+    'Start with one or two vest walks a week.', ['longer or uphill', '15 minutes', 'no vest'], 'hold'),
+  M('vest-squat', 'Weighted vest squat', 'legs', 'vest', 2, 'Quads, glutes', ['stand', 'front'], ['squat', 'front'],
+    ['Put the vest on snug. Stand with your feet shoulder-width apart, toes turned out a little.', 'Push your hips back and bend your knees until your thighs are about level with the floor.', 'Stand back up.'],
+    'Add the vest once plain squats feel easy, and only go as low as good form allows.', ['vest', 'no vest', 'chair squat']),
+  M('vest-reverse-lunge', 'Weighted vest reverse lunge', 'legs', 'vest', 2, 'Quads, glutes', ['stand', 'hips'], ['lunge', 'hips'],
+    ['Put the vest on snug and stand tall, feet hip-width apart.', 'Step one foot back and lower your back knee toward the floor.', 'Push through the front foot to step back to standing.'],
+    'Add the vest once you can do a full set comfortably without it.', ['vest', 'no vest', 'holding a chair']),
+  M('vest-plank', 'Weighted vest plank', 'core', 'vest', 2, 'Abs, core, shoulders', ['plankLow', 'forearm', ['mat']], ['plankLow', 'forearm', ['mat']],
+    ['Put the vest on snug and rest on your forearms and toes, elbows under your shoulders.', 'Tighten your belly and glutes so your back stays straight.', 'Hold for 10 to 30 seconds.'],
+    'Don\'t let your hips sag.', ['30 seconds with vest', '10 seconds with vest', 'no vest'], 'hold'),
 ];
 
 export const moveById = id => MOVES.find(m => m.id === id) || null;
@@ -591,7 +640,7 @@ export const moveById = id => MOVES.find(m => m.id === id) || null;
 // ("pushup", "abs", "bicep") all work. An empty result carries .suggest, a spelling fix to offer.
 const norm = s => String(s).toLowerCase().replace(/[-–]/g, ' ');
 // Words for each kind of equipment, and other names people search for (2.8). Searched, never shown.
-const GEAR_WORDS = { db: 'dumbbell', kb: 'kettlebell', bb: 'barbell', machine: 'machine', cable: 'cable machine', cardio: 'machine', sled: 'sled', rope: 'rope', wheel: 'ab wheel' };
+const GEAR_WORDS = { db: 'dumbbell', kb: 'kettlebell', bb: 'barbell', machine: 'machine', cable: 'cable machine', cardio: 'machine', sled: 'sled', rope: 'rope', wheel: 'ab wheel', slider: 'slider glider', ankle: 'ankle weight', vest: 'weighted vest' };
 const AKA = {
   'tricep-pushdown': 'pushdown pressdown', 'ez-skull-crusher': 'skullcrusher lying triceps extension', 'db-skull-crusher': 'skullcrusher lying triceps extension',
   'cable-crossover': 'chest fly', 'pec-deck': 'chest fly', 'lat-pulldown': 'pull down', 'straight-arm-pulldown': 'pull down',
