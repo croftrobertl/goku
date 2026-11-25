@@ -1,0 +1,12 @@
+{"batch":"2026-11-ui-41","title":"Start Workout in View","bigPreviews":true,"items":[
+{"id":"start","area":"Home card","title":"Where Start Workout Goes","why":"On a 393 x 852 screen the button is mostly behind the tab bar. Workout B is shown, as it's the taller one.\n\nEvery choice except Keep brings the whole button into view for both workouts in both looks, and adds a small gap under the A and B buttons. I also measured a small 375 x 667 phone: Start Workout shows there too in the first two, but not in the one-line or folded lists.\n\nI tried removing only the \"Erica's Workout\" line. That wasn't enough for Workout B.","options":[
+{"id":"top","label":"Start above the list","desc":"Nothing is removed. This week's count moves below the list.","img":"encore-B-top.png","rec":true},
+{"id":"toptitle","label":"Start above the list, no title line","desc":"Also removes \"Erica's Workout\".","img":"encore-B-toptitle.png"},
+{"id":"names","label":"Names in one line","desc":"The weights then show only during the workout.","img":"encore-B-names.png"},
+{"id":"fold","label":"Fold the list away","desc":"One tap shows the 6 moves.","img":"encore-B-fold.png"},
+{"id":"keep","label":"Keep","desc":"","img":"encore-B-now.png"}]},
+{"id":"vest","area":"Home card","title":"Vest Walk Wording","why":"I chose this wording and place without showing you a picture. It sits at the bottom of the card, above Sources. Both versions keep the two weight rules.","options":[
+{"id":"short","label":"Shorter","desc":"","img":"vest-short.png","rec":true},
+{"id":"keep","label":"Keep","desc":"","img":"vest-now.png"}]},
+{"id":"publish","area":"Last","title":"Publish 2.30.1?","why":"After your picks I build it, run the checks, then publish. Only Erica's Home card changes.","options":[
+{"id":"yes","label":"Publish when checks pass","desc":"","rec":true},{"id":"wait","label":"Not yet","desc":""}]}]}

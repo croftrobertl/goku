@@ -87,17 +87,17 @@ export function routineStep(p) {
 // The vest is 12 lb and Harvard's limit is 10% of body weight, so a known weight under 120 lb gets a plain walk.
 const walkLine = p => p.about?.weightLb && p.about.weightLb < 120
   ? 'Once a week, on a day off: a 15-minute walk. The 12 lb vest is more than 10% of your body weight, the most Harvard Health advises.'
-  : 'Once a week, on a day off: a 15-minute vest walk. Harvard Health says no more than 10% of your body weight, so the 12 lb vest suits someone of 120 lb or more. Henry Ford Health suggests starting at 3% or less; a plain walk is fine too.';
+  : 'Once a week, on a day off: a 15-minute vest walk if 120 lb or more (Harvard Health: no more than 10% of body weight). Henry Ford Health starts at 3% or less; a plain walk is fine too.';
 
 export function routineCard(p, circuit, sessions, weekCount, key) {
   const sets = routineSets(p), days = routineDays(p), step = STEPS[stepsTaken(p)], ready = routineReady(p, sessions) && (sets < MAX_SETS || step);
   return `<section class="card chamber"><p class="lbl">Today's workout</p><h1>${esc(p.name)}'s workout</h1>
     <div class="seg" role="group" aria-label="Workout" style="margin-top:10px">${['A', 'B'].map(k => `<button data-routine="${k}" aria-pressed="${k === key}">Workout ${k}</button>`).join('')}</div>
-    <p class="sub" style="text-align:center">${sets} set${sets === 1 ? '' : 's'} of 8 to 12 reps · ${circuit.length} move${circuit.length === 1 ? '' : 's'} · no timer</p>
+    <p class="sub" style="text-align:center;margin-top:8px">${sets} set${sets === 1 ? '' : 's'} of 8 to 12 reps · ${circuit.length} move${circuit.length === 1 ? '' : 's'} · no timer</p>
     <p class="sub" style="text-align:center">Warm up first: walk for 5 to 10 minutes.</p>
-    <div style="margin-top:10px">${circuit.map(e => `<div class="row" style="padding:7px 0;border-top:1px solid var(--line);text-align:left"><b style="font-weight:650">${esc(e.data.name)}</b><span class="sub" style="text-align:right">${esc(amountText(e, e.data.stages[0].load, p))}</span></div>`).join('')}</div>
-    <p class="sub" style="text-align:center">This week: <b class="num">${weekCount}</b> of ${days} workout${days === 1 ? '' : 's'}${weekCount >= days ? ' · goal met' : ''}</p>
     ${circuit.length ? '<button class="cta" id="startStarter" style="margin-top:12px">Start workout</button>' : ''}
+    <div style="margin-top:14px">${circuit.map(e => `<div class="row" style="padding:7px 0;border-top:1px solid var(--line);text-align:left"><b style="font-weight:650">${esc(e.data.name)}</b><span class="sub" style="text-align:right">${esc(amountText(e, e.data.stages[0].load, p))}</span></div>`).join('')}</div>
+    <p class="sub" style="text-align:center">This week: <b class="num">${weekCount}</b> of ${days} workout${days === 1 ? '' : 's'}${weekCount >= days ? ' · goal met' : ''}</p>
     ${ready ? `<div class="ghost">You reached 12 on every move in both workouts. ${sets < MAX_SETS ? `Ready for ${sets + 1} sets?` : `Ready for one step up: ${esc(step[3])}?`}
       <button class="cta2" id="moreSets" style="width:100%;margin-top:8px">${sets < MAX_SETS ? `Yes, ${sets + 1} sets` : 'Yes, step up'}</button></div>` : ''}
     <div class="row" style="margin-top:12px;text-align:left"><span class="note" style="margin:0">${walkLine(p)}</span>${howBtn('vest-walk', 'Weighted vest walk')}</div>
