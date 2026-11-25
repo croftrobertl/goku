@@ -20,6 +20,7 @@ import { pickMove, showMove, howBtn, moveFor, addMove, moveData } from './movepi
 import { GROUPS as MOVE_GROUPS } from './moves.js';
 import { FAMILY_DB, nextDb } from './gear.js';
 import { figureSVG } from './figure.js';
+import { routineOn, routineSets, routineShown, showRoutine, routineCircuit, routineCard, routineStep, amountText } from './routine.js';
 import { planId, onHold, trainOff, starterOn, starterSets, moveGoal, holdCard, moveCard, starterCard, starterReady, comebackNote, MOVE_TARGET, MOVE_STEP } from './plan.js';
 import { artOf, miniMap, musclesReady, bodyWork, bodyMapCard, bindBodyMap } from './muscles.js';
 import { calendarCard, bindCalendar, shownMonth, monthWord } from './calendar.js';
@@ -83,6 +84,7 @@ export async function library() {
 export async function todaysCircuit() {
   const p = profile();
   const lib = await library();
+  if (routineOn(p)) return routineCircuit(p, lib, routineShown(await sessionsInOrder()));
   const seed = p.settings.shuffleSeed || 0;
   const picks = [];
   SLOTS.forEach(slot => {
@@ -226,7 +228,7 @@ export async function home() {
       <button class="link" data-prog="${esc(prog.latest.id)}" id="progLater">Stay here</button></div></section>` : ''}`],
       ['nudge', `${nudge && !showProg ? `<section class="card coach"><p class="lbl">Coach</p><p>Last week felt ${feel.v === 'easy' ? 'too easy' : 'too hard'}. Try ${lvl(nudge)}${feel.v === 'easy' ? ' to keep progressing' : ' while you recover'}.</p>
       <button class="cta2" data-g="${nudge}" style="margin-top:8px">Switch to ${lvl(nudge)}</button></section>` : ''}`],
-      ['chamber', trainOff(p) ? (onHold(p) ? holdCard() : '') : (planId(p) === 'move' ? moveCard(p, weekMin) : '') + (starterOn(p) ? starterCard(p, circuit, sessions, weekCount) : `<section class="card chamber" aria-labelledby="h-today">
+      ['chamber', trainOff(p) ? (onHold(p) ? holdCard() : '') : (planId(p) === 'move' ? moveCard(p, weekMin) : '') + (routineOn(p) ? routineCard(p, circuit, sessions, weekCount, routineShown(sessions)) : starterOn(p) ? starterCard(p, circuit, sessions, weekCount) : `<section class="card chamber" aria-labelledby="h-today">
       <p class="lbl">Today's workout</p>
       <h1 id="h-today">${p.settings.shuffleSeed ? 'Shuffled circuit' : 'Density circuit'}</h1>
       <p class="sub">${lvl(g)} · ${circuit.length} move${circuit.length === 1 ? '' : 's'} · ${capText(rounds, rest, cap)}</p>
@@ -238,7 +240,7 @@ export async function home() {
       ${comebackNote(p, sessions, t)}
     </section>`)],
       ['circuit', trainOff(p) ? '' : `<section class="card">
-      <div class="row"><h2>Circuit</h2>${on(p, 'shuffle') ? '<button class="cta2" id="shuffle">Shuffle</button>' : ''}</div>
+      <div class="row"><h2>Circuit</h2>${on(p, 'shuffle') && !routineOn(p) ? '<button class="cta2" id="shuffle">Shuffle</button>' : ''}</div>
       ${circuit.length ? `<ol class="fan" aria-label="Today's circuit, ${circuit.length} exercises">${circuit.map((e, i) => { const m = moveFor(e.data);
         // Fanned cards (2.3): a hand of exercise cards, each with its drawing and a "?" for how-to.
         return `<li class="fcard" style="--i:${i};--n:${circuit.length}"><span class="fnum num">${i + 1}</span>
@@ -300,6 +302,8 @@ export async function home() {
         if (b.id === 'logMove') return logActivity();
         if (b.id === 'cleared') { if (await ask('Cleared by your doctor?', 'Workouts turn on. Start gently, and stop if anything feels wrong.', [{ label: 'Yes, turn workouts on', value: true }])) { p.plan = { ...p.plan, hold: false }; await saveProfile(p); window.goku.render(); } return; }
         if (b.id === 'raiseMove') { p.plan = { ...p.plan, minGoal: Math.min(MOVE_TARGET, moveGoal(p) + MOVE_STEP) }; await saveProfile(p); toast(`Goal: ${moveGoal(p)} minutes a week`); return window.goku.render(); }
+        if (b.dataset.routine) { showRoutine(b.dataset.routine); return window.goku.render(); }
+        if (b.id === 'moreSets' && routineOn(p)) { const said = routineStep(p); if (said) { await saveProfile(p); toast(said); } return window.goku.render(); }
         if (b.id === 'moreSets') { if (starterSets(p) < 3) { p.plan = { ...p.plan, sets: starterSets(p) + 1 }; toast(`${starterSets(p)} sets from now on`); }
           else { p.plan = { ...p.plan, id: planId(p) === 'move' ? 'move' : 'comeback', workouts: 'circuit' }; p.settings.gravity = 10; toast('Timed circuits at Easy from now on'); }
           await saveProfile(p); return window.goku.render(); }
@@ -346,13 +350,14 @@ async function startRun(circuit, { starter = false } = {}) {
     unlockAudio();
     const p = profile();
     const g = starter ? 10 : p.settings.gravity || 50;
-    const [rounds, rest, cap, depth] = starter ? [starterSets(p), 0, 0, 1] : GRAVITY[g];
+    const routine = starter && routineOn(p) ? routineShown(await sessionsInOrder()) : null;
+    const [rounds, rest, cap, depth] = starter ? [routine ? routineSets(p) : starterSets(p), 0, 0, 1] : GRAVITY[g];
     const past = await sessionsInOrder(), ghost = starter ? null : ghostFor(past, g);
     const run = {
-      ...(starter ? { starter: true } : {}),
+      ...(starter ? { starter: true } : {}), ...(routine ? { routine } : {}),
       startedAt: Date.now(), gravity: g, rounds, rest, cap, round: 1, ex: 0, stage: 0, phase: 'set', restUntil: 0,
       // A Starter workout uses each move's easiest version (the last stage of its chain: knees, chair squat), not the hardest.
-      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, moveId: e.data.moveId, stages: starter ? e.data.stages.slice(-1) : e.data.stages.slice(0, depth), ...(e.data.rest ? { rest: e.data.rest } : {}) })),
+      plan: circuit.map(e => ({ id: e.id, name: e.data.name, slot: e.data.slot, moveId: e.data.moveId, stages: starter ? e.data.stages.slice(-1) : e.data.stages.slice(0, depth), ...(e.data.rest ? { rest: e.data.rest } : {}), ...(routine ? { amount: e.amount, weighted: e.weighted, each: e.each } : {}) })),
       best: Object.fromEntries(Object.entries(records(await sessionsInOrder())).map(([k, v]) => [k, v.reps])),
       sets: [], cur: null, repTimes: [], ghost: ghost?.data.repTimes || null, last: lastOf(past),
     };
@@ -383,9 +388,10 @@ async function saveRun(run, endedAt) {
   if (run.cur && run.cur.stages.some(s => s.reps)) run.sets.push(run.cur);
   run.cur = null;
   if (run.sets.length) {
-    await saveEntry('session', { gravity: run.gravity, startedAt: run.startedAt, endedAt, sets: run.sets, repTimes: run.repTimes, ...(run.starter ? { starter: true } : {}) },
+    await saveEntry('session', { gravity: run.gravity, startedAt: run.startedAt, endedAt, sets: run.sets, repTimes: run.repTimes, ...(run.starter ? { starter: true } : {}), ...(run.routine ? { routine: run.routine } : {}) },
       { ts: run.startedAt, day: dayKey(run.startedAt, profile().dayEndsAt, profile().tz) });
   }
+  if (run.routine) showRoutine(null); // Home offers the other workout next
   await db.setMeta(runKey(), null);
   const reps = run.sets.reduce((a, s) => a + s.stages.reduce((b, x) => b + x.reps, 0), 0);
   toast(run.sets.length ? `Saved · ${reps} reps in ${Math.max(1, round((endedAt - run.startedAt) / 60000))} min` : 'Nothing logged, so nothing saved');
@@ -493,7 +499,7 @@ function openRunner(run) {
     const capLeft = run.cap * 60000 - t;
     if (!run.starter && capLeft <= 0 && !capBeeped) { capBeeped = true; beep(660, 260, 2); announce('Time cap reached. Finish when you are ready.'); }
     put('#clock', run.starter ? clock(t) : clock(t) + (capLeft > 0 ? ' · cap ' + clock(capLeft) : ' · cap reached')); // a Starter workout has no time cap
-    put('#where', run.starter ? `Set ${run.round} of ${run.rounds} · move ${run.ex + 1} of ${run.plan.length}` : `Round ${run.round} of ${run.rounds} · exercise ${run.ex + 1} of ${run.plan.length}`);
+    put('#where', run.routine ? `Workout ${run.routine} · set ${run.round} of ${run.rounds} · move ${run.ex + 1} of ${run.plan.length}` : run.starter ? `Set ${run.round} of ${run.rounds} · move ${run.ex + 1} of ${run.plan.length}` : `Round ${run.round} of ${run.rounds} · exercise ${run.ex + 1} of ${run.plan.length}`);
     const dk = run.round + '/' + run.rounds;
     if (dotsFor !== dk) { dotsFor = dk; $('#rdots').innerHTML = Array.from({ length: run.rounds }, (_, i) => `<i class="${i + 1 < run.round ? 'done' : i + 1 === run.round ? 'now' : ''}"></i>`).join(''); }
     // You against the ghost as a race bar (2.16, review 10): your reps fill it, a mark shows where the ghost was at this minute.
@@ -535,14 +541,15 @@ function openRunner(run) {
     const st = run.cur.stages[run.stage];
     $('#tap').classList.remove('resting');
     attr('#reps', 'aria-live', 'polite');
-    put('#stage', String(run.cur.stages.length > 1 ? `Stage ${run.stage + 1} of ${run.cur.stages.length} · ${st.label}` : st.label));
+    put('#stage', String(run.cur.stages.length > 1 ? `Stage ${run.stage + 1} of ${run.cur.stages.length} · ${st.label}` : run.routine ? amountText(curEx(), st.load, p) : st.label));
     put('#reps', String(st.reps));
     put('#ex', String(curEx().name));
     $('#wrow').hidden = false;
     put('#wval', String(st.load ? `${weight(st.load, p)} ${weightUnit(p)}` : 'Bodyweight'));
     $('#wDown').disabled = !st.load;
     const prev = run.last?.[curEx().id + '|' + st.label];
-    if (run.starter) put('#last', st.reps >= 12 ? 'That\'s 12. Set done when you are.' : st.reps >= 8 ? 'In the 8 to 12 range. Stop when another rep would be hard.' : '8 to 12 reps. Stop when another rep would be hard.');
+    if (curEx().each) put('#last', st.reps >= 12 ? 'That\'s 12. Same on the other side, then Set Done.' : st.reps >= 8 ? 'In the 8 to 12 range. Do the same on the other side.' : 'Count one side, 8 to 12 reps. Then do the other side.');
+    else if (run.starter) put('#last', st.reps >= 12 ? 'That\'s 12. Set done when you are.' : st.reps >= 8 ? 'In the 8 to 12 range. Stop when another rep would be hard.' : '8 to 12 reps. Stop when another rep would be hard.');
     else put('#last', prev ? `Last time ${prev.reps}${prev.load ? ` at ${weight(prev.load, p)} ${weightUnit(p)}` : ''} · beat it with ${prev.reps + 1}` : st.reps ? '' : 'Tap anywhere to count');
     put('#plates', String(st.load && isBarbell(curEx()) ? plateText(st.load, p) : ''));
     const how = moveFor(curEx()); // the catalog drawing and steps, when this exercise has them

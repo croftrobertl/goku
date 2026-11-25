@@ -1,0 +1,398 @@
+{
+ "batch": "2026-11-ui-40",
+ "title": "Erica's Routine",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "A draft routine for Erica from your answers: strength and tone, new to training, 3 days a week, about 20 minutes, nothing to work around.\n\n1. The weekly plan\n2. Workouts A and B\n3. How it gets harder\n4. The vest, Ab wheel and other pieces\n5. How it looks in the app\n6. Setup and publishing\n\nNothing is built yet. The Home and workout pictures are mock-ups on the real app; the exercise pictures are the app as it is today.\n\nWhich exercises, and their order, are my judgement. Amounts and safety come from the sources named on each card.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "week",
+   "area": "Plan",
+   "title": "The Week",
+   "why": "Three days with a day off between, such as Monday, Wednesday and Friday. The workouts take turns:\n\nWeek 1: A, B, A\nWeek 2: B, A, B\n\nEvery workout covers the whole body, so a missed day never skips a muscle group. The app offers whichever is next, with no fixed days.\n\nSources: CDC says at least 2 strength days a week working all major muscle groups. Harvard Health says muscles need at least 48 hours between sessions.",
+   "options": [
+    {
+     "id": "ab",
+     "label": "A and B take turns",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "same",
+     "label": "One workout every time",
+     "desc": "Workout A only. Simplest."
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "a",
+   "area": "Workouts",
+   "title": "Workout A",
+   "why": "Chair squat, no weight\nKnee push-up\nBent-over dumbbell row, 5 lb each hand\nGlute bridge\nSide-lying leg lift, each side, no ankle weight at first\nDead bug\n\nAll six are rated Beginner in the app. One set of 8 to 12 reps each (CDC). Side exercises get 8 to 12 on each side.",
+   "now": [
+    {
+     "img": "how-box-squat.png",
+     "caption": "Chair squat"
+    },
+    {
+     "img": "how-knee-pushup.png",
+     "caption": "Knee push-up"
+    },
+    {
+     "img": "how-db-row.png",
+     "caption": "Row"
+    },
+    {
+     "img": "how-glute-bridge.png",
+     "caption": "Glute bridge"
+    },
+    {
+     "img": "how-aw-side-leg-lift.png",
+     "caption": "Leg lift"
+    },
+    {
+     "img": "how-dead-bug.png",
+     "caption": "Dead bug"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "b",
+   "area": "Workouts",
+   "title": "Workout B",
+   "why": "Dumbbell Romanian deadlift, 5 lb each hand\nDumbbell floor press, 5 lb each hand\nDumbbell shoulder press, 5 lb each hand\nBent-over dumbbell row, 5 lb each hand\nSlider reverse lunge, each side, holding a chair\nBird dog, each side\n\nThe row is in both on purpose, so the upper back is worked every time.\n\nHarvard Health suggests starting with no weight or very light weight; 5 lb is the lightest your dumbbells make.",
+   "now": [
+    {
+     "img": "how-db-rdl.png",
+     "caption": "Romanian deadlift"
+    },
+    {
+     "img": "how-db-floor-press.png",
+     "caption": "Floor press"
+    },
+    {
+     "img": "how-db-shoulder-press.png",
+     "caption": "Shoulder press"
+    },
+    {
+     "img": "how-slider-reverse-lunge.png",
+     "caption": "Slider lunge"
+    },
+    {
+     "img": "how-bird-dog.png",
+     "caption": "Bird dog"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "hinge",
+   "area": "Workouts",
+   "title": "Dumbbells or Kettlebell for the Deadlift",
+   "why": "Your kettlebells are 15 lb each. Two 5 lb dumbbells are 10 lb in total, so they're the lighter start, and the weight doesn't come up from the floor.",
+   "now": [
+    {
+     "img": "how-db-rdl.png",
+     "caption": "Dumbbells"
+    },
+    {
+     "img": "how-kb-deadlift.png",
+     "caption": "Kettlebell"
+    }
+   ],
+   "options": [
+    {
+     "id": "db",
+     "label": "Dumbbells first",
+     "desc": "The kettlebell can be swapped in later.",
+     "rec": true
+    },
+    {
+     "id": "kb",
+     "label": "15 lb kettlebell from the start",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "warm",
+   "area": "Plan",
+   "title": "Warm-Up",
+   "why": "Harvard Health says to warm up and cool down for 5 to 10 minutes, and that walking is fine. The NHS warm-up takes at least 6 minutes, starting with marching on the spot.\n\nMy estimate with the 6 exercises at one set: about 15 to 20 minutes including a 5 minute walk. At two sets: about 25 to 30, or more. I haven't timed either.",
+   "options": [
+    {
+     "id": "line",
+     "label": "One line on the card",
+     "desc": "\"Warm up first: walk for 5 to 10 minutes.\"",
+     "rec": true
+    },
+    {
+     "id": "none",
+     "label": "No warm-up line",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "harder",
+   "area": "Progress",
+   "title": "How It Gets Harder",
+   "why": "The app's Starter rule today: 12 reps on every exercise, two workouts in a row, and it offers another set. After 3 sets it offers timed circuits.\n\nFor Erica's routine I'd change the end: stay at 2 sets, because 3 would run well past 20 minutes. After that it suggests one step up at a time, such as 5 to 10 lb, or adding the ankle weight.\n\nOne limit: with even ends your dumbbells go 5, 10, 15. Harvard Health suggests adding only 1 to 2 lb at a time for arms, so going 5 to 10 is a big jump. The 2 sets come first, and the app won't push the heavier weight on arm exercises.",
+   "options": [
+    {
+     "id": "two",
+     "label": "1 set, then 2, then step up",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "same",
+     "label": "Same as Starter Workouts",
+     "desc": "Up to 3 sets, then timed circuits."
+    },
+    {
+     "id": "uneven",
+     "label": "1 set, then 2, plus 7.5 and 12.5 lb",
+     "desc": "Different plates on each end, for Erica only. Changes your earlier pick of even ends only."
+    }
+   ]
+  },
+  {
+   "id": "vest",
+   "area": "Equipment",
+   "title": "Weighted Vest",
+   "why": "Not in A or B at the start. A separate walk on a day off would fit best.\n\nHarvard Health: no more than 10% of body weight, so the 12 lb vest suits someone of 120 lb or more. Henry Ford Health suggests starting at 3% or less. I'm not assuming Erica's weight; the app knows it only if Erica enters it.",
+   "now": [
+    {
+     "img": "how-vest-walk.png",
+     "caption": "Vest walk"
+    }
+   ],
+   "options": [
+    {
+     "id": "plain",
+     "label": "Plain walks; vest is in the library",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "add",
+     "label": "Add one vest walk a week",
+     "desc": "With the weight rule shown next to it."
+    }
+   ]
+  },
+  {
+   "id": "other",
+   "area": "Equipment",
+   "title": "Ab Wheel, Medicine Balls, Perfect Pushups",
+   "why": "The app's only medicine ball exercise is a slam (Intermediate), and the Ab wheel is also above Beginner. They stay in the library for later, as do the other slider exercises.\n\nThe Perfect Pushup handles could replace the knee push-up on the floor.",
+   "options": [
+    {
+     "id": "later",
+     "label": "Leave them for later",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "pp",
+     "label": "Use Perfect Pushups, from the knees",
+     "desc": "The rest stay for later."
+    }
+   ]
+  },
+  {
+   "id": "card",
+   "area": "Look",
+   "title": "Home Card",
+   "why": "What Erica sees on Home. The link under the button switches to the other workout. Sources stay at the bottom, as now.",
+   "now": [
+    {
+     "img": "card-now.png",
+     "caption": "Now (the general starter list)"
+    }
+   ],
+   "options": [
+    {
+     "id": "list",
+     "label": "List with amounts",
+     "desc": "",
+     "img": "card-list.png",
+     "rec": true
+    },
+    {
+     "id": "text",
+     "label": "Names in one line",
+     "desc": "Shortest; like the card today.",
+     "img": "card-text.png"
+    },
+    {
+     "id": "seg",
+     "label": "List with A and B buttons",
+     "desc": "",
+     "img": "card-seg.png"
+    }
+   ]
+  },
+  {
+   "id": "fit",
+   "area": "Look",
+   "title": "List on a Phone",
+   "why": "The list makes the card taller. On a 393 x 852 screen Start Workout still shows without scrolling. Workout B is taller, since two names wrap; its picture is the card alone.",
+   "now": [
+    {
+     "img": "home-list.png",
+     "caption": "Workout A on Home"
+    },
+    {
+     "img": "card-b.png",
+     "caption": "Workout B"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Reads fine",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "runner",
+   "area": "Look",
+   "title": "During the Workout",
+   "why": "The same Starter screen: big counter, no timer, rest as long as needed. The new parts: the workout's name on top, the amount under the exercise, and the weight already set.",
+   "now": [
+    {
+     "img": "runner-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "new",
+     "label": "Add those three",
+     "desc": "",
+     "img": "runner-new.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "runner-now.png"
+    }
+   ]
+  },
+  {
+   "id": "setup",
+   "area": "Setup",
+   "title": "Erica's Setup Questions",
+   "why": "You picked earlier that Erica chooses a goal in setup. With a routine ready, I'd fill in the answers you just gave me: new to it, strength, 3 days. Erica can change any of them. The health question is still asked, and a Yes still holds workouts until a doctor's OK.",
+   "options": [
+    {
+     "id": "fill",
+     "label": "Fill in, Erica can change them",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "skip",
+     "label": "Skip those three questions",
+     "desc": ""
+    },
+    {
+     "id": "ask",
+     "label": "Ask everything as now",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "existing",
+   "area": "Setup",
+   "title": "If Erica Is Already Set Up",
+   "why": "I can't see whether a profile exists on Erica's phone. If one does:",
+   "options": [
+    {
+     "id": "offer",
+     "label": "Offer it once on Home",
+     "desc": "\"Your routine is ready. Use it?\" Nothing changes until Erica taps yes.",
+     "rec": true
+    },
+    {
+     "id": "auto",
+     "label": "Switch automatically",
+     "desc": "The exercises are added to the library; nothing is removed."
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Publish 2.30.0?",
+   "why": "After your picks I build it, run every check, then publish. Only Erica's profile changes.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Publish when checks pass",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "wait",
+     "label": "Not yet",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

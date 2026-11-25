@@ -63,6 +63,7 @@ export const GEAR_NOTE = {
   vest: 'Safety: Harvard Health says a vest should be no more than 10% of your body weight (15 lb for someone who weighs 150 lb). Henry Ford Health suggests starting at 3% or less, and walking rather than running. Check with a doctor first if you have back, joint or balance problems.',
   ankle: 'Safety: Harvard Health says to use ankle weights for leg and hip moves, never for walking or aerobics. Start with no weight and add it once the move feels easy (NHS).',
   slider: 'No sliders? Hand towels work on hard, smooth floors and paper plates on low carpet (ACE).' };
+export const VEST_SRC = [HARVARD, HENRY];
 export const VEST_MINOR = 'No guidance found for under-18s; ask your coach or doctor first.';
 export const MOVE_SRC = { 'slider-reverse-lunge': [ACE_HIIT, CC_LUNGE], 'slider-side-lunge': [ACE_HIIT, CC_LUNGE], 'slider-climber': [ACE_CLIMB, ACE_HIIT], 'slider-knee-elbow': [ACE_PLANK, ACE_HIIT],
   'slider-bridge-curl': [ACE_HIIT, CC_ROUTINE], 'slider-arm-slide': [ACE_PLANK, ACE_HIIT], 'aw-side-leg-lift': [HARVARD, NHS], 'aw-hip-abduction': [NHS, HARVARD], 'aw-kickback': [NHS, HARVARD],

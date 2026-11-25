@@ -101,6 +101,7 @@ import { avatarHTML } from './avatar.js';
 import { WHY } from './why.js';
 import { setupFlow } from './coach.js';
 import { addFamilyGear } from './gear.js';
+import { addRoutine } from './routine.js';
 import { skillsView } from './skills.js';
 import { nutritionView, forgetHistory, resetNutritionDay, poweredUp, addFood, nowMeal, quickWater, openNutritionDay } from './nutrition.js';
 import { logActivity } from './activity.js';
@@ -253,7 +254,7 @@ async function open(id) {
     const ok = await showLock(p, { onSwitch: chooseProfile });
     if (!ok) return;
   }
-  if (addFamilyGear(p)) await saveProfile(p); // 2.29: the family's equipment, added once to profiles made before it
+  if ([addFamilyGear(p), addRoutine(p)].some(Boolean)) await saveProfile(p); // 2.29: the family's equipment; 2.30: Erica's routine. Each added once to profiles made before it
   await render();
   if (p.kind === 'engine') engine.resumeRun();
 }

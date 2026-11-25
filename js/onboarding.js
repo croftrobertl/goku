@@ -116,6 +116,7 @@ export function onboard({ cancellable = false } = {}) {
         name: FAMILY.find(f => f[0] === k)?.[1] || '', skin: WHO_SKIN[k] }); // the look switches from the next screen on
       if (['rob', 'erica', 'lennon'].includes(k)) { d.goal = 'stronger'; d.kind = 'engine'; }
       if (k === 'rob') d.about.goal = 'strength';
+      if (k === 'erica') Object.assign(d.about, { goal: 'strength', experience: 'new', days: '3' }); // the routine's answers (2.30); all can be changed
       if (k === 'lennon') Object.assign(d.about, { goal: 'strength', experience: 'new' });
       if (FAMILY_GEAR[k]) d.about.equipment = [...FAMILY_GEAR[k]];
       if (k === 'alice') { d.goal = 'sport'; d.custom = { sports: ['gymnastics'], style: 'sessions' }; d.kind = 'perf'; }
@@ -200,7 +201,7 @@ export function onboard({ cancellable = false } = {}) {
           d.about.experience === 'new' ? "you're new to this" : d.about.experience === 'back' ? "you're getting back into it" : ''].filter(Boolean).join(' and ');
         const train = pl.hold ? line('WORKOUTS', 'Waiting for your doctor\'s OK', 'Check with your doctor first, and ask what kinds and amounts of activity are safe for you. Tap “My doctor cleared me” on Home when you have it.')
           : (pl.id === 'move' ? line('MOVE', `${pl.minGoal} minutes this week`, minor ? 'Walks and anything you log count. For ages 6 to 17 the CDC advises 60 minutes or more a day, so this is a floor to build from.' : 'Walks and anything you log count. Building toward 150 minutes a week, the amount the CDC advises for adults.', 'plan') : '')
-          + (pl.id === 'food' ? '' : pl.id === 'starter' || (pl.id === 'move' && pl.workouts !== 'circuit') ? line('STRENGTH', '2 Starter workouts a week', 'One set of 8 to 12 reps of each move, about 10 minutes, no timer. The CDC advises 2 strength days a week.', pl.id === 'move' ? '' : 'plan')
+          + (pl.id === 'food' ? '' : pl.id === 'starter' || (pl.id === 'move' && pl.workouts !== 'circuit') ? line('STRENGTH', ...(d.who === 'erica' && pl.id === 'starter' ? [`${days} workout${days === '1' ? '' : 's'} a week, A and B in turn`, 'One set of 8 to 12 reps of each move, no timer. The CDC advises at least 2 strength days a week.'] : ['2 Starter workouts a week', 'One set of 8 to 12 reps of each move, about 10 minutes, no timer. The CDC advises 2 strength days a week.']), pl.id === 'move' ? '' : 'plan')
             : pl.id === 'comeback' ? line('STRENGTH', `${days} timed circuits a week, starting at Easy`, 'After two solid weeks, Goku offers the next level.', 'plan')
             : line('STRENGTH', `${days} timed circuits a week at ${({ 10: 'Easy', 20: 'Medium', 50: 'Hard', 100: 'Max' })[startGravity(d.about)]}`, 'Short circuits with a rest timer and your last workout to race.', pl.id === 'move' ? '' : 'plan'));
         return `${label('Your coach')}<h1>Here's where I'd start you</h1><p class="sub">Because ${esc(why)}.</p>
@@ -334,6 +335,7 @@ export function onboard({ cancellable = false } = {}) {
       // The skin, and its theme when it has one (Encore → Pastel tour); a color picked in setup stays.
       p.settings.skin = d.skin;
       if (FAMILY_GEAR[d.who]) p.settings.familyGear = true; // already in this profile's answers (2.29)
+      if (d.who === 'erica') p.settings.routine = true; // set up with it, so it never switches over later (2.30)
       const theme = SKINS[d.skin].theme;
       if (theme) { p.settings.theme = theme; if (!d.accent) p.accent = THEMES[theme].accent; }
       if (pick === 'custom') p.custom = { sports: [...d.custom.sports], style: d.custom.style };

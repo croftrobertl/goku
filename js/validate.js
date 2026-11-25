@@ -85,7 +85,7 @@ const DATA = {
     : { gravity: [10, 20, 50, 100].includes(d.gravity) ? d.gravity : 50, startedAt: num(d.startedAt, 0, 1e14, 0), endedAt: num(d.endedAt, 0, 1e14, 0),
       sets: Array.isArray(d.sets) ? d.sets.slice(0, 500).map(s => ({ exId: ID.test(s?.exId) ? s.exId : '', name: str(s?.name, 40), slot: str(s?.slot, 12),
         round: int(s?.round, 1, 100, 1), stages: stages(s?.stages) })) : [],
-      repTimes: nums(d.repTimes, 20000, 0, 1e6), ...(d.starter === true ? { starter: true } : {}) }),
+      repTimes: nums(d.repTimes, 20000, 0, 1e6), ...(d.starter === true ? { starter: true } : {}), ...(['A', 'B'].includes(d.routine) ? { routine: d.routine } : {}) }),
   gut: d => ({ amWaist: num(d.amWaist, 10, 100), pmWaist: num(d.pmWaist, 10, 100), bloat: int(d.bloat, 0, 10), foods: strs(d.foods, 100, 40),
     fluidsOz: num(d.fluidsOz, 0, 1000, 0), supplements: strs(d.supplements, 50, 40), protein: nums(d.protein, 100, 0, 500),
     ...(Array.isArray(d.supps) ? { supps: d.supps.slice(0, 50).filter(x => x && typeof x === 'object' && str(x.name, 40).trim()).map(x => ({ name: str(x.name, 40).trim(), dose: num(x.dose, 0, 100000),
@@ -126,14 +126,14 @@ export function cleanBackup(prof, entries) {
   const plan = Array.isArray(prof.settings?.weekPlan) && prof.settings.weekPlan.length === 7
     ? prof.settings.weekPlan.map(d => ({ gym: int(d?.gym, 0, 1440, 0), vault: int(d?.vault, 0, 1440, 0), at: int(d?.at, 0, 1439, null) })) : null;
   const clean = {
-    id: prof.id, kind: prof.kind, name, accent: /^#[0-9a-f]{6}$/i.test(prof.accent || '') ? prof.accent : null,
+    id: prof.id, kind: prof.kind, name, ...(['rob', 'erica', 'alice', 'lennon', 'else'].includes(prof.who) ? { who: prof.who } : {}), accent: /^#[0-9a-f]{6}$/i.test(prof.accent || '') ? prof.accent : null,
     units: prof.units === 'metric' || prof.units === 'imperial' ? prof.units : undefined, tz: tzOk(prof.tz) ? prof.tz : undefined,
     about: prof.about ? cleanAbout(prof.about) : undefined, coach: cleanCoach(prof.coach), custom: cleanCustom(prof.custom),
     avatar: 'avatar' in prof ? cleanAvatar(prof.avatar) : undefined,
     dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
     modules: Object.fromEntries(Object.entries(prof.modules || {}).filter(([k, v]) => /^\w{1,20}$/.test(k) && typeof v === 'boolean')),
-    settings: { sound: prof.settings?.sound !== false, duel: false, kcalTarget: int(prof.settings?.kcalTarget, 800, 6000), trackWaist: prof.settings?.trackWaist === true, ...(prof.settings?.familyGear === true ? { familyGear: true } : {}), // sharing is chosen again on each phone
+    settings: { sound: prof.settings?.sound !== false, duel: false, kcalTarget: int(prof.settings?.kcalTarget, 800, 6000), trackWaist: prof.settings?.trackWaist === true, ...(prof.settings?.familyGear === true ? { familyGear: true } : {}), ...(prof.settings?.routine === true ? { routine: true } : {}), ...(prof.settings?.routineLib === true ? { routineLib: true } : {}), // sharing is chosen again on each phone
       homeOrder: ids(prof.settings?.homeOrder), homeHidden: ids(prof.settings?.homeHidden), meds: strs(prof.settings?.meds, 30, 60).map(m => m.trim()).filter(Boolean),
       stacks: Array.isArray(prof.settings?.stacks) ? prof.settings.stacks.slice(0, 10).filter(s => s && str(s.name, 30).trim() && Array.isArray(s.items)).map(s => ({ name: str(s.name, 30).trim(),
         items: s.items.slice(0, 20).filter(x => x && str(x.name, 40).trim()).map(x => ({ name: str(x.name, 40).trim(), dose: num(x.dose, 0, 100000), unit: ['mg', 'mcg', 'g', 'IU', 'mL'].includes(x.unit) ? x.unit : 'mg',
@@ -149,6 +149,7 @@ export function cleanBackup(prof, entries) {
     lockRemember: [0, 1, 7, 30].includes(prof.lockRemember) ? prof.lockRemember : 7,
     // The starting point from setup (2.18)
     ...(prof.kind === 'engine' && ['strength', 'starter', 'move', 'food', 'comeback'].includes(prof.plan?.id) ? { plan: { id: prof.plan.id, ...(prof.plan.hold === true ? { hold: true } : {}), ...(int(prof.plan.sets, 1, 3) ? { sets: int(prof.plan.sets, 1, 3) } : {}),
+      ...(int(prof.plan.step, 1, 9) ? { step: int(prof.plan.step, 1, 9) } : {}), ...(num(prof.plan.stepAt, 1, 1e14) ? { stepAt: num(prof.plan.stepAt, 1, 1e14) } : {}),
       ...(int(prof.plan.minGoal, 30, 150) ? { minGoal: int(prof.plan.minGoal, 30, 150) } : {}), ...(prof.plan.workouts === 'circuit' ? { workouts: 'circuit' } : {}) } } : {}),
   };
   let skipped = 0;
