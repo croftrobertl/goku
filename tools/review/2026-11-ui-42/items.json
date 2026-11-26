@@ -1,0 +1,298 @@
+{
+ "batch": "2026-11-ui-42",
+ "title": "Other Button Groups",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "The button groups outside setup, from review 39. Each one gets a page with how it looks now and the setup styles you picked there: a dropdown line, or a list with ticks.\n\n1. Effort when logging an activity\n2. Stomach symptoms\n3. Sore areas (Gymnastics check-in)\n4. Skill event\n5. Skill stage\n6. Plates your gym has\n7. Food search filters\n8. Restaurant menu sort\n\nThe new styles are mock-ups made from the app's own setup pieces, on a test copy, in the Goku look in dark mode. Nothing in the app is changed yet.\n\nMy recommendation is Keep for all eight. Each is one tap now and fits in two rows or fewer, except sore areas (four rows, under the body map). A dropdown adds a tap every time, and a list makes the screen longer. You may still prefer one look across the app; any mix works.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "effort",
+   "area": "Log activity",
+   "title": "Effort, 1 to 10",
+   "why": "Shown on every activity you log.",
+   "now": [
+    {
+     "img": "dbz-effort-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-effort-now.png",
+     "rec": true
+    },
+    {
+     "id": "step",
+     "label": "Big number with − and +",
+     "desc": "Like the bloating line. Starts at 6, as now. Each tap moves it by one, so 10 is 4 taps away.",
+     "img": "dbz-effort-step.png"
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "",
+     "img": "dbz-effort-drop.png"
+    },
+    {
+     "id": "list",
+     "label": "List",
+     "desc": "The longest.",
+     "img": "dbz-effort-list.png"
+    }
+   ]
+  },
+  {
+   "id": "stomach",
+   "area": "How you feel",
+   "title": "Stomach Symptoms",
+   "why": "In Nutrition → How You Feel Today → Stomach. Several can be picked.",
+   "now": [
+    {
+     "img": "dbz-stomach-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-stomach-now.png",
+     "rec": true
+    },
+    {
+     "id": "list",
+     "label": "List with ticks",
+     "desc": "",
+     "img": "dbz-stomach-listm.png"
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "Opens the same list, with Done.",
+     "img": "dbz-stomach-dropm.png"
+    }
+   ]
+  },
+  {
+   "id": "sore",
+   "area": "Gymnastics check-in",
+   "title": "Sore Areas",
+   "why": "The body map above it stays either way; tapping the map picks the same areas. Several can be picked.",
+   "now": [
+    {
+     "img": "dbz-sore-now.png",
+     "caption": "Now, with the map"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-sore-now.png",
+     "rec": true
+    },
+    {
+     "id": "list",
+     "label": "List with ticks",
+     "desc": "Under the map.",
+     "img": "dbz-sore-listm.png"
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "Under the map (map not shown).",
+     "img": "dbz-sore-dropm.png"
+    }
+   ]
+  },
+  {
+   "id": "event",
+   "area": "Skills",
+   "title": "Skill Event",
+   "why": "When adding or editing a gymnastics skill. One is picked; the stage names change with it.",
+   "now": [
+    {
+     "img": "dbz-event-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-event-now.png",
+     "rec": true
+    },
+    {
+     "id": "list",
+     "label": "List",
+     "desc": "",
+     "img": "dbz-event-list.png"
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "",
+     "img": "dbz-event-drop.png"
+    }
+   ]
+  },
+  {
+   "id": "stage",
+   "area": "Skills",
+   "title": "Skill Stage",
+   "why": "Same screen, below the skill name.",
+   "now": [
+    {
+     "img": "dbz-stage-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-stage-now.png",
+     "rec": true
+    },
+    {
+     "id": "list",
+     "label": "List",
+     "desc": "",
+     "img": "dbz-stage-list.png"
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "",
+     "img": "dbz-stage-drop.png"
+    }
+   ]
+  },
+  {
+   "id": "plates",
+   "area": "Library",
+   "title": "Plates Your Gym Has",
+   "why": "On a barbell exercise's edit screen. Set once, rarely changed.",
+   "now": [
+    {
+     "img": "dbz-plates-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-plates-now.png",
+     "rec": true
+    },
+    {
+     "id": "list",
+     "label": "List with ticks",
+     "desc": "Like the equipment list in setup.",
+     "img": "dbz-plates-listm.png"
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "",
+     "img": "dbz-plates-dropm.png"
+    }
+   ]
+  },
+  {
+   "id": "filter",
+   "area": "Add food",
+   "title": "Food Search Filters",
+   "why": "Shown when a search finds more than 8 foods of different kinds: All, Basic foods, Restaurants, Brands, My foods. They scroll sideways, so the last one or two are past the edge, as in the picture.\n\nThe dropdown mock-up leaves out the counts (like 254); I'd keep them if you pick it.",
+   "now": [
+    {
+     "img": "dbz-filter-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-filter-now.png",
+     "rec": true
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "No sideways scrolling.",
+     "img": "dbz-filter-drop.png"
+    }
+   ]
+  },
+  {
+   "id": "sort",
+   "area": "Add food",
+   "title": "Restaurant Menu Sort",
+   "why": "Shown when the search names a chain. \"Fits what's left\" also shows when you have a calorie target.",
+   "now": [
+    {
+     "img": "dbz-sort-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-sort-now.png",
+     "rec": true
+    },
+    {
+     "id": "drop",
+     "label": "Dropdown",
+     "desc": "",
+     "img": "dbz-sort-drop.png"
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Publish?",
+   "why": "If you pick Keep for all eight, nothing changes and there's nothing to publish. Otherwise, after your picks I build them, run every check on both looks, then publish 2.31.0.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Publish when checks pass",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "wait",
+     "label": "Not yet",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}
