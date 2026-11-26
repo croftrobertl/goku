@@ -1,0 +1,99 @@
+{
+ "batch": "2026-11-ui-47",
+ "title": "Alice's Encore Prize",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "A real prize at Alice's finale, like Lennon's wish, in the Eras words. Every picture is a mock-up drawn inside the real app in her look. Nothing is built.\n\nOne thing to know: her bracelets are milestones, not workouts. The seventh is \"100 days logged\", so the earliest she can reach the finale is 100 days after she starts logging.",
+   "options": [
+    { "id": "ok", "label": "Got it", "desc": "", "rec": true }
+   ]
+  },
+  {
+   "id": "finale",
+   "area": "Finale",
+   "title": "Prize and the In-App Wish",
+   "why": "Today the finale offers three in-app wishes: a new theme, an eternal aura, or the Headliner title.",
+   "now": [
+    { "img": "finale-now.png", "caption": "Now" }
+   ],
+   "options": [
+    { "id": "both", "label": "A prize, then a wish too", "desc": "She claims a real prize and still makes her in-app wish. The line reads \"Then make a wish in the app.\"", "img": "finale-along.png", "rec": true },
+    { "id": "either", "label": "A prize or a wish", "desc": "One choice from either list. The line reads \"Or pick a wish in the app.\"", "img": "finale-along-2.png" },
+    { "id": "instead", "label": "A prize instead of the wish", "desc": "The in-app wishes go away for Alice.", "img": "finale-instead.png" }
+   ]
+  },
+  {
+   "id": "words",
+   "area": "Finale",
+   "title": "The Wording",
+   "why": "Heading: \"Your tour sold out!\"\nUnder it: \"Pick your encore prize. A grown-up approved these.\"\nButton: \"Claim this prize\"\n\nAfter she claims it: \"Your encore prize is a trip to the park. Show this to a grown-up.\"",
+   "now": [
+    { "img": "claimed.png", "caption": "After she claims it" }
+   ],
+   "options": [
+    { "id": "ok", "label": "Use these words", "desc": "", "rec": true },
+    { "id": "notes", "label": "Needs changes", "desc": "Type them in the notes." }
+   ]
+  },
+  {
+   "id": "who",
+   "area": "Grown-ups",
+   "title": "Who Chooses the Prize",
+   "why": "You asked for Alice to pick from a list a grown-up approves. Lennon's works differently: a grown-up picks the one prize.",
+   "now": [
+    { "img": "grown.png", "caption": "Grown-ups tick the approved prizes" }
+   ],
+   "options": [
+    { "id": "approve", "label": "A grown-up approves a list; Alice picks", "desc": "Same six prizes as Lennon's, plus one typed by a grown-up. At least one must be ticked.", "rec": true },
+    { "id": "one", "label": "A grown-up picks one, like Lennon", "desc": "" }
+   ]
+  },
+  {
+   "id": "code",
+   "area": "Grown-ups",
+   "title": "Which Passcode",
+   "why": "Lennon's prize sits behind his profile's passcode, which only grown-ups know. Alice knows her own passcode, because it opens her app, so it can't keep her out of the prize list.",
+   "options": [
+    { "id": "grown", "label": "A separate grown-up passcode", "desc": "Six digits, on the same passcode screen. A grown-up sets it the first time they open Encore prizes in her Settings.", "rec": true },
+    { "id": "hers", "label": "Her own passcode", "desc": "Simplest, but she could approve her own prizes." }
+   ]
+  },
+  {
+   "id": "where",
+   "area": "Grown-ups",
+   "title": "Where Grown-Ups Approve It",
+   "why": "A card in Alice's Settings, shown only on her profile. It asks for the passcode before it opens.",
+   "now": [
+    { "img": "grown.png", "caption": "Settings, Encore prizes" }
+   ],
+   "options": [
+    { "id": "ok", "label": "In her Settings", "desc": "", "rec": true },
+    { "id": "notes", "label": "Somewhere else", "desc": "Type where in the notes." }
+   ]
+  },
+  {
+   "id": "again",
+   "area": "After",
+   "title": "After the Encore",
+   "why": "Lennon's Dragon Balls scatter after a wish. Alice's bracelets are one-time milestones, so they stay collected.",
+   "options": [
+    { "id": "once", "label": "One encore prize", "desc": "Like her wish today.", "rec": true },
+    { "id": "again", "label": "A new prize every 100 days logged", "desc": "After the first encore, each further 100 days logged earns another prize from the list." }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Build 2.33.0?",
+   "why": "After your picks I build it, run every check, and publish. Only Alice's profile changes. Kid mode (2.32.0) goes out first, once its tests finish.",
+   "options": [
+    { "id": "yes", "label": "Build and publish when checks pass", "desc": "", "rec": true },
+    { "id": "wait", "label": "Not yet", "desc": "" }
+   ]
+  }
+ ]
+}
