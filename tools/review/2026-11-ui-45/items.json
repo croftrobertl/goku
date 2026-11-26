@@ -1,0 +1,136 @@
+{
+ "batch": "2026-11-ui-45",
+ "title": "Lennon's Kid Mode: The Screens",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "The screens for kid mode, from your picks on the last page: 5 moves (push-ups, curl-ups, squats, plank, star jumps), body weight only, one round of about 10 minutes, a star for each finished move, prizes from a list, the app's own lock for grown-ups, only kid mode on his tablet, tips read aloud, and the safety line.\n\nEvery picture is a mock-up drawn inside the real app on a 393 x 852 screen. Nothing is built.",
+   "options": [
+    { "id": "ok", "label": "Got it", "desc": "", "rec": true }
+   ]
+  },
+  {
+   "id": "home",
+   "area": "Home",
+   "title": "Lennon's Home Screen",
+   "why": "What he sees when he opens the app. The Grown-ups link asks for the passcode.",
+   "now": [
+    { "img": "home-now.png", "caption": "Now (the adult Starter screen)" }
+   ],
+   "options": [
+    { "id": "coach", "label": "Goku, button, Dragon Balls", "desc": "", "img": "home-coach.png", "rec": true },
+    { "id": "balls", "label": "Dragon Balls first", "desc": "Big balls, button under them.", "img": "home-balls.png" },
+    { "id": "one", "label": "Goku and one big button", "desc": "No words.", "img": "home-one.png" }
+   ]
+  },
+  {
+   "id": "move",
+   "area": "Workout",
+   "title": "Each Move",
+   "why": "One move per screen: the picture, how many, the tip, and the safety line.",
+   "options": [
+    { "id": "done", "label": "Do 8, tap Done", "desc": "", "img": "move-done.png", "rec": true },
+    { "id": "tap", "label": "Tap the circle for each one", "desc": "He counts out loud by tapping. The star comes at 8. Easy to get distracted by the tapping.", "img": "move-tap.png" }
+   ]
+  },
+  {
+   "id": "star",
+   "area": "Workout",
+   "title": "Getting a Star",
+   "why": "Right after Done.",
+   "options": [
+    { "id": "big", "label": "A big star screen", "desc": "A short beep and a big star, then a button for the next move.", "img": "star-big.png", "rec": true },
+    { "id": "row", "label": "A small +1, straight on", "desc": "The star fills in at the top and the next move shows at once.", "img": "star-row.png" }
+   ]
+  },
+  {
+   "id": "count",
+   "area": "Workout",
+   "title": "Stars to a Dragon Ball",
+   "why": "You picked one Dragon Ball per workout when it was 4 moves. With star jumps it's 5 moves, so 5 stars.",
+   "options": [
+    { "id": "five", "label": "5 stars = 1 Dragon Ball", "desc": "Still one per finished workout. A wish about every 2 to 3 weeks.", "rec": true },
+    { "id": "four", "label": "4 stars = 1 Dragon Ball", "desc": "Leftover stars count toward the next one." }
+   ]
+  },
+  {
+   "id": "ball",
+   "area": "Workout",
+   "title": "Finding a Dragon Ball",
+   "why": "At the end of a workout.",
+   "options": [
+    { "id": "full", "label": "Celebration", "desc": "Goku cheering, the new ball big.", "img": "ball-full.png", "rec": true },
+    { "id": "quiet", "label": "Plain", "desc": "", "img": "ball-quiet.png" }
+   ]
+  },
+  {
+   "id": "wish",
+   "area": "The wish",
+   "title": "All Seven",
+   "why": "Shenron appears with the prize a grown-up picked. Collect Again scatters the balls; a grown-up then picks the next prize.",
+   "now": [
+    { "img": "wish.png", "caption": "The wish" }
+   ],
+   "options": [
+    { "id": "ok", "label": "Use it", "desc": "", "rec": true },
+    { "id": "notes", "label": "Needs changes", "desc": "Type them in the notes." }
+   ]
+  },
+  {
+   "id": "prize",
+   "area": "The wish",
+   "title": "Picking the Prize",
+   "why": "Behind the passcode. The list is my draft; nothing on it is food (AAP).",
+   "now": [
+    { "img": "prize.png", "caption": "Grown-ups: next wish" }
+   ],
+   "options": [
+    { "id": "ok", "label": "Use this list", "desc": "", "rec": true },
+    { "id": "notes", "label": "Change the list", "desc": "Type the prizes you want in the notes." }
+   ]
+  },
+  {
+   "id": "pics",
+   "area": "Pictures",
+   "title": "Pictures of the Moves",
+   "why": "Only the full push-up has a drawing today (shown above). Wall push-up, knee push-up, curl-up, squat with no weight, knee plank, plank and star jump have none.",
+   "options": [
+    { "id": "brief", "label": "Add them to a ChatGPT brief", "desc": "Same black-ink style as the other drawings. Until they arrive, the move shows without a picture.", "rec": true },
+    { "id": "none", "label": "No pictures in kid mode", "desc": "The tip and the voice only." }
+   ]
+  },
+  {
+   "id": "voice",
+   "area": "Voice",
+   "title": "What's Read Aloud",
+   "why": "The tablet's own voice, no internet. Hear It Again repeats it. Sound follows the app's sound setting.",
+   "options": [
+    { "id": "all", "label": "Name, number and tip", "desc": "\"Push-ups. Do 8. Body straight like a board.\"", "rec": true },
+    { "id": "tip", "label": "The tip only", "desc": "\"Body straight like a board.\"" }
+   ]
+  },
+  {
+   "id": "lock",
+   "area": "Grown-ups",
+   "title": "The Passcode on His Tablet",
+   "why": "You picked the app's own lock. That passcode also opens the app, so Lennon can't open it without a grown-up once the tablet stops remembering. Today the longest it remembers is 30 days.",
+   "options": [
+    { "id": "30", "label": "Remember for 30 days", "desc": "A grown-up types it about once a month. Grown-ups always asks for it.", "rec": true },
+    { "id": "always", "label": "Ask every time the app opens", "desc": "A grown-up starts every workout." }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Publish 2.32.0?",
+   "why": "After your picks I build kid mode, run every check, then publish. Only Lennon's profile changes.",
+   "options": [
+    { "id": "yes", "label": "Publish when checks pass", "desc": "", "rec": true },
+    { "id": "wait", "label": "Not yet", "desc": "" }
+   ]
+  }
+ ]
+}
