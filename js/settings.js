@@ -13,7 +13,7 @@ import { phoneCheck } from './devcheck.js';
 import { THEMES, MODES } from './themes.js';
 import { w, W, SKINS, skinOf, themeName, art } from './skins.js';
 import { avatarHTML, avatarName, avatarPicker, pickAvatar, photoToAvatar } from './avatar.js';
-import { QUESTIONS, essentials, setupFlow, goalsFor, EQUIPMENT, ALLERGIES, TZS } from './coach.js';
+import { QUESTIONS, essentials, setupFlow, goalsFor, EQUIPMENT, ALLERGIES, TZS, choices, flipChoice, shutChoice, keepFocus } from './coach.js';
 import { editHome } from './homelayout.js';
 import { weight, weightUnit, length, lengthUnit } from './units.js';
 import { deviceTZ, TZ, nextDayStart } from './time.js';
@@ -532,7 +532,7 @@ async function settingsFull() {
     </section>
     <section class="card"><p class="lbl">Passcode</p>
       <p class="sub">Remember this phone for</p>
-      <div class="seg">${[[0, 'Always ask'], [1, '1 day'], [7, '1 week'], [30, '30 days']].map(([v, l]) => `<button data-rem="${v}" aria-pressed="${p.lock.remember === v}">${l}</button>`).join('')}</div>
+      ${choices([['0', 'Always ask'], ['1', '1 day'], ['7', '1 week'], ['30', '30 days'], ['90', '90 days']], { id: 'rem-set', attr: 'data-rem', sel: [String(p.lock.remember)], label: 'Remember this phone for' })}
       <div class="row" style="margin-top:12px"><button class="cta2" id="chg">Change passcode</button><button class="cta2" id="lockNow">Lock now</button></div>
     </section>
     <section class="card"><p class="lbl">Profiles on this phone</p>
@@ -594,7 +594,8 @@ async function settingsFull() {
           p.plan = { id, ...(p.plan?.hold ? { hold: true } : {}), ...(id === 'move' ? { minGoal: p.plan?.minGoal || 60 } : {}), ...(id === 'starter' ? { sets: p.plan?.sets || 1 } : {}) };
           if (id === 'comeback') p.settings.gravity = 10;
           await saveProfile(p); toast(`${({ strength: 'Circuits', comeback: 'Comeback', starter: 'Starter Workouts', move: 'Move More', food: 'Food Only' })[id]} from now on`); window.goku.render(); }
-        else if (b.dataset.rem) {
+        else if (b.dataset.open && b.closest('.chl')) { flipChoice(b.dataset.open); keepFocus(document.body, () => window.goku.render()); }
+        else if (b.dataset.rem) { shutChoice('rem-set');
           p.lock.remember = +b.dataset.rem;
           p.lock.until = p.lock.remember ? Date.now() + p.lock.remember * DAY : 0;
           await saveProfile(p); window.goku.render();

@@ -14,3 +14,8 @@ Adapted from "Muscles front and back.svg" by OpenStax, Tomáš Kebert and umimet
 (https://commons.wikimedia.org/wiki/File:Muscles_front_and_back.svg), CC BY-SA 4.0.
 Changes: muscles recolored grey, editor data removed, and muscle shapes tagged so the app can
 color the ones an exercise works. Built by tools/build-muscles.py from tools/src/muscles-front-back.svg.
+
+## img/moves/gpt/*.png: more exercise drawings
+Made for Goku with ChatGPT in 2026, in the style of the Everkinetic drawings, for exercises Everkinetic
+doesn't cover (wall push-up, knee push-up, curl-up, bodyweight squat, knee plank, plank, star jump).
+Which drawing goes with which exercise is set in js/muscles.js (GPT).

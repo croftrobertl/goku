@@ -4,6 +4,7 @@ import { S, saveProfile } from './state.js';
 import { hashPin, checkPin } from './crypto.js';
 import { overlay, esc, ask, setAccent, setTheme, announce } from './ui.js';
 import { avatarHTML } from './avatar.js';
+import { choices, flipChoice, shutChoice } from './coach.js';
 
 const DAY = 86400000;
 const MAX_TRIES = 5, WAIT_MS = 30000;
@@ -19,7 +20,7 @@ let active = null; // { id, promise } — never two lock screens at once
 
 // mode: 'unlock' | 'create' | 'verify'. cancellable adds a Cancel button.
 // Resolves true on success, false on Cancel or Switch profile.
-export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
+export function showLock(p, { mode, onSwitch, cancellable = false, noLater = false } = {}) {
   if (active && document.getElementById('lock')) {
     if (active.id === p.id) return active.promise;
     active.end(false);
@@ -44,9 +45,7 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
         `<button class="${k.length > 1 ? 'txt' : 'num'}" data-key="${k}" aria-label="${k}">${k}</button>`).join('')}</div>
       <div class="card" id="rem" style="margin:0;text-align:left;width:100%">
         <p class="lbl">Remember this phone for</p>
-        <div class="seg" role="group" aria-label="Remember passcode for">
-          <button data-rem="0">Always ask</button><button data-rem="1">1 day</button><button data-rem="7">1 week</button><button data-rem="30">30 days</button>
-        </div>
+        <div id="remsel"></div>
       </div>
       <div class="row" style="justify-content:center;gap:16px;flex-wrap:wrap">
         ${cancellable ? '<button class="link" id="cancel" data-close>Cancel</button>' : ''}
@@ -66,10 +65,10 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
       $('#lt').textContent = t[0]; $('#ls').textContent = t[1];
       el.querySelectorAll('#dots i').forEach((d, i) => d.classList.toggle('on', i < entry.length));
       $('#rem').style.display = m === 'confirm' || verifying ? 'none' : '';
-      el.querySelectorAll('[data-rem]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.rem === L.remember));
+      $('#remsel').innerHTML = choices([['0', 'Always ask'], ['1', '1 day'], ['7', '1 week'], ['30', '30 days'], ['90', '90 days']], { id: 'rem-lock', attr: 'data-rem', sel: [String(L.remember)], label: 'Remember this phone for' }); // 2.32 (review 46): a dropdown, since 90 days made five buttons too tight
       $('#forgot').style.display = m === 'unlock' && !verifying ? '' : 'none';
       // Only for the phone's one profile, and only when it has no passcode yet.
-      $('#later').hidden = !(m === 'create' && !L.pin && !L.needsNewPin && S.profiles.length <= 1);
+      $('#later').hidden = noLater || !(m === 'create' && !L.pin && !L.needsNewPin && S.profiles.length <= 1);
     }
     // The spoken "Enter the same 6 digits again" is cleared, so it isn't read out after setup (2.8.2).
     const end = ok => { active = null; const live = document.getElementById('sr-live'); if (live) live.textContent = ''; close(); document.removeEventListener('keydown', onKey); resolve(ok); };
@@ -113,7 +112,8 @@ export function showLock(p, { mode, onSwitch, cancellable = false } = {}) {
     el.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.key) press(b.dataset.key);
-      else if (b.dataset.rem) { L.remember = +b.dataset.rem; draw(); }
+      else if (b.dataset.open) { flipChoice(b.dataset.open); draw(); el.querySelector(`[data-open="${b.dataset.open}"]`)?.focus(); }
+      else if (b.dataset.rem) { L.remember = +b.dataset.rem; shutChoice('rem-lock'); draw(); el.querySelector('[data-open="rem-lock"]')?.focus(); }
       else if (b.id === 'cancel') end(false);
       else if (b.id === 'later') { L.noPin = true; sessionUnlocked.add(p.id); saveProfile(p).then(() => end(true)); }
       else if (b.id === 'sw') { end(false); onSwitch?.(); }

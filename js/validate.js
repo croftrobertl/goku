@@ -117,6 +117,16 @@ const DATA = {
 };
 
 // Returns { prof, entries, skipped } or throws with a plain-language message.
+// Kid mode (2.32): Lennon's stars, Dragon Balls, levels and prize.
+function cleanKid(k) {
+  if (!k || typeof k !== 'object') return undefined;
+  const int = (v, lo, hi, d) => Number.isInteger(v) && v >= lo && v <= hi ? v : d;
+  const prize = k.prize && typeof k.prize === 'object' ? (typeof k.prize.own === 'string' && k.prize.own.trim() ? { own: k.prize.own.trim().slice(0, 60) }
+    : ['screen', 'park', 'toy', 'movie', 'game'].includes(k.prize.pick) ? { pick: k.prize.pick } : null) : null;
+  return { balls: int(k.balls, 0, 7, 0), push: int(k.push, 0, 2, 0), plank: int(k.plank, 0, 1, 0), rounds: int(k.rounds, 1, 2, 1), prize,
+    days: Array.isArray(k.days) ? k.days.filter(d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)).slice(-200) : [] };
+}
+
 export function cleanBackup(prof, entries) {
   if (!prof || typeof prof !== 'object') throw new Error('This backup has no profile in it.');
   if (!ID.test(prof.id || '')) throw new Error('This backup has a damaged profile ID.');
@@ -128,7 +138,7 @@ export function cleanBackup(prof, entries) {
   const clean = {
     id: prof.id, kind: prof.kind, name, ...(['rob', 'erica', 'alice', 'lennon', 'else'].includes(prof.who) ? { who: prof.who } : {}), accent: /^#[0-9a-f]{6}$/i.test(prof.accent || '') ? prof.accent : null,
     units: prof.units === 'metric' || prof.units === 'imperial' ? prof.units : undefined, tz: tzOk(prof.tz) ? prof.tz : undefined,
-    about: prof.about ? cleanAbout(prof.about) : undefined, coach: cleanCoach(prof.coach), custom: cleanCustom(prof.custom),
+    about: prof.about ? cleanAbout(prof.about) : undefined, coach: cleanCoach(prof.coach), custom: cleanCustom(prof.custom), kid: prof.who === 'lennon' ? cleanKid(prof.kid) : undefined,
     avatar: 'avatar' in prof ? cleanAvatar(prof.avatar) : undefined,
     dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),
@@ -146,7 +156,7 @@ export function cleanBackup(prof, entries) {
         ...(num(prof.settings?.bar, 5, 100) ? { bar: num(prof.settings.bar, 5, 100) } : {}),
         ...(Array.isArray(prof.settings?.plates) ? { plates: [...new Set(prof.settings.plates.map(x => num(x, 0.5, 120)).filter(Boolean))].slice(0, 12), platesUnit: prof.settings.platesUnit === 'kg' ? 'kg' : 'lb' } : {}) }
       : { weekPlan: plan, sharing: false, bodyGoals: prof.settings?.bodyGoals === true }) },
-    lockRemember: [0, 1, 7, 30].includes(prof.lockRemember) ? prof.lockRemember : 7,
+    lockRemember: [0, 1, 7, 30, 90].includes(prof.lockRemember) ? prof.lockRemember : 7,
     // The starting point from setup (2.18)
     ...(prof.kind === 'engine' && ['strength', 'starter', 'move', 'food', 'comeback'].includes(prof.plan?.id) ? { plan: { id: prof.plan.id, ...(prof.plan.hold === true ? { hold: true } : {}), ...(int(prof.plan.sets, 1, 3) ? { sets: int(prof.plan.sets, 1, 3) } : {}),
       ...(int(prof.plan.step, 1, 9) ? { step: int(prof.plan.step, 1, 9) } : {}), ...(num(prof.plan.stepAt, 1, 1e14) ? { stepAt: num(prof.plan.stepAt, 1, 1e14) } : {}),

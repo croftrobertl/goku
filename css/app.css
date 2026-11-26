@@ -1103,3 +1103,27 @@ input::placeholder, textarea::placeholder { text-align: center; }
 .sore-map .zone { fill: var(--accent); fill-opacity: .18; stroke: var(--accent); stroke-width: 1.5; }
 .sore-map .zone[aria-pressed="true"] { fill: var(--accent); fill-opacity: .75; stroke: var(--accent); }
 .fkindsel { margin-bottom: 8px; }
+
+/* Kid mode (2.32, reviews 44 and 45): Lennon's Home, workout, star, Dragon Ball and wish. */
+.kid { text-align: center; padding: 8px 0 32px; }
+.kid h1 { font-size: 28px; margin: 6px 0 4px; text-wrap: balance; }
+.kid .sub, .kid .ktip, .kid .ksafe { text-wrap: balance; }
+.kid .kpose { display: block; margin: 0 auto; width: 190px; height: auto; max-height: 300px; object-fit: contain; }
+.kid .kpose.big { width: 240px; }
+.kid .kgo { font-size: 26px; padding: 22px; width: 100%; margin-top: 14px; }
+.kid .kballs { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
+.kid > img[width="120"] { display: block; margin: 10px auto; }
+.kid .kstars { font-size: 34px; letter-spacing: 6px; margin: 6px 0; color: #f2b632; }
+.kid .kstars .off { color: var(--tx); opacity: .25; }
+.kid .kgrown { margin-top: 28px; }
+.kid .kwhere { font-size: 15px; opacity: .8; margin: 0; }
+.kid .kfig { background: #fff; border-radius: 16px; padding: 8px; margin: 8px auto; width: 220px; }
+.kid .kfig img { display: block; width: 100%; height: 110px; object-fit: contain; }
+.kid .ktip { font-size: 20px; font-weight: 700; margin: 8px 0; }
+.kid .kring { width: 210px; height: 210px; border-radius: 50%; border: 8px solid var(--accent); background: transparent; color: var(--tx); font-size: 92px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 12px auto; font-variant-numeric: tabular-nums; }
+.kid .kring:active { transform: scale(.97); }
+.kid .kbigstar { font-size: 150px; line-height: 1; color: #f2b632; margin: 10px 0; }
+.kid .kprize { font-size: 26px; font-weight: 800; margin: 10px 0; text-wrap: balance; }
+.kid .nw { white-space: nowrap; }
+.kidrun .inner { max-width: 480px; }
+#kidgrown input { margin-top: 8px; }

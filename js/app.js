@@ -5,6 +5,7 @@ import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, deleteE
 import * as db from './db.js';
 import { showLock, isUnlocked, watchRelock } from './lock.js';
 import { onboard } from './onboarding.js';
+import { kidOn, grownUp, backToKid, kidHome, ensureKid } from './kid.js';
 import { settingsView, backupAgeDays, youView, openSettingsGroup } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
@@ -187,6 +188,7 @@ async function drawNow() {
   const form = hasArt(p) && p.coach?.wish !== 'aura' ? formFor(days) : null;
   const [stage, stageName] = p.coach?.wish === 'aura' ? ['st-eternal', 'Eternal aura'] : form ? ['st-form', `${formName(form)} · ${days}-day streak`]
     : days >= 30 ? ['st-blue', `Blue aura · ${days}-day streak`] : days >= 7 ? ['st-gold', `Gold aura · ${days}-day streak`] : ['', days ? `${days}-day streak` : 'Base form'];
+  const kid = kidOn(p) && !grownUp(p); // 2.32: Lennon sees only kid mode; Grown-ups opens the rest
   const list = scr.tabs(p);
   let tab = tabs[p.id] || 'home';
   if (tab !== 'settings' && tab !== 'you' && !list.some(([id]) => id === tab)) tab = tabs[p.id] = 'home';
@@ -194,7 +196,7 @@ async function drawNow() {
   const youPages = list.filter(x => !x[2] && ['history', 'skills'].includes(x[0]));
   // A screen that fails shows its error in the page (2.15); the bars and Settings keep working, so a backup can still be exported.
   let view;
-  try { view = tab === 'settings' ? await settingsView() : tab === 'you' ? await youView(days, youPages) : await scr[tab](); }
+  try { view = kid ? kidHome(p) : tab === 'settings' ? await settingsView() : tab === 'you' ? await youView(days, youPages) : await scr[tab](); }
   catch (e) { console.error(e); view = { failed: true, html: `<section class="card" style="margin-top:24px"><h1>This screen hit a problem</h1>
     <p class="sub">${esc(e?.message || e)}</p><p class="note">Your data is untouched. Other screens still work, and Settings can export a backup.</p>
     ${tab === 'settings' ? '' : '<button class="cta" id="errSettings" style="margin-top:12px">Open Settings</button>'}</section>` }; }
@@ -204,11 +206,12 @@ async function drawNow() {
   const showUpd = update && !update.dismissed && !goku.busy;
   $('#app').innerHTML = `${showUpd ? `<div class="updbar" role="status"><span>A new version of Goku is ready.</span>
       <span class="row" style="gap:8px"><button class="cta2" id="updLater">Later</button><button class="cta" id="updNow" style="width:auto;min-height:44px;padding:0 16px">Update</button></span></div>` : ''}
+    ${kidOn(p) && !kid ? '<div class="demobar" role="status"><span>Grown-up mode is on.</span><button class="cta2" id="kidBack">Back to kid mode</button></div>' : ''}
     ${p.demo ? '<div class="demobar" role="status"><span>This is a sample with made-up data.</span><button class="cta2" id="demoEnd">Start my own</button></div>' : ''}
     <header class="top">
-      <button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch or add a profile' : 'Add a profile'}">
-        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${form ? auraSVG(form, 36) : ''}${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name.trim().split(/\s+/)[0])}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">${GLY.swap}</span></button>
-      <div class="meta"><div>${prettyDay(today())}</div>${stale ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
+      ${kid ? `<span class="chip"><span class="aura">${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name.trim().split(/\s+/)[0])}</span></span></span>` : `<button class="chip" id="switch" aria-label="Profile: ${esc(p.name)}. ${S.profiles.length > 1 ? 'Switch or add a profile' : 'Add a profile'}">
+        <span class="aura${charged ? ' charged' : ''} ${stage}" title="${esc(stageName)}${charged ? ' · protein goal reached today' : ''}">${form ? auraSVG(form, 36) : ''}${avatarHTML(p, 36)}</span><span class="chipname"><span class="cn">${esc(p.name.trim().split(/\s+/)[0])}</span>${p.coach?.wish === 'title' ? `<small class="wtitle">${esc(W('master'))}</small>` : ''}</span><span class="sub" aria-hidden="true">${GLY.swap}</span></button>`}
+      <div class="meta"><div>${prettyDay(today())}</div>${stale && !kid ? `<button class="badge" id="bk">${age === null ? 'Not backed up' : `Backup: ${age} days ago`}</button>` : ''}</div>
     </header>
     <main id="main">${view.html}${view.cta && !view.ctaShown ? `<button class="cta pagecta" id="pageCta">${esc(view.cta[0])}</button>` : ''}</main>`;
   // Gentle Motion (2.20, review 10): a short fade when the tab changes, never on a redraw of the same tab.
@@ -219,6 +222,8 @@ async function drawNow() {
   if (tab === 'home' && !view.failed) loggedEntries(p).then(all => maybeOver9000(p, all, today())).catch(() => {});
   if (view.failed && $('#errSettings')) $('#errSettings').onclick = () => { openSettingsGroup('backup'); go('settings'); };
   drawnDay = today();
+  if ($('#kidBack')) $('#kidBack').onclick = () => { backToKid(p); render(); };
+  if (kid) { $('#dock').innerHTML = ''; if (fk) document.querySelector(fk)?.focus({ preventScroll: true }); return; }
   // The page's own action at the bottom (2.8.2): Quick add stays a menu, so Save and Add are on the page too.
   if (view.cta && !view.ctaShown) $('#pageCta').onclick = () => view.cta[1]();
   // Tab bar (2.2): three main tabs with icons, a big center action, and More for the rest.
@@ -254,7 +259,7 @@ async function open(id) {
     const ok = await showLock(p, { onSwitch: chooseProfile });
     if (!ok) return;
   }
-  if ([addFamilyGear(p), addRoutine(p)].some(Boolean)) await saveProfile(p); // 2.29: the family's equipment; 2.30: Erica's routine. Each added once to profiles made before it
+  if ([addFamilyGear(p), addRoutine(p), ensureKid(p)].some(Boolean)) await saveProfile(p); // 2.29: the family's equipment; 2.30: Erica's routine. Each added once to profiles made before it
   await render();
   if (p.kind === 'engine') engine.resumeRun();
 }

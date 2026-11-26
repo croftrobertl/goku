@@ -107,8 +107,10 @@ const ART = {
 };
 Object.assign(ART, { 'slider-reverse-lunge': ['0129', 'Shown holding dumbbells; your back foot slides on a slider.'], 'slider-bridge-curl': ['0109', 'Shown without sliders; one heel slides out and back.'],
   'vest-reverse-lunge': ['0129', 'Shown holding dumbbells instead of wearing a vest.'] });
-export const artOf = id => ART[id] ? { start: `img/moves/${ART[id][0]}-relaxation.svg`, end: `img/moves/${ART[id][0]}-tension.svg`, note: ART[id][1] || '' } : null;
-export const ART_FILES = Object.values(ART).flatMap(([n]) => [`img/moves/${n}-relaxation.svg`, `img/moves/${n}-tension.svg`]);
+// 2.32 (reviews 45 and 46): drawings made with ChatGPT in the same ink style, for moves Everkinetic doesn't have.
+const GPT = new Set(['wall-pushup', 'knee-pushup', 'curl-up', 'bw-squat', 'knee-plank', 'plank', 'star-jump']);
+export const artOf = id => GPT.has(id) ? { start: `img/moves/gpt/${id}-start.png`, end: `img/moves/gpt/${id}-end.png`, note: '' } : ART[id] ? { start: `img/moves/${ART[id][0]}-relaxation.svg`, end: `img/moves/${ART[id][0]}-tension.svg`, note: ART[id][1] || '' } : null;
+export const ART_FILES = [...Object.values(ART).flatMap(([n]) => [`img/moves/${n}-relaxation.svg`, `img/moves/${n}-tension.svg`]), ...[...GPT].flatMap(n => [`img/moves/gpt/${n}-start.png`, `img/moves/gpt/${n}-end.png`])];
 
 // The muscle map (2.5): the drawing is loaded once into a hidden <symbol>, and every map on screen
 // is a <use> of it. Each muscle's fill reads --m-<region>, so a map's colors are just CSS variables.
