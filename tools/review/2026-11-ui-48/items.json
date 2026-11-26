@@ -1,0 +1,72 @@
+{
+ "batch": "2026-11-ui-48",
+ "title": "The Prize List",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "One prize list for both kids' real prizes: Lennon's wish and Alice's encore. Mock-ups in the real app; nothing is built.\n\nThe list is plain data in one small file (js/rewards.js): a name and a kind (treat, outing, time together, other) per prize. Your rewards page can replace that file later. Each child's phone starts from it, and a grown-up can edit that phone's copy behind the passcode. Phones keep their own copy, because each profile syncs on its own.",
+   "options": [
+    { "id": "ok", "label": "Got it", "desc": "", "rec": true }
+   ]
+  },
+  {
+   "id": "list",
+   "area": "List",
+   "title": "The Starting List",
+   "why": "Treats: Ice cream from Culver's · Flan from Publix\nTime together: Game night with Dad · Breakfast out with Dad · A movie night\nOutings: A trip to the park · A trip to the library · Mini golf\nOther: 30 minutes of extra screen time · Stay up 30 minutes late · A small toy\n\nThe American Academy of Pediatrics advises against food as a reward; the treats are in because you asked for them. I'd remove the \"Please don't use food as a prize\" line from the grown-up screens.",
+   "options": [
+    { "id": "ok", "label": "Use this list", "desc": "", "rec": true },
+    { "id": "notes", "label": "Change it", "desc": "Type the list in the notes." }
+   ]
+  },
+  {
+   "id": "edit",
+   "area": "Editing",
+   "title": "How a Grown-Up Edits It",
+   "why": "Behind the passcode, from an \"Edit the prize list\" link.",
+   "options": [
+    { "id": "rows", "label": "One row per prize", "desc": "Change a name in place, ✕ to remove, Add for a new one.", "img": "edit-rows.png", "rec": true },
+    { "id": "box", "label": "One box, one prize per line", "desc": "Fastest with a keyboard; easier to delete a line by mistake.", "img": "edit-box.png" }
+   ]
+  },
+  {
+   "id": "lennon",
+   "area": "Lennon",
+   "title": "Lennon's Grown-Ups Screen",
+   "why": "As built, a grown-up picks one prize for the next wish. The list becomes the editable one, with the edit link under it. \"Type your own\" goes away, since the editor does that.",
+   "now": [
+    { "img": "lennon-pick.png", "caption": "Pick one, then Edit the prize list" }
+   ],
+   "options": [
+    { "id": "ok", "label": "Use it", "desc": "", "rec": true },
+    { "id": "notes", "label": "Needs changes", "desc": "Type them in the notes." }
+   ]
+  },
+  {
+   "id": "alice",
+   "area": "Alice",
+   "title": "Alice's Approval Screen",
+   "why": "If you pick \"a grown-up approves a list\" on review 47: the same list, with ticks for what she may choose. If you pick \"a grown-up picks one\", it looks like Lennon's.",
+   "now": [
+    { "img": "alice-approve.png", "caption": "Tick the approved prizes" }
+   ],
+   "options": [
+    { "id": "ok", "label": "Use it", "desc": "", "rec": true },
+    { "id": "notes", "label": "Needs changes", "desc": "Type them in the notes." }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Build It With Alice's Prize?",
+   "why": "Lennon's kid mode (2.32.0) goes out first as you approved it, with the six-prize list and the \"not food\" line. This list then comes in 2.33.0 together with Alice's encore prize.",
+   "options": [
+    { "id": "yes", "label": "Yes, in 2.33.0", "desc": "", "rec": true },
+    { "id": "hold", "label": "Hold 2.32.0 and ship both together", "desc": "" }
+   ]
+  }
+ ]
+}
