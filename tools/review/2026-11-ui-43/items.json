@@ -1,0 +1,217 @@
+{
+ "batch": "2026-11-ui-43",
+ "title": "Centered Text and More",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "Your notes from the last page:\n\n1. Centered, balanced text, in four parts: choice lists, text fields, card headings, notes\n2. Bloating in with the other symptoms\n3. A more accurate body map\n4. Publishing, together with your picks from the last page\n\nI measured the text that isn't centered today on 40 screens. Two kinds stay as they are on every option here: rows with a name on one side and a number on the other (like Push … 0), and the coach's chat bubbles. Centering them would pull each pair apart.\n\nCentered text is also balanced, so its lines come out about even. That's the rule from review 30.\n\nAll pictures are mock-ups on a test copy, in the Goku look in dark mode. Your new dropdowns and lists from the last page follow whatever you pick for choice lists.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "choices",
+   "area": "Centering",
+   "title": "Choice Lists and Dropdowns",
+   "why": "Setup questions, the equipment list, and your new dropdowns and lists. The tick stays on the right; the words center in the row. The equipment list centers the same way, between its picture and tick.",
+   "now": [
+    {
+     "img": "dbz-choices-now.png",
+     "caption": "Now"
+    },
+    {
+     "img": "dbz-equip-now.png",
+     "caption": "Equipment now"
+    }
+   ],
+   "options": [
+    {
+     "id": "center",
+     "label": "Centered",
+     "desc": "",
+     "img": "dbz-choices-A.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-choices-now.png"
+    }
+   ]
+  },
+  {
+   "id": "fields",
+   "area": "Centering",
+   "title": "Text Fields and Placeholder Text",
+   "why": "Typed text and the grey hint text inside boxes, like the sport search and minutes on Log Activity. Applies to every text box and picker in the app.",
+   "now": [
+    {
+     "img": "dbz-fields-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "center",
+     "label": "Centered",
+     "desc": "",
+     "img": "dbz-fields-B.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-fields-now.png"
+    }
+   ]
+  },
+  {
+   "id": "heads",
+   "area": "Centering",
+   "title": "Card Headings",
+   "why": "Headings that sit alone on their line, like Hard Sets This Week. A heading sharing its line with a button (Weight Trend … 4 weeks, Streak … Why?) stays on the left.",
+   "now": [
+    {
+     "img": "dbz-heads-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "center",
+     "label": "Centered",
+     "desc": "",
+     "img": "dbz-heads-C.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-heads-now.png"
+    }
+   ]
+  },
+  {
+   "id": "notes",
+   "area": "Centering",
+   "title": "Notes and Small Print",
+   "why": "Explanations, tips and safety notes. Numbered steps stay on the left, so the numbers line up.",
+   "now": [
+    {
+     "img": "dbz-notes-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "center",
+     "label": "Centered",
+     "desc": "",
+     "img": "dbz-notes-D.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-notes-now.png"
+    }
+   ]
+  },
+  {
+   "id": "bloat",
+   "area": "Stomach",
+   "title": "Bloating With the Other Symptoms",
+   "why": "Bloating moves into the symptoms dropdown. Grouping by where it's felt is my judgement: heartburn and nausea together, then bloating, gas and cramps, then low energy.\n\nHow bad it was: today bloating has 0 to 10, and the Patterns card counts a day as bad at 6 or more. With a 1 to 10 under the tick, that rule and your past answers stay as they are. Without it, bloating becomes yes or no like the others, and Patterns would count any bloating as a bad day.",
+   "now": [
+    {
+     "img": "dbz-bloat-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "sevheads",
+     "label": "Grouped, with How Bad",
+     "desc": "",
+     "img": "dbz-bloat-sevheads.png",
+     "rec": true
+    },
+    {
+     "id": "sevorder",
+     "label": "Same order, no group names",
+     "desc": "",
+     "img": "dbz-bloat-sevorder.png"
+    },
+    {
+     "id": "yesno",
+     "label": "Grouped, yes or no only",
+     "desc": "",
+     "img": "dbz-bloat-yesno.png"
+    }
+   ]
+  },
+  {
+   "id": "map",
+   "area": "Sore areas",
+   "title": "A More Accurate Body Map",
+   "why": "Drawn on the muscle drawing the app already uses for exercises (OpenStax, free to use with credit; credited already). Each joint gets a ring; tapped ones fill in.\n\nOne catch: on a phone the rings are small, about 15 to 21 px wide, except the two back areas (a comfortable tap is 44). Your list from the last page sits under it, so every area also has a full-size row.",
+   "now": [
+    {
+     "img": "dbz-map-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "tap",
+     "label": "New drawing, tap the rings or the list",
+     "desc": "",
+     "img": "dbz-map-new.png",
+     "rec": true
+    },
+    {
+     "id": "show",
+     "label": "New drawing, shows what's picked in the list",
+     "desc": "The map can't be tapped; nothing is too small to hit."
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-map-now.png"
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Publish 2.31.0?",
+   "why": "Your picks from the last page and this one, built together. Then I run every check on both looks, and publish.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Publish when checks pass",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "wait",
+     "label": "Not yet",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}
