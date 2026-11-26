@@ -1,0 +1,138 @@
+{
+ "batch": "2026-11-ui-44",
+ "title": "Lennon's Kid Mode: How It Works",
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "How Lennon's kid mode would work, from your earlier picks: teach push-ups, sit-ups and good form; stars for good-form moves; stars become Dragon Balls; all seven earn a wish, a real prize a grown-up sets behind a code.\n\nThis page is only about how it works. Pictures of the screens come on the next page, after your picks. Nothing is built.\n\nAmounts and safety come from the sources named on each card. Which moves, and the game rules, are my judgement.",
+   "options": [
+    { "id": "ok", "label": "Got it", "desc": "", "rec": true }
+   ]
+  },
+  {
+   "id": "moves",
+   "area": "Moves",
+   "title": "The Four Moves",
+   "why": "1. Push-up: starts against a wall, then on the knees, then a full push-up.\n2. Curl-up: knees bent, feet flat and not held, lift the shoulders a little and slide the hands forward. Used instead of a full sit-up.\n3. Squat: no weight.\n4. Plank: starts on the knees, then on the toes.\n\nKidsHealth: kids can start with body-weight moves such as sit-ups, push-ups and squats.\nFitnessGram manual: the curl-up is \"both safer and more effective\" than a sit-up, because it doesn't use the hip flexors.\nCDC: push-ups count as muscle-strengthening for children.",
+   "options": [
+    { "id": "four", "label": "These four", "desc": "", "rec": true },
+    { "id": "jump", "label": "These four plus jumping", "desc": "Star jumps. CDC counts jumping as bone-strengthening for children, at least 3 days a week." },
+    { "id": "notes", "label": "Needs changes", "desc": "Type them in the notes." }
+   ]
+  },
+  {
+   "id": "gear",
+   "area": "Moves",
+   "title": "Sliders and Medicine Balls",
+   "why": "You picked sliders and the two mini medicine balls as Lennon's equipment.\n\nI found no health source on sliders for children, and none that says what medicine ball weight suits a 7-year-old. Nationwide Children's lists medicine balls as fine for kids' strength training, without a weight.\n\nThe Danskin ball is 5 lb; the Gaiam ball's weight is unknown.",
+   "options": [
+    { "id": "none", "label": "Body weight only for now", "desc": "The sliders and balls stay in his equipment list but aren't used in kid mode.", "rec": true },
+    { "id": "ball", "label": "Add one ball move", "desc": "A gentle chest pass to a grown-up. You pick which ball." }
+   ]
+  },
+  {
+   "id": "amount",
+   "area": "How much",
+   "title": "How Long, How Often",
+   "why": "KidsHealth: start with one or two sets of 8 to 12, at least 20 to 30 minutes, 2 or 3 days a week, with a day off between, after a 5 to 10 minute warm-up.\nAAP: attention spans of 6 to 9 year olds are still short; teach in short pieces.\nCDC: muscle-strengthening at least 3 days a week, as part of 60 minutes of activity every day (play counts).\n\nNo source gives a shorter session for a child who is easily distracted.",
+   "options": [
+    { "id": "short", "label": "3 days, 1 round, about 10 minutes", "desc": "Each move once, 8 reps (plank: up to 20 seconds). A second round is offered once that's easy. Shorter than KidsHealth's 20 to 30 minutes; the rest of his activity is play.", "rec": true },
+    { "id": "full", "label": "3 days, 2 rounds, about 20 minutes", "desc": "Matches KidsHealth from the start, with the warm-up." }
+   ]
+  },
+  {
+   "id": "star",
+   "area": "The game",
+   "title": "How a Star Is Earned",
+   "why": "The app can't see his form. KidsHealth and AAP both say kids' strength work should be closely supervised, so a grown-up is there anyway.",
+   "options": [
+    { "id": "grownup", "label": "A grown-up taps the star", "desc": "After each move: \"Good form?\" Yes gives a star. No shows the tip again and he can try once more.", "rec": true },
+    { "id": "self", "label": "Lennon taps it himself", "desc": "A star for every finished move. Simpler, but stars don't depend on form." }
+   ]
+  },
+  {
+   "id": "ball",
+   "area": "The game",
+   "title": "Stars to Dragon Balls",
+   "why": "With 4 moves, a full workout gives 4 stars.\n\nAt 3 workouts a week:",
+   "options": [
+    { "id": "per-workout", "label": "4 stars = 1 Dragon Ball", "desc": "One ball per good workout. A wish about every 2 to 3 weeks.", "rec": true },
+    { "id": "per-two", "label": "8 stars = 1 Dragon Ball", "desc": "A wish about every 5 weeks." },
+    { "id": "per-week", "label": "12 stars = 1 Dragon Ball", "desc": "A wish about every 7 weeks." }
+   ]
+  },
+  {
+   "id": "wish",
+   "area": "The game",
+   "title": "The Wish",
+   "why": "A grown-up sets the prize ahead of time, behind a code, so it's a surprise until all seven are gathered. AAP says food should not be used as a reward, and suggests stickers and praise instead.",
+   "options": [
+    { "id": "type", "label": "A grown-up types the prize", "desc": "Anything, such as \"Trip to the park\". The setup screen notes \"not food\".", "rec": true },
+    { "id": "list", "label": "Pick from a list", "desc": "Extra screen time, a trip, a small toy... a grown-up can also type one." }
+   ]
+  },
+  {
+   "id": "again",
+   "area": "The game",
+   "title": "After a Wish",
+   "why": "Today the Dragon Balls and the wish happen only once.",
+   "options": [
+    { "id": "scatter", "label": "The balls scatter and he collects again", "desc": "A grown-up sets the next prize.", "rec": true },
+    { "id": "once", "label": "Once only", "desc": "" }
+   ]
+  },
+  {
+   "id": "code",
+   "area": "Grown-ups",
+   "title": "The Grown-Up Code",
+   "why": "The prize, the settings and switching to another person sit behind the code.",
+   "options": [
+    { "id": "four", "label": "A 4-digit code", "desc": "Set when kid mode starts. Separate from the app's own lock.", "rec": true },
+    { "id": "lock", "label": "Use the app's own lock", "desc": "The same PIN that opens the app." }
+   ]
+  },
+  {
+   "id": "sees",
+   "area": "What he sees",
+   "title": "What Lennon Sees",
+   "why": "The full app has food logs, weight, calendars and charts.",
+   "options": [
+    { "id": "kid", "label": "Only kid mode", "desc": "The workout, his stars and his Dragon Balls. Everything else behind the grown-up code.", "rec": true },
+    { "id": "full", "label": "Kid mode plus the rest", "desc": "Kid mode on Home, the other tabs as now." }
+   ]
+  },
+  {
+   "id": "tips",
+   "area": "What he sees",
+   "title": "Form Tips",
+   "why": "One short tip per move, in kid words. I found no form tips written for children, so these are simplified from Cleveland Clinic, NHS and FitnessGram:\n\nPush-up: \"Body straight like a board.\"\nCurl-up: \"Slide your hands, then lie back down.\"\nSquat: \"Knees point at your toes. Chest up.\"\nPlank: \"Straight like a board. Don't let your bottom sag.\"",
+   "options": [
+    { "id": "text", "label": "Tip on screen", "desc": "", "rec": true },
+    { "id": "voice", "label": "Tip on screen, and read aloud", "desc": "Uses the tablet's own voice; no internet needed." },
+    { "id": "notes", "label": "Needs changes", "desc": "Type them in the notes." }
+   ]
+  },
+  {
+   "id": "safety",
+   "area": "Safety",
+   "title": "Safety Line",
+   "why": "AAP: \"Stop lifting at once if pain is felt.\" KidsHealth: most injuries happen when a child is goofing around and not supervised.\n\nThe weighted vest and ankle weights stay out of kid mode; I found no source on them for children.",
+   "options": [
+    { "id": "line", "label": "One line on the workout screen", "desc": "\"Grown-up nearby. If anything hurts, stop and tell them.\"", "rec": true },
+    { "id": "none", "label": "No line", "desc": "" }
+   ]
+  },
+  {
+   "id": "next",
+   "area": "Last",
+   "title": "Next",
+   "why": "After your picks I make the pictures page: the kid Home screen, the workout, the star moment, the Dragon Balls and the wish, each with options to choose from. Nothing is built or published before that.",
+   "options": [
+    { "id": "ok", "label": "Make the pictures page", "desc": "", "rec": true },
+    { "id": "wait", "label": "Not yet", "desc": "" }
+   ]
+  }
+ ]
+}
