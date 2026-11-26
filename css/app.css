@@ -1083,3 +1083,23 @@ nav.tabs .center > span, [style*="text-align:center"] { text-wrap-style: balance
 .capsule-setup .chl .sub, .capsule-setup .chl .chfold.field.empty { color: #555; } .capsule-setup .chk { border-color: #777; }
 .capsule-setup .chr[aria-pressed="true"] .chk { background: #141414; border-color: #141414; } .capsule-setup .chr[aria-pressed="true"] .chk::after { border-color: #fff; }
 .capsule-setup .chl .chr[aria-pressed="true"] { background: #eee; } .capsule-setup .chl .chdone { background: #141414; color: #fff; }
+/* Centred, balanced text (2.31, review 43): choice lists, fields, card headings, the coach chat and the Library.
+   Notes, folding headers and name-and-number rows stay as they were. */
+.chl .cht, .chl .cht b, .chl .cht .sub { text-align: center !important; text-wrap: balance !important; }
+.chl:not(.chatreplies) .chr:not(:has(.gpic))::before { content: ""; flex: none; width: 24px; } /* evens out the tick on the right */
+.chl .chfold.field > span { flex: 1; text-align: center; text-wrap: balance; }
+.chl .chfold.field::before { content: ""; flex: none; width: 9px; }
+input, select, textarea { text-align: center !important; text-align-last: center; }
+input::placeholder, textarea::placeholder { text-align: center; }
+.card > p.lbl, details.card > summary.lbl, main > h1 { text-align: center !important; text-wrap: balance !important; }
+.chatrow .bubble { text-align: center !important; text-wrap: balance !important; }
+.chatreplies .chr { justify-content: center !important; text-align: center !important; text-wrap: balance; }
+.librow .ltext { flex: 1; } .librow .ltext, .librow .ltext b, .librow .ltext .chain { text-align: center !important; text-wrap: balance !important; }
+/* Symptoms list (2.31): group headings, and How bad? under Bloating once ticked. */
+.chl .chhead { margin: 0; padding: 10px 14px 2px; border-top: 1px solid var(--line); text-align: center; font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--tx2); }
+.chl .chsev { padding: 4px 14px 12px; text-align: center; } .chl .chsev .sub { margin: 0 0 6px; text-align: center; text-wrap: balance; }
+/* Sore-area map (2.31, review 43): the OpenStax drawing with a ring on each area. */
+.body-map.sore-map { max-width: none; }
+.sore-map .zone { fill: var(--accent); fill-opacity: .18; stroke: var(--accent); stroke-width: 1.5; }
+.sore-map .zone[aria-pressed="true"] { fill: var(--accent); fill-opacity: .75; stroke: var(--accent); }
+.fkindsel { margin-bottom: 8px; }

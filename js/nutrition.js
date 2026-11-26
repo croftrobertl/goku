@@ -12,6 +12,7 @@ import { whyBtn } from './why.js';
 import { feelPatterns } from './insights.js';
 import { splitMeal, chainOf, startPortion, loadFoods, myFoods, search, suggestFoods, parseAmount, portionFor, tidyName, portionsOf, defaultPortion, scale, sumN, byBarcode, lookupBarcode, NUTRIENTS, SOURCE_NOTE, fmt, kcalOf, kcalText } from './foods.js';
 import { scanBarcode } from './scan.js';
+import { choices, flipChoice, shutChoice, keepFocus, isOpen } from './coach.js';
 import { suppCard, bindSupps, recentSupps, suppNamed } from './supplements.js';
 
 export const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']];
@@ -22,6 +23,19 @@ const ARROW_UP = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 13l6-6
 const ARROW_DOWN = ARROW_UP.replace('M4 13l6-6 6 6', 'M4 7l6 6 6-6');
 const mealName = k => MEALS.find(m => m[0] === k)?.[1] || 'Snacks';
 const SYMPTOMS = [['heartburn', 'Heartburn'], ['cramps', 'Cramps'], ['gas', 'Gas'], ['nausea', 'Nausea'], ['lowEnergy', 'Low energy']];
+// Symptoms are one grouped list (2.31, reviews 42 and 43). Bloating is a tick like the rest, with
+// How bad? 1 to 10 under it once ticked; unticked is stored as 0, as the old 0-to-10 scale did.
+const SYM_GROUPS = [['Chest and stomach', ['heartburn', 'nausea']], ['Belly', ['bloat', 'gas', 'cramps']], ['Other', ['lowEnergy']]];
+const symName = k => k === 'bloat' ? 'Bloating' : SYMPTOMS.find(x => x[0] === k)[1];
+const symOn = (g, k) => k === 'bloat' ? g.bloat >= 1 : !!g[k];
+function symptomList(g) {
+  const open = isOpen('symptoms'), names = SYM_GROUPS.flatMap(([, ks]) => ks).filter(k => symOn(g, k)).map(symName);
+  const text = names.length > 3 ? `${names.slice(0, 2).join(', ')} and ${names.length - 2} more` : names.join(', ') || 'None picked. Tap to choose';
+  const row = k => `<button class="chr many" data-sym="${k}" aria-pressed="${symOn(g, k)}"><span class="cht"><b>${symName(k)}</b></span><i class="chk" aria-hidden="true"></i></button>`
+    + (k === 'bloat' && symOn(g, k) ? `<div class="chsev"><p class="sub">How bad? 1 = mild, 10 = worst</p>${stepper('bloat', g.bloat, 'bloating')}</div>` : '');
+  return `<div class="chl"><button class="chfold field${names.length ? '' : ' empty'}" data-open="symptoms" aria-expanded="${open}" aria-label="${esc('Symptoms: ' + text)}"><span>${esc(text)}</span></button>
+    ${open ? SYM_GROUPS.map(([h, ks]) => `<p class="chhead">${h}</p>${ks.map(row).join('')}`).join('') + '<button class="chdone" data-open="symptoms">Done</button>' : ''}</div>`;
+}
 // Daily check-in (2.14, review 9): the short wellness questions coaches use, in Goku's own words, each 1 to 5
 // (after Hooper and Mackinnon 1995; McLean et al. 2010). Gymnastics profiles answer these in their own check-in.
 const WELL = [['energy', 'Energy', 'Drained', 'Great'], ['soreness', 'Muscle soreness', 'None', 'Very sore'],
@@ -128,8 +142,7 @@ export async function nutritionView() {
   const wellOn = p.kind !== 'perf';
   const healthSleep = wellOn ? (await entries('sleep', p)).find(x => x.day === day)?.data.hours ?? null : null;
   const stomachSet = g.bloat != null || SYMPTOMS.some(([k]) => g[k]) || g.amWaist != null || g.pmWaist != null;
-  const stomach = `<p class="lbl" style="margin-top:10px">Bloating (0 = none, 10 = worst)</p>${stepper('bloat', g.bloat ?? 'none', 'bloating')}
-        <div class="pills" style="margin-top:10px">${SYMPTOMS.map(([k, n]) => `<button data-sym="${k}" aria-pressed="${!!g[k]}">${n}</button>`).join('')}</div>
+  const stomach = `<p class="lbl" style="margin-top:10px">Symptoms</p>${symptomList(g)}
         ${g.amWaist != null || g.pmWaist != null || p.settings.trackWaist ? `<p class="lbl" style="margin-top:12px">Waist (${lengthUnit(p) === 'cm' ? 'cm' : 'inches'})</p>
           <div class="waist"><span>Morning</span>${stepper('amWaist', length(g.amWaist, p) ?? 'none', 'morning waist')}
           <span>Evening</span>${stepper('pmWaist', length(g.pmWaist, p) ?? 'none', 'evening waist')}</div>`
@@ -172,7 +185,7 @@ export async function nutritionView() {
         ${glasses(water, p)}
         <div class="row" style="justify-content:center;gap:8px;margin-top:8px">${volumeSteps(p).map(([label, oz]) => `<button class="cta2" data-fl="${oz}">${label > 0 ? '+' : '−'}${Math.abs(label)}</button>`).join('')}</div></section>
       ${suppCard(gut, recent, p.settings.meds || [], day === t ? 'today' : 'on ' + prettyDay(day))}
-      ${symptomsOn ? `<details class="card fold feel" ${gut ? 'open' : ''}><summary class="lbl">${day === t ? 'How you feel today' : 'How you felt on ' + esc(prettyDay(day))}</summary>
+      ${symptomsOn ? `<details class="card fold feel" ${gut || isOpen('symptoms') ? 'open' : ''}><summary class="lbl">${day === t ? 'How you feel today' : 'How you felt on ' + esc(prettyDay(day))}</summary>
         ${wellOn ? `<p class="sub">Optional, about 20 seconds. The pattern finder below shows what lines up with good and bad days.</p>
         ${wellScale(g, WELL[0])}
         <div class="q"><p class="lbl">Sleep last night (hours)</p>${stepper('sleepH', g.sleepH ?? 'none', 'sleep')}</div>
@@ -212,14 +225,19 @@ export async function nutritionView() {
         const st = b.closest('[data-step]');
         if (st && b.dataset.d) {
           const k = st.dataset.step, d = +b.dataset.d;
-          if (k === 'bloat') g.bloat = Math.min(10, Math.max(0, (g.bloat ?? (d > 0 ? -1 : 1)) + d));
+          if (k === 'bloat') g.bloat = Math.min(10, Math.max(1, (g.bloat || 1) + d));
           // Sleep starts from the night Apple Health or Scouter recorded, else the last answer, else 7 hours.
           else if (k === 'sleepH') { const base = g.sleepH ?? healthSleep ?? allGut.map(x => x.data.sleepH).filter(v => v != null).pop() ?? 7;
             g.sleepH = g.sleepH == null ? base : Math.min(14, Math.max(0, round(base + d * 0.5, 1))); }
           else { const last = allGut.map(x => x.data.amWaist ?? x.data.pmWaist).filter(v => v != null).pop() ?? 34; g[k] = Math.max(15, round((g[k] ?? last) + d * lengthStep(p), 3)); }
           await saveGut(); return window.goku.render();
         }
-        if (b.dataset.sym) { g[b.dataset.sym] = !g[b.dataset.sym]; await saveGut(); return window.goku.render(); }
+        // Redrawing replaces the list, so the keyboard's place is put back on the same button.
+        const refocus = sel => window.goku.render().then(() => document.querySelector(sel)?.focus({ preventScroll: true }));
+        if (b.dataset.open === 'symptoms') { flipChoice('symptoms'); return refocus(`[data-open="symptoms"]${b.classList.contains('chdone') ? ':not(.chdone)' : ''}`); }
+        if (b.dataset.sym) { const k = b.dataset.sym;
+          if (k === 'bloat') g.bloat = g.bloat >= 1 ? 0 : 1; else { g[k] = !g[k]; g.bloat ??= 0; } // a ticked list answers bloating too
+          await saveGut(); return refocus(`[data-sym="${k}"]`); }
         if (b.dataset.well) { const k = b.dataset.well, v = +b.dataset.v; if (g[k] === v) delete g[k]; else g[k] = v; await saveGut(); return window.goku.render(); }
       }));
     },
@@ -331,7 +349,7 @@ function foodSheet(meal, day, { scan = false } = {}) {
     <span class="chain">${esc(sub)}</span></span><span class="num">${f.kc ?? ''}</span></button></li>`;
   const firstPortion = f => { const ps = portionsOf(f); return ps[startPortion(f, ps)]; };
   const sub = f => { const po = firstPortion(f); const k = kcalText(scale(f.per, po.g)); f.kc = k == null ? '' : k; return po.label; };
-  let shown = [], amt = { q: '', qty: null, unit: '' }, fkind = 'all';
+  let shown = [], amt = { q: '', qty: null, unit: '' }, fkind = 'all'; shutChoice('fd-kind'); shutChoice('fd-sort');
   // Type a whole meal (2.17): each part is matched and shown for checking; nothing is added until Add All.
   let multi = []; const fixed = new Map(); // fixed: a part's food or amount after the user changed it
   const matchPart = (text, list) => {
@@ -367,8 +385,9 @@ function foodSheet(meal, day, { scan = false } = {}) {
       const counts = { basic: 0, rest: 0, brand: 0, mine: 0 }; for (const f of wide) counts[kindOf(f)]++;
       if (fkind !== 'all' && !counts[fkind]) fkind = 'all';
       shown = Object.assign((fkind === 'all' ? wide : wide.filter(f => kindOf(f) === fkind)).slice(0, 60), { suggest: wide.suggest });
-      const chips = wide.length > 8 && Object.values(counts).filter(Boolean).length > 1 ? `<div class="pills fkinds" role="group" aria-label="Show">${[['all', 'All'], ['basic', 'Basic foods'], ['rest', 'Restaurants'], ['brand', 'Brands'], ['mine', 'My foods']]
-        .filter(([k]) => k === 'all' || counts[k]).map(([k, n]) => `<button data-fkind="${k}" aria-pressed="${fkind === k}" data-raw>${n}${k === 'all' ? '' : ` <span class="cnt">${counts[k] >= 400 ? '400+' : counts[k]}</span>`}</button>`).join('')}</div>` : '';
+      // A dropdown since 2.31 (review 42).
+      const chips = wide.length > 8 && Object.values(counts).filter(Boolean).length > 1 ? `<div class="fkindsel" data-raw>${choices([['all', 'All'], ['basic', 'Basic foods'], ['rest', 'Restaurants'], ['brand', 'Brands'], ['mine', 'My foods']]
+        .filter(([k]) => k === 'all' || counts[k]).map(([k, n]) => [k, k === 'all' ? n : `${n} ${counts[k] >= 400 ? '400+' : counts[k]}`]), { id: 'fd-kind', attr: 'data-fkind', sel: [fkind], label: 'Show' })}</div>` : '';
       // A restaurant's menu can be sorted (2.17): by what fits the calories left today, by protein, or by name.
       const chain = chainOf([...mine, ...all], amt.q), sortable = chain && shown.filter(f => f.src === 'chain' && f.brand === chain).length > 1;
       const eaten = sumN(thisDay), kLeft = p.kind !== 'perf' && p.settings.kcalTarget ? p.settings.kcalTarget - (eaten.kcal || 0) : null;
@@ -380,8 +399,8 @@ function foodSheet(meal, day, { scan = false } = {}) {
         else own.sort((a, b) => b.pr - a.pr);
         shown = Object.assign([...own.map(x => x.f), ...shown.filter(f => !(f.src === 'chain' && f.brand === chain))], { suggest: shown.suggest });
       }
-      const sortPills = sortable ? `<div class="pills sugg" role="group" aria-label="Sort ${esc(chain)}'s menu" style="margin:0 0 8px">${[['best', 'Best match'], ...(kLeft != null ? [['fits', "Fits what's left"]] : []), ['protein', 'Most protein'], ['az', 'A–Z']]
-        .map(([k, n]) => `<button data-csort="${k}" aria-pressed="${(chainSort === 'fits' && kLeft == null ? 'best' : chainSort) === k}" data-raw>${n}</button>`).join('')}</div>
+      const sortPills = sortable ? `<div class="fsort" style="margin:0 0 8px" data-raw>${choices([['best', 'Best match'], ...(kLeft != null ? [['fits', "Fits what's left"]] : []), ['protein', 'Most protein'], ['az', 'A–Z']],
+        { id: 'fd-sort', attr: 'data-csort', sel: [chainSort === 'fits' && kLeft == null ? 'best' : chainSort], label: `Sort ${chain}'s menu` })}</div>
         ${chainSort === 'fits' && kLeft != null ? `<p class="sub" style="margin:0 0 8px" data-raw>You have ${Math.max(0, Math.round(kLeft)).toLocaleString('en-US')} cal left${pLeft != null ? ` and ${Math.round(pLeft)} g of protein to go` : ''} today. What fits is listed first, most protein on top.</p>` : ''}` : '';
       // A spelling fix is only ever offered as a suggestion; what you typed is what's searched.
       $('#fsugg').innerHTML = [...(shown.suggest ? [[`Did you mean ${shown.suggest}?`, shown.suggest]] : []), ...suggestFoods(amt.q).map(s => [s, s])]
@@ -431,8 +450,9 @@ function foodSheet(meal, day, { scan = false } = {}) {
       await addItems(day, prev); toast(`${mealName(meal)} added: ${prev.length} food${prev.length === 1 ? '' : 's'}`); close(); return window.goku.render();
     }
     if (b.dataset.ftab) { tab = b.dataset.ftab; return draw(); }
-    if (b.dataset.csort) { chainSort = b.dataset.csort; return draw(); }
-    if (b.dataset.fkind) { fkind = b.dataset.fkind; return draw(); }
+    if (b.dataset.open && b.closest('.chl')) { flipChoice(b.dataset.open); return keepFocus(el, draw); }
+    if (b.dataset.csort) { chainSort = b.dataset.csort; shutChoice('fd-sort'); return keepFocus(el, draw); }
+    if (b.dataset.fkind) { fkind = b.dataset.fkind; shutChoice('fd-kind'); return keepFocus(el, draw); }
     if (b.dataset.mswap) { const m = multi[+b.dataset.mswap]; m.n = (m.n + 1) % m.alts.length; // the next-best match, at the amount already shown
       const f = m.alts[m.n], a = parseAmount(m.text), ps = portionsOf(f), pi = portionFor(ps, a.unit);
       m.item = itemFrom(f, a.qty || 1, ps[pi >= 0 ? pi : startPortion(f, ps)], meal); fixed.set(m.text, m); return draw(); }

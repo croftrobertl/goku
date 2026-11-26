@@ -28,6 +28,7 @@ import { duelCard } from './duel.js';
 import { milestones, ballsCard, newBallsCard, bindBalls, wishCard, bindWish } from './milestones.js';
 import { whyBtn } from './why.js';
 import { compareCard, feelGrid } from './compare.js';
+import { choices } from './coach.js';
 
 export const tabs = p => [['home', 'Home'], ...(trainOff(p) ? [] : [['library', 'Library']]), // no Library on Food Only, or while workouts wait for a doctor's OK (2.18)
   ...(on(p, 'nutrition') ? [['nutrition', 'Nutrition']] : []), ['history', 'History'], ['settings', 'Settings'], ['saga', W('saga'), 'hidden']];
@@ -775,7 +776,7 @@ function editExercise(ex, hist = '') {
         <label class="f"><span>Your bar weighs</span><select id="barw">${(metric(p) ? [20, 15, 10] : [45, 35, 33, 25, 15]).map(v =>
           `<option value="${v}" ${v === weight(barOf(p), p) ? 'selected' : ''}>${v} ${weightUnit(p)}</option>`).join('')}</select></label>
         <p class="lbl" style="margin-top:10px">Plates your gym has</p>
-        <div class="pills">${PLATES[weightUnit(p)].map(v => `<button data-plate="${v}" aria-pressed="${platesOf(p).includes(v)}">${v}</button>`).join('')}</div>
+        ${choices(PLATES[weightUnit(p)].map(v => [String(v), String(v)]), { attr: 'data-plate', sel: platesOf(p).map(String), multi: true, list: true, label: 'Plates your gym has' })}
         ${d.stages.find(s => s.load) ? `<p class="sub" style="margin-top:8px">${esc(plateText(d.stages.find(s => s.load).load, p))}</p>` : ''}</div>` : ''}
       ${hist}`;
   }

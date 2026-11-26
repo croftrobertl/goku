@@ -142,13 +142,17 @@ export const missingEssentials = p => essentials(p).filter(q => !answered(q, p))
 const OPENED = new Set();
 export const closeChoices = () => OPENED.clear();
 export const flipChoice = id => { OPENED.has(id) ? OPENED.delete(id) : OPENED.add(id); };
+export const shutChoice = id => { OPENED.delete(id); };
+export const isOpen = id => OPENED.has(id);
 const gearWhy = v => { const n = MOVES.filter(m => m.equip === v).length; return `${GEAR_WHY[v]}. ${n} exercise${n === 1 ? '' : 's'}.`; };
-export function choices(opts, { id, attr, sel, multi = false, label = '' }) {
+// list: the rows alone, always open (2.31, review 42: sore areas and plates).
+export function choices(opts, { id, attr, sel, multi = false, label = '', list = false }) {
   const on = v => sel.includes(String(v));
   const row = ([v, l], gear) => `<button class="chr${multi ? ' many' : ''}" ${attr}="${esc(v)}" aria-pressed="${on(v)}">${gear ? gearPic(v) : ''}<span class="cht"><b>${esc(l)}</b>${gear ? `<span class="sub">${esc(gearWhy(v))}</span>` : ''}</span><i class="chk" aria-hidden="true"></i></button>`;
   if (id === 'equipment') return `<div class="chl"><button class="chr many" data-fullgym aria-pressed="${opts.every(([v]) => on(v))}"><span class="cht"><b>Full gym</b><span class="sub">Picks everything below</span></span><i class="chk" aria-hidden="true"></i></button></div>`
     + GEAR_GROUPS.map(([title, ks]) => { const list = opts.filter(([v]) => ks.includes(v)).sort((a, b) => ks.indexOf(a[0]) - ks.indexOf(b[0])), n = list.filter(([v]) => on(v)).length, key = id + ':' + title, open = OPENED.has(key);
       return `<div class="chl"><button class="chfold" data-open="${key}" aria-expanded="${open}"><b>${title}</b><span class="sub">${n ? n + ' picked' : list.length + ' kinds'}</span></button>${open ? list.map(o => row(o, true)).join('') : ''}</div>`; }).join('');
+  if (list) return `<div class="chl"${label ? ` role="group" aria-label="${esc(label)}"` : ''}>${opts.map(o => row(o)).join('')}</div>`;
   const open = OPENED.has(id), names = opts.filter(([v]) => on(v)).map(([, l]) => l);
   const text = names.length > 3 ? `${names.slice(0, 2).join(', ')} and ${names.length - 2} more` : names.join(', ') || (multi ? 'None picked. Tap to choose' : 'Tap to choose');
   return `<div class="chl"><button class="chfold field${names.length ? '' : ' empty'}" data-open="${id}" aria-expanded="${open}"${label ? ` aria-label="${esc(label + ': ' + text)}"` : ''}><span>${esc(text)}</span></button>
@@ -156,7 +160,7 @@ export function choices(opts, { id, attr, sel, multi = false, label = '' }) {
 }
 // Redrawing replaces the buttons, so the keyboard's place is put back on the same one.
 export function keepFocus(root, redraw) {
-  const b = document.activeElement, at = root.contains(b) && b.closest('.chl') ? ['data-q', 'data-qm', 'data-sport', 'data-open', 'data-fullgym'].find(k => b.hasAttribute(k)) : null, v = at && b.getAttribute(at), qid = at && b.closest('.q')?.dataset.qid;
+  const b = document.activeElement, at = root.contains(b) && b.closest('.chl') ? [...b.attributes].map(a => a.name).find(k => k.startsWith('data-')) : null, v = at && b.getAttribute(at), qid = at && b.closest('.q')?.dataset.qid;
   redraw();
   if (!at) return;
   const scope = (qid && root.querySelector(`.q[data-qid="${qid}"]`)) || root;

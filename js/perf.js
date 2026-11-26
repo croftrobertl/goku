@@ -6,7 +6,8 @@ import * as db from './db.js';
 import { esc, ask, overlay, stepper, round, guard, toast, dayPicker } from './ui.js';
 import { DOW, addDays, weekStart, weekday, prettyDay, daysBetween } from './time.js';
 import { AREAS } from './validate.js';
-import { coachCard, bindCoach, ageOf } from './coach.js';
+import { musclesReady } from './muscles.js';
+import { coachCard, bindCoach, ageOf, choices } from './coach.js';
 import { fuelCard, timingCard, fuelNowCard } from './fuel.js';
 import { loggedEntries } from './insights.js';
 import { streakCard, recapCard, bindShared, riskCard, restCard, kiGauge } from './homecards.js';
@@ -163,25 +164,20 @@ export async function home() {
 let checkinDay = null;
 export const openCheckin = day => { checkinDay = day; window.goku.go('checkin'); };
 
-const bodyMap = sel => {
-  const z = (area, shape) => shape.replace(/^<(\w+)/, `<$1 class="zone" role="button" tabindex="0" data-area="${area}" aria-label="${area}" aria-pressed="${sel.includes(area)}"`);
-  const decor = 'fill="var(--s1)" stroke="var(--line)" stroke-width="2"';
-  return `<svg class="body-map" viewBox="0 0 240 256" aria-label="Body map. Tap where it's sore.">
-    <text x="60" y="10" text-anchor="middle" font-size="11" fill="var(--tx3)">Front</text>
-    <text x="180" y="10" text-anchor="middle" font-size="11" fill="var(--tx3)">Back</text>
-    <circle cx="60" cy="25" r="13" ${decor}/><rect x="38" y="76" width="44" height="48" rx="10" ${decor}/>
-    <rect x="38" y="151" width="44" height="17" rx="6" ${decor}/><rect x="40" y="194" width="40" height="12" rx="5" ${decor}/>
-    ${z('Neck', '<rect x="45" y="39" width="30" height="15" rx="5"/>')}
-    ${z('Shoulders', '<rect x="20" y="55" width="80" height="19" rx="8"/>')}
-    ${z('Elbows', '<circle cx="15" cy="100" r="12"/>')}${z('Elbows', '<circle cx="105" cy="100" r="12"/>')}
-    ${z('Wrists', '<circle cx="12" cy="134" r="12"/>')}${z('Wrists', '<circle cx="108" cy="134" r="12"/>')}
-    ${z('Hips', '<rect x="34" y="127" width="52" height="22" rx="8"/>')}
-    ${z('Knees', '<rect x="36" y="170" width="48" height="22" rx="8"/>')}
-    ${z('Ankles', '<rect x="36" y="208" width="48" height="18" rx="7"/>')}
-    ${z('Feet', '<rect x="30" y="230" width="60" height="20" rx="8"/>')}
-    <circle cx="180" cy="27" r="13" ${decor}/>
-    ${z('Upper back', '<rect x="150" y="50" width="60" height="44" rx="10"/>')}
-    ${z('Lower back', '<rect x="150" y="98" width="60" height="40" rx="10"/>')}
+// The body map (2.31, review 43): the Library's OpenStax drawing, front and back, with a ring to tap on each area.
+// Without the drawing (offline before it was ever loaded) the list below still works.
+const ZONES = [['Neck', 102, 63, 12, 7], ['Shoulders', 67, 90, 13, 11], ['Shoulders', 138, 90, 13, 11], ['Elbows', 53, 146, 10, 10], ['Elbows', 152, 146, 10, 10],
+  ['Wrists', 33, 174, 10, 8], ['Wrists', 172, 174, 10, 8], ['Hips', 76, 163, 12, 11], ['Hips', 129, 163, 12, 11], ['Knees', 89, 245, 11, 11], ['Knees', 117, 245, 11, 11],
+  ['Ankles', 89, 306, 9, 8], ['Ankles', 117, 306, 9, 8], ['Feet', 88, 330, 11, 8], ['Feet', 118, 330, 11, 8],
+  ['Neck', 316, 56, 13, 8], ['Upper back', 316, 105, 36, 26], ['Lower back', 316, 150, 26, 14]];
+const bodyMap = async sel => {
+  try { await musclesReady(); } catch { return ''; }
+  if (!document.getElementById('musbody')) return '';
+  return `<svg class="body-map sore-map" viewBox="0 0 407 354" aria-label="Body map. Tap where it's sore.">
+    <text x="102" y="10" text-anchor="middle" font-size="11" fill="var(--tx3)">Front</text>
+    <text x="316" y="10" text-anchor="middle" font-size="11" fill="var(--tx3)">Back</text>
+    <use href="#musbody"/>
+    ${ZONES.map(([a, x, y, rx, ry]) => `<ellipse class="zone" role="button" tabindex="0" data-area="${a}" aria-label="${a}" aria-pressed="${sel.includes(a)}" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/>`).join('')}
   </svg>`;
 };
 
@@ -224,9 +220,8 @@ export async function checkinView() {
       </section>
     </div><div>
       <section class="card"><p class="lbl">Anything sore? Tap the map or the list</p>
-        ${bodyMap(c.sore)}
-        <div class="pills" style="margin-top:12px" role="group" aria-label="Sore areas">${AREAS.map(a =>
-          `<button data-sore="${a}" aria-pressed="${c.sore.includes(a)}">${a}</button>`).join('')}</div>
+        ${await bodyMap(c.sore)}
+        ${choices(AREAS.map(a => [a, a]), { attr: 'data-sore', sel: c.sore, multi: true, list: true, label: 'Sore areas' })}
       </section>
       ${care ? `<section class="card"><p class="lbl">Quick health check</p>
         ${yn('archPain', 'Back hurts when you arch?')}

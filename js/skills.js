@@ -3,6 +3,7 @@
 import { entries, saveEntry, deleteEntry, today } from './state.js';
 import { esc, ask, overlay, guard, toast } from './ui.js';
 import { prettyDay } from './time.js';
+import { choices, flipChoice, shutChoice, keepFocus } from './coach.js';
 
 export const EVENTS = [['vault', 'Vault'], ['floor', 'Floor'], ['beam', 'Beam'], ['bars', 'Bars'], ['flex', 'Flexibility'], ['other', 'Other']];
 export const STAGES = ['Learning', 'With spot', 'Solo', 'Competition-ready'];
@@ -73,20 +74,21 @@ export function editSkill(existing = null) {
     ${existing ? '<button class="cta2 danger" id="del" style="width:100%;margin-top:8px">Delete skill</button>' : ''}`, { label: existing ? 'Edit skill' : 'Add a skill' });
   const draw = () => {
     el.querySelector('#f').innerHTML = `<p class="lbl" style="margin-top:8px">Event</p>
-      <div class="pills">${EVENTS.map(([k, n]) => `<button data-ev="${k}" aria-pressed="${d.event === k}">${esc(n)}</button>`).join('')}</div>
+      ${choices(EVENTS, { id: 'sk-ev', attr: 'data-ev', sel: [d.event], label: 'Event' })}
       <label class="f" style="margin-top:16px"><span>Skill name</span><input id="nm" maxlength="40" value="${esc(d.name)}" autocomplete="off" placeholder="Type or dictate"></label>
       ${SUGGEST[d.event].length ? `<div class="pills" style="margin-top:8px">${SUGGEST[d.event].map(n => `<button data-sug="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
       <p class="lbl" style="margin-top:16px">Stage</p>
-      <div class="pills">${stagesFor(d.event).map((n, i) => `<button data-st="${i}" aria-pressed="${d.stage === i}">${esc(n)}</button>`).join('')}</div>
+      ${choices(stagesFor(d.event).map((n, i) => [String(i), n]), { id: 'sk-st', attr: 'data-st', sel: [String(d.stage)], label: 'Stage' })}
       ${d.log?.length ? `<p class="lbl" style="margin-top:16px">History</p><ul class="list">${d.log.slice().reverse().map(l => `<li><span>${stagesFor(d.event)[l.stage]}</span><span class="sub">${prettyDay(l.day)}</span></li>`).join('')}</ul>` : ''}`;
   };
   el.addEventListener('input', e => { if (e.target.id === 'nm') d.name = e.target.value; });
   el.addEventListener('click', guard(async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'x') return close();
-    if (b.dataset.ev) { d.event = b.dataset.ev; return draw(); }
+    if (b.dataset.open) { flipChoice(b.dataset.open); return keepFocus(el, draw); }
+    if (b.dataset.ev) { d.event = b.dataset.ev; shutChoice('sk-ev'); return keepFocus(el, draw); }
     if (b.dataset.sug) { d.name = b.dataset.sug; return draw(); }
-    if (b.dataset.st) { d.stage = +b.dataset.st; return draw(); }
+    if (b.dataset.st) { d.stage = +b.dataset.st; shutChoice('sk-st'); return keepFocus(el, draw); }
     if (b.id === 'save') {
       d.name = d.name.trim().slice(0, 40);
       if (!d.name) return toast('Enter the skill name');
@@ -99,5 +101,5 @@ export function editSkill(existing = null) {
       await deleteEntry(existing.id); close(); window.goku.render();
     }
   }));
-  draw();
+  shutChoice('sk-ev'); shutChoice('sk-st'); draw();
 }

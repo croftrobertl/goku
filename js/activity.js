@@ -5,6 +5,7 @@ import { esc, ask, overlay, guard, toast, dayPicker } from './ui.js';
 import { addDays, prettyDay } from './time.js';
 import { forgetHealthWorkout } from './health.js';
 import { metric } from './units.js';
+import { choices, flipChoice, shutChoice, keepFocus } from './coach.js';
 
 // [id, label, muscle groups it loads, other words people search for (2.13)]
 // Names follow the 2024 Adult Compendium of Physical Activities (pacompendium.com); the muscle groups are Goku's own.
@@ -107,7 +108,7 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
       ${DISTANCE.includes(d.kind) ? `<label class="f" style="margin-top:12px"><span>Distance (optional, ${distUnits(d.kind, profile())})</span><input id="adist" inputmode="decimal" value="${esc(distShown())}"></label>
         <p class="say" id="pace" aria-live="polite" style="text-align:center;margin-top:8px"${pace() ? '' : ' hidden'}>${pace()}</p>` : ''}
       <p class="lbl" style="margin-top:16px">Effort (1 easy, 10 all-out)</p>
-      <div class="pills">${Array.from({ length: 10 }, (_, i) => i + 1).map(v => `<button data-eff="${v}" aria-pressed="${d.effort === v}">${v}</button>`).join('')}</div>`;
+      ${choices(Array.from({ length: 10 }, (_, i) => [String(i + 1), String(i + 1)]), { id: 'act-eff', attr: 'data-eff', sel: [String(d.effort)], label: 'Effort' })}`;
   };
   const sugg = q => { const box = el.querySelector('#asugg'); if (!box) return;
     const hits = q.trim() ? findSports(q) : fill().map(k => ACTIVITIES.find(a => a[0] === k)).filter(Boolean);
@@ -128,7 +129,8 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
     if (b.dataset.dayshift) { const nd = addDays(day, +b.dataset.dayshift); if (nd <= today() && nd >= addDays(today(), -14)) day = nd; return draw(); }
     if (b.dataset.kind) { d.kind = b.dataset.kind; if (b.dataset.name) d.name = b.dataset.name; return draw(); }
     if (b.dataset.min) { d.minutes = +b.dataset.min; return draw(); }
-    if (b.dataset.eff) { d.effort = +b.dataset.eff; return draw(); }
+    if (b.dataset.open) { flipChoice(b.dataset.open); return keepFocus(el, draw); }
+    if (b.dataset.eff) { d.effort = +b.dataset.eff; shutChoice('act-eff'); return keepFocus(el, draw); }
     if (b.id === 'save') {
       // A sport typed but not picked from the suggestions still counts (2.15): the closest match, or its own name.
       const typed = el.querySelector('#asport')?.value.trim() || '';
@@ -149,7 +151,7 @@ export function logActivity(existing = null, onDone = () => window.goku.render()
     }
     if (b.id === 'del' && await ask('Delete this activity?', '', [{ label: 'Delete', value: true, danger: true }])) { await forgetHealthWorkout(existing); await deleteEntry(existing.id); close(); onDone(); }
   }));
-  draw();
+  shutChoice('act-eff'); draw();
 }
 
 export async function editActivityById(id) {
