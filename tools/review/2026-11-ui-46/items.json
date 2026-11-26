@@ -1,0 +1,194 @@
+{
+ "batch": "2026-11-ui-46",
+ "title": "Kid Mode: Last Check Before Publishing",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "Kid mode is built from your picks (2.32.0) and passes its checks. These are the pieces you haven't seen in a picture yet. Every picture is the real built app.\n\nNothing is published until you answer the last card.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "grown",
+   "area": "Grown-ups",
+   "title": "The Grown-Ups Screen",
+   "why": "After the passcode: the prize list you approved, then how hard the push-ups and plank are, and one or two rounds. Lennon starts on wall push-ups and a knee plank, one round. A grown-up moves him up here when it's easy.\n\nIf no passcode is set yet, the first tap on Grown-ups asks a grown-up to make one (6 digits, as the app uses now). The \"Add a passcode later\" link is hidden here, so the grown-up area can't open without one.",
+   "now": [
+    {
+     "img": "lock-create.png",
+     "caption": "First tap: make a passcode"
+    },
+    {
+     "img": "grown-top.png",
+     "caption": "Grown-ups"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "bar",
+   "area": "Grown-ups",
+   "title": "Open the Full App",
+   "why": "Shows the normal app with a bar on top. Back to Kid Mode returns to his screen. Closing the app also returns to kid mode.",
+   "now": [
+    {
+     "img": "grown-bar.png",
+     "caption": "Grown-up mode"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "ninety",
+   "area": "Grown-ups",
+   "title": "90 Days Makes the Row Crowded",
+   "why": "Your note asked for 90 days. It's a new choice on the passcode screen and in Settings, for everyone, and Lennon's tablet starts on 90.\n\nWith five buttons the row is cramped on a phone: \"Always Ask\" no longer fits its button.",
+   "now": [
+    {
+     "img": "settings-90.png",
+     "caption": "Settings, built with five"
+    }
+   ],
+   "options": [
+    {
+     "id": "drop",
+     "label": "A dropdown",
+     "desc": "Like the other choice lists you picked.",
+     "img": "row-drop.png",
+     "rec": true
+    },
+    {
+     "id": "four",
+     "label": "Four buttons, without 1 day",
+     "desc": "Removes a choice.",
+     "img": "row-four.png"
+    },
+    {
+     "id": "five",
+     "label": "Five buttons as built",
+     "desc": "",
+     "img": "row-five.png"
+    }
+   ]
+  },
+  {
+   "id": "workout",
+   "area": "Workout",
+   "title": "Stop and the Plank",
+   "why": "Each move has a Stop for Today link. Stopping ends the workout, and a Dragon Ball needs all 5 stars.\n\nThe plank is held, so the circle starts a 20-second countdown and the star comes at 0.",
+   "now": [
+    {
+     "img": "move-stop.png",
+     "caption": "A move"
+    },
+    {
+     "img": "plank-start.png",
+     "caption": "Plank, before"
+    },
+    {
+     "img": "plank-hold.png",
+     "caption": "Plank, counting down"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "drawings",
+   "area": "Drawings",
+   "title": "The New Drawings",
+   "why": "Your ChatGPT drawings, cut into start and end pictures. They show in kid mode and, for everyone, on wall push-ups, knee push-ups, bodyweight squats, knee planks and planks (adult pictured: the exercise info for knee push-ups).\n\nTwo small differences from the brief: in the curl-up his hands rest on his thighs instead of sliding along the floor, and the star jump starts standing tall instead of crouched.",
+   "now": [
+    {
+     "img": "adult-how.png",
+     "caption": "Exercise info, knee push-up"
+    },
+    {
+     "img": "move-stop.png",
+     "caption": "Kid mode, wall push-up"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use them",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "kid",
+     "label": "Kid mode only",
+     "desc": "Adults keep no picture on these moves."
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Publish 2.32.0?",
+   "why": "Only Lennon's profile changes, plus the passcode choice and the new drawings. Erica's iRob look comes next.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Publish now",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "wait",
+     "label": "Not yet",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}
