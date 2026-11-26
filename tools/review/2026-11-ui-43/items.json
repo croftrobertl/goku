@@ -7,7 +7,7 @@
    "id": "intro",
    "area": "Start here",
    "title": "What's on This Page",
-   "why": "Your notes from the last page:\n\n1. Centered, balanced text, in four parts: choice lists, text fields, card headings, notes\n2. Bloating in with the other symptoms\n3. A more accurate body map\n4. Publishing, together with your picks from the last page\n\nI measured the text that isn't centered today on 40 screens. Two kinds stay as they are on every option here: rows with a name on one side and a number on the other (like Push … 0), and the coach's chat bubbles. Centering them would pull each pair apart.\n\nCentered text is also balanced, so its lines come out about even. That's the rule from review 30.\n\nAll pictures are mock-ups on a test copy, in the Goku look in dark mode. Your new dropdowns and lists from the last page follow whatever you pick for choice lists.",
+   "why": "Your note, asked part by part, plus your other two notes from the last page:\n\n1. Centered, balanced text, in eight parts: choice lists, text fields, card headings, notes, coach chat, the exercise list, folding list headers, and name-and-number rows\n2. Bloating in with the other symptoms\n3. A more accurate body map\n4. Publishing, together with your picks from the last page\n\nI measured the text that isn't centered today on 40 screens; these eight cover it. The other buttons are already centered.\n\nCentered text is also balanced, so its lines come out about even. That's the rule from review 30.\n\nAll pictures are mock-ups on a test copy, in the Goku look in dark mode. Your new dropdowns and lists from the last page follow whatever you pick for choice lists.",
    "options": [
     {
      "id": "ok",
@@ -126,6 +126,114 @@
      "label": "Keep",
      "desc": "",
      "img": "dbz-notes-now.png"
+    }
+   ]
+  },
+  {
+   "id": "chat",
+   "area": "Centering",
+   "title": "Coach Chat: Questions and Answers",
+   "why": "The coach's question bubble and the answer buttons under it, in setup.",
+   "now": [
+    {
+     "img": "dbz-chat-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "center",
+     "label": "Centered",
+     "desc": "",
+     "img": "dbz-chat-E.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-chat-now.png"
+    }
+   ]
+  },
+  {
+   "id": "lib",
+   "area": "Centering",
+   "title": "Exercise List",
+   "why": "Each exercise's name and its steps (like deficit → flat → knees) in the Library, between the picture and the arrow.",
+   "now": [
+    {
+     "img": "dbz-lib-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "center",
+     "label": "Centered",
+     "desc": "",
+     "img": "dbz-lib-F.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-lib-now.png"
+    }
+   ]
+  },
+  {
+   "id": "fold",
+   "area": "Centering",
+   "title": "Folding List Headers",
+   "why": "Lines like For home … 12 kinds. Centered, the name and the count sit together in the middle.",
+   "now": [
+    {
+     "img": "dbz-fold-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "center",
+     "label": "Centered",
+     "desc": "",
+     "img": "dbz-fold-G.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep",
+     "desc": "",
+     "img": "dbz-fold-now.png"
+    }
+   ]
+  },
+  {
+   "id": "rows",
+   "area": "Centering",
+   "title": "Name-and-Number Rows",
+   "why": "Rows with a name on the left and its number on the right, as in Hard Sets This Week, History and Settings. They can't be centered side by side, so each pair would stack, which roughly doubles the length of those cards.",
+   "now": [
+    {
+     "img": "dbz-rows-now.png",
+     "caption": "Now"
+    }
+   ],
+   "options": [
+    {
+     "id": "keep",
+     "label": "Keep side by side",
+     "desc": "",
+     "img": "dbz-rows-now.png",
+     "rec": true
+    },
+    {
+     "id": "stack",
+     "label": "Stack and center",
+     "desc": "",
+     "img": "dbz-rows-H.png"
     }
    ]
   },
