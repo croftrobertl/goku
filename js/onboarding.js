@@ -63,9 +63,9 @@ const withGear = list => list.map(([title, qs]) => [title, qs.map(q => q.id === 
 // The name box's counter (2.8.1) shows only near the 24-character limit.
 const nameCount = name => name.length >= 20 ? `${name.length} / 24` : '';
 
-export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081'];
+export const ACCENTS = ['#5ea4ff', '#b18cff', '#ff7ab8', '#4fd1c5', '#f2c14e', '#ff8a3d', '#7ee081', '#ce2029']; // 2.34 (reviews 51 and 53): fire-engine red, Lennon's favorite
 // Spoken names for the swatches (2.15), so a screen reader says "Blue", not a color code.
-export const ACCENT_NAMES = { '#5ea4ff': 'Blue', '#b18cff': 'Purple', '#ff7ab8': 'Pink', '#4fd1c5': 'Teal', '#f2c14e': 'Gold', '#ff8a3d': 'Orange', '#7ee081': 'Green' };
+export const ACCENT_NAMES = { '#5ea4ff': 'Blue', '#b18cff': 'Purple', '#ff7ab8': 'Pink', '#4fd1c5': 'Teal', '#f2c14e': 'Gold', '#ff8a3d': 'Orange', '#7ee081': 'Green', '#ce2029': 'Red' };
 
 // ---------- Setup for anyone (2.18, review 11) ----------
 // The front door asks what brings you here, in plain goals. "Not sure yet" opens a short chat with the coach.
@@ -93,7 +93,7 @@ const GEAR_SETS = { none: [], home: ['db', 'band'], gym: [...GEAR] };
 const FAMILY = [['rob', 'Rob', ['#0b0f1a', '#5aa2ff', '#f39a1e']], ['erica', 'Erica', ['#1d1b19', '#d9a22b', '#f4e6cf']],
   ['alice', 'Alice', ['#f7f0ff', '#ff8fb1', '#b9a6ff']], ['lennon', 'Lennon', ['#0b0f1a', '#5aa2ff', '#f39a1e']]];
 // Each person's look. Erica's own look and Lennon's kid mode come later; until then Dragon Ball, then they switch over.
-const WHO_SKIN = { rob: 'dbz', erica: 'dbz', alice: 'encore', lennon: 'dbz', else: 'dbz' };
+const WHO_SKIN = { rob: 'dbz', erica: 'weezy', alice: 'encore', lennon: 'dbz', else: 'dbz' };
 // The family's equipment loads with their name (2.29, gear.js). Erica still sees the question, with her list picked.
 const NO_GEAR_Q = new Set(['rob', 'alice', 'lennon']);
 const ABOUT_GOAL = { stronger: 'strength', lose: 'leaner', eat: 'health', move: 'health' };

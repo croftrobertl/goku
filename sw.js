@@ -1,12 +1,13 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.33.0';
+const CACHE_VERSION = '2.34.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './js/app.js', './js/auras.js', './js/db.js', './js/time.js', './js/crypto.js', './js/sync.js', './js/synccrypto.js', './js/syncui.js', './js/ui.js', './js/state.js', './js/validate.js',
   './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/trend.js', './js/weight.js', './js/plan.js', './js/routine.js', './js/kid.js', './js/rewards.js', './js/demo.js', './js/compare.js', './js/skills.js', './js/milestones.js', './js/homelayout.js', './js/duel.js', './js/figure.js', './js/moves.js', './js/gear.js', './js/movepicker.js', './js/foods.js', './js/fuzzy.js', './js/scouter.js', './js/saga.js', './js/calendar.js', './js/muscles.js', './js/supplements.js', './data/interactions.json', './data/everyday.json', './data/restaurants.json', './js/nutrition.js', './js/scan.js', './js/health.js', './js/skins.js', './js/version.js',
   './img/ic/home.png', './img/ic/library.png', './img/ic/week.png', './img/ic/food.png', './img/ic/protein.png', './img/ic/history.png', './img/ic/settings.png', './img/ic/skills.png', './img/ic/you.png', './img/ic/water.png', './img/ic/supplements.png', './img/ic/workout.png', './img/ic/sport.png', './img/ic/rest.png', './img/ic/checkin.png', './img/ic/weigh.png', './img/ic/calories.png',
+  './fonts/cinzel.woff2', './fonts/lora.woff2',
   './icons/apple-touch-icon.png', './icons/favicon-32.png', './icons/favicon-48.png', './icons/favicon-192.png',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
 ];

@@ -1,0 +1,206 @@
+{
+ "batch": "2026-11-ui-50",
+ "title": "Erica's iRob Look",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "Erica's Goku in the look of her iRob app. Every picture is her real Goku screen; only the look changes. Nothing is built yet, and nothing in iRob was changed.\n\nThe pictures in the Weezy look are iRob's own painted icons and Weezy poses, so no new drawings are needed.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "look",
+   "area": "Look",
+   "title": "How Far Should It Go?",
+   "why": "Today Erica has the Dragon Ball look.",
+   "now": [
+    {
+     "img": "now-home.png",
+     "caption": "Today: Dragon Ball"
+    }
+   ],
+   "options": [
+    {
+     "id": "weezy",
+     "label": "The Weezy look",
+     "desc": "iRob's gold-on-charcoal colors and fonts, iRob's painted icons, Weezy as her picture, and gentle words in place of the Dragon Ball ones.",
+     "img": "b-home.png",
+     "rec": true
+    },
+    {
+     "id": "colors",
+     "label": "Colors and fonts only",
+     "desc": "The Dragon Ball words, icons and Scouter stay.",
+     "img": "a-home.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep Dragon Ball",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "words",
+   "area": "Weezy look",
+   "title": "The Words",
+   "why": "Scouter \u2192 Check-in \u00b7 Power level \u2192 Energy \u00b7 Saga \u2192 Journey \u00b7 Arc \u2192 Chapter \u00b7 Boss \u2192 Goal \u00b7 Senzu bean \u2192 cozy day \u00b7 Dragon Balls \u2192 gold hearts \u00b7 Shenron \u2192 Weezy \u00b7 Dragon Ball master \u2192 Weezy's favorite \u00b7 Gravity chamber \u2192 Workout.",
+   "now": [
+    {
+     "img": "b-saga.png",
+     "caption": "Journey and Check-in"
+    },
+    {
+     "img": "b-hearts.png",
+     "caption": "Gold hearts, 3 of 7"
+    },
+    {
+     "img": "b-you.png",
+     "caption": "You"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use these words",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Change some",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "public",
+   "area": "Weezy look",
+   "title": "Weezy's Pictures Would Be Public",
+   "why": "Goku's code is public on GitHub, and iRob's is private. The Weezy look puts about 30 of iRob's painted pictures in Goku: Weezy poses and icons like the cat basket, fork and knife, and gold heart. Anyone who looks at Goku's code could see them. Nothing else from iRob goes in: no chat, music, notes or anything about Erica.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Fine to be public",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Keep them private",
+     "desc": "Then only the colors and fonts can come over."
+    }
+   ]
+  },
+  {
+   "id": "light",
+   "area": "Weezy look",
+   "title": "Light Mode",
+   "why": "iRob has a light version too. Goku follows the phone's light or dark setting.",
+   "now": [
+    {
+     "img": "b-home-light.png",
+     "caption": "Light"
+    }
+   ],
+   "options": [
+    {
+     "id": "phone",
+     "label": "Match the phone",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "dark",
+     "label": "Always dark",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "fonts",
+   "area": "Weezy look",
+   "title": "Fonts",
+   "why": "iRob's fonts: Cinzel for headings and buttons, Lora for text. They're stored in Goku, so they work offline. Numbers in Lora have the old-style shape, as in iRob (the 0 looks like a small o).",
+   "options": [
+    {
+     "id": "both",
+     "label": "Cinzel and Lora, like iRob",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "heads",
+     "label": "Cinzel headings only",
+     "desc": "Regular app font for text and numbers."
+    }
+   ]
+  },
+  {
+   "id": "scale",
+   "area": "Weezy look",
+   "title": "One Missing Icon",
+   "why": "iRob's icon set has no scale for the Weight row, so the mock-up uses a gold coin.",
+   "options": [
+    {
+     "id": "coin",
+     "label": "Use the coin for now",
+     "desc": "I can add a scale to a future ChatGPT brief.",
+     "rec": true
+    },
+    {
+     "id": "brief",
+     "label": "Ask ChatGPT for a scale first",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "who",
+   "area": "Weezy look",
+   "title": "Who Can Pick It",
+   "why": "It's Erica's look. Every look shows in the Look menu.",
+   "options": [
+    {
+     "id": "erica",
+     "label": "Only Erica's profile",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "all",
+     "label": "Anyone, from the Look menu",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Build It?",
+   "why": "After your picks I build it as 2.34.0, run every check, and publish. Erica's phone switches the next time she opens Goku.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Build and publish when checks pass",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "wait",
+     "label": "Not yet",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

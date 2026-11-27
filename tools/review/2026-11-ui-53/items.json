@@ -1,0 +1,67 @@
+{
+ "batch": "2026-11-ui-53",
+ "title": "Lennon's Red",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "red",
+   "area": "Red",
+   "title": "Which Red?",
+   "why": "Your note asked for fire-engine red, like Lightning McQueen. Three deeper reds than the last page, on Lennon's screen. The app picks white or dark button text, whichever is easier to read on the red. In the app the circle is just called Red.",
+   "options": [
+    {
+     "id": "fire",
+     "label": "Fire-engine red",
+     "desc": "Deepest. White text.",
+     "img": "fire-kid.png",
+     "rec": true
+    },
+    {
+     "id": "race",
+     "label": "Race-car red",
+     "desc": "Brighter and more saturated. White text.",
+     "img": "race-kid.png"
+    },
+    {
+     "id": "bright",
+     "label": "Bright red",
+     "desc": "Lightest of the three. Dark text.",
+     "img": "bright-kid.png"
+    }
+   ]
+  },
+  {
+   "id": "full",
+   "area": "Red",
+   "title": "In the Full App",
+   "why": "The same three reds when a grown-up opens the full app.",
+   "now": [
+    {
+     "img": "fire-home.png",
+     "caption": "Fire-engine"
+    },
+    {
+     "img": "race-home.png",
+     "caption": "Race-car"
+    },
+    {
+     "img": "bright-home.png",
+     "caption": "Bright"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Looks right",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  }
+ ]
+}

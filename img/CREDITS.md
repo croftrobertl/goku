@@ -20,3 +20,7 @@ Made for Goku with ChatGPT in 2026, in the style of the Everkinetic drawings, fo
 doesn't cover (wall push-up, knee push-up, curl-up, bodyweight squat, knee plank, plank, star jump, and the
 11 slider, ankle-weight and weighted-vest exercises).
 Which drawing goes with which exercise is set in js/muscles.js (GPT).
+
+## img/weezy/: the Weezy look (2.34)
+Weezy the cat and the painted icons are Rob's own art from his iRob app (made with ChatGPT), used here with his OK.
+fonts/ holds iRob's fonts, Cinzel and Lora (SIL Open Font License 1.1; see fonts/README.txt).

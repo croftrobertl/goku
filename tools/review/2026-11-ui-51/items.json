@@ -1,0 +1,119 @@
+{
+ "batch": "2026-11-ui-51",
+ "title": "Red for Lennon",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "Red for Lennon, his favorite color. Every picture is the real app with red added; nothing is built yet.\n\nToday the color row has blue, purple, pink, teal, gold, orange and green, in setup and in Settings under Theme, Customize this theme.",
+   "now": [
+    {
+     "img": "now-kid.png",
+     "caption": "Lennon's screen today"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "how",
+   "area": "Red",
+   "title": "How Much Red?",
+   "why": "A red color colors the buttons, rings and highlights. A red theme also tints the backgrounds and cards deep crimson.",
+   "options": [
+    {
+     "id": "color",
+     "label": "A red color",
+     "desc": "An eighth circle in the color row, in setup and in Settings.",
+     "img": "a-swatches.png",
+     "rec": true
+    },
+    {
+     "id": "both",
+     "label": "A red color and a red theme",
+     "desc": "Also a \"Red\" theme in the Theme list: bold red and deep crimson.",
+     "img": "b-themes.png"
+    }
+   ]
+  },
+  {
+   "id": "kid",
+   "area": "Red",
+   "title": "On Lennon's Screen",
+   "why": "The same red in both versions. The theme also turns the background deep crimson.",
+   "now": [
+    {
+     "img": "a-kid.png",
+     "caption": "Red color"
+    },
+    {
+     "img": "b-kid.png",
+     "caption": "Red theme"
+    },
+    {
+     "img": "b-home.png",
+     "caption": "Red theme, full app"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "This red is right",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "A different red",
+     "desc": "Say darker or brighter in the notes."
+    }
+   ]
+  },
+  {
+   "id": "lennon",
+   "area": "Red",
+   "title": "Start Lennon on Red?",
+   "why": "His tablet is on blue now.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Switch Lennon to red",
+     "desc": "Once, on his next open. A grown-up can change it in Settings.",
+     "rec": true
+    },
+    {
+     "id": "no",
+     "label": "Leave it; a grown-up picks it",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "When Should It Go Out?",
+   "why": "The Weezy look (2.34.0) waits for ChatGPT's scale icon. Red is small and can go first.",
+   "options": [
+    {
+     "id": "now",
+     "label": "Now, as 2.33.1",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "with",
+     "label": "With the Weezy look in 2.34.0",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

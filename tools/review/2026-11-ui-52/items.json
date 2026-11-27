@@ -1,0 +1,90 @@
+{
+ "batch": "2026-11-ui-52",
+ "title": "The Weezy Look, As Built",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "Why This Page",
+   "why": "I built the Weezy look from your review 50 picks. Those mock-ups didn't load iRob's fonts: the app blocked them, so the pictures showed a plain serif font. These pictures are the real build.\n\nIn the real Cinzel, headings and buttons are in small capitals, as in iRob, because Cinzel has no lowercase letters. Nothing is published.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "fonts",
+   "area": "Fonts",
+   "title": "Headings and Buttons",
+   "why": "Text in the lists and sentences is Lora either way. The bottom bar stays in Lora so Quick Add fits on one line.",
+   "options": [
+    {
+     "id": "cinzel",
+     "label": "Cinzel, like iRob",
+     "desc": "Small capitals.",
+     "img": "cinzel-home.png",
+     "rec": true
+    },
+    {
+     "id": "lora",
+     "label": "Lora, bold",
+     "desc": "Upper and lower case, like the review 50 pictures.",
+     "img": "lora-home.png"
+    }
+   ]
+  },
+  {
+   "id": "wish",
+   "area": "Finale",
+   "title": "The Finale Card",
+   "why": "Weezy rises when all seven gold hearts are gathered. The card takes the iRob colors instead of the Dragon Ball green.",
+   "now": [
+    {
+     "img": "cinzel-wish.png",
+     "caption": "With Cinzel"
+    },
+    {
+     "img": "lora-wish.png",
+     "caption": "With Lora"
+    }
+   ],
+   "options": [
+    {
+     "id": "ok",
+     "label": "Use it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "notes",
+     "label": "Needs changes",
+     "desc": "Type them in the notes."
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "Still Waiting for the Scale",
+   "why": "You picked a ChatGPT scale icon first, so 2.34.0 goes out once that picture is in.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    },
+    {
+     "id": "now",
+     "label": "Publish now with the coin",
+     "desc": "Swap in the scale later."
+    }
+   ]
+  }
+ ]
+}

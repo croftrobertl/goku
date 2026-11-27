@@ -1141,3 +1141,22 @@ input::placeholder, textarea::placeholder { text-align: center; }
 .ed .x { min-width: 44px; min-height: 44px; }
 /* Long sheets scroll instead of squashing their controls (11 prizes made the Grown-ups sheet taller than a phone). */
 #kidgrown .inner > *, #prizeedit .inner > * { flex-shrink: 0; }
+
+/* The Weezy look (2.34, review 50): Erica's iRob app. iRob's fonts, Cinzel for headings and buttons and Lora for text
+   (SIL Open Font License, see fonts/README.txt); a browser only downloads them when this look is on. */
+@font-face { font-family: 'Cinzel'; src: url(../fonts/cinzel.woff2) format('woff2'); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: 'Lora'; src: url(../fonts/lora.woff2) format('woff2'); font-weight: 400 700; font-display: swap; }
+:root[data-skin="weezy"] body, :root[data-skin="weezy"] button, :root[data-skin="weezy"] input, :root[data-skin="weezy"] select, :root[data-skin="weezy"] textarea { font-family: 'Lora', Georgia, 'Times New Roman', serif; }
+:root[data-skin="weezy"] h1, :root[data-skin="weezy"] h2, :root[data-skin="weezy"] .lbl, :root[data-skin="weezy"] .cta, :root[data-skin="weezy"] .cta2,
+:root[data-skin="weezy"] .seg button { font-family: 'Cinzel', Georgia, 'Times New Roman', serif; letter-spacing: .02em; }
+/* The finale card takes the theme's colors too. */
+:root[data-skin="weezy"] .card.wish { background: var(--s1); color: var(--tx); }
+:root[data-skin="weezy"] .card.wish .lbl { color: var(--accent-text, var(--accent)); }
+:root[data-skin="weezy"] .card.wish .card.pick { background: var(--s2); color: var(--tx); }
+:root[data-skin="weezy"] .card.wish .sub { color: var(--tx2); }
+/* The Check-in card takes the theme's colors instead of the scouter's green glass. */
+:root[data-skin="weezy"] .card.scouter { background: var(--s1); color: var(--tx); }
+:root[data-skin="weezy"] .card.scouter .lbl, :root[data-skin="weezy"] .card.scouter h2 { color: var(--tx); }
+:root[data-skin="weezy"] .card.scouter .sub, :root[data-skin="weezy"] .card.scouter .note, :root[data-skin="weezy"] .card.scouter .sm { color: var(--tx2); }
+:root[data-skin="weezy"] .card.scouter .link, :root[data-skin="weezy"] .card.scouter .why { color: var(--accent-text, var(--accent)); }
+:root[data-skin="weezy"] .card.scouter .list li { border-color: var(--line); }

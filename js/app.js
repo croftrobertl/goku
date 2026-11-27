@@ -1,5 +1,5 @@
 // Boot, routing, profile switching, the update bar.
-import { w, W, setSkin, skinOf, art, hasArt } from './skins.js';
+import { w, W, setSkin, skinOf, art, hasArt, SKINS } from './skins.js';
 import { weighIn, weightOn } from './weight.js';
 import { S, loadProfiles, profile, today, KINDS, saveProfile, saveEntry, deleteEntry, kindLabel } from './state.js';
 import * as db from './db.js';
@@ -7,6 +7,11 @@ import { showLock, isUnlocked, watchRelock } from './lock.js';
 import { onboard } from './onboarding.js';
 import { kidOn, grownUp, backToKid, kidHome, ensureKid } from './kid.js';
 import { ensurePrizes } from './rewards.js';
+// 2.34 (review 50): Erica's profile moves to her iRob look once, with Weezy as her picture if she has none. She can change it in Settings.
+const ensureLook = p => { if (p.who !== 'erica' || p.settings.lookSet) return false;
+  Object.assign(p.settings, { skin: 'weezy', theme: 'irob', lookSet: true }); p.accent = '#d9a22b'; if (!p.avatar) p.avatar = { type: 'pet', id: 'weezy' }; return true; };
+// 2.34 (reviews 51 and 53): Lennon's favorite color, fire-engine red, once. A grown-up can change it in Settings.
+const ensureRed = p => { if (p.who !== 'lennon' || p.settings.redSet) return false; p.settings.redSet = true; p.accent = '#ce2029'; return true; };
 import { settingsView, backupAgeDays, youView, openSettingsGroup } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
@@ -186,7 +191,7 @@ async function drawNow() {
   // Transformation stages (2.2): the streak powers the aura up; a wish can make it eternal.
   const days = streakSeen[p.id] || 0;
   // Dragon Ball skin (2.20): the Super Saiyan forms, drawn as flames. Other skins keep the gold and blue rings.
-  const form = hasArt(p) && p.coach?.wish !== 'aura' ? formFor(days) : null;
+  const form = hasArt(p) && SKINS[skinOf(p)].auras !== false && p.coach?.wish !== 'aura' ? formFor(days) : null; // the Weezy look keeps the gold and blue rings
   const [stage, stageName] = p.coach?.wish === 'aura' ? ['st-eternal', 'Eternal aura'] : form ? ['st-form', `${formName(form)} · ${days}-day streak`]
     : days >= 30 ? ['st-blue', `Blue aura · ${days}-day streak`] : days >= 7 ? ['st-gold', `Gold aura · ${days}-day streak`] : ['', days ? `${days}-day streak` : 'Base form'];
   const kid = kidOn(p) && !grownUp(p); // 2.32: Lennon sees only kid mode; Grown-ups opens the rest
@@ -260,7 +265,7 @@ async function open(id) {
     const ok = await showLock(p, { onSwitch: chooseProfile });
     if (!ok) return;
   }
-  if ([addFamilyGear(p), addRoutine(p), ensureKid(p), ensurePrizes(p)].some(Boolean)) await saveProfile(p); // 2.29: the family's equipment; 2.30: Erica's routine; 2.33: the kids' prize list. Each added once to profiles made before it
+  if ([addFamilyGear(p), addRoutine(p), ensureKid(p), ensurePrizes(p), ensureLook(p), ensureRed(p)].some(Boolean)) await saveProfile(p); // 2.29: the family's equipment; 2.30: Erica's routine; 2.33: the kids' prize list. Each added once to profiles made before it
   await render();
   if (p.kind === 'engine') engine.resumeRun();
 }

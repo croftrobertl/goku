@@ -15,6 +15,12 @@ export const SKINS = {
       beanSave: 'Rain check', savedBy: 'saved by a rain check', chamber: 'Rehearsal', enter: 'Take the stage', scouter: 'Soundcheck', readiness: 'Soundcheck and readiness',
       gravity: 'intensity', news: 'Tour news', master: 'Headliner', ball: 'bracelet', balls: 'bracelets', wisher: 'The finale', pickAvatar: 'Pick your look',
       bossBeat: 'Showstopper nailed', energyQ: 'How much energy do you have today?' } },
+  // 2.34 (review 50): Erica's iRob look. Weezy the cat and iRob's painted icons (Rob's own art from iRob), gold hearts.
+  weezy: { name: 'Weezy', desc: 'Weezy the cat, warm gold and gold hearts', theme: 'irob', avatars: 'weezy', mascot: 'star', art: 'img/weezy', auras: false, dots: ['#1d1b19', '#d9a22b', '#ece6dd'],
+    words: { ki: 'Progress', kiMenu: 'Quick Add', power: 'Energy', saga: 'Journey', sagaMap: 'Journey map', arc: 'Chapter', boss: 'Goal', bean: 'cozy day', beans: 'cozy days',
+      beanSave: 'Cozy day', savedBy: 'saved by a cozy day', chamber: 'Workout', enter: 'Start workout', scouter: 'Check-in', readiness: 'Check-in and readiness',
+      gravity: 'intensity', news: 'Heart news', master: "Weezy's favorite", ball: 'gold heart', balls: 'gold hearts', wisher: 'Weezy', pickAvatar: 'Pick your look',
+      bossBeat: 'Goal reached', energyQ: 'How much energy do you have today?' } },
   plain: { name: 'Plain', desc: 'Plain words, no theme', theme: null, avatars: 'plain', mascot: 'none', dots: ['#ffffff', '#5c6370', '#141414'],
     words: { ki: 'Progress', kiMenu: 'Quick menu', power: 'Score', saga: 'Goals', sagaMap: 'Goal plan', arc: 'Block', boss: 'Goal', bean: 'streak saver', beans: 'streak savers',
       beanSave: 'Streak save', savedBy: 'saved by a streak saver', chamber: 'Workout', enter: 'Start workout', scouter: 'Readiness', readiness: 'Readiness',
@@ -24,7 +30,7 @@ export const SKINS = {
 
 let cur = 'dbz';
 export const skinOf = p => SKINS[p?.settings?.skin] ? p.settings.skin : 'dbz';
-export function setSkin(id) { cur = SKINS[id] ? id : 'dbz'; document.documentElement.dataset.skin = cur; if (cur === 'encore') warm(); }
+export function setSkin(id) { cur = SKINS[id] ? id : 'dbz'; document.documentElement.dataset.skin = cur; if (cur === 'encore' || cur === 'weezy') warm(cur); }
 export const skin = () => SKINS[cur];
 export const skinId = () => cur;
 // Drawn art (2.28): Dragon Ball's in img/, the Eras look's in img/eras/ with the same file names. Plain has none.
@@ -36,11 +42,14 @@ const ERAS_FILES = [...['wave', 'coach', 'cheer', 'think', 'letstrain', 'yougott
   ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => [`balls/lit-${n}`, `balls/dim-${n}`]), ...['ss1', 'ss2', 'ss3', 'god', 'blue', 'ui'].map(n => `aura/${n}`),
   ...['buzz', 'buzz-sleep', 'debut', 'fearless', 'speaknow', 'red', '1989', 'reputation', 'lover', 'folklore', 'evermore', 'midnights', 'ttpd', 'showgirl', 'cat-grey', 'cat-ragdoll', 'mic', 'bracelet', 'thirteen'].map(n => `char/${n}`),
   ...['home', 'workout', 'week', 'food', 'water', 'protein', 'calories', 'checkin', 'history', 'library', 'rest', 'settings', 'skills', 'sport', 'supplements', 'weigh', 'you'].map(n => `ic/${n}`)];
-let warmed = false;
-function warm() {
-  if (warmed || !('caches' in self) || !navigator.serviceWorker?.controller) return;
-  warmed = true;
-  setTimeout(() => ERAS_FILES.forEach(f => fetch(`img/eras/${f}.png`).catch(() => {})), 3000);
+const WEEZY_FILES = [...['wave', 'coach', 'cheer', 'think', 'letstrain', 'yougotthis', 'protips', 'recharge', 'restday', 'scouter', 'senzu', 'shenron'].map(n => `pose/${n}`),
+  ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => [`balls/lit-${n}`, `balls/dim-${n}`]), 'char/weezy', 'char/weezy-sleep',
+  ...['home', 'workout', 'week', 'food', 'water', 'protein', 'calories', 'checkin', 'history', 'library', 'rest', 'settings', 'skills', 'sport', 'supplements', 'weigh', 'you'].map(n => `ic/${n}`)];
+const warmed = new Set();
+function warm(id) {
+  if (warmed.has(id) || !('caches' in self) || !navigator.serviceWorker?.controller) return;
+  warmed.add(id);
+  setTimeout(() => (id === 'weezy' ? WEEZY_FILES : ERAS_FILES).forEach(f => fetch(`${SKINS[id].art}/${f}.png`).catch(() => {})), 3000);
 }
 // The current skin's word for an idea; Cap() for the start of a sentence.
 export const w = key => SKINS[cur].words[key] ?? SKINS.dbz.words[key];

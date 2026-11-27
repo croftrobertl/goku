@@ -59,6 +59,7 @@ const face = (id, name, px, dir = 'img/char') => `<span class="av av-art av-face
 // The avatar for a profile, sized in pixels. Falls back to the plain initial in the accent color.
 export function avatarHTML(p, px = 36) {
   const a = p.avatar || {};
+  if (a.type === 'pet' && a.id === 'weezy') return face(resting.has(p.id) ? 'weezy-sleep' : 'weezy', 'Weezy', px, 'img/weezy/char'); // 2.34: Weezy naps through a rest day, as Buzz does
   const c = a.type === 'char' && CHARACTERS.find(x => x[0] === a.id);
   if (c && FACES.has(c[0])) return face(c[0] === 'goku' && resting.has(p.id) ? 'gokusleep' : c[0], c[1], px);
   const era = a.type === 'era' && ERAS.find(x => x[0] === a.id); // Buzz naps through a logged rest day
@@ -94,6 +95,8 @@ export function avatarPicker(p) {
   const eras = `<p class="lbl" style="margin-top:12px">Eras</p>
     <div class="avgrid">${ERAS.map(([id, name]) => `<button data-avatar="era:${id}" aria-pressed="${on('era', id)}">
       ${avatarHTML({ ...p, avatar: { type: 'era', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
+  const weezy = `<p class="lbl" style="margin-top:12px">Weezy</p>
+    <div class="avgrid"><button data-avatar="pet:weezy" aria-pressed="${on('pet', 'weezy')}">${avatarHTML({ ...p, avatar: { type: 'pet', id: 'weezy' } }, 44)}<span>Weezy</span></button></div>`;
   const bracelets = `<p class="lbl" style="margin-top:12px">Bracelets</p>
     <div class="avgrid">${BRACELETS.map(([id, name]) => `<button data-avatar="beads:${id}" aria-pressed="${on('beads', id)}">
       ${avatarHTML({ ...p, avatar: { type: 'beads', id } }, 44)}<span>${esc(name)}</span></button>`).join('')}</div>`;
@@ -101,7 +104,7 @@ export function avatarPicker(p) {
   // though a fighter picked before keeps showing as the avatar.
   const dbz = skin().avatars === 'fighters';
   return `<p class="sub">${dbz ? 'Pick a fighter, an aura, or your own photo. Goku is fan-made; Dragon Ball belongs to its creators.' : 'Pick an avatar, an aura, or your own photo.'} Your colors stay with your theme.</p>
-    ${dbz ? fighters + bracelets : skin().avatars === 'eras' ? eras + bracelets : bracelets}
+    ${dbz ? fighters + bracelets : skin().avatars === 'eras' ? eras + bracelets : skin().avatars === 'weezy' ? weezy + bracelets : bracelets}
     <p class="lbl" style="margin-top:12px">Auras</p>
     <div class="avgrid">
       <button data-avatar="initial:" aria-pressed="${on('initial')}">${avatarHTML(self, 44)}<span>Plain</span></button>

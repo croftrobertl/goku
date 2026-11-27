@@ -27,6 +27,10 @@ export const THEMES = {
   tour: { name: 'Pastel tour', desc: 'Lavender, sky blue and pink', accent: '#ff8fb1',
     dark: { bg: '#1c1530', s1: '#261d40', s2: '#30264f', line: '#43376b', tx: '#f7f0ff', tx2: '#cdbfeb', tx3: '#b3a5d6', ok: '#7fe0c0', warn: '#ffd27a', care: '#ff9ab0' },
     light: { bg: '#f7f0ff', s1: '#ffffff', s2: '#efe4ff', line: '#dccdf5', tx: '#3a2a5c', tx2: '#55447a', tx3: '#5c4b82', ok: '#0e6c50', warn: '#8a5a00', care: '#b3261e' } },
+  // 2.34 (review 50): Erica's iRob app, warm gold on charcoal (iRob's own colors).
+  irob: { name: 'iRob', desc: 'Warm gold on charcoal, like iRob', accent: '#d9a22b',
+    dark: { bg: '#1d1b19', s1: '#26231f', s2: '#2f2b26', line: '#3a3530', tx: '#ece6dd', tx2: '#c2b9ad', tx3: '#a89f93', ok: '#7cc48a', warn: '#e0b45a', care: '#f0a08a' },
+    light: { bg: '#f3f2f2', s1: '#ffffff', s2: '#efe4d2', line: '#ddd3c4', tx: '#201f1d', tx2: '#4f4a44', tx3: '#5f5a54', ok: '#33683d', warn: '#7d5411', care: '#a8452f' } },
   eternal: { name: 'Eternal Dragon', desc: 'Emerald and wish gold · unlocked by a wish', accent: '#e9c13b', locked: true,
     dark: { bg: '#04120c', s1: '#0a1f16', s2: '#102a1e', line: '#1b4231', tx: '#eafff3', tx2: '#a8d9be', tx3: '#8cc4a6', ok: '#6fe0b0', warn: '#f2c14e', care: '#ff8f8f' },
     light: { bg: '#f1f9f2', s1: '#ffffff', s2: '#e1f2e5', line: '#c3e2cb', tx: '#0a2416', tx2: '#33604a', tx3: '#3f6a54', ok: '#0f7a52', warn: '#7d5200', care: '#b3261e' } },
