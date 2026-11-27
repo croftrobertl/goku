@@ -1127,3 +1127,17 @@ input::placeholder, textarea::placeholder { text-align: center; }
 .kid .nw { white-space: nowrap; }
 .kidrun .inner { max-width: 480px; }
 #kidgrown input { margin-top: 8px; }
+
+/* Real prizes (2.33, reviews 47 and 48): Alice's encore on her finale card, and the grown-up prize-list editor. */
+.encore { margin-top: 14px; text-align: center; }
+.encore h2 { font-size: 22px; margin: 4px 0 2px; text-wrap: balance; }
+.encore .sub { text-wrap: balance; }
+.encore .chl { text-align: left; }
+.encore .cta { margin-top: 12px; }
+.encore .kprize, .kprize { font-size: 24px; font-weight: 800; margin: 8px 0; text-wrap: balance; text-align: center; }
+.orwish { margin: 18px 0 8px; text-align: center; font-weight: 700; opacity: .85; }
+.ed { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+.ed input { flex: 1; margin: 0; }
+.ed .x { min-width: 44px; min-height: 44px; }
+/* Long sheets scroll instead of squashing their controls (11 prizes made the Grown-ups sheet taller than a phone). */
+#kidgrown .inner > *, #prizeedit .inner > * { flex-shrink: 0; }

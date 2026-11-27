@@ -122,9 +122,25 @@ function cleanKid(k) {
   if (!k || typeof k !== 'object') return undefined;
   const int = (v, lo, hi, d) => Number.isInteger(v) && v >= lo && v <= hi ? v : d;
   const prize = k.prize && typeof k.prize === 'object' ? (typeof k.prize.own === 'string' && k.prize.own.trim() ? { own: k.prize.own.trim().slice(0, 60) }
-    : ['screen', 'park', 'toy', 'movie', 'game'].includes(k.prize.pick) ? { pick: k.prize.pick } : null) : null;
+    : PID.test(k.prize.pick || '') ? { pick: k.prize.pick } : null) : null;
   return { balls: int(k.balls, 0, 7, 0), push: int(k.push, 0, 2, 0), plank: int(k.plank, 0, 1, 0), rounds: int(k.rounds, 1, 2, 1), prize,
     days: Array.isArray(k.days) ? k.days.filter(d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)).slice(-200) : [] };
+}
+
+// The kids' prize list and Alice's encore (2.33).
+const PID = /^[a-z0-9-]{1,40}$/;
+function cleanPrizes(list) {
+  if (!Array.isArray(list)) return undefined;
+  const seen = new Set();
+  const out = list.slice(0, 30).filter(x => x && PID.test(x.id || '') && typeof x.name === 'string' && x.name.trim() && !seen.has(x.id) && seen.add(x.id))
+    .map(x => ({ id: x.id, name: x.name.trim().slice(0, 60), kind: ['treat', 'together', 'outing', 'other'].includes(x.kind) ? x.kind : 'other' }));
+  return out.length ? out : undefined;
+}
+function cleanEncore(e) {
+  if (!e || typeof e !== 'object') return undefined;
+  const c = e.claimed;
+  return { ok: Array.isArray(e.ok) ? [...new Set(e.ok.filter(x => PID.test(x || '')))].slice(0, 30) : [],
+    claimed: c && typeof c.name === 'string' && c.name.trim() && Number.isFinite(c.at) ? { id: PID.test(c.id || '') ? c.id : 'own-0', name: c.name.trim().slice(0, 60), at: c.at } : null };
 }
 
 export function cleanBackup(prof, entries) {
@@ -139,6 +155,7 @@ export function cleanBackup(prof, entries) {
     id: prof.id, kind: prof.kind, name, ...(['rob', 'erica', 'alice', 'lennon', 'else'].includes(prof.who) ? { who: prof.who } : {}), accent: /^#[0-9a-f]{6}$/i.test(prof.accent || '') ? prof.accent : null,
     units: prof.units === 'metric' || prof.units === 'imperial' ? prof.units : undefined, tz: tzOk(prof.tz) ? prof.tz : undefined,
     about: prof.about ? cleanAbout(prof.about) : undefined, coach: cleanCoach(prof.coach), custom: cleanCustom(prof.custom), kid: prof.who === 'lennon' ? cleanKid(prof.kid) : undefined,
+    prizes: ['lennon', 'alice'].includes(prof.who) ? cleanPrizes(prof.prizes) : undefined, encore: prof.who === 'alice' ? cleanEncore(prof.encore) : undefined,
     avatar: 'avatar' in prof ? cleanAvatar(prof.avatar) : undefined,
     dayEndsAt: int(prof.dayEndsAt, 0, 6, 3), createdAt: num(prof.createdAt, 0, 1e14, Date.now()),
     lastBackupAt: num(prof.lastBackupAt, 0, 1e14, 0),

@@ -1,11 +1,11 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.32.0';
+const CACHE_VERSION = '2.33.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './js/app.js', './js/auras.js', './js/db.js', './js/time.js', './js/crypto.js', './js/sync.js', './js/synccrypto.js', './js/syncui.js', './js/ui.js', './js/state.js', './js/validate.js',
-  './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/trend.js', './js/weight.js', './js/plan.js', './js/routine.js', './js/kid.js', './js/demo.js', './js/compare.js', './js/skills.js', './js/milestones.js', './js/homelayout.js', './js/duel.js', './js/figure.js', './js/moves.js', './js/gear.js', './js/movepicker.js', './js/foods.js', './js/fuzzy.js', './js/scouter.js', './js/saga.js', './js/calendar.js', './js/muscles.js', './js/supplements.js', './data/interactions.json', './data/everyday.json', './data/restaurants.json', './js/nutrition.js', './js/scan.js', './js/health.js', './js/skins.js', './js/version.js',
+  './js/lock.js', './js/onboarding.js', './js/engine.js', './js/perf.js', './js/settings.js', './js/devcheck.js', './js/themes.js', './js/units.js', './js/avatar.js', './js/coach.js', './js/fuel.js', './js/activity.js', './js/insights.js', './js/homecards.js', './js/perf-score.js', './js/why.js', './js/trend.js', './js/weight.js', './js/plan.js', './js/routine.js', './js/kid.js', './js/rewards.js', './js/demo.js', './js/compare.js', './js/skills.js', './js/milestones.js', './js/homelayout.js', './js/duel.js', './js/figure.js', './js/moves.js', './js/gear.js', './js/movepicker.js', './js/foods.js', './js/fuzzy.js', './js/scouter.js', './js/saga.js', './js/calendar.js', './js/muscles.js', './js/supplements.js', './data/interactions.json', './data/everyday.json', './data/restaurants.json', './js/nutrition.js', './js/scan.js', './js/health.js', './js/skins.js', './js/version.js',
   './img/ic/home.png', './img/ic/library.png', './img/ic/week.png', './img/ic/food.png', './img/ic/protein.png', './img/ic/history.png', './img/ic/settings.png', './img/ic/skills.png', './img/ic/you.png', './img/ic/water.png', './img/ic/supplements.png', './img/ic/workout.png', './img/ic/sport.png', './img/ic/rest.png', './img/ic/checkin.png', './img/ic/weigh.png', './img/ic/calories.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png', './icons/favicon-48.png', './icons/favicon-192.png',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png',
@@ -29,7 +29,7 @@ const ART_FILES = ['./img/muscles.svg', ...['goku', 'gokusleep', 'vegeta', 'goha
   '0004', '0024', '0025', '0046', '0048', '0061', '0066', '0091', '0092', '0103', '0114', '0116', '0117', '0119', '0123', '0124', '0127', '0138',
   '0142', '0156', '0157', '0181', '0183', '0204', '0205', '0212', '0239', '0282', '0286', '0288']
   .flatMap(n => [`./img/moves/${n}-relaxation.svg`, `./img/moves/${n}-tension.svg`]),
-  ...['wall-pushup', 'knee-pushup', 'curl-up', 'bw-squat', 'knee-plank', 'plank', 'star-jump'].flatMap(n => [`./img/moves/gpt/${n}-start.png`, `./img/moves/gpt/${n}-end.png`])];
+  ...['wall-pushup', 'knee-pushup', 'curl-up', 'bw-squat', 'knee-plank', 'plank', 'star-jump', 'slider-side-lunge', 'slider-climber', 'slider-knee-elbow', 'slider-arm-slide', 'aw-side-leg-lift', 'aw-hip-abduction', 'aw-kickback', 'aw-hamstring-curl', 'vest-walk', 'vest-squat', 'vest-plank'].flatMap(n => [`./img/moves/gpt/${n}-start.png`, `./img/moves/gpt/${n}-end.png`])];
 
 // Each file is fetched with ?v=<version> so GitHub's CDN can't hand back a stale copy
 // from before the release, then stored under its plain address.

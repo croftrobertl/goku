@@ -17,5 +17,6 @@ color the ones an exercise works. Built by tools/build-muscles.py from tools/src
 
 ## img/moves/gpt/*.png: more exercise drawings
 Made for Goku with ChatGPT in 2026, in the style of the Everkinetic drawings, for exercises Everkinetic
-doesn't cover (wall push-up, knee push-up, curl-up, bodyweight squat, knee plank, plank, star jump).
+doesn't cover (wall push-up, knee push-up, curl-up, bodyweight squat, knee plank, plank, star jump, and the
+11 slider, ankle-weight and weighted-vest exercises).
 Which drawing goes with which exercise is set in js/muscles.js (GPT).

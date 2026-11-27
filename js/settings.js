@@ -19,6 +19,7 @@ import { weight, weightUnit, length, lengthUnit } from './units.js';
 import { deviceTZ, TZ, nextDayStart } from './time.js';
 import { parseHealth, saveHealth, RECIPE } from './health.js';
 import { getLink } from './sync.js';
+import { prizesOf, editPrizes } from './rewards.js';
 import { syncCard, syncClick, syncLine } from './syncui.js';
 
 export const SCHEMA_VERSION = 1;
@@ -200,6 +201,7 @@ export async function applyBackup(cur, prof, entries, choice) {
     Object.assign(cur, { name: rest.name, accent: rest.accent || cur.accent, dayEndsAt: rest.dayEndsAt, modules: { ...cur.modules, ...rest.modules },
       units: rest.units || cur.units, tz: rest.tz || cur.tz, custom: rest.custom, about: rest.about || cur.about, coach: rest.about ? rest.coach || cur.coach : cur.coach,
       avatar: rest.avatar === undefined ? cur.avatar : rest.avatar,
+      ...(rest.kid ? { kid: rest.kid } : {}), ...(rest.prizes ? { prizes: rest.prizes } : {}), ...(rest.encore ? { encore: rest.encore } : {}), // 2.33: kid mode and the prize list come back too
       // Duels stay as chosen on this phone, and an older backup without a Home layout keeps this one.
       settings: { ...cur.settings, ...Object.fromEntries(Object.entries(rest.settings).filter(([k, v]) => v !== null && k !== 'duel' && !(['homeOrder', 'homeHidden'].includes(k) && !v.length))) } });
     await saveProfile(cur);
@@ -338,7 +340,7 @@ const GROUPS = [
   ['units', 'Units and Time', /^Units and time$/],
   ['about', 'About You', /^About you$/],
   ['backup', 'Backup and Health', /^(Backup|Cloud Sync|.* link · Apple Health)$/],
-  ['pass', 'Passcode and Profiles', /^(Passcode|Profiles on this phone)$/],
+  ['pass', 'Passcode and Profiles', /^(Passcode|Profiles on this phone|Encore prizes · Grown-ups)$/],
   ['goku', 'About Goku', /^About$/],
 ];
 let openGroup = null, findText = '';
@@ -443,7 +445,24 @@ export async function goalsCard(p) {
   return rows.length ? `<section class="card goals"><p class="lbl">My Goals</p><ul class="list">${rows.join('')}</ul></section>` : '';
 }
 
+// Alice's encore prizes (2.33, reviews 47 and 48): behind a separate grown-up passcode, a grown-up ticks the prizes
+// she may pick at her finale. The ticks are held here until Save; leaving Settings closes the card again.
+let encTicks = null;
+function encoreCard(p) {
+  if (p.who !== 'alice' || !p.encore) return '';
+  const head = `<section class="card"><p class="lbl">Encore prizes · Grown-ups</p>`;
+  if (!encTicks) return `${head}<p class="sub">${esc(p.name)} picks one when she collects all seven ${esc(w('balls'))}. A grown-up approves the list.</p>
+    <button class="cta2" id="encOpen" style="width:100%;margin-top:8px">Open with the grown-up passcode</button></section>`;
+  const c = p.encore.claimed;
+  return `${head}<p class="sub">${esc(p.name)} picks one when she collects all seven ${esc(w('balls'))}. Tick the prizes you approve.</p>
+    ${c ? `<p class="note">${esc(p.name)} claimed ${esc(c.name)} on ${esc(new Date(c.at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }))}.</p>` : ''}
+    ${choices(prizesOf(p).map(x => [x.id, x.name]), { attr: 'data-ga', sel: [...encTicks], multi: true, list: true, label: 'Approved prizes' })}
+    <p style="text-align:center"><button class="link" id="encEdit">Edit the prize list</button></p>
+    <button class="cta" id="encSave" style="margin-top:8px">Save</button></section>`;
+}
+
 async function settingsFull() {
+  if (!document.querySelector('#encSave, #encOpen')) encTicks = null; // coming from another screen asks for the passcode again
   const p = profile();
   const others = S.profiles.filter(x => x.id !== p.id);
   const age = backupAgeDays(p), link = await getLink(p.id);
@@ -530,6 +549,7 @@ async function settingsFull() {
       <button class="cta2" id="health" style="width:100%;margin-top:8px">Import from Health</button>
       <button class="link" id="healthHow" style="width:100%">How to set up the shortcut</button>
     </section>
+    ${encoreCard(p)}
     <section class="card"><p class="lbl">Passcode</p>
       <p class="sub">Remember this phone for</p>
       ${choices([['0', 'Always ask'], ['1', '1 day'], ['7', '1 week'], ['30', '30 days'], ['90', '90 days']], { id: 'rem-set', attr: 'data-rem', sel: [String(p.lock.remember)], label: 'Remember this phone for' })}
@@ -574,6 +594,13 @@ async function settingsFull() {
       root.addEventListener('click', guard(async e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.id.startsWith('sync') && await syncClick(b, p)) return;
+        if (b.id === 'encOpen') { if (await showLock(p, { mode: p.lock.grown?.pin ? 'verify' : 'create', grown: true })) encTicks = new Set(p.encore.ok); window.goku.render(); setTimeout(() => document.querySelector(encTicks ? '[data-ga]' : '#encOpen')?.focus({ preventScroll: true })); return; }
+        if (b.dataset.ga && encTicks) { encTicks.has(b.dataset.ga) ? encTicks.delete(b.dataset.ga) : encTicks.add(b.dataset.ga); b.setAttribute('aria-pressed', String(encTicks.has(b.dataset.ga))); return; }
+        if (b.id === 'encEdit' && encTicks) { if (await editPrizes(p, () => saveProfile(p))) { const ids = new Set(prizesOf(p).map(x => x.id)); encTicks = new Set([...encTicks].filter(x => ids.has(x))); } window.goku.render(); setTimeout(() => document.getElementById('encEdit')?.focus({ preventScroll: true })); return; }
+        if (b.id === 'encSave' && encTicks) {
+          if (!encTicks.size) return toast('Tick at least one prize.');
+          p.encore = { ...p.encore, ok: prizesOf(p).map(x => x.id).filter(x => encTicks.has(x)) }; encTicks = null;
+          await saveProfile(p); toast('Encore prizes saved'); window.goku.render(); return; }
         if (b.dataset.acc) { p.accent = b.dataset.acc; await saveProfile(p); window.goku.render(); }
         else if (b.dataset.skin) {
           // A skin brings its own theme (Encore → Pastel tour); leaving it goes back to the default theme.

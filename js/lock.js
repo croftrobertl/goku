@@ -19,15 +19,18 @@ export const lockNow = p => { p.lock.until = 0; sessionUnlocked.delete(p.id); };
 let active = null; // { id, promise } — never two lock screens at once
 
 // mode: 'unlock' | 'create' | 'verify'. cancellable adds a Cancel button.
+// grown (2.33, review 47): a separate grown-up passcode kept in p.lock.grown, for a profile whose owner knows her own.
+// It stays on this phone (never synced or backed up) and is asked for every time.
 // Resolves true on success, false on Cancel or Switch profile.
-export function showLock(p, { mode, onSwitch, cancellable = false, noLater = false } = {}) {
+export function showLock(p, { mode, onSwitch, cancellable = false, noLater = false, grown = false } = {}) {
   if (active && document.getElementById('lock')) {
     if (active.id === p.id) return active.promise;
     active.end(false);
   }
   let endRef = null;
   const promise = new Promise(resolve => {
-    const L = p.lock;
+    if (grown) { p.lock.grown ||= { pin: null, fails: 0, waitUntil: 0 }; noLater = true; cancellable = true; }
+    const L = grown ? p.lock.grown : p.lock;
     let m = mode || (!L.pin || L.needsNewPin ? 'create' : 'unlock');
     const verifying = m === 'verify';
     if (verifying) m = 'unlock';
@@ -62,11 +65,12 @@ export function showLock(p, { mode, onSwitch, cancellable = false, noLater = fal
         confirm: ['Confirm passcode', 'Enter the same 6 digits again.'],
         unlock: [p.name, verifying ? 'Enter your passcode to confirm' : 'Enter your passcode'],
       }[m];
+      if (grown) t.splice(0, 2, ...{ create: ['Create a grown-up passcode', `Choose 6 digits that ${p.name} doesn't know.`], confirm: t, unlock: ['Grown-ups', 'Enter the grown-up passcode.'] }[m]);
       $('#lt').textContent = t[0]; $('#ls').textContent = t[1];
       el.querySelectorAll('#dots i').forEach((d, i) => d.classList.toggle('on', i < entry.length));
-      $('#rem').style.display = m === 'confirm' || verifying ? 'none' : '';
+      $('#rem').style.display = m === 'confirm' || verifying || grown ? 'none' : '';
       $('#remsel').innerHTML = choices([['0', 'Always ask'], ['1', '1 day'], ['7', '1 week'], ['30', '30 days'], ['90', '90 days']], { id: 'rem-lock', attr: 'data-rem', sel: [String(L.remember)], label: 'Remember this phone for' }); // 2.32 (review 46): a dropdown, since 90 days made five buttons too tight
-      $('#forgot').style.display = m === 'unlock' && !verifying ? '' : 'none';
+      $('#forgot').style.display = m === 'unlock' && (!verifying || grown) ? '' : 'none';
       // Only for the phone's one profile, and only when it has no passcode yet.
       $('#later').hidden = noLater || !(m === 'create' && !L.pin && !L.needsNewPin && S.profiles.length <= 1);
     }
@@ -79,12 +83,14 @@ export function showLock(p, { mode, onSwitch, cancellable = false, noLater = fal
       if (m === 'confirm') {
         if (entry !== first) { m = 'create'; entry = first = ''; draw(); msg("Those didn't match. Start again."); return; }
         const wasReset = L.needsNewPin && L.resetBy ? { by: L.resetBy, at: L.resetAt } : null;
-        L.pin = await hashPin(entry); L.needsNewPin = false; delete L.resetBy; delete L.resetAt; delete L.noPin;
+        L.pin = await hashPin(entry);
+        if (grown) { L.fails = 0; await saveProfile(p); return end(true); }
+        L.needsNewPin = false; delete L.resetBy; delete L.resetAt; delete L.noPin;
         await unlocked();
         if (wasReset) await ask('Your passcode was reset', `It was reset on ${esc(new Date(wasReset.at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }))} from ${esc(wasReset.by)}'s profile. Your data is untouched.`, []);
         return;
       }
-      if (await checkPin(entry, L.pin)) { if (verifying) { L.fails = 0; await saveProfile(p); return end(true); } return unlocked(); }
+      if (await checkPin(entry, L.pin)) { if (verifying || grown) { L.fails = 0; await saveProfile(p); return end(true); } return unlocked(); }
       L.fails = (L.fails || 0) + 1; entry = ''; draw();
       if (L.fails >= MAX_TRIES) { L.fails = 0; L.waitUntil = Date.now() + WAIT_MS; msg('Too many tries. Wait 30 s.'); }
       else msg(`Wrong passcode. ${MAX_TRIES - L.fails} tries before a 30-second wait.`);
@@ -117,6 +123,8 @@ export function showLock(p, { mode, onSwitch, cancellable = false, noLater = fal
       else if (b.id === 'cancel') end(false);
       else if (b.id === 'later') { L.noPin = true; sessionUnlocked.add(p.id); saveProfile(p).then(() => end(true)); }
       else if (b.id === 'sw') { end(false); onSwitch?.(); }
+      // No reset from inside the app: anyone holding the phone could use one to approve their own prizes.
+      else if (b.id === 'forgot' && grown) msg('Ask the grown-up who set it. It can\'t be reset in the app, so the approved prizes stay as they are.');
       else if (b.id === 'forgot') msg(S.profiles.length > 1
         ? 'Ask someone with another profile on this phone to open Settings and tap "Reset passcode" next to your name.'
         : 'With one profile there is no one to reset it. Restore from your latest backup.');

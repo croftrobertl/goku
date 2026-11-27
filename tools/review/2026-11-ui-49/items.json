@@ -1,0 +1,344 @@
+{
+ "batch": "2026-11-ui-49",
+ "title": "The New Equipment Drawings",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "intro",
+   "area": "Start here",
+   "title": "What's on This Page",
+   "why": "ChatGPT drew all 11 exercises. Some came in more than one version, because two of the images repeated moves. Each picture is the real exercise screen with that drawing in it. Nothing in the app has changed yet.\n\nPick one version for each move. I've marked the closest match to the brief, and I say what's off in each.\n\nThe ankle weights are drawn on both ankles, not only on the moving leg. I think that's fine; tell me if not. ChatGPT also drew a weighted vest push-up, which isn't in the app, so I left it out.",
+   "options": [
+    {
+     "id": "ok",
+     "label": "Got it",
+     "desc": "",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "slider-side-lunge",
+   "area": "Sliders",
+   "title": "Slider Side Lunge",
+   "why": "Today this move has no drawing, only the muscle map. One version. The start has a slider under each foot instead of one.",
+   "options": [
+    {
+     "id": "i1",
+     "label": "Use it",
+     "desc": "",
+     "img": "slider-side-lunge-i1.png",
+     "rec": true
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "slider-climber",
+   "area": "Sliders",
+   "title": "Slider Mountain Climber",
+   "why": "Today this move has no drawing, only the muscle map. One version, and it matches the brief.",
+   "options": [
+    {
+     "id": "i1",
+     "label": "Use it",
+     "desc": "",
+     "img": "slider-climber-i1.png",
+     "rec": true
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "slider-knee-elbow",
+   "area": "Sliders",
+   "title": "Slider Plank Knee to Elbow",
+   "why": "Today this move has no drawing, only the muscle map. One version. The knee comes in under the body, not out to the side toward the elbow, so it looks almost the same as the mountain climber.",
+   "options": [
+    {
+     "id": "i1",
+     "label": "Use it anyway",
+     "desc": "Looks like the mountain climber.",
+     "img": "slider-knee-elbow-i1.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me.",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "slider-arm-slide",
+   "area": "Sliders",
+   "title": "Slider Forearm Plank Arm Slide",
+   "why": "Today this move has no drawing, only the muscle map. One version. The feet are together on sliders instead of wide apart; the arm slide itself is right.",
+   "options": [
+    {
+     "id": "i1",
+     "label": "Use it",
+     "desc": "",
+     "img": "slider-arm-slide-i1.png",
+     "rec": true
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "aw-side-leg-lift",
+   "area": "Ankle weights",
+   "title": "Side-Lying Leg Lift",
+   "why": "Today this move has no drawing, only the muscle map.",
+   "options": [
+    {
+     "id": "i2",
+     "label": "Version A",
+     "desc": "Ankle weights, nothing under the feet.",
+     "img": "aw-side-leg-lift-i2.png",
+     "rec": true
+    },
+    {
+     "id": "i3",
+     "label": "Version B",
+     "desc": "Ankle weights, but sliders under the feet.",
+     "img": "aw-side-leg-lift-i3.png"
+    },
+    {
+     "id": "i1",
+     "label": "Version C",
+     "desc": "Sliders under the feet and no ankle weights.",
+     "img": "aw-side-leg-lift-i1.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "aw-hip-abduction",
+   "area": "Ankle weights",
+   "title": "Standing Hip Abduction",
+   "why": "Today this move has no drawing, only the muscle map.",
+   "options": [
+    {
+     "id": "i2",
+     "label": "Version A",
+     "desc": "Matches the brief.",
+     "img": "aw-hip-abduction-i2.png",
+     "rec": true
+    },
+    {
+     "id": "i3",
+     "label": "Version B",
+     "desc": "A slider under the lifted foot.",
+     "img": "aw-hip-abduction-i3.png"
+    },
+    {
+     "id": "i1",
+     "label": "Version C",
+     "desc": "A slider under the lifted foot.",
+     "img": "aw-hip-abduction-i1.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "aw-kickback",
+   "area": "Ankle weights",
+   "title": "Standing Kickback",
+   "why": "Today this move has no drawing, only the muscle map. All three are close to the brief.",
+   "options": [
+    {
+     "id": "i2",
+     "label": "Version A",
+     "desc": "Leg straight back, back upright.",
+     "img": "aw-kickback-i2.png",
+     "rec": true
+    },
+    {
+     "id": "i3",
+     "label": "Version B",
+     "desc": "Leg lifted a little higher.",
+     "img": "aw-kickback-i3.png"
+    },
+    {
+     "id": "i1",
+     "label": "Version C",
+     "desc": "Leg back but lower.",
+     "img": "aw-kickback-i1.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "aw-hamstring-curl",
+   "area": "Ankle weights",
+   "title": "Standing Hamstring Curl",
+   "why": "Today this move has no drawing, only the muscle map. All three are close to the brief.",
+   "options": [
+    {
+     "id": "i2",
+     "label": "Version A",
+     "desc": "",
+     "img": "aw-hamstring-curl-i2.png",
+     "rec": true
+    },
+    {
+     "id": "i3",
+     "label": "Version B",
+     "desc": "",
+     "img": "aw-hamstring-curl-i3.png"
+    },
+    {
+     "id": "i1",
+     "label": "Version C",
+     "desc": "",
+     "img": "aw-hamstring-curl-i1.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "vest-walk",
+   "area": "Weighted vest",
+   "title": "Weighted Vest Walk",
+   "why": "Today this move has no drawing, only the muscle map. The app's safety note says never to wear ankle weights for walking (Harvard Health), so only one version fits.",
+   "options": [
+    {
+     "id": "i3",
+     "label": "Version A",
+     "desc": "Vest only.",
+     "img": "vest-walk-i3.png",
+     "rec": true
+    },
+    {
+     "id": "i2",
+     "label": "Version B",
+     "desc": "Also wears ankle weights.",
+     "img": "vest-walk-i2.png"
+    },
+    {
+     "id": "i4",
+     "label": "Version C",
+     "desc": "Also wears ankle weights.",
+     "img": "vest-walk-i4.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "vest-squat",
+   "area": "Weighted vest",
+   "title": "Weighted Vest Squat",
+   "why": "Today this move has no drawing, only the muscle map.",
+   "options": [
+    {
+     "id": "i3",
+     "label": "Version A",
+     "desc": "Vest only.",
+     "img": "vest-squat-i3.png",
+     "rec": true
+    },
+    {
+     "id": "i2",
+     "label": "Version B",
+     "desc": "An ankle weight on one leg at the start.",
+     "img": "vest-squat-i2.png"
+    },
+    {
+     "id": "i4",
+     "label": "Version C",
+     "desc": "An ankle weight on one leg at the start.",
+     "img": "vest-squat-i4.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "vest-plank",
+   "area": "Weighted vest",
+   "title": "Weighted Vest Plank",
+   "why": "Today this move has no drawing, only the muscle map. A held position, so both pictures are the same.",
+   "options": [
+    {
+     "id": "i4",
+     "label": "Version A",
+     "desc": "Vest only.",
+     "img": "vest-plank-i4.png",
+     "rec": true
+    },
+    {
+     "id": "i2",
+     "label": "Version B",
+     "desc": "Vest only.",
+     "img": "vest-plank-i2.png"
+    },
+    {
+     "id": "i3",
+     "label": "Version C",
+     "desc": "Also wears ankle weights.",
+     "img": "vest-plank-i3.png"
+    },
+    {
+     "id": "redo",
+     "label": "Ask ChatGPT again",
+     "desc": "Say what to change in the notes, or leave it to me."
+    }
+   ]
+  },
+  {
+   "id": "publish",
+   "area": "Last",
+   "title": "When Should These Go Out?",
+   "why": "The drawings you pick go into the app. Any move you send back to ChatGPT keeps the muscle map until the redo comes back.",
+   "options": [
+    {
+     "id": "with",
+     "label": "With the prizes in 2.33.0",
+     "desc": "One release once your review 47 and 48 picks are in.",
+     "rec": true
+    },
+    {
+     "id": "now",
+     "label": "On their own now, as 2.32.1",
+     "desc": ""
+    }
+   ]
+  }
+ ]
+}

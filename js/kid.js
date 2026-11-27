@@ -1,5 +1,6 @@
 // Lennon's kid mode (2.32, reviews 44 and 45). He is 7: five body-weight moves, one round of about 10 minutes,
 // a star for each finished move, one Dragon Ball per finished workout, and a wish (a prize a grown-up picks) at seven.
+// The prize list is shared with Alice's encore (rewards.js, 2.33).
 // Grown-ups reach everything else with the profile's passcode.
 // Sources: KidsHealth "Strength Training" (body-weight moves, close supervision), AAP HealthyChildren "Strength Training"
 // ("Stop lifting at once if pain is felt") and mealtime tips (food is not a reward), FitnessGram curl-up (instead of sit-ups),
@@ -10,6 +11,7 @@ import { artOf } from './muscles.js';
 import { overlay, esc, beep, unlockAudio } from './ui.js';
 import { showLock } from './lock.js';
 import { choices, flipChoice, shutChoice, keepFocus } from './coach.js';
+import { prizesOf, prizeName, editPrizes } from './rewards.js';
 
 export const kidOn = p => p?.who === 'lennon';
 const grown = new Set(); // profiles a grown-up has opened this session (in memory, so a reload is kid mode again)
@@ -27,8 +29,8 @@ const TIP = {
   plank: "Keep your body straight, and don't let your bottom sag.",
   jump: 'Jump up and spread out like a star, then land with your feet together.',
 };
-export const PRIZES = [['screen', '30 minutes of extra screen time'], ['park', 'A trip to the park'], ['toy', 'A small toy'], ['movie', 'A movie night'], ['game', 'A game with a grown-up'], ['own', 'Type your own']];
-const prizeText = k => k?.own || PRIZES.find(([v]) => v === k?.pick)?.[1] || '';
+// The prize list lives in rewards.js (2.33, review 48); a grown-up picks one for the next wish.
+const prizeText = (p, k) => k?.own || prizeName(p, k?.pick);
 
 // Older profiles and new ones both get the same starting point, once.
 export function ensureKid(p) {
@@ -77,7 +79,7 @@ export function kidHome(p) {
 }
 
 function wishHTML(p) {
-  const prize = prizeText(p.kid.prize);
+  const prize = prizeText(p, p.kid.prize);
   return `<img class="kpose" src="${art('pose/shenron.png')}" alt="Shenron rises from the seven Dragon Balls" width="200" height="298">
     <h1>You found all seven! Shenron is here.</h1>
     ${prize ? `<p class="sub">Your wish is:</p><p class="kprize">${esc(prize)}</p><p class="sub">Show this to a grown-up.</p>`
@@ -151,14 +153,13 @@ async function grownUps(p) {
   const ok = await showLock(p, { mode: p.lock.pin ? 'verify' : 'create', cancellable: true, noLater: true });
   if (!ok || !p.lock.pin) return; // "Add a passcode later" doesn't open the grown-up area
   const k = p.kid;
-  const sel = { prize: k.prize?.own ? 'own' : k.prize?.pick || '', push: String(k.push), plank: String(k.plank), rounds: String(k.rounds) };
-  let own = k.prize?.own || '';
+  const sel = { prize: k.prize?.pick || '', push: String(k.push), plank: String(k.plank), rounds: String(k.rounds) };
   const { el, close } = overlay('', { label: 'Grown-ups', id: 'kidgrown' });
   const inner = el.querySelector('.inner');
   const draw = () => { inner.innerHTML = `<h1>Grown-ups</h1>
-    <p class="lbl">Prize for the next wish</p><p class="sub">Lennon sees it only when all seven Dragon Balls are gathered. Please don't use food as a prize.</p>
-    ${choices(PRIZES, { attr: 'data-prize', sel: [sel.prize], list: true, label: 'Prize' })}
-    ${sel.prize === 'own' ? `<input id="kgOwn" maxlength="60" placeholder="Type the prize" aria-label="Prize" value="${esc(own)}">` : ''}
+    <p class="lbl">Prize for the next wish</p><p class="sub">${esc(p.name)} sees it only when all seven Dragon Balls are gathered.</p>
+    ${choices(prizesOf(p).map(x => [x.id, x.name]), { attr: 'data-prize', sel: [sel.prize], list: true, label: 'Prize' })}
+    <p style="text-align:center"><button class="link" id="kgEdit">Edit the prize list</button></p>
     <p class="lbl" style="margin-top:16px">Push-ups</p>${choices([['0', 'Against a wall'], ['1', 'On the knees'], ['2', 'Full push-ups']], { id: 'kpush', attr: 'data-kpush', sel: [sel.push], label: 'Push-ups' })}
     <p class="lbl">Plank</p>${choices([['0', 'On the knees'], ['1', 'On the toes']], { id: 'kplank', attr: 'data-kplank', sel: [sel.plank], label: 'Plank' })}
     <p class="lbl">Rounds</p>${choices([['1', 'One round, about 10 minutes'], ['2', 'Two rounds, about 20 minutes']], { id: 'krounds', attr: 'data-krounds', sel: [sel.rounds], label: 'Rounds' })}
@@ -166,19 +167,19 @@ async function grownUps(p) {
     <button class="cta2" id="kgFull" style="margin-top:10px">Open the full app</button>
     <p style="text-align:center"><button class="link" data-close>Close</button></p>`; };
   draw();
-  el.addEventListener('input', e => { if (e.target.id === 'kgOwn') own = e.target.value; });
   el.addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-close')) return close();
+    if (b.id === 'kgEdit') { if (await editPrizes(p, () => saveProfile(p))) { if (!prizesOf(p).some(x => x.id === sel.prize)) sel.prize = ''; draw(); } inner.querySelector('#kgEdit')?.focus(); return; }
     if (b.dataset.open) { flipChoice(b.dataset.open); return keepFocus(inner, draw); }
     for (const [key, at] of [['prize', 'prize'], ['push', 'kpush'], ['plank', 'kplank'], ['rounds', 'krounds']]) {
       const v = b.dataset[at]; if (v === undefined) continue;
       sel[key] = v; if (key !== 'prize') shutChoice('k' + key);
-      keepFocus(inner, draw); if (key === 'prize' && v === 'own') inner.querySelector('#kgOwn')?.focus();
+      keepFocus(inner, draw);
       return;
     }
     if (b.id === 'kgSave' || b.id === 'kgFull') {
-      const prize = sel.prize === 'own' ? (own.trim() ? { own: own.trim().slice(0, 60) } : null) : sel.prize ? { pick: sel.prize } : null;
+      const prize = sel.prize ? { pick: sel.prize } : null;
       p.kid = { ...p.kid, prize, push: +sel.push, plank: +sel.plank, rounds: +sel.rounds };
       await saveProfile(p);
       if (b.id === 'kgFull') grown.add(p.id);

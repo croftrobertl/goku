@@ -6,6 +6,7 @@ import * as db from './db.js';
 import { showLock, isUnlocked, watchRelock } from './lock.js';
 import { onboard } from './onboarding.js';
 import { kidOn, grownUp, backToKid, kidHome, ensureKid } from './kid.js';
+import { ensurePrizes } from './rewards.js';
 import { settingsView, backupAgeDays, youView, openSettingsGroup } from './settings.js';
 import * as engine from './engine.js';
 import * as perf from './perf.js';
@@ -259,7 +260,7 @@ async function open(id) {
     const ok = await showLock(p, { onSwitch: chooseProfile });
     if (!ok) return;
   }
-  if ([addFamilyGear(p), addRoutine(p), ensureKid(p)].some(Boolean)) await saveProfile(p); // 2.29: the family's equipment; 2.30: Erica's routine. Each added once to profiles made before it
+  if ([addFamilyGear(p), addRoutine(p), ensureKid(p), ensurePrizes(p)].some(Boolean)) await saveProfile(p); // 2.29: the family's equipment; 2.30: Erica's routine; 2.33: the kids' prize list. Each added once to profiles made before it
   await render();
   if (p.kind === 'engine') engine.resumeRun();
 }

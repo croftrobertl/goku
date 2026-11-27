@@ -3,7 +3,9 @@
 import { w, W, skinOf, themeName, art, hasArt } from './skins.js';
 import { THEMES } from './themes.js';
 import { saveProfile, profile } from './state.js';
-import { esc } from './ui.js';
+import { esc, toast } from './ui.js';
+import { choices } from './coach.js';
+import { prizesOf, prizeName, inSentence } from './rewards.js';
 import { weekStart, prettyDay } from './time.js';
 import { streak } from './insights.js';
 import { restAllowance } from './homecards.js';
@@ -113,7 +115,24 @@ export const WISHES = [['theme', 'A new theme', () => `Unlock the ${themeName("e
   ['title', 'A title', '"Dragon Ball master" beside your name.']];
 // The title wish follows the skin ("Headliner" under Encore).
 const wishText = (k, d) => k === 'title' ? `"${W('master')}" beside your name.` : typeof d === 'function' ? d() : d;
+// Alice's encore prize (2.33, reviews 47 and 48): at the finale she picks one real prize from the list a grown-up
+// approved, then still makes her wish in the app. One encore, ever. Her claimed prize stays on Home for 14 days.
+const encoreOn = p => p.who === 'alice' && !!p.encore;
+let encSel = '';
+function encoreHTML(p) {
+  const e = p.encore;
+  if (e.claimed) return `<div class="encore"><p class="lbl">Encore prize</p><p class="kprize">${esc(e.claimed.name)}</p>
+    <p class="sub">Your encore prize is ${esc(inSentence(e.claimed.name))}. Show this to a grown-up.</p></div>`;
+  const ok = prizesOf(p).filter(x => e.ok.includes(x.id));
+  if (!ok.some(x => x.id === encSel)) encSel = '';
+  return `<div class="encore"><h2>Your tour sold out!</h2>${ok.length
+    ? `<p class="sub">Pick your encore prize. A grown-up approved these.</p>${choices(ok.map(x => [x.id, x.name]), { attr: 'data-pz', sel: [encSel], list: true, label: 'Encore prize' })}
+      <button class="cta" id="encClaim">Claim this prize</button>`
+    : '<p class="sub">Ask a grown-up to approve your encore prizes in Settings.</p>'}</div>`;
+}
+const recentClaim = p => encoreOn(p) && p.encore.claimed && Date.now() - p.encore.claimed.at < 14 * 86400000;
 export function wishCard(p, list) {
+  if (p.coach?.wish && recentClaim(p)) return `<section class="card wish">${hasArt(profile()) ? `<img class="shenron" src="${art('pose/shenron.png')}" alt="" width="240" height="240">` : ''}${encoreHTML(p)}</section>`;
   if (p.coach?.wish || list.filter(m => m.earned).length < 7) return '';
   // Shenron rises (2.21, Rob's render) in the Dragon Ball skin; other skins keep the row of charms.
   // The Eras look (2.28): the finale snake rises from the seven bracelets.
@@ -121,10 +140,19 @@ export function wishCard(p, list) {
   return `<section class="card wish"><p class="lbl">All seven ${esc(w('balls'))}</p>
     ${drawn ? `<img class="shenron" src="${art('pose/shenron.png')}" alt="${dbz ? 'Shenron rises from the seven Dragon Balls' : `${esc(W('wisher'))} rises from the seven ${esc(w('balls'))}`}" width="240" height="${dbz ? 358 : 240}">`
       : `<div class="ballrow" style="justify-content:center">${list.map(m => ballSVG(m.stars, true, 32)).join('')}</div>`}
-    <p style="text-align:center;font-weight:700">${esc(W('wisher'))} ${skinOf(profile()) === 'dbz' ? 'appears' : 'is here'}. Make one wish.</p>
+    ${encoreOn(p) ? `${encoreHTML(p)}<p class="orwish">Then make a wish in the app.</p>` : `<p style="text-align:center;font-weight:700">${esc(W('wisher'))} ${skinOf(profile()) === 'dbz' ? 'appears' : 'is here'}. Make one wish.</p>`}
     <div class="moregrid">${WISHES.map(([k, n, d]) => `<button class="card pick" data-wish="${k}"><span><b>${n}</b><br><span class="sub">${esc(wishText(k, d))}</span></span></button>`).join('')}</div></section>`;
 }
 export function bindWish(root, p) {
+  root.querySelectorAll('[data-pz]').forEach(b => b.addEventListener('click', () => {
+    encSel = b.dataset.pz;
+    root.querySelectorAll('[data-pz]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.pz === encSel)));
+  }));
+  root.querySelector('#encClaim')?.addEventListener('click', async () => {
+    if (!encSel) return toast('Pick a prize first.');
+    p.encore = { ...p.encore, claimed: { id: encSel, name: prizeName(p, encSel), at: Date.now() } };
+    encSel = ''; await saveProfile(p); window.goku.render();
+  });
   root.querySelectorAll('[data-wish]').forEach(b => b.addEventListener('click', async () => {
     p.coach = { ...(p.coach || {}), wish: b.dataset.wish };
     if (b.dataset.wish === 'theme') { p.settings.theme = 'eternal'; p.accent = '#e9c13b'; }
