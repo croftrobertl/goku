@@ -1,0 +1,211 @@
+{
+ "batch": "2026-11-ui-54",
+ "title": "Exercise Drawing Redos",
+ "bigPreviews": true,
+ "items": [
+  {
+   "id": "slider-knee-elbow",
+   "area": "Exercise drawings",
+   "title": "Slider Knee to Elbow",
+   "why": "The current drawing looks like a mountain climber. The new one lifts the foot and the knee gets closer to the elbow, but the knee still comes in under the body instead of out to the side. The lifted foot's slider is also missing.",
+   "now": [
+    {
+     "img": "slider-knee-elbow-now.png",
+     "caption": "In the app now"
+    }
+   ],
+   "options": [
+    {
+     "id": "j1",
+     "label": "Use the new drawing",
+     "desc": "Better than now, but not exactly the move.",
+     "img": "slider-knee-elbow-j1.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    },
+    {
+     "id": "again",
+     "label": "Ask ChatGPT again",
+     "desc": "Type what to fix in the notes.",
+     "rec": true
+    }
+   ]
+  },
+  {
+   "id": "curl-up",
+   "area": "Exercise drawings",
+   "title": "Curl-Up",
+   "why": "The current end drawing has the hands on the thighs. In the new one the hands stay on the floor and slide toward the heels, which is how the move is done.",
+   "now": [
+    {
+     "img": "curl-up-now.png",
+     "caption": "In the app now"
+    }
+   ],
+   "options": [
+    {
+     "id": "j1",
+     "label": "Use the new drawing",
+     "desc": "Hands stay on the floor.",
+     "img": "curl-up-j1.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    },
+    {
+     "id": "again",
+     "label": "Ask ChatGPT again",
+     "desc": "Type what to fix in the notes."
+    }
+   ]
+  },
+  {
+   "id": "star-jump",
+   "area": "Exercise drawings",
+   "title": "Star Jump",
+   "why": "The current start drawing stands up straight. The new one starts in a small crouch, ready to jump.",
+   "now": [
+    {
+     "img": "star-jump-now.png",
+     "caption": "In the app now"
+    }
+   ],
+   "options": [
+    {
+     "id": "j1",
+     "label": "Use the new drawing",
+     "desc": "Starts in a crouch.",
+     "img": "star-jump-j1.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    },
+    {
+     "id": "again",
+     "label": "Ask ChatGPT again",
+     "desc": "Type what to fix in the notes."
+    }
+   ]
+  },
+  {
+   "id": "slider-reverse-lunge",
+   "area": "Exercise drawings",
+   "title": "Slider Reverse Lunge",
+   "why": "The app now borrows a lunge drawing with dumbbells and no slider. ChatGPT drew two versions. In A the slider is under the standing foot at the start. In B the back foot is already resting on the slider, which matches the instructions.",
+   "now": [
+    {
+     "img": "slider-reverse-lunge-now.png",
+     "caption": "In the app now"
+    }
+   ],
+   "options": [
+    {
+     "id": "j1",
+     "label": "Version A",
+     "desc": "Slider under the standing foot at the start.",
+     "img": "slider-reverse-lunge-j1.png"
+    },
+    {
+     "id": "j2",
+     "label": "Version B",
+     "desc": "Back foot on the slider from the start.",
+     "img": "slider-reverse-lunge-j2.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    },
+    {
+     "id": "again",
+     "label": "Ask ChatGPT again",
+     "desc": "Type what to fix in the notes."
+    }
+   ]
+  },
+  {
+   "id": "slider-bridge-curl",
+   "area": "Exercise drawings",
+   "title": "Slider Bridge Curl",
+   "why": "The app now borrows a plain bridge drawing with no sliders. Both new versions show the heels on sliders and the legs sliding out. They are almost the same; B's legs end a little higher.",
+   "now": [
+    {
+     "img": "slider-bridge-curl-now.png",
+     "caption": "In the app now"
+    }
+   ],
+   "options": [
+    {
+     "id": "j1",
+     "label": "Version A",
+     "desc": "",
+     "img": "slider-bridge-curl-j1.png",
+     "rec": true
+    },
+    {
+     "id": "j2",
+     "label": "Version B",
+     "desc": "",
+     "img": "slider-bridge-curl-j2.png"
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    },
+    {
+     "id": "again",
+     "label": "Ask ChatGPT again",
+     "desc": "Type what to fix in the notes."
+    }
+   ]
+  },
+  {
+   "id": "vest-reverse-lunge",
+   "area": "Exercise drawings",
+   "title": "Weighted Vest Reverse Lunge",
+   "why": "The app now borrows a lunge drawing with dumbbells and no vest. Both new versions wear the vest, and they are almost the same.",
+   "now": [
+    {
+     "img": "vest-reverse-lunge-now.png",
+     "caption": "In the app now"
+    }
+   ],
+   "options": [
+    {
+     "id": "j1",
+     "label": "Version A",
+     "desc": "",
+     "img": "vest-reverse-lunge-j1.png"
+    },
+    {
+     "id": "j2",
+     "label": "Version B",
+     "desc": "",
+     "img": "vest-reverse-lunge-j2.png",
+     "rec": true
+    },
+    {
+     "id": "keep",
+     "label": "Keep the current drawing",
+     "desc": ""
+    },
+    {
+     "id": "again",
+     "label": "Ask ChatGPT again",
+     "desc": "Type what to fix in the notes."
+    }
+   ]
+  }
+ ]
+}

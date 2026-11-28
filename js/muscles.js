@@ -105,10 +105,9 @@ const ART = {
   'tricep-pushdown': ['0205'], 'cable-curl': ['0212'], 'preacher-curl': ['0239'], 'machine-calf-raise': ['0282'],
   'ab-wheel': ['0286', 'Shown with a barbell; an ab wheel rolls the same way.'], 'cable-crunch': ['0288', 'Shown seated; kneeling works the same way.'],
 };
-Object.assign(ART, { 'slider-reverse-lunge': ['0129', 'Shown holding dumbbells; your back foot slides on a slider.'], 'slider-bridge-curl': ['0109', 'Shown without sliders; one heel slides out and back.'],
-  'vest-reverse-lunge': ['0129', 'Shown holding dumbbells instead of wearing a vest.'] });
 // 2.32 (reviews 45 and 46): drawings made with ChatGPT in the same ink style, for moves Everkinetic doesn't have.
-const GPT = new Set(['wall-pushup', 'knee-pushup', 'curl-up', 'bw-squat', 'knee-plank', 'plank', 'star-jump', 'slider-side-lunge', 'slider-climber', 'slider-knee-elbow', 'slider-arm-slide', 'aw-side-leg-lift', 'aw-hip-abduction', 'aw-kickback', 'aw-hamstring-curl', 'vest-walk', 'vest-squat', 'vest-plank']);
+const GPT = new Set(['wall-pushup', 'knee-pushup', 'curl-up', 'bw-squat', 'knee-plank', 'plank', 'star-jump', 'slider-side-lunge', 'slider-climber', 'slider-knee-elbow', 'slider-arm-slide', 'aw-side-leg-lift', 'aw-hip-abduction', 'aw-kickback', 'aw-hamstring-curl', 'vest-walk', 'vest-squat', 'vest-plank',
+  'slider-reverse-lunge', 'slider-bridge-curl', 'vest-reverse-lunge']); // 2.35 (review 54)
 export const artOf = id => GPT.has(id) ? { start: `img/moves/gpt/${id}-start.png`, end: `img/moves/gpt/${id}-end.png`, note: '' } : ART[id] ? { start: `img/moves/${ART[id][0]}-relaxation.svg`, end: `img/moves/${ART[id][0]}-tension.svg`, note: ART[id][1] || '' } : null;
 export const ART_FILES = [...Object.values(ART).flatMap(([n]) => [`img/moves/${n}-relaxation.svg`, `img/moves/${n}-tension.svg`]), ...[...GPT].flatMap(n => [`img/moves/gpt/${n}-start.png`, `img/moves/gpt/${n}-end.png`])];
 

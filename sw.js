@@ -1,6 +1,6 @@
 // Offline cache. Release with tools/release.sh, which bumps CACHE_VERSION here and
 // VERSION in js/version.js together. The app then offers "Update" and never reloads on its own.
-const CACHE_VERSION = '2.34.0';
+const CACHE_VERSION = '2.35.0';
 const CACHE = 'goku-app-' + CACHE_VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
@@ -30,7 +30,7 @@ const ART_FILES = ['./img/muscles.svg', ...['goku', 'gokusleep', 'vegeta', 'goha
   '0004', '0024', '0025', '0046', '0048', '0061', '0066', '0091', '0092', '0103', '0114', '0116', '0117', '0119', '0123', '0124', '0127', '0138',
   '0142', '0156', '0157', '0181', '0183', '0204', '0205', '0212', '0239', '0282', '0286', '0288']
   .flatMap(n => [`./img/moves/${n}-relaxation.svg`, `./img/moves/${n}-tension.svg`]),
-  ...['wall-pushup', 'knee-pushup', 'curl-up', 'bw-squat', 'knee-plank', 'plank', 'star-jump', 'slider-side-lunge', 'slider-climber', 'slider-knee-elbow', 'slider-arm-slide', 'aw-side-leg-lift', 'aw-hip-abduction', 'aw-kickback', 'aw-hamstring-curl', 'vest-walk', 'vest-squat', 'vest-plank'].flatMap(n => [`./img/moves/gpt/${n}-start.png`, `./img/moves/gpt/${n}-end.png`])];
+  ...['wall-pushup', 'knee-pushup', 'curl-up', 'bw-squat', 'knee-plank', 'plank', 'star-jump', 'slider-side-lunge', 'slider-climber', 'slider-knee-elbow', 'slider-arm-slide', 'aw-side-leg-lift', 'aw-hip-abduction', 'aw-kickback', 'aw-hamstring-curl', 'vest-walk', 'vest-squat', 'vest-plank', 'slider-reverse-lunge', 'slider-bridge-curl', 'vest-reverse-lunge'].flatMap(n => [`./img/moves/gpt/${n}-start.png`, `./img/moves/gpt/${n}-end.png`])];
 
 // Each file is fetched with ?v=<version> so GitHub's CDN can't hand back a stale copy
 // from before the release, then stored under its plain address.
